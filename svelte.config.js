@@ -7,7 +7,8 @@ const config = {
 			fallback: '404.html'
 		}),
 		paths: {
-			base: process.argv.includes('dev') ? '' : '/Ink-Pulse'
+			base: process.argv.includes('dev') ? '' : '/Ink-Pulse',
+			relative: false
 		}
 	}
 };

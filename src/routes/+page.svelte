@@ -15,6 +15,8 @@
     import "chartjs-adapter-date-fns";
     import annotationPlugin from "chartjs-plugin-annotation";
 
+    import { base } from "$app/paths";
+
     Chart.register(
         TimeScale,
         LineController,
@@ -113,7 +115,7 @@
     const fetchData = async (sessionFile) => {
         try {
             const response = await fetch(
-                `/chi2022-coauthor-v1.0/coauthor-json/${sessionFile}.jsonl`,
+                `${base}/chi2022-coauthor-v1.0/coauthor-json/${sessionFile}.jsonl`,
             );
             if (!response.ok) {
                 throw new Error(
@@ -145,7 +147,7 @@
 
     const fetchSessions = async () => {
         try {
-            const response = await fetch("/fine.json");
+            const response = await fetch(`${base}/fine.json`);
             const data = await response.json();
             sessions = data || [];
         } catch (error) {
