@@ -40,7 +40,6 @@
     };
     let textElements = []; // text data
     let chartData = []; // chart data
-    let progressPercentage = 100; // init process bar
     let currentTime = 0;
     let paragraphTime = [];
     let paragraphColor = [];
@@ -50,10 +49,10 @@
     let time0 = null; // process bar's start time
     let time100 = null; // process bar's end time
     let endTime = null; // last paragraph time
-    let show = true;
+    let isOpen = false;
 
-    function close() {
-        show = false;
+    function open2close(){
+        isOpen = !isOpen;
     }
 
     // const fetchData = async () => { // This code is for loading data from api
@@ -570,8 +569,11 @@
 
 <div class="App">
     <header class="App-header">
+        <nav>
+            <a on:click={open2close}>Instruction</a>
+        </nav>
         <div class="container">
-            {#if show}
+            {#if isOpen}
                 <div class="introduction-background">
                     <div class="introduction">
                         <h2>Welcome to the CoAuthor visualization!</h2>
@@ -591,7 +593,7 @@
                             Discover insights into <b>human-AI collaboration</b>
                             and have fun!
                         </p>
-                        <button class="start-button" on:click={close}
+                        <button class="start-button" on:click={open2close}
                             >Start Exploring</button
                         >
                     </div>
@@ -665,6 +667,10 @@
         text-align: center;
     }
 
+    .App {
+        margin: 0px;
+    }
+
     .container {
         display: flex;
         justify-content: space-between;
@@ -673,6 +679,7 @@
         width: 90%;
         max-width: 1200px;
         margin: 0 auto;
+        margin-top: 70px;
     }
 
     .content-box {
@@ -854,4 +861,27 @@
     .start-button:hover {
         background: #86cecb;
     }
+
+    nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: white;
+            padding: 1em 0;
+            margin: 0px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 1;
+            left: 0;
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+    nav a {
+        color: #333;
+        text-decoration: none;
+        margin: 0 1em;
+        font-weight: 500;
+        cursor: pointer;
+    }
+    
 </style>
