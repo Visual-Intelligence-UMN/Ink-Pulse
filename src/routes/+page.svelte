@@ -583,7 +583,7 @@
             {/if}
             <div class="content-box">
                 <div class="dropdown-container">
-                    <h4>Select Session: &nbsp;</h4>
+                    <b>Select Session: &nbsp;</b>
                     <select
                         bind:value={selectedSession}
                         on:change={handleSessionChange}
@@ -595,21 +595,18 @@
                         {/each}
                     </select>
                 </div>
-                <div class="chart-container">
-                    <canvas id="chart" height="300" width="500"></canvas>
-                </div>
+
                 <div class="summary-container">
                     <div class="chart-explanation">
-                        <h3>Chart components</h3>
                         <div>
-                            <span class="triangle-text">▼</span>: user open the
-                            AI suggestion
+                            <span class="triangle-text">▼</span>
+                            user open the AI suggestion
                         </div>
                         <div>
-                            <span class="user-line">●</span> : user writing
+                            <span class="user-line">●</span> user writing
                         </div>
                         <div>
-                            <span class="api-line">●</span> : AI writing
+                            <span class="api-line">●</span> AI writing
                         </div>
                     </div>
                     <div class="session-summary">
@@ -619,6 +616,10 @@
                         <div id="totalDeletions"></div>
                         <div id="totalSuggestions"></div>
                     </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="chart" height="300" width="500"></canvas>
                 </div>
             </div>
             <div class="content-box">
@@ -770,12 +771,12 @@
 
     .chart-explanation {
         padding: 5px;
-        border: 1px solid lightgray;
-        border-radius: 5px;
-        box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.2);
+        /* border: 1px solid lightgray; */
+        /* border-radius: 5px; */
+        /* box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.2); */
         font-family: Poppins, sans-serif;
         font-size: 12px;
-        background-color: #f9f9f9;
+        /* background-color: #f9f9f9; */
         width: 200px;
         line-height: 1.1;
     }
