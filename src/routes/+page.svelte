@@ -416,6 +416,22 @@
             ) {
                 return { x: data.time, y: null };
             }
+            if(
+                index > 0 &&
+                chartData[index - 1].eventSource === "api" &&
+                chartData[index].eventSource === "user"
+            ) {
+                return { x: data.time, y: null };
+            }
+            if (
+                index > 0 &&
+                chartData[index - 1].eventSource === "user" &&
+                chartData[index].eventSource === "user" &&
+                (chartData[index].time - chartData[index - 1].time) > 0.3
+            ) {
+                return { x: data.time, y: null };
+            }
+
             return { x: data.time, y: data.percentage };
         });
 
