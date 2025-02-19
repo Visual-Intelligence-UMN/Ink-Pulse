@@ -55,62 +55,6 @@
         isOpen = !isOpen;
     }
 
-    // const fetchData = async () => { // This code is for loading data from api
-    //   try {
-    //     const response = await fetch(
-    //       `http://127.0.0.1:5000/api/get_data?session_id=${selectedSession}`
-    //     );
-    //     if (!response.ok) {
-    //       throw new Error(`HTTP error! status: ${response.status}`);
-    //     }
-    //     const data = await response.json();
-
-    //     time0 = new Date(data.init_time);
-    //     time100 = new Date(data.end_time);
-    //     time100 = (time100 - time0) / (1000 * 60);
-    //     currentTime = time100;
-    //     const progressElement = document.querySelector("progress");
-    //     if (progressElement) {
-    //       // at first let the max time = end time, the init time = end time
-    //       progressElement.max = time100;
-    //       progressElement.value = currentTime;
-    //     }
-
-    //     dataDict = data;
-    //     handleEvents(data);
-    //   } catch (error) {
-    //     console.error("Error when reading the file:", error);
-    //   }
-    // };
-
-    // const fetchSessions = async () => {
-    //   try {
-    //     const response = await fetch("http://127.0.0.1:5000/api/get_sessions");
-    //     if (!response.ok) {
-    //       throw new Error(`HTTP error! status: ${response.status}`);
-    //     }
-    //     const data = await response.json();
-    //     sessions = data.sessions;
-    //   } catch (error) {
-    //     console.error("Error when fetching sessions:", error);
-    //   }
-    // };
-
-    // const handleSessionChange = (event) => {
-    //   selectedSession = event.target.value;
-    //   // Resetting paragraphTime
-    //   paragraphTime = [];
-    //   paragraphColor = [];
-    //   fetchData().then(() => {
-    //     renderChart();
-    //   });
-    // };
-
-    // onMount(() => {
-    //   fetchSessions();
-    //   fetchData();
-    // });
-
     const fetchData = async (sessionFile) => {
         try {
             const response = await fetch(
@@ -327,6 +271,7 @@
         paragraphTime.push({ time: data.endTime });
         paragraphTime = adjustTime(paragraphTime);
         for (let i = 0; i < paragraphTime.length - 1; i++) {
+            
             const startTime = paragraphTime[i].time;
             const endTime = paragraphTime[i + 1].time;
             const color = generateColor(i);
@@ -434,6 +379,7 @@
             return { x: data.time, y: data.percentage };
         });
 
+        let selectPoint = null;
         chart = new Chart(lineChart, {
             type: "line",
             data: {
@@ -456,6 +402,15 @@
                 interaction: {
                     mode: "nearest",
                     intersect: true,
+                },
+                onClick: (event, chartElements) => {
+                    if (chartElements.length > 0) {
+                        const index = chartElements[0].index;
+                        if (selectPoint !== index) {
+                            selectPoint = index;
+                            chart.update();
+                        }
+                    }
                 },
                 plugins: {
                     legend: {
@@ -505,7 +460,12 @@
                 },
                 elements: {
                     point: {
-                        radius: 1,
+                        radius: (context) => {
+                            if (selectPoint !== null && context.dataIndex === selectPoint) {
+                                return 8;
+                            }
+                            return 1;
+                        },
                         hoverRadius: 8,
                         hoverBackgroundColor: "rgba(255, 99, 132, 0.8)",
                         hoverBorderColor: "rgba(255, 99, 132, 1)",
