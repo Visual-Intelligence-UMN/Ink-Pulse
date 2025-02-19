@@ -520,7 +520,6 @@
                         text: char,
                         textColor: data.currentColor[index],
                     }));
-                progressPercentage = data.percentage;
                 currentTime = data.time;
             }
         });
@@ -530,7 +529,7 @@
 <div class="App">
     <header class="App-header">
         <nav>
-            <a on:click={open2close}>Instruction</a>
+            <a on:click={open2close} href=" ">Instruction</a>
         </nav>
         <div class="container">
             {#if isOpen}
