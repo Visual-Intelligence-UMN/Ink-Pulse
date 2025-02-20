@@ -78,7 +78,6 @@
                 // at first let the max time = end time, the init time = end time
                 progressElement.max = time100;
                 progressElement.value = currentTime;
-                console.log(progressElement.max, progressElement.value);
             }
 
             dataDict = data;
@@ -137,6 +136,7 @@
     // }
 
     function adjustTime(paragraphTime) {
+        // if api insert contain multiple /n, only remain one
         for (let i = 0; i < paragraphTime.length - 1; i++) {
             const current = paragraphTime[i];
             const next = paragraphTime[i + 1];
@@ -160,6 +160,7 @@
         wholeText = wholeText.slice(0, -1);
         chartData = [];
         let firstTime = null;
+        let preEvent = null;
 
         let combinedText = data.info.reduce((acc, event) => {
             if (acc.length === 0) {
@@ -186,10 +187,17 @@
                     for (let i = 0; i < text.length; i++) {
                         acc.push({ text: text[i], textColor: textColor });
                         currentColor.push(textColor);
-                        if (text[i] === "\n") {
+                        if (text.includes("\n") && preEvent.name === "suggestion-open" && eventSource === "api") {
+                            paragraphTime.push({
+                                time: (new Date(preEvent.event_time) - firstTime) / (1000 * 60),
+                                pos: pos + i,
+                            });
+                        }
+                        if (text[i] === "\n" && eventSource === "user") {
                             paragraphTime.push({
                                 time: relativeTime,
                                 pos: pos + i,
+                                text: text[i],
                             });
                         }
                     }
@@ -244,7 +252,7 @@
             endTime = relativeTime;
 
             if (name === "suggestion-open") {
-                // use isSuggestionOpen to filt specific data
+                // use isSuggestionOpen to filter specific data
                 chartData.push({
                     time: relativeTime,
                     percentage: percentage,
@@ -264,6 +272,7 @@
                     currentColor,
                 });
             } // data for each character
+            preEvent = event;
 
             return acc;
         }, []);
@@ -753,19 +762,10 @@
 
     .chart-explanation {
         padding: 5px;
-        /* border: 1px solid lightgray; */
-        /* border-radius: 5px; */
-        /* box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.2); */
         font-family: Poppins, sans-serif;
         font-size: 12px;
-        /* background-color: #f9f9f9; */
         width: 200px;
         line-height: 1.1;
-    }
-
-    .chart-explanation h3 {
-        margin-bottom: 2px;
-        font-size: 12px;
     }
 
     .triangle-text {
