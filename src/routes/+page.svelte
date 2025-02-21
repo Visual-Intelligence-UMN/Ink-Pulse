@@ -135,22 +135,50 @@
     //   return colors[index % colors.length];
     // }
 
-    function adjustTime(paragraphTime) {
-        // if api insert contain multiple /n, only remain one
-        for (let i = 0; i < paragraphTime.length - 1; i++) {
-            const current = paragraphTime[i];
-            const next = paragraphTime[i + 1];
-            if (next.pos === current.pos + 1 || next.pos === current.pos + 2 ||
-                current.time === next.time && next.pos === current.pos) {
-                paragraphTime[i] = {
-                    time: current.time,
-                    pos: current.pos,
-                };
-                paragraphTime.splice(i + 1, 1);
-                i--;
+    function adjustTime(paragraphTime, currentText, chartData) {
+        let wholeText = currentText;
+        let textLength = wholeText.length;
+
+        let newParagraph = [...wholeText.matchAll(/\n/g)].map(match => match.index);
+        let paragraphPercentages = newParagraph.map(pos => (pos / textLength) * 100);
+        let mergeParagraph = [0]
+        for (let i = 0; i < paragraphPercentages.length; i++) {
+            let previous = mergeParagraph[mergeParagraph.length - 1]
+            let current = paragraphPercentages[i]
+            if (current - previous <= 0.05) {
+                mergeParagraph[mergeParagraph.length - 1] = current;
+            }
+            else {
+                mergeParagraph.push(current)
             }
         }
-        return paragraphTime;
+        console.log(mergeParagraph)
+        const getTimeFromPercentage = (percentage, chartData) => {
+            let closest = chartData.reduce((prev, curr) => 
+                Math.abs(curr.percentage - percentage) < Math.abs(prev.percentage - percentage) ? curr : prev
+            );
+            return closest.time;
+        };
+        let newParagraphTime = mergeParagraph.map(percentage => ({
+        time: getTimeFromPercentage(percentage, chartData),
+        pos: Math.round((percentage / 100) * textLength)
+    }));
+    console.log(newParagraphTime)
+        // if api insert contain multiple /n, only remain one
+        // for (let i = 0; i < paragraphTime.length - 1; i++) {
+        //     const current = paragraphTime[i];
+        //     const next = paragraphTime[i + 1];
+        //     if (next.pos === current.pos + 1 || next.pos === current.pos + 2 ||
+        //         current.time === next.time && next.pos === current.pos) {
+        //         paragraphTime[i] = {
+        //             time: current.time,
+        //             pos: current.pos,
+        //         };
+        //         paragraphTime.splice(i + 1, 1);
+        //         i--;
+        //     }
+        // }
+        return newParagraphTime;
     }
 
     const handleEvents = (data) => {
@@ -188,19 +216,19 @@
                     for (let i = 0; i < text.length; i++) {
                         acc.push({ text: text[i], textColor: textColor });
                         currentColor.push(textColor);
-                        if (text.includes("\n") && preEvent.name === "suggestion-open" && eventSource === "api") {
-                            paragraphTime.push({
-                                time: (new Date(preEvent.event_time) - firstTime) / (1000 * 60),
-                                pos: pos + i,
-                            });
-                        }
-                        if (text.includes("\n") && eventSource === "user" && preEvent.text !== "\n") {
-                            paragraphTime.push({
-                                time: relativeTime,
-                                pos: pos + i,
-                                text: text[i],
-                            });
-                        }
+                        // if (text.includes("\n") && preEvent.name === "suggestion-open" && eventSource === "api") {
+                        //     paragraphTime.push({
+                        //         time: (new Date(preEvent.event_time) - firstTime) / (1000 * 60),
+                        //         pos: pos + i,
+                        //     });
+                        // }
+                        // if (text.includes("\n") && eventSource === "user" && preEvent.text !== "\n") {
+                        //     paragraphTime.push({
+                        //         time: relativeTime,
+                        //         pos: pos + i,
+                        //         text: text[i],
+                        //     });
+                        // }
                     }
                 } else {
                     // insert chracter/sentence at the middle of the text
@@ -209,12 +237,12 @@
                         text +
                         currentText.slice(pos);
                     for (let i = 0; i < text.length; i++) {
-                        if (text[i] === "\n") {
-                            paragraphTime.push({
-                                time: relativeTime,
-                                pos: pos + i,
-                            });
-                        }
+                        // if (text[i] === "\n") {
+                        //     paragraphTime.push({
+                        //         time: relativeTime,
+                        //         pos: pos + i,
+                        //     });
+                        // }
                     acc.splice(pos + i, 0, {
                         text: text[i],
                         textColor: textColor,
@@ -230,16 +258,16 @@
                 let index = pos;
                 while (remainingCount > 0 && index < acc.length) {
                     if (acc[index].text.length <= remainingCount) {
-                        if (acc[index].text === "\n") {
-                            paragraphTime = paragraphTime.filter(p => p.pos !== index);
-                        }
+                        // if (acc[index].text === "\n") {
+                        //     paragraphTime = paragraphTime.filter(p => p.pos !== index);
+                        // }
                         remainingCount -= acc[index].text.length;
                         acc.splice(index, 1);
                         currentColor.splice(index, 1);
                     } else {
-                        if (acc[index].text === "\n") {
-                            paragraphTime = paragraphTime.filter(p => p.pos !== index);
-                        }
+                        // if (acc[index].text === "\n") {
+                        //     paragraphTime = paragraphTime.filter(p => p.pos !== index);
+                        // }
                         acc[index].text = acc[index].text.slice(remainingCount);
                         currentColor[index] =
                             currentColor[index].slice(remainingCount);
@@ -277,8 +305,8 @@
             return acc;
         }, []);
 
-        paragraphTime.push({ time: data.endTime });
-        paragraphTime = adjustTime(paragraphTime);
+        // paragraphTime.push({ time: data.endTime });
+        paragraphTime = adjustTime(paragraphTime, currentText, chartData);
         for (let i = 0; i < paragraphTime.length - 1; i++) {
             
             const startTime = paragraphTime[i].time;
