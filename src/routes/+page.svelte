@@ -140,7 +140,8 @@
         for (let i = 0; i < paragraphTime.length - 1; i++) {
             const current = paragraphTime[i];
             const next = paragraphTime[i + 1];
-            if (current.time === next.time && next.pos === current.pos + 1) {
+            if (next.pos === current.pos + 1 || next.pos === current.pos + 2 ||
+                current.time === next.time && next.pos === current.pos) {
                 paragraphTime[i] = {
                     time: current.time,
                     pos: current.pos,
@@ -193,7 +194,7 @@
                                 pos: pos + i,
                             });
                         }
-                        if (text[i] === "\n" && eventSource === "user") {
+                        if (text.includes("\n") && eventSource === "user" && preEvent.text !== "\n") {
                             paragraphTime.push({
                                 time: relativeTime,
                                 pos: pos + i,
@@ -208,17 +209,17 @@
                         text +
                         currentText.slice(pos);
                     for (let i = 0; i < text.length; i++) {
-                        acc.splice(pos + i, 0, {
-                            text: text[i],
-                            textColor: textColor,
-                        });
-                        currentColor.splice(pos + i, 0, textColor);
                         if (text[i] === "\n") {
                             paragraphTime.push({
                                 time: relativeTime,
                                 pos: pos + i,
                             });
                         }
+                    acc.splice(pos + i, 0, {
+                        text: text[i],
+                        textColor: textColor,
+                    });
+                    currentColor.splice(pos + i, 0, textColor);
                     }
                 }
             } else if (name === "text-delete") {
@@ -229,21 +230,20 @@
                 let index = pos;
                 while (remainingCount > 0 && index < acc.length) {
                     if (acc[index].text.length <= remainingCount) {
+                        if (acc[index].text === "\n") {
+                            paragraphTime = paragraphTime.filter(p => p.pos !== index);
+                        }
                         remainingCount -= acc[index].text.length;
                         acc.splice(index, 1);
                         currentColor.splice(index, 1);
-                        if (acc[index].text === "\n") {
-                            paragraphTime.splice(index, 1);
-                        }
                     } else {
+                        if (acc[index].text === "\n") {
+                            paragraphTime = paragraphTime.filter(p => p.pos !== index);
+                        }
                         acc[index].text = acc[index].text.slice(remainingCount);
                         currentColor[index] =
                             currentColor[index].slice(remainingCount);
                         remainingCount = 0;
-                        if (acc[index].text === "\n") {
-                            paragraphTime[index] =
-                                paragraphTime[index].slice(remainingCount);
-                        }
                     }
                 }
             }
@@ -296,7 +296,6 @@
                 drawTime: "beforeDatasetsDraw",
             });
         }
-        console.log("Para Time", paragraphTime);
         combinedText = combinedText.slice(0, -1); // delete last "\n"
         textElements = combinedText;
         chartData = chartData.slice(0, -1); // delete last "\n"
