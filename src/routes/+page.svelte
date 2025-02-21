@@ -145,7 +145,7 @@
         for (let i = 0; i < paragraphPercentages.length; i++) {
             let previous = mergeParagraph[mergeParagraph.length - 1]
             let current = paragraphPercentages[i]
-            if (current - previous <= 0.05) {
+            if (current - previous <= 0.07) {
                 mergeParagraph[mergeParagraph.length - 1] = current;
             }
             else {
