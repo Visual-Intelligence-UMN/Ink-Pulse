@@ -268,7 +268,7 @@
           currentText,
           currentColor,
         });
-      } // data for each character
+      }
       preEvent = event;
 
       return acc;
