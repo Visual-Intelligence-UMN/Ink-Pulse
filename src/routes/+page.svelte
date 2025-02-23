@@ -176,20 +176,6 @@
       pos: Math.round((percentage / 100) * textLength),
     }));
     console.log(newParagraphTime);
-    // if api insert contain multiple /n, only remain one
-    // for (let i = 0; i < paragraphTime.length - 1; i++) {
-    //     const current = paragraphTime[i];
-    //     const next = paragraphTime[i + 1];
-    //     if (next.pos === current.pos + 1 || next.pos === current.pos + 2 ||
-    //         current.time === next.time && next.pos === current.pos) {
-    //         paragraphTime[i] = {
-    //             time: current.time,
-    //             pos: current.pos,
-    //         };
-    //         paragraphTime.splice(i + 1, 1);
-    //         i--;
-    //     }
-    // }
     return newParagraphTime;
   }
 
@@ -228,31 +214,11 @@
           for (let i = 0; i < text.length; i++) {
             acc.push({ text: text[i], textColor: textColor });
             currentColor.push(textColor);
-            // if (text.includes("\n") && preEvent.name === "suggestion-open" && eventSource === "api") {
-            //     paragraphTime.push({
-            //         time: (new Date(preEvent.event_time) - firstTime) / (1000 * 60),
-            //         pos: pos + i,
-            //     });
-            // }
-            // if (text.includes("\n") && eventSource === "user" && preEvent.text !== "\n") {
-            //     paragraphTime.push({
-            //         time: relativeTime,
-            //         pos: pos + i,
-            //         text: text[i],
-            //     });
-            // }
           }
         } else {
-          // insert chracter/sentence at the middle of the text
           currentText =
             currentText.slice(0, pos) + text + currentText.slice(pos);
           for (let i = 0; i < text.length; i++) {
-            // if (text[i] === "\n") {
-            //     paragraphTime.push({
-            //         time: relativeTime,
-            //         pos: pos + i,
-            //     });
-            // }
             acc.splice(pos + i, 0, {
               text: text[i],
               textColor: textColor,
@@ -268,16 +234,10 @@
         let index = pos;
         while (remainingCount > 0 && index < acc.length) {
           if (acc[index].text.length <= remainingCount) {
-            // if (acc[index].text === "\n") {
-            //     paragraphTime = paragraphTime.filter(p => p.pos !== index);
-            // }
             remainingCount -= acc[index].text.length;
             acc.splice(index, 1);
             currentColor.splice(index, 1);
           } else {
-            // if (acc[index].text === "\n") {
-            //     paragraphTime = paragraphTime.filter(p => p.pos !== index);
-            // }
             acc[index].text = acc[index].text.slice(remainingCount);
             currentColor[index] = currentColor[index].slice(remainingCount);
             remainingCount = 0;
@@ -308,14 +268,51 @@
           currentText,
           currentColor,
         });
-      } // data for each character
+      }
       preEvent = event;
 
       return acc;
     }, []);
 
-    // paragraphTime.push({ time: data.endTime });
     paragraphTime = adjustTime(paragraphTime, currentText, chartData);
+
+    const customLabelPlugin = {
+      id: "customLabel",
+      afterDatasetsDraw(chart) {
+        console.log("Custom label plugin is running");
+
+        const ctx = chart.ctx;
+        console.log("Paragraph Color Data:", paragraphColor);
+
+        paragraphColor.forEach((box) => {
+          const { xMin, xMax, yMin, yMax, value } = box;
+
+          if (
+            value &&
+            xMin !== undefined &&
+            xMax !== undefined &&
+            yMin !== undefined &&
+            yMax !== undefined
+          ) {
+            const xPosition =
+              (chart.scales["x"].getPixelForValue(xMin) +
+                chart.scales["x"].getPixelForValue(xMax)) /
+              2;
+
+            const yPosition = chart.scales["y"].getPixelForValue(yMax) - 5;
+
+            ctx.fillStyle = "black";
+            ctx.font = "12px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "bottom";
+
+            ctx.fillText(value, xPosition, yPosition);
+          }
+        });
+      },
+    };
+    Chart.register(customLabelPlugin);
+
     for (let i = 0; i < paragraphTime.length - 1; i++) {
       const startTime = paragraphTime[i].time;
       const endTime = paragraphTime[i + 1].time;
@@ -325,18 +322,20 @@
         xMin: startTime,
         xMax: endTime,
         yMin: -5,
-        yMax: 105,
+        yMax: 100,
         backgroundColor: color,
         borderWidth: 0,
         zIndex: -10,
         drawTime: "beforeDatasetsDraw",
+        value: i + 1,
       });
     }
+
     combinedText = combinedText.slice(0, -1); // delete last "\n"
     textElements = combinedText;
     chartData = chartData.slice(0, -1); // delete last "\n"
     chartData[0].isSuggestionOpen = false; // change the init api insert into false so not show in the chart
-    renderChart();
+    renderChart(); // Ensure this function is correctly updating and re-rendering the chart
     calculateSessionAnalytics(data);
   };
 
