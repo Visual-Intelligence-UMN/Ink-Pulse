@@ -279,10 +279,7 @@
     const customLabelPlugin = {
       id: "customLabel",
       afterDatasetsDraw(chart) {
-        console.log("Custom label plugin is running");
-
         const ctx = chart.ctx;
-        console.log("Paragraph Color Data:", paragraphColor);
 
         paragraphColor.forEach((box) => {
           const { xMin, xMax, yMin, yMax, value } = box;
@@ -332,6 +329,7 @@
     }
 
     combinedText = combinedText.slice(0, -1); // delete last "\n"
+    console.log("I am gayu", combinedText);
     textElements = combinedText;
     chartData = chartData.slice(0, -1); // delete last "\n"
     chartData[0].isSuggestionOpen = false; // change the init api insert into false so not show in the chart
@@ -658,11 +656,42 @@
           <div class="scale" id="scale"></div>
         </div>
         <div class="text-container">
-          {#each textElements as element, index}
-            <span class="text-span" style="color: {element.textColor}"
-              >{element.text}</span
-            >
-          {/each}
+          {#if textElements && textElements.length > 0}
+            {#if textElements[0].text !== "\n"}
+              <span class="text-span" style="color: black; font-weight: bold;">
+                1.
+              </span>
+            {/if}
+            {#each textElements as element, index}
+              {#if element.text === "\n" && index + 1 < textElements.length}
+                <br />
+                {#if index + 1 < textElements.length && textElements[index + 1].text === "\n"}{:else if index > 0 && textElements[index - 1].text === "\n"}
+                  <span
+                    class="text-span"
+                    style="color: black; font-weight: bold;"
+                  >
+                    {(() => {
+                      let count = textElements[0].text !== "\n" ? 1 : 0;
+                      for (let i = 0; i < index; i++) {
+                        if (
+                          textElements[i].text === "\n" &&
+                          i > 0 &&
+                          textElements[i - 1].text === "\n"
+                        ) {
+                          count++;
+                        }
+                      }
+                      return count + 1;
+                    })()}.
+                  </span>
+                {/if}
+              {:else}
+                <span class="text-span" style="color: {element.textColor}">
+                  {element.text}
+                </span>
+              {/if}
+            {/each}
+          {/if}
         </div>
       </div>
     </div>
