@@ -279,6 +279,7 @@
             //     paragraphTime = paragraphTime.filter(p => p.pos !== index);
             // }
             acc[index].text = acc[index].text.slice(remainingCount);
+            acc[index].textColor = acc[index].textColor.slice(remainingCount);
             currentColor[index] = currentColor[index].slice(remainingCount);
             remainingCount = 0;
           }
@@ -683,14 +684,14 @@
     display: block;
     margin: 10px auto;
     padding: 5px 10px;
-    background-color: #007bff;
+    background-color: #137a7f;
     color: white;
     border: none;
     cursor: pointer;
     border-radius: 5px;
   }
   .zoom-reset-btn:hover {
-    background-color: #0056b3;
+    background-color: #86cecb;
   }
 
   .container {
