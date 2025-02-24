@@ -13,11 +13,11 @@
     },
     {
         "text": "You're given the choice of taking the drug or dying.",
-        "source": "api"
+        "source": "user"
     },
     {
         "text": "If you take the drug, there is still a chance of dying due to old age.",
-        "source": "api"
+        "source": "user"
     },
     {
         "text": "If you don't, you'll die anyway.",
@@ -25,7 +25,7 @@
     },
     {
         "text": "You decide to take the drug.",
-        "source": "api"
+        "source": "user"
     },
     {
         "text": "One week after taking the drug, I have survived.",
@@ -41,7 +41,7 @@
     },
     {
         "text": "I set out to find ways to make a difference in the world.",
-        "source": "api"
+        "source": "user"
     },
     {
         "text": "I have decided to use my time to help the world.",
@@ -49,7 +49,7 @@
     },
     {
         "text": "Just then, there's a knock at the door.",
-        "source": "api"
+        "source": "user"
     },
     {
         "text": "I open the door and there is a man standing there.",
@@ -60,59 +60,39 @@
         "source": "user"
     },
     {
-        "text": "\"I don't have an appointment with the government.",
+        "text": "\"I don't have an appointment with the government.\"",
+        "source": "user"
+    },
+    {
+        "text": "\"No,\" the man says.",
+        "source": "user"
+    },
+    {
+        "text": "\"You work there now.\"",
+        "source": "user"
+    },
+    {
+        "text": "\"What?\" I ask.",
         "source": "api"
     },
     {
-        "text": "\"\n\n\"No,\" the man says.",
+        "text": "\"When you took the drug, you consented to 5 years of service. Didn't you read the form?\"",
         "source": "user"
     },
     {
-        "text": "\"You work there now.",
-        "source": "user"
-    },
-    {
-        "text": "\" \n\n\"What?",
-        "source": "user"
-    },
-    {
-        "text": "\" I ask.",
-        "source": "user"
-    },
-    {
-        "text": "\"When you took the drug, you consented to 5 years of service.",
-        "source": "user"
-    },
-    {
-        "text": "Didn't you read the form?",
-        "source": "user"
-    },
-    {
-        "text": "\" \n\n\"I don't remember signing a form.",
-        "source": "user"
-    },
-    {
-        "text": "\"\n\nThe man sighs.",
+        "text": "\"I don't remember signing a form.\"",
         "source": "api"
     },
     {
-        "text": "\"You were given a form when you took the drug.",
-        "source": "api"
-    },
-    {
-        "text": "Look, I don't have time to get into legal stuff with you.",
-        "source": "api"
-    },
-    {
-        "text": "I'm just your driver.",
+        "text": "The man sighs.",
         "source": "user"
     },
     {
-        "text": "We gotta go.",
+        "text": "\"You were given a form when you took the drug. Look, I don't have time to get into legal stuff with you. I'm just your driver. We gotta go.\"",
         "source": "user"
     },
     {
-        "text": "\"\n\nI sighed.",
+        "text": "I sighed.",
         "source": "user"
     },
     {
@@ -128,31 +108,19 @@
         "source": "user"
     },
     {
-        "text": "Once I was buckled in, I asked, \"So, what's my job?",
-        "source": "api"
+        "text": "Once I was buckled in, I asked, \"So, what's my job?\"",
+        "source": "user"
     },
     {
-        "text": "\" \n\nThe man said nothing.",
+        "text": "The man said nothing.",
         "source": "user"
     },
     {
         "text": "He just started the car and drove away.",
-        "source": "api"
-    },
-    {
-        "text": "\"I didn't bring a lunch or anything.",
-        "source": "api"
-    },
-    {
-        "text": "Will there be a cafeteria there?",
         "source": "user"
     },
     {
-        "text": "At work?",
-        "source": "user"
-    },
-    {
-        "text": "\" I asked.",
+        "text": "\"I didn't bring a lunch or anything. Will there be a cafeteria there? At work?\" I asked.",
         "source": "user"
     },
     {
@@ -169,19 +137,19 @@
     },
     {
         "text": "Finally, we arrived at a building.",
-        "source": "api"
+        "source": "user"
     },
     {
         "text": "The man led me inside and we walked down a long hallway.",
-        "source": "api"
+        "source": "user"
     },
     {
         "text": "He stopped at a door and opened it.",
-        "source": "api"
+        "source": "user"
     },
     {
         "text": "When he opened it, I saw a man standing there in a suit.",
-        "source": "api"
+        "source": "user"
     },
     {
         "text": "Not just any man.",
@@ -196,59 +164,27 @@
         "source": "user"
     },
     {
-        "text": "\"And welcome to your first day at work.",
+        "text": "\"And welcome to your first day at work.\"",
         "source": "user"
     },
     {
-        "text": "\" \n\n\"What is my job?",
+        "text": "\"What is my job?\" I asked.",
         "source": "api"
     },
     {
-        "text": "\" I asked.",
+        "text": "\"This is your job. My job.\" he said.",
         "source": "user"
     },
     {
-        "text": "\"This is your job.",
+        "text": "\"You are now the President of the United States.\"",
         "source": "user"
     },
     {
-        "text": "My job.",
+        "text": "\"Why me?\"",
         "source": "user"
     },
     {
-        "text": "\" he said.",
+        "text": "\"You're the only one who can do this job. We chose you out of many. We think you are ready. Welcome aboard, Mrs. President.\"",
         "source": "api"
-    },
-    {
-        "text": "\"You are now the President of the United States.",
-        "source": "api"
-    },
-    {
-        "text": "\"\n\n\"Why me?",
-        "source": "user"
-    },
-    {
-        "text": "\" \n\n\"You're the only one who can do this job.",
-        "source": "api"
-    },
-    {
-        "text": "We chose you out of many.",
-        "source": "api"
-    },
-    {
-        "text": "We think you are ready.",
-        "source": "api"
-    },
-    {
-        "text": "Welcome aboard, Mrs.",
-        "source": "api"
-    },
-    {
-        "text": "President.",
-        "source": "user"
-    },
-    {
-        "text": "\"\n",
-        "source": "user"
     }
 ]

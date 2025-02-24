@@ -17,19 +17,44 @@ def write_json(data, file_path, session):
     print(f"Data written to {new_file_path}")
 
 def split_text(whole_text, sentence_source):
-    sentence_pattern = re.compile(r'([^.!?]*[.!?])\s*')  
-    split_result = sentence_pattern.split(whole_text)
-    split_result = [s for s in split_result if s]
     insert_data = []
+    sentence = ""
     start_index = 0
-    for sentence in split_result:
-        if start_index < len(sentence_source):
-            first_char_source = sentence_source[start_index]
-            insert_data.append({
-                "text": sentence,
-                "source": first_char_source,
-            })
-        start_index += len(sentence)
+    inside_quotes = False  
+    quote_chars = {'"'}  
+
+    for i, char in enumerate(whole_text):
+        sentence += char
+        if char in quote_chars:
+            inside_quotes = not inside_quotes  
+        elif char in ".!?" and not inside_quotes:
+            if i + 1 < len(whole_text) and whole_text[i + 1] in quote_chars:
+                sentence += whole_text[i + 1]
+                i += 1
+                inside_quotes = not inside_quotes
+            if start_index < len(sentence_source):
+                first_char_source = sentence_source[start_index]
+                insert_data.append({
+                    "text": sentence.strip(),
+                    "source": first_char_source,
+                })
+            start_index += len(sentence)
+            sentence = ""
+        elif char == "\n" and not inside_quotes:
+            if sentence.strip():
+                if start_index < len(sentence_source):
+                    first_char_source = sentence_source[start_index]
+                    insert_data.append({
+                        "text": sentence.strip(),
+                        "source": first_char_source,
+                    })
+                start_index += len(sentence)
+                sentence = ""
+    if sentence.strip():
+        insert_data.append({
+            "text": sentence.strip(),
+            "source": sentence_source[start_index] if start_index < len(sentence_source) else "unknown",
+        })
     # print(insert_data)
 
     return insert_data
@@ -40,7 +65,7 @@ def get_sentence(session_id, static_dir):
         extracted_data = {'init_text': [], 'init_time': [], 'json': [], 'text': [], 'info': [], 'end_time': []}
         sentence_source = []
         file_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-v1.0")
-        actual_session = session['session_id']+'.jsonl'
+        actual_session = session['session_id'] + '.jsonl'
         new_file_path = os.path.join(file_path, actual_session)
         with open(new_file_path, 'r', encoding='utf-8') as file:
             for line_number, line in enumerate(file, start=1):
@@ -120,7 +145,7 @@ def get_data(session_id, static_dir):
     for session in session_id:
         extracted_data = {'init_text': [], 'init_time': [], 'json': [], 'text': [], 'info': [], 'end_time': []}
         file_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-v1.0")
-        actual_session = session['session_id']+'.jsonl'
+        actual_session = session['session_id'] + '.jsonl'
         new_file_path = os.path.join(file_path, actual_session)
         with open(new_file_path, 'r', encoding='utf-8') as file:
             for line_number, line in enumerate(file, start=1):
@@ -242,5 +267,6 @@ if __name__ == '__main__':
     static_dir = os.path.dirname(script_dir)
     json_path = os.path.join(static_dir, "fine.json")
     session_id = load_json(json_path)
+    print(len(session_id))
     # get_data(session_id, static_dir)
     get_sentence(session_id, static_dir)

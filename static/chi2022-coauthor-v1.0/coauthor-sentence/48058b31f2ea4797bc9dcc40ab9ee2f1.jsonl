@@ -13,7 +13,7 @@
     },
     {
         "text": "He scans the shelves hoping to find one just like his kids got him last year.",
-        "source": "api"
+        "source": "user"
     },
     {
         "text": "The shelf is full of mugs for dads, and they all say #1.",
@@ -33,7 +33,7 @@
     },
     {
         "text": "He picks up the mug from the shelf and carries it over to the cash register.",
-        "source": "api"
+        "source": "user"
     },
     {
         "text": "He looks at the price tag.",
@@ -41,26 +41,18 @@
     },
     {
         "text": "The clerk tries to scan the mug, but the register makes an alert sound.",
-        "source": "api"
-    },
-    {
-        "text": "The clerk looks at the screen and says, \"Sir, this mug is already registered to another customer.",
         "source": "user"
     },
     {
-        "text": "If you tell me your name, I'd be happy to match you to the right mug.",
-        "source": "api"
-    },
-    {
-        "text": "\" \n\n\"Murray Lowell.",
+        "text": "The clerk looks at the screen and says, \"Sir, this mug is already registered to another customer. If you tell me your name, I'd be happy to match you to the right mug.\"",
         "source": "user"
     },
     {
-        "text": "\" \n\n\"Thank you, sir.",
+        "text": "\"Murray Lowell.\"",
         "source": "user"
     },
     {
-        "text": "\" The clerk spent a moment typing on the computer without saying anything.",
+        "text": "\"Thank you, sir.\" The clerk spent a moment typing on the computer without saying anything.",
         "source": "api"
     },
     {
@@ -68,20 +60,16 @@
         "source": "user"
     },
     {
-        "text": "\"Very good, sir.",
+        "text": "\"Very good, sir. If you'll come with me, I'll show you our available selection.\"",
         "source": "user"
     },
     {
-        "text": "If you'll come with me, I'll show you our available selection.",
-        "source": "user"
-    },
-    {
-        "text": "\" \n\nMurray follows the clerk to the back of the store.",
-        "source": "user"
+        "text": "Murray follows the clerk to the back of the store.",
+        "source": "api"
     },
     {
         "text": "The back room was filled with rows of what looked like dressing rooms, each with a curtain hanging on a rod.",
-        "source": "api"
+        "source": "user"
     },
     {
         "text": "The clerk stopped in front of one of the curtains.",
@@ -89,7 +77,7 @@
     },
     {
         "text": "It said \"#47\" on it.",
-        "source": "api"
+        "source": "user"
     },
     {
         "text": "The clerk pulled the curtain aside and motioned for Murray to step inside.",
@@ -97,7 +85,7 @@
     },
     {
         "text": "Murray pulled aside the curtain, and was astonished to find a small room completely filled with mugs.",
-        "source": "api"
+        "source": "user"
     },
     {
         "text": "Each and every mug was different and unique.",
@@ -120,32 +108,24 @@
         "source": "user"
     },
     {
-        "text": "\"This is your number this year, Mr.",
-        "source": "api"
-    },
-    {
-        "text": "Lowell, and you can choose from any of these.",
+        "text": "\"This is your number this year, Mr. Lowell, and you can choose from any of these.\"",
         "source": "user"
     },
     {
-        "text": "\" \n\n\"But, I want the same one I got last year.",
+        "text": "\"But, I want the same one I got last year. It said #1 Dad.\"",
+        "source": "api"
+    },
+    {
+        "text": "\"I'm sorry, sir, but that mug is already registered to another customer.\"",
+        "source": "api"
+    },
+    {
+        "text": "Murray frowned.",
         "source": "user"
-    },
-    {
-        "text": "It said #1 Dad.",
-        "source": "api"
-    },
-    {
-        "text": "\" \n\n\"I'm sorry, sir, but that mug is already registered to another customer.",
-        "source": "api"
-    },
-    {
-        "text": "\" \n\nMurray frowned.",
-        "source": "api"
     },
     {
         "text": "He looked again at the mugs.",
-        "source": "api"
+        "source": "user"
     },
     {
         "text": "He noticed one that was multicolored and lit up.",
@@ -160,19 +140,11 @@
         "source": "user"
     },
     {
-        "text": "\"Time for something new.",
+        "text": "\"Time for something new. How much?\"",
         "source": "user"
     },
     {
-        "text": "How much?",
-        "source": "user"
-    },
-    {
-        "text": "\" \n\n\"$47.",
-        "source": "user"
-    },
-    {
-        "text": "\"\n",
+        "text": "\"$47.\"",
         "source": "user"
     }
 ]
