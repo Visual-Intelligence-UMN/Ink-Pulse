@@ -1,46 +1,174 @@
 [
-    "Your entire life, you've been told you're deathly allergic to bees.",
-    "You've always had people protecting you from them, be it your mother or a hired hand.",
-    "Today, one slips through and lands on your shoulder.",
-    "You hear a tiny voice say \"Your Majesty, what are your orders?\" You look down and see a tiny bee in a suit and tie.",
-    "You look at the bee and say \"I'm allergic to bees.\" The bee looks at you and says \"I'm sorry, Your Majesty, but I'm afraid I must carry out my orders.\" \"You have been lied to all your life, and you aren't really allergic to bees.\" You are in utter shock.",
-    "Why would the people you trust lie to you about something like this?",
-    "You look at the bee and say \"What do you mean I'm not allergic to bees?\" The bee looks at you and says \"You are the queen of bees, Your Majesty.\"\n\nThis seems so impossible.",
-    "The queen of bees?",
-    "But you are a person, right.",
-    "You look at the tiny figure and ask him to explain.",
-    "The bee says that you were found when you were very little by a family that took you in.",
-    "You had been born a bee, and were a bee when you were found.",
-    "Over time, however, as the human family nursed you to health, you became more and more human.",
-    "By the time you had reached 2 years of age, you were completely in human form.",
-    "You had no memory of your life as a bee, and the family had no memory of ever having found you.",
-    "All they seemed to know was that they were afraid of bees.",
-    "Your human family convinced themselves that you were allergic, as a trick to keep you away from bees and finding out your real identity.",
-    "This all seems too fantastic to believe.",
-    "You ask the bee what you should do.",
-    "The bee says that you should return to the hive, and that you will be welcomed with open arms.",
-    "\"How can I return to the hive?",
-    "I am huge and a human, and I certainly wouldn't fit.\" The bee tells you that as you get closer to your hive of origin you will return to your original form and become an insect once again.",
-    "You aren't really sure you like this idea.",
-    "For one, you have convinced yourself that bees will bring you harm.",
-    "For another, you really like your human life and family.",
-    "You ask the bee if you can stay the way you are.",
-    "The bee says that the queen of bees can never be anything but a bee.",
-    "You are beginning to get frustrated with this whole situation.",
-    "Who is this tiny creature to tell you what to do and who you have to be?",
-    "A devious plan begins to form in your mind.",
-    "What if this creature were to die?",
-    "Then it would be like none of this situation ever occurred.",
-    "You could go on living your life as a human, and no one would be the wiser.",
-    "You only hesitate for a second longer, then you squish the bee.",
-    "So quick and so simple.",
-    "You flip him off your shoulder and he lands on the ground.",
-    "You look at him and think \"That was easy.\" You start to go back to you walk, when you hear a buzzing sound.",
-    "You look in the distance and see a dark cloud that appears to be getting closer to you.",
-    "The buzzing gets closer and closer.",
-    "You realize, too late, that the darkness is a swarm of bees.",
-    "You have killed one of their leaders and they are out for revenge.",
-    "The swarm closes in on you and begins to sting you everywhere.",
-    "You realize, too late, that bees really are bad for your health.",
-    ""
+    {
+        "text": "Your entire life, you've been told you're deathly allergic to bees.",
+        "source": "api"
+    },
+    {
+        "text": "You've always had people protecting you from them, be it your mother or a hired hand.",
+        "source": "api"
+    },
+    {
+        "text": "Today, one slips through and lands on your shoulder.",
+        "source": "api"
+    },
+    {
+        "text": "You hear a tiny voice say \"Your Majesty, what are your orders?\" You look down and see a tiny bee in a suit and tie.",
+        "source": "api"
+    },
+    {
+        "text": "You look at the bee and say \"I'm allergic to bees.\" The bee looks at you and says \"I'm sorry, Your Majesty, but I'm afraid I must carry out my orders.\" \"You have been lied to all your life, and you aren't really allergic to bees.\" You are in utter shock.",
+        "source": "api"
+    },
+    {
+        "text": "Why would the people you trust lie to you about something like this?",
+        "source": "user"
+    },
+    {
+        "text": "You look at the bee and say \"What do you mean I'm not allergic to bees?\" The bee looks at you and says \"You are the queen of bees, Your Majesty.\"",
+        "source": "api"
+    },
+    {
+        "text": "This seems so impossible.",
+        "source": "user"
+    },
+    {
+        "text": "The queen of bees?",
+        "source": "user"
+    },
+    {
+        "text": "But you are a person, right.",
+        "source": "user"
+    },
+    {
+        "text": "You look at the tiny figure and ask him to explain.",
+        "source": "user"
+    },
+    {
+        "text": "The bee says that you were found when you were very little by a family that took you in.",
+        "source": "user"
+    },
+    {
+        "text": "You had been born a bee, and were a bee when you were found.",
+        "source": "user"
+    },
+    {
+        "text": "Over time, however, as the human family nursed you to health, you became more and more human.",
+        "source": "user"
+    },
+    {
+        "text": "By the time you had reached 2 years of age, you were completely in human form.",
+        "source": "user"
+    },
+    {
+        "text": "You had no memory of your life as a bee, and the family had no memory of ever having found you.",
+        "source": "user"
+    },
+    {
+        "text": "All they seemed to know was that they were afraid of bees.",
+        "source": "user"
+    },
+    {
+        "text": "Your human family convinced themselves that you were allergic, as a trick to keep you away from bees and finding out your real identity.",
+        "source": "user"
+    },
+    {
+        "text": "This all seems too fantastic to believe.",
+        "source": "user"
+    },
+    {
+        "text": "You ask the bee what you should do.",
+        "source": "user"
+    },
+    {
+        "text": "The bee says that you should return to the hive, and that you will be welcomed with open arms.",
+        "source": "user"
+    },
+    {
+        "text": "\"How can I return to the hive? I am huge and a human, and I certainly wouldn't fit.\" The bee tells you that as you get closer to your hive of origin you will return to your original form and become an insect once again.",
+        "source": "user"
+    },
+    {
+        "text": "You aren't really sure you like this idea.",
+        "source": "user"
+    },
+    {
+        "text": "For one, you have convinced yourself that bees will bring you harm.",
+        "source": "user"
+    },
+    {
+        "text": "For another, you really like your human life and family.",
+        "source": "user"
+    },
+    {
+        "text": "You ask the bee if you can stay the way you are.",
+        "source": "user"
+    },
+    {
+        "text": "The bee says that the queen of bees can never be anything but a bee.",
+        "source": "user"
+    },
+    {
+        "text": "You are beginning to get frustrated with this whole situation.",
+        "source": "user"
+    },
+    {
+        "text": "Who is this tiny creature to tell you what to do and who you have to be?",
+        "source": "user"
+    },
+    {
+        "text": "A devious plan begins to form in your mind.",
+        "source": "user"
+    },
+    {
+        "text": "What if this creature were to die?",
+        "source": "user"
+    },
+    {
+        "text": "Then it would be like none of this situation ever occurred.",
+        "source": "user"
+    },
+    {
+        "text": "You could go on living your life as a human, and no one would be the wiser.",
+        "source": "user"
+    },
+    {
+        "text": "You only hesitate for a second longer, then you squish the bee.",
+        "source": "user"
+    },
+    {
+        "text": "So quick and so simple.",
+        "source": "user"
+    },
+    {
+        "text": "You flip him off your shoulder and he lands on the ground.",
+        "source": "user"
+    },
+    {
+        "text": "You look at him and think \"That was easy.\" You start to go back to you walk, when you hear a buzzing sound.",
+        "source": "user"
+    },
+    {
+        "text": "You look in the distance and see a dark cloud that appears to be getting closer to you.",
+        "source": "user"
+    },
+    {
+        "text": "The buzzing gets closer and closer.",
+        "source": "user"
+    },
+    {
+        "text": "You realize, too late, that the darkness is a swarm of bees.",
+        "source": "user"
+    },
+    {
+        "text": "You have killed one of their leaders and they are out for revenge.",
+        "source": "user"
+    },
+    {
+        "text": "The swarm closes in on you and begins to sting you everywhere.",
+        "source": "user"
+    },
+    {
+        "text": "You realize, too late, that bees really are bad for your health.",
+        "source": "user"
+    }
 ]

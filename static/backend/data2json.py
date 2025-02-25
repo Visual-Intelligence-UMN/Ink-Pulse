@@ -2,9 +2,6 @@ import json
 import datetime
 import os
 import re
-# import openai
-
-# openai.api_key = "KEY"
 
 def load_json(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -19,20 +16,56 @@ def write_json(data, file_path, session):
         json.dump(data, f, ensure_ascii=False, indent=4)
     print(f"Data written to {new_file_path}")
 
-def split_text(text):
-    sentence_data = []
-    sentences = re.split(r'(?<=[.!?])\s+', text)
-    for s in sentences:
-        sentence_data.append(s)
+def split_text(whole_text, sentence_source):
+    insert_data = []
+    sentence = ""
+    start_index = 0
+    inside_quotes = False  
+    quote_chars = {'"'}  
 
-    return sentence_data
+    for i, char in enumerate(whole_text):
+        sentence += char
+        if char in quote_chars:
+            inside_quotes = not inside_quotes  
+        elif char in ".!?" and not inside_quotes:
+            if i + 1 < len(whole_text) and whole_text[i + 1] in quote_chars:
+                sentence += whole_text[i + 1]
+                i += 1
+                inside_quotes = not inside_quotes
+            if start_index < len(sentence_source):
+                first_char_source = sentence_source[start_index]
+                insert_data.append({
+                    "text": sentence.strip(),
+                    "source": first_char_source,
+                })
+            start_index += len(sentence)
+            sentence = ""
+        elif char == "\n" and not inside_quotes:
+            if sentence.strip():
+                if start_index < len(sentence_source):
+                    first_char_source = sentence_source[start_index]
+                    insert_data.append({
+                        "text": sentence.strip(),
+                        "source": first_char_source,
+                    })
+                start_index += len(sentence)
+                sentence = ""
+    if sentence.strip():
+        insert_data.append({
+            "text": sentence.strip(),
+            "source": sentence_source[start_index] if start_index < len(sentence_source) else "unknown",
+        })
+    # print(insert_data)
+
+    return insert_data
 
 def get_sentence(session_id, static_dir):
     json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-sentence")
     for session in session_id:
         extracted_data = {'init_text': [], 'init_time': [], 'json': [], 'text': [], 'info': [], 'end_time': []}
+        sentence_source = []
         file_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-v1.0")
-        actual_session = session['session_id']+'.jsonl'
+        actual_session = session['session_id'] + '.jsonl'
         new_file_path = os.path.join(file_path, actual_session)
         with open(new_file_path, 'r', encoding='utf-8') as file:
             for line_number, line in enumerate(file, start=1):
@@ -57,6 +90,7 @@ def get_sentence(session_id, static_dir):
         extracted_data['init_time'].append(init_time)
         extracted_data['init_text'].append(init_text)
         text = ''.join(extracted_data['init_text'])
+        sentence_source = ["api"] * len(text)
         for entry in extracted_data['json']:
             text_delta = entry['textDelta']
             event_source = entry.get('eventSource', 'unknown')
@@ -87,8 +121,10 @@ def get_sentence(session_id, static_dir):
                             for i, char in enumerate(inserts):
                                 current_insert_pos = insert_pos + i
                                 text = text[:current_insert_pos] + char + text[current_insert_pos:]
+                                sentence_source.insert(current_insert_pos, event_source)
                         else:
                             text = text[:insert_pos] + inserts + text[insert_pos:]
+                            sentence_source[insert_pos:insert_pos] = [event_source] * len(inserts) 
                         break
             elif event_name == "text-delete":
                 retain_pos = 0
@@ -99,8 +135,9 @@ def get_sentence(session_id, static_dir):
                         delete_count = op['delete']
                         delete_pos = min(retain_pos, len(text) - 1)
                         text = text[:delete_pos] + text[delete_pos + delete_count:]
+                        del sentence_source[delete_pos:delete_pos + delete_count]
                         break
-        sentence_data = split_text(text)
+        sentence_data = split_text(text, sentence_source)
         write_json(sentence_data, json_path, session)
 
 def get_data(session_id, static_dir):
@@ -108,7 +145,7 @@ def get_data(session_id, static_dir):
     for session in session_id:
         extracted_data = {'init_text': [], 'init_time': [], 'json': [], 'text': [], 'info': [], 'end_time': []}
         file_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-v1.0")
-        actual_session = session['session_id']+'.jsonl'
+        actual_session = session['session_id'] + '.jsonl'
         new_file_path = os.path.join(file_path, actual_session)
         with open(new_file_path, 'r', encoding='utf-8') as file:
             for line_number, line in enumerate(file, start=1):
@@ -227,8 +264,9 @@ def get_data(session_id, static_dir):
     
 if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.abspath(__file__))  
-    static_dir = os.path.dirname(script_dir)  
+    static_dir = os.path.dirname(script_dir)
     json_path = os.path.join(static_dir, "fine.json")
     session_id = load_json(json_path)
+    print(len(session_id))
     # get_data(session_id, static_dir)
     get_sentence(session_id, static_dir)

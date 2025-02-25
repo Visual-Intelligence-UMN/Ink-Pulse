@@ -1,60 +1,230 @@
 [
-    "A woman has been dating guy after guy, but it never seems to work out.",
-    "She’s unaware that she’s actually been dating the same guy over and over; a shapeshifter who’s fallen for her, and is certain he’s going to get it right this time.",
-    "One day, she meets a man who’s everything she’s ever wanted.",
-    "She’s certain he’s the one, but she’s also certain she’s going to lose him.",
-    "She has had relationships like that in the past.",
-    "She gets so close to someone and then something happens where they drift apart and she gets her heart broken.",
-    "She’s determined to not let that happen again.",
-    "She’s going to hold on to this one.",
-    "He's going to be the one.",
-    "She knows it based off the first time she saw him.",
-    "He was in a bar, and she was with her friends.",
-    "He was so handsome, and he was staring at her.",
-    "She felt it deep within her soul.",
-    "She had to make a move.",
-    "She told her friends she had to go to the bathroom and instead veered off and went up to the man to introduce herself.",
-    "The man offered to buy her a drink and the two had a conversation that went pretty well.",
-    "The man was interesting and told her that he was single and left her his number.",
-    "She was so excited.",
-    "She was going to call him and see what he was doing next Friday night.",
-    "She called the man and asked if he was free Friday and he said he was.",
-    "She took control and asked the man if he wanted to go to a movie.",
-    "The man was fine with that and told her he couldn't wait to see her.",
-    "Friday had arrived and the two met at the movies.",
-    "They saw a very romantic movie and even held hands.",
-    "The man ended up driving the woman home and gave her a good night kiss.",
-    "The woman was melting inside at the idea that she finally had found a man that was as interested in her as she was in him.",
-    "The two continued to date and the woman was so happy.",
-    "She had finally found the man she was looking for.",
-    "The issue for her is the man was not who she thought he was.",
-    "He would go to bars and flirt with girls all the time.",
-    "He would go on dates and sweep women off their feet and then break their hearts.",
-    "He wasn't a man who was willing to commit.",
-    "He just liked to play the game.",
-    "The woman found that out the hard way.",
-    "She thought things were going perfectly until she saw him in a bar making out with another girl.",
-    "She confronted him and broke things off and was distraught.",
-    "She had finally found the man she was looking for and he was a player.",
-    "She was so upset that she went to a different bar and got drunk.",
-    "She was so upset that she didn't even notice the man who was sitting at the bar watching her.",
-    "The man was watching the woman and couldn't help but notice how upset she was.",
-    "He couldn't help but feel bad for her.",
-    "He wanted to go over and talk to her, but he didn't want to come off as a creep.",
-    "He wanted to help her feel better.",
-    "He went up to her and offered to take her home.",
-    "She was inebriated and agreed which could have been dangerous.",
-    "Luckily, the man was a good man and took her home.",
-    "He left her his number.",
-    "The next day the woman woke up and saw that number and had no idea what happened.",
-    "She called that person and he explained to her what happened.",
-    "He asked her if they could meet up and she agreed.",
-    "She wanted to meet a man who comforted her at her most vulnerable.",
-    "A full year went by and they got along, dated and the man ended up proposing to her.",
-    "They are scheduled to marry in about 4 months.",
-    "As for the shapeshifter, he ended up losing that ability and everyone began to see him for what he was.",
-    "A man who had Napoleon complex and was actually 5 feet 2.",
-    "He was trying to live a life that he thought he would love but at the end of the day, he forever remained unhappy and unfulfilled.",
-    "The woman dodged a bullet.",
-    ""
+    {
+        "text": "A woman has been dating guy after guy, but it never seems to work out.",
+        "source": "api"
+    },
+    {
+        "text": "She’s unaware that she’s actually been dating the same guy over and over; a shapeshifter who’s fallen for her, and is certain he’s going to get it right this time.",
+        "source": "api"
+    },
+    {
+        "text": "One day, she meets a man who’s everything she’s ever wanted.",
+        "source": "api"
+    },
+    {
+        "text": "She’s certain he’s the one, but she’s also certain she’s going to lose him.",
+        "source": "user"
+    },
+    {
+        "text": "She has had relationships like that in the past.",
+        "source": "user"
+    },
+    {
+        "text": "She gets so close to someone and then something happens where they drift apart and she gets her heart broken.",
+        "source": "user"
+    },
+    {
+        "text": "She’s determined to not let that happen again.",
+        "source": "user"
+    },
+    {
+        "text": "She’s going to hold on to this one.",
+        "source": "user"
+    },
+    {
+        "text": "He's going to be the one.",
+        "source": "user"
+    },
+    {
+        "text": "She knows it based off the first time she saw him.",
+        "source": "user"
+    },
+    {
+        "text": "He was in a bar, and she was with her friends.",
+        "source": "user"
+    },
+    {
+        "text": "He was so handsome, and he was staring at her.",
+        "source": "user"
+    },
+    {
+        "text": "She felt it deep within her soul.",
+        "source": "user"
+    },
+    {
+        "text": "She had to make a move.",
+        "source": "user"
+    },
+    {
+        "text": "She told her friends she had to go to the bathroom and instead veered off and went up to the man to introduce herself.",
+        "source": "user"
+    },
+    {
+        "text": "The man offered to buy her a drink and the two had a conversation that went pretty well.",
+        "source": "user"
+    },
+    {
+        "text": "The man was interesting and told her that he was single and left her his number.",
+        "source": "user"
+    },
+    {
+        "text": "She was so excited.",
+        "source": "user"
+    },
+    {
+        "text": "She was going to call him and see what he was doing next Friday night.",
+        "source": "user"
+    },
+    {
+        "text": "She called the man and asked if he was free Friday and he said he was.",
+        "source": "user"
+    },
+    {
+        "text": "She took control and asked the man if he wanted to go to a movie.",
+        "source": "user"
+    },
+    {
+        "text": "The man was fine with that and told her he couldn't wait to see her.",
+        "source": "user"
+    },
+    {
+        "text": "Friday had arrived and the two met at the movies.",
+        "source": "user"
+    },
+    {
+        "text": "They saw a very romantic movie and even held hands.",
+        "source": "user"
+    },
+    {
+        "text": "The man ended up driving the woman home and gave her a good night kiss.",
+        "source": "user"
+    },
+    {
+        "text": "The woman was melting inside at the idea that she finally had found a man that was as interested in her as she was in him.",
+        "source": "user"
+    },
+    {
+        "text": "The two continued to date and the woman was so happy.",
+        "source": "user"
+    },
+    {
+        "text": "She had finally found the man she was looking for.",
+        "source": "user"
+    },
+    {
+        "text": "The issue for her is the man was not who she thought he was.",
+        "source": "user"
+    },
+    {
+        "text": "He would go to bars and flirt with girls all the time.",
+        "source": "user"
+    },
+    {
+        "text": "He would go on dates and sweep women off their feet and then break their hearts.",
+        "source": "user"
+    },
+    {
+        "text": "He wasn't a man who was willing to commit.",
+        "source": "user"
+    },
+    {
+        "text": "He just liked to play the game.",
+        "source": "user"
+    },
+    {
+        "text": "The woman found that out the hard way.",
+        "source": "user"
+    },
+    {
+        "text": "She thought things were going perfectly until she saw him in a bar making out with another girl.",
+        "source": "user"
+    },
+    {
+        "text": "She confronted him and broke things off and was distraught.",
+        "source": "user"
+    },
+    {
+        "text": "She had finally found the man she was looking for and he was a player.",
+        "source": "user"
+    },
+    {
+        "text": "She was so upset that she went to a different bar and got drunk.",
+        "source": "user"
+    },
+    {
+        "text": "She was so upset that she didn't even notice the man who was sitting at the bar watching her.",
+        "source": "user"
+    },
+    {
+        "text": "The man was watching the woman and couldn't help but notice how upset she was.",
+        "source": "user"
+    },
+    {
+        "text": "He couldn't help but feel bad for her.",
+        "source": "api"
+    },
+    {
+        "text": "He wanted to go over and talk to her, but he didn't want to come off as a creep.",
+        "source": "api"
+    },
+    {
+        "text": "He wanted to help her feel better.",
+        "source": "api"
+    },
+    {
+        "text": "He went up to her and offered to take her home.",
+        "source": "user"
+    },
+    {
+        "text": "She was inebriated and agreed which could have been dangerous.",
+        "source": "user"
+    },
+    {
+        "text": "Luckily, the man was a good man and took her home.",
+        "source": "user"
+    },
+    {
+        "text": "He left her his number.",
+        "source": "user"
+    },
+    {
+        "text": "The next day the woman woke up and saw that number and had no idea what happened.",
+        "source": "user"
+    },
+    {
+        "text": "She called that person and he explained to her what happened.",
+        "source": "user"
+    },
+    {
+        "text": "He asked her if they could meet up and she agreed.",
+        "source": "user"
+    },
+    {
+        "text": "She wanted to meet a man who comforted her at her most vulnerable.",
+        "source": "user"
+    },
+    {
+        "text": "A full year went by and they got along, dated and the man ended up proposing to her.",
+        "source": "user"
+    },
+    {
+        "text": "They are scheduled to marry in about 4 months.",
+        "source": "user"
+    },
+    {
+        "text": "As for the shapeshifter, he ended up losing that ability and everyone began to see him for what he was.",
+        "source": "user"
+    },
+    {
+        "text": "A man who had Napoleon complex and was actually 5 feet 2.",
+        "source": "user"
+    },
+    {
+        "text": "He was trying to live a life that he thought he would love but at the end of the day, he forever remained unhappy and unfulfilled.",
+        "source": "user"
+    },
+    {
+        "text": "The woman dodged a bullet.",
+        "source": "user"
+    }
 ]

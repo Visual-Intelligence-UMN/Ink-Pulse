@@ -77,9 +77,10 @@ def update_fine_json(fine_session, output_file_path):
     print(f"Updated fine.json at {output_file_path}.")
 
 if __name__ == "__main__":
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(script_dir, "..", "public", "chi2022-coauthor-v1.0", "coauthor-v1.0")
-    output_path = os.path.join(script_dir, "..", "public")
+    script_dir = os.path.dirname(os.path.abspath(__file__))  
+    static_dir = os.path.dirname(script_dir)
+    output_path = static_dir
+    file_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-v1.0")
     json_files = [f for f in os.listdir(file_path) if f.endswith('.jsonl')]
     # create_json(json_files)
     issue_file_path = os.path.join(output_path, "issue.json")

@@ -1,43 +1,170 @@
 [
-    "Your entire life, you've been told you're deathly allergic to bees.",
-    "You've always had people protecting you from them, be it your mother or a hired hand.",
-    "Today, one slips through and lands on your shoulder.",
-    "You hear a tiny voice say \"Your Majesty, what are your orders?\" \n\nWhat do you do?",
-    "It's not every day that a bee talks to you.",
-    "The bee is a magical bee, and it can grant you one wish.",
-    "That's how it can prove to you just how important you are.",
-    "What do you wish for?",
-    "You could wish for money.",
-    "You could wish to live forever.",
-    "You could wish for a million wishes.",
-    "That probably isn't allowed though.",
-    "Your Mother approaches and sees what is happening.",
-    "She looks nervous.",
-    "\"Did you make your wish yet?\" she asks.",
-    "\"How did you know?\" you ask.",
-    "She sighs.",
-    "\"Once they offer you a wish, you must take it.",
-    "I tried to keep you from this as long as I could.\"\n\n\"Why is a wish so bad?\" I ask.",
-    "\"Because you can't wish for anything good,\" she says.",
-    "Not quite understanding, you attempt to wish for something good.",
-    "You try to wish for money for your family.",
-    "However, it comes out as \"Someone in my family will die and I will get their life insurance money.\"\n\nMy mother isn't surprised.",
-    "She expected this as she falls to the ground, dead.",
-    "Your check arrives and you are now wealthy.",
-    "You are now the King of Bees as well.",
-    "The bee tells you that you had your wish.",
-    "Now you must lead them.",
-    "You reluctantly agree.",
-    "You let a large swarm of bees into your house.",
-    "They cover every inch of it.",
-    "You can't see anything, just bees.",
-    "You sit, looking at the bees everywhere.",
-    "You think about how you now are rich, but you have no mother.",
-    "You also now have bees everywhere you go.",
-    "Was this a life you wanted?",
-    "You think about it and decide you don't want to be the King of Bees.",
-    "You order an industrial bee poison online.",
-    "You get a hose and spray it everywhere, including on yourself.",
-    "Your last thought is that you really don't like bees.",
-    ""
+    {
+        "text": "Your entire life, you've been told you're deathly allergic to bees.",
+        "source": "api"
+    },
+    {
+        "text": "You've always had people protecting you from them, be it your mother or a hired hand.",
+        "source": "api"
+    },
+    {
+        "text": "Today, one slips through and lands on your shoulder.",
+        "source": "api"
+    },
+    {
+        "text": "You hear a tiny voice say \"Your Majesty, what are your orders?\"",
+        "source": "api"
+    },
+    {
+        "text": "What do you do?",
+        "source": "api"
+    },
+    {
+        "text": "It's not every day that a bee talks to you.",
+        "source": "user"
+    },
+    {
+        "text": "The bee is a magical bee, and it can grant you one wish.",
+        "source": "user"
+    },
+    {
+        "text": "That's how it can prove to you just how important you are.",
+        "source": "user"
+    },
+    {
+        "text": "What do you wish for?",
+        "source": "user"
+    },
+    {
+        "text": "You could wish for money.",
+        "source": "user"
+    },
+    {
+        "text": "You could wish to live forever.",
+        "source": "user"
+    },
+    {
+        "text": "You could wish for a million wishes.",
+        "source": "user"
+    },
+    {
+        "text": "That probably isn't allowed though.",
+        "source": "user"
+    },
+    {
+        "text": "Your Mother approaches and sees what is happening.",
+        "source": "user"
+    },
+    {
+        "text": "She looks nervous.",
+        "source": "user"
+    },
+    {
+        "text": "\"Did you make your wish yet?\" she asks.",
+        "source": "user"
+    },
+    {
+        "text": "\"How did you know?\" you ask.",
+        "source": "user"
+    },
+    {
+        "text": "She sighs.",
+        "source": "user"
+    },
+    {
+        "text": "\"Once they offer you a wish, you must take it. I tried to keep you from this as long as I could.\"",
+        "source": "user"
+    },
+    {
+        "text": "\"Why is a wish so bad?\" I ask.",
+        "source": "user"
+    },
+    {
+        "text": "\"Because you can't wish for anything good,\" she says.",
+        "source": "user"
+    },
+    {
+        "text": "Not quite understanding, you attempt to wish for something good.",
+        "source": "user"
+    },
+    {
+        "text": "You try to wish for money for your family.",
+        "source": "user"
+    },
+    {
+        "text": "However, it comes out as \"Someone in my family will die and I will get their life insurance money.\"",
+        "source": "user"
+    },
+    {
+        "text": "My mother isn't surprised.",
+        "source": "user"
+    },
+    {
+        "text": "She expected this as she falls to the ground, dead.",
+        "source": "user"
+    },
+    {
+        "text": "Your check arrives and you are now wealthy.",
+        "source": "user"
+    },
+    {
+        "text": "You are now the King of Bees as well.",
+        "source": "user"
+    },
+    {
+        "text": "The bee tells you that you had your wish.",
+        "source": "user"
+    },
+    {
+        "text": "Now you must lead them.",
+        "source": "user"
+    },
+    {
+        "text": "You reluctantly agree.",
+        "source": "user"
+    },
+    {
+        "text": "You let a large swarm of bees into your house.",
+        "source": "user"
+    },
+    {
+        "text": "They cover every inch of it.",
+        "source": "user"
+    },
+    {
+        "text": "You can't see anything, just bees.",
+        "source": "user"
+    },
+    {
+        "text": "You sit, looking at the bees everywhere.",
+        "source": "user"
+    },
+    {
+        "text": "You think about how you now are rich, but you have no mother.",
+        "source": "user"
+    },
+    {
+        "text": "You also now have bees everywhere you go.",
+        "source": "user"
+    },
+    {
+        "text": "Was this a life you wanted?",
+        "source": "user"
+    },
+    {
+        "text": "You think about it and decide you don't want to be the King of Bees.",
+        "source": "user"
+    },
+    {
+        "text": "You order an industrial bee poison online.",
+        "source": "user"
+    },
+    {
+        "text": "You get a hose and spray it everywhere, including on yourself.",
+        "source": "user"
+    },
+    {
+        "text": "Your last thought is that you really don't like bees.",
+        "source": "user"
+    }
 ]

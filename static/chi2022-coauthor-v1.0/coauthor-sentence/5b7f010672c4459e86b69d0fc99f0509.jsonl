@@ -1,37 +1,154 @@
 [
-    "Your entire life, you've been told you're deathly allergic to bees.",
-    "You've always had people protecting you from them, be it your mother or a hired hand.",
-    "Today, one slips through and lands on your shoulder.",
-    "You hear a tiny voice say \"Your Majesty, what are your orders?\" You look down, and see a tiny bee, dressed in a tiny suit and hat.",
-    "\"Who are you?\" says the queen.",
-    "\"I am your loyal servant, your majesty.",
-    "Anything you wish is my command.\" \"Then go and sting that man who has been bothering me.\"\n\n\"Certainly, Your Majesty.",
-    "And which man would that be?\" said the bee.",
-    "\"That one over there, the one with the red hat.",
-    "And when you're through with him, sting every other man.\" \n\n\"As you wish, Your Majesty.\" And with that, the bee flew off.",
-    "The queen sat and thought for a moment.",
-    "\"I could get used to this,\" she said.",
-    "\"What else shall the bee do for me today?\" \n\nThe bee returned, and said \"Your Majesty, I have done as you commanded, and stung the man with the red hat.",
-    "\"Very well then,\" said the queen.",
-    "\"Now, go and sting every other man in the kingdom.\" \n\n\"Every man, your majesty?\" \n\n\"Every man, bee.\"\n\nThe bee thought for a moment.",
-    "\"I'm sorry, Your Majesty, but I cannot do that.",
-    "\"Yes you can, and you will!\" \n\n\"No, Your Majesty, I cannot.",
-    "I have only one stinger, which I just used on the man in the red hat.\" \n\n\"Then go and get another stinger!\"\n\n\"I'm afraid that's impossible.",
-    "I cannot grow another stinger.\"\n\n\"Then find more bees!",
-    "Lots more!",
-    "An army of bees!\" \n\n\"I'm sorry, Your Majesty, but there are no more bees.\" \n\n\"What do you mean, no more bees?",
-    "Where are they?\" \n\n\"They're all dead, Your Majesty.",
-    "I was the lone surviving bee in the kingdom.",
-    "At your service.\" \n\n\"Then go and sting yourself!\"\n\n\"I'm afraid that's impossible, Your majesty.",
-    "I cannot sting myself.",
-    "I have no stinger left.\" \n\n\"Then go and find me a man with a stinger!\"\nThe queen was mad.",
-    "She was furious.",
-    "What good was being queen if she could not get what she desired?",
-    "She was about to give the bee a piece of her mind, when she noticed that the bee was gone.",
-    "She looked down and saw a note scribbled on a piece of paper.",
-    "\"I'm sorry, Your Majesty, but I cannot help you.",
-    "With no stinger and no friends, I wish to spend my last days flying free.\" \n\nThe queen was moved by the bee's words.",
-    "She vowed from that day forward to never order anyone to be stung to death ever again.",
-    "Which was easy, because there were no bees in the kingdom ever again.",
-    ""
+    {
+        "text": "Your entire life, you've been told you're deathly allergic to bees.",
+        "source": "api"
+    },
+    {
+        "text": "You've always had people protecting you from them, be it your mother or a hired hand.",
+        "source": "api"
+    },
+    {
+        "text": "Today, one slips through and lands on your shoulder.",
+        "source": "api"
+    },
+    {
+        "text": "You hear a tiny voice say \"Your Majesty, what are your orders?\" You look down, and see a tiny bee, dressed in a tiny suit and hat.",
+        "source": "api"
+    },
+    {
+        "text": "\"Who are you?\" says the queen.",
+        "source": "user"
+    },
+    {
+        "text": "\"I am your loyal servant, your majesty. Anything you wish is my command.\" \"Then go and sting that man who has been bothering me.\"",
+        "source": "user"
+    },
+    {
+        "text": "\"Certainly, Your Majesty. And which man would that be?\" said the bee.",
+        "source": "user"
+    },
+    {
+        "text": "\"That one over there, the one with the red hat. And when you're through with him, sting every other man.\"",
+        "source": "user"
+    },
+    {
+        "text": "\"As you wish, Your Majesty.\" And with that, the bee flew off.",
+        "source": "api"
+    },
+    {
+        "text": "The queen sat and thought for a moment.",
+        "source": "user"
+    },
+    {
+        "text": "\"I could get used to this,\" she said.",
+        "source": "user"
+    },
+    {
+        "text": "\"What else shall the bee do for me today?\"",
+        "source": "user"
+    },
+    {
+        "text": "The bee returned, and said \"Your Majesty, I have done as you commanded, and stung the man with the red hat. \"Very well then,\" said the queen. \"Now, go and sting every other man in the kingdom.\"",
+        "source": "api"
+    },
+    {
+        "text": "\"",
+        "source": "user"
+    },
+    {
+        "text": "\"Every man, your majesty?\"",
+        "source": "user"
+    },
+    {
+        "text": "\"Every man, bee.\"",
+        "source": "api"
+    },
+    {
+        "text": "The bee thought for a moment.",
+        "source": "user"
+    },
+    {
+        "text": "\"I'm sorry, Your Majesty, but I cannot do that.\n\n\"Yes you can, and you will!\"",
+        "source": "api"
+    },
+    {
+        "text": "\"",
+        "source": "api"
+    },
+    {
+        "text": "\"No, Your Majesty, I cannot. I have only one stinger, which I just used on the man in the red hat.\"",
+        "source": "api"
+    },
+    {
+        "text": "\"Then go and get another stinger!\"",
+        "source": "api"
+    },
+    {
+        "text": "\"I'm afraid that's impossible. I cannot grow another stinger.\"",
+        "source": "user"
+    },
+    {
+        "text": "\"Then find more bees! Lots more! An army of bees!\"",
+        "source": "user"
+    },
+    {
+        "text": "\"I'm sorry, Your Majesty, but there are no more bees.\"",
+        "source": "api"
+    },
+    {
+        "text": "\"What do you mean, no more bees? Where are they?\"",
+        "source": "api"
+    },
+    {
+        "text": "\"They're all dead, Your Majesty. I was the lone surviving bee in the kingdom. At your service.\"",
+        "source": "api"
+    },
+    {
+        "text": "\"Then go and sting yourself!\"",
+        "source": "api"
+    },
+    {
+        "text": "\"I'm afraid that's impossible, Your majesty. I cannot sting myself. I have no stinger left.\"",
+        "source": "user"
+    },
+    {
+        "text": "\"Then go and find me a man with a stinger!\"",
+        "source": "api"
+    },
+    {
+        "text": "The queen was mad.",
+        "source": "user"
+    },
+    {
+        "text": "She was furious.",
+        "source": "api"
+    },
+    {
+        "text": "What good was being queen if she could not get what she desired?",
+        "source": "user"
+    },
+    {
+        "text": "She was about to give the bee a piece of her mind, when she noticed that the bee was gone.",
+        "source": "api"
+    },
+    {
+        "text": "She looked down and saw a note scribbled on a piece of paper.",
+        "source": "user"
+    },
+    {
+        "text": "\"I'm sorry, Your Majesty, but I cannot help you. With no stinger and no friends, I wish to spend my last days flying free.\"",
+        "source": "api"
+    },
+    {
+        "text": "The queen was moved by the bee's words.",
+        "source": "api"
+    },
+    {
+        "text": "She vowed from that day forward to never order anyone to be stung to death ever again.",
+        "source": "user"
+    },
+    {
+        "text": "Which was easy, because there were no bees in the kingdom ever again.",
+        "source": "user"
+    }
 ]

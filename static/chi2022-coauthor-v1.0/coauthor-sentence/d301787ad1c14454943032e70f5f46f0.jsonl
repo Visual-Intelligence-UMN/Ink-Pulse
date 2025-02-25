@@ -1,41 +1,146 @@
 [
-    "Your entire life, you've been told you're deathly allergic to bees.",
-    "You've always had people protecting you from them, be it your mother or a hired hand.",
-    "Today, one slips through and lands on your shoulder.",
-    "You hear a tiny voice say \"Your Majesty, what are your orders?\"\n\n\nAs you're standing in line at the grocery store, a man in a trench coat and fedora walks up to you.",
-    "He says \"I'm going to make you a queen, and all your dreams will come true.\" The man vanishes before you can reply.",
-    "How can i be a queen when i am a man?",
-    "More important than that, what am I the queen of?",
-    "You walk outside and start to hear a buzzing noise as you get closer to your car.",
-    "All of a sudden you can see a bee flying around you.",
-    "You are allergic, so you begin to become a little nervous.",
-    "Moments later, many more bees swarm around you.",
-    "The bees all come to a still motion, still flying but not moving back and forth.",
-    "A little bee lands on your shoulder and says \"Your Majesty, what are your orders?\".",
-    "You swat at the bees, but they fly back to their original formation.",
-    "What is going on?",
-    "You can't stop thinking about the man in the trench coat and fedora.",
-    "What did he do to me?",
-    "Why did he say I was a queen and all my dreams would come true?",
-    "The bees all start laughing.",
-    "\"Your Majesty, what are your orders?\" they say.",
-    "\"Why are you all calling me majesty?\" I asked the bees.",
-    "\"Because you are the queen of course!",
-    "We're your servants and we will do anything for you.",
-    "How can you not know this?\" They say.",
-    "\"What do I have to do to get you all off of me?\" \"I am a man, i can not be a queen\" I exclaimed.",
-    "\"You are a queen, and all of this is your kingdom.",
-    "So what is your order?\" The bees say.",
-    "\"Okay, i will think about it.\" I say to the bees.",
-    "\"We will be waiting on your command.\" they reply.",
-    "\"My first request is for you guys to leave me alone\" I say to them.",
-    "The bees all get in a single file line and turn their backs to me.",
-    "After this the bees alll huddle into a corner, sit on their butts and say nothing.",
-    "\"What are you guys doing?\" I asked.",
-    "\"We are leaving you alone your majesty\" they replied.",
-    "\"Now, what is you next order?\" they said.",
-    "\"I need to know if this is real or not.\" I said.",
-    "One of the bees flys over, and stings me on the nose.",
-    "Just as this happens, I wake up in my bedroom.",
-    ""
+    {
+        "text": "Your entire life, you've been told you're deathly allergic to bees.",
+        "source": "api"
+    },
+    {
+        "text": "You've always had people protecting you from them, be it your mother or a hired hand.",
+        "source": "api"
+    },
+    {
+        "text": "Today, one slips through and lands on your shoulder.",
+        "source": "api"
+    },
+    {
+        "text": "You hear a tiny voice say \"Your Majesty, what are your orders?\"",
+        "source": "api"
+    },
+    {
+        "text": "As you're standing in line at the grocery store, a man in a trench coat and fedora walks up to you.",
+        "source": "user"
+    },
+    {
+        "text": "He says \"I'm going to make you a queen, and all your dreams will come true.\" The man vanishes before you can reply.",
+        "source": "user"
+    },
+    {
+        "text": "How can i be a queen when i am a man?",
+        "source": "user"
+    },
+    {
+        "text": "More important than that, what am I the queen of?",
+        "source": "user"
+    },
+    {
+        "text": "You walk outside and start to hear a buzzing noise as you get closer to your car.",
+        "source": "user"
+    },
+    {
+        "text": "All of a sudden you can see a bee flying around you.",
+        "source": "user"
+    },
+    {
+        "text": "You are allergic, so you begin to become a little nervous.",
+        "source": "user"
+    },
+    {
+        "text": "Moments later, many more bees swarm around you.",
+        "source": "user"
+    },
+    {
+        "text": "The bees all come to a still motion, still flying but not moving back and forth.",
+        "source": "user"
+    },
+    {
+        "text": "A little bee lands on your shoulder and says \"Your Majesty, what are your orders?\".",
+        "source": "user"
+    },
+    {
+        "text": "You swat at the bees, but they fly back to their original formation.",
+        "source": "user"
+    },
+    {
+        "text": "What is going on?",
+        "source": "user"
+    },
+    {
+        "text": "You can't stop thinking about the man in the trench coat and fedora.",
+        "source": "user"
+    },
+    {
+        "text": "What did he do to me?",
+        "source": "user"
+    },
+    {
+        "text": "Why did he say I was a queen and all my dreams would come true?",
+        "source": "user"
+    },
+    {
+        "text": "The bees all start laughing.",
+        "source": "user"
+    },
+    {
+        "text": "\"Your Majesty, what are your orders?\" they say.",
+        "source": "user"
+    },
+    {
+        "text": "\"Why are you all calling me majesty?\" I asked the bees.",
+        "source": "user"
+    },
+    {
+        "text": "\"Because you are the queen of course! We're your servants and we will do anything for you. How can you not know this?\" They say.",
+        "source": "api"
+    },
+    {
+        "text": "\"What do I have to do to get you all off of me?\" \"I am a man, i can not be a queen\" I exclaimed.",
+        "source": "user"
+    },
+    {
+        "text": "\"You are a queen, and all of this is your kingdom. So what is your order?\" The bees say.",
+        "source": "user"
+    },
+    {
+        "text": "\"Okay, i will think about it.\" I say to the bees.",
+        "source": "api"
+    },
+    {
+        "text": "\"We will be waiting on your command.\" they reply.",
+        "source": "api"
+    },
+    {
+        "text": "\"My first request is for you guys to leave me alone\" I say to them.",
+        "source": "user"
+    },
+    {
+        "text": "The bees all get in a single file line and turn their backs to me.",
+        "source": "user"
+    },
+    {
+        "text": "After this the bees alll huddle into a corner, sit on their butts and say nothing.",
+        "source": "user"
+    },
+    {
+        "text": "\"What are you guys doing?\" I asked.",
+        "source": "user"
+    },
+    {
+        "text": "\"We are leaving you alone your majesty\" they replied.",
+        "source": "user"
+    },
+    {
+        "text": "\"Now, what is you next order?\" they said.",
+        "source": "user"
+    },
+    {
+        "text": "\"I need to know if this is real or not.\" I said.",
+        "source": "api"
+    },
+    {
+        "text": "One of the bees flys over, and stings me on the nose.",
+        "source": "user"
+    },
+    {
+        "text": "Just as this happens, I wake up in my bedroom.",
+        "source": "user"
+    }
 ]

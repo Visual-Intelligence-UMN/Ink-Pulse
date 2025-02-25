@@ -1,42 +1,158 @@
 [
-    "You're Barack Obama.",
-    "4 years into your retirement, you awake to find a letter with no return address on your bedside table.",
-    "It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below.",
-    "It's time to start the real job.\" Signed simply, \"JFK.\"  You eye the letter uncertainly.",
-    "It looks like it was written by a first grader.",
-    "You suspect that it's a prank from Biden, but the handwriting is a little bit too clear.",
-    "You pick up the paper, hesitate for a moment, then crumple it up and throw it in the trash.",
-    "Forgetting about that, you go downstairs for breakfast.",
-    "You're eating a piece of toast when you hear the doorbell ring.",
-    "You sigh, and put down the toast, and answer the door.",
-    "It's a man in a black suit.",
-    "\"Who are you, and what do you want?\" you ask him.",
-    "\"I'm here to help you pack,\" he says.",
-    "\"For what?",
-    "I hope it's not for that ridiculous JFK thing.\" \"It is,\" he says.",
-    "You stand there for a moment, then gracefully, but firmly, close the door in his face.",
-    "You sit back down and finish your breakfast, and then turn to doing the dishes, when the doorbell rings again.",
-    "You grimace, and put down a soapy plate.",
-    "You head back over to the door, and open it.",
-    "This time, it's two men in black suits, and they don't look amused.",
-    "\"Mister Obama, I'm going to have to ask you to come with us.\" \"Who are you, where do you want me to go?\" you repeat.",
-    "\"We're here to take you to meet with JFK,\" says one of the black suited figures.",
-    "\"Not this again.\" you groan, and shut the door once more.",
-    "You finish the dishes, then get dressed and go outside.",
-    "You decide to water the petunias, and just as you've filled up the water can and gotten to work, there's a rustling in the bushes.",
-    "You separate the foliage with your hands, and look down.",
-    "It's two more black suited men.",
-    "One of them looks up at you.",
-    "\"Please, Mister Obama, you should come with us.\" You turn aside in disgust, give up on gardening for the moment, and head back to the house.",
-    "You open the door, and are surprised to find that the lights are out.",
-    "Suddenly, you know a moment of fear.",
-    "Is it possible this whole thing has been some kidnapping, or assassination plot by right wing nutjobs?",
-    "You fumble for the switch, and turn on the light.",
-    "The light goes on, and you're stunned to see John F.",
-    "Kennedy, LBJ, Richard Nixon, Ronald Reagan, and every other president of the U.S.",
-    "from the last 60 waiting for you, along with your family, and they've hung up a big sign in the house.",
-    "It reads \"Happy Birthday!\"\n\nYou smile, and wipe a tear from your cheek.",
-    "\"I thought you guys had forgotten.\" you say.",
-    "You smile as JFK hands you a piece of your favorite cake, and go on to have the best birthday party of your life.",
-    ""
+    {
+        "text": "You're Barack Obama.",
+        "source": "api"
+    },
+    {
+        "text": "4 years into your retirement, you awake to find a letter with no return address on your bedside table.",
+        "source": "api"
+    },
+    {
+        "text": "It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\"  You eye the letter uncertainly.",
+        "source": "api"
+    },
+    {
+        "text": "It looks like it was written by a first grader.",
+        "source": "user"
+    },
+    {
+        "text": "You suspect that it's a prank from Biden, but the handwriting is a little bit too clear.",
+        "source": "user"
+    },
+    {
+        "text": "You pick up the paper, hesitate for a moment, then crumple it up and throw it in the trash.",
+        "source": "user"
+    },
+    {
+        "text": "Forgetting about that, you go downstairs for breakfast.",
+        "source": "user"
+    },
+    {
+        "text": "You're eating a piece of toast when you hear the doorbell ring.",
+        "source": "user"
+    },
+    {
+        "text": "You sigh, and put down the toast, and answer the door.",
+        "source": "user"
+    },
+    {
+        "text": "It's a man in a black suit.",
+        "source": "user"
+    },
+    {
+        "text": "\"Who are you, and what do you want?\" you ask him.",
+        "source": "user"
+    },
+    {
+        "text": "\"I'm here to help you pack,\" he says.",
+        "source": "api"
+    },
+    {
+        "text": "\"For what? I hope it's not for that ridiculous JFK thing.\" \"It is,\" he says.",
+        "source": "user"
+    },
+    {
+        "text": "You stand there for a moment, then gracefully, but firmly, close the door in his face.",
+        "source": "user"
+    },
+    {
+        "text": "You sit back down and finish your breakfast, and then turn to doing the dishes, when the doorbell rings again.",
+        "source": "user"
+    },
+    {
+        "text": "You grimace, and put down a soapy plate.",
+        "source": "user"
+    },
+    {
+        "text": "You head back over to the door, and open it.",
+        "source": "user"
+    },
+    {
+        "text": "This time, it's two men in black suits, and they don't look amused.",
+        "source": "user"
+    },
+    {
+        "text": "\"Mister Obama, I'm going to have to ask you to come with us.\" \"Who are you, where do you want me to go?\" you repeat.",
+        "source": "user"
+    },
+    {
+        "text": "\"We're here to take you to meet with JFK,\" says one of the black suited figures.",
+        "source": "user"
+    },
+    {
+        "text": "\"Not this again.\" you groan, and shut the door once more.",
+        "source": "user"
+    },
+    {
+        "text": "You finish the dishes, then get dressed and go outside.",
+        "source": "user"
+    },
+    {
+        "text": "You decide to water the petunias, and just as you've filled up the water can and gotten to work, there's a rustling in the bushes.",
+        "source": "user"
+    },
+    {
+        "text": "You separate the foliage with your hands, and look down.",
+        "source": "user"
+    },
+    {
+        "text": "It's two more black suited men.",
+        "source": "user"
+    },
+    {
+        "text": "One of them looks up at you.",
+        "source": "user"
+    },
+    {
+        "text": "\"Please, Mister Obama, you should come with us.\" You turn aside in disgust, give up on gardening for the moment, and head back to the house.",
+        "source": "user"
+    },
+    {
+        "text": "You open the door, and are surprised to find that the lights are out.",
+        "source": "user"
+    },
+    {
+        "text": "Suddenly, you know a moment of fear.",
+        "source": "user"
+    },
+    {
+        "text": "Is it possible this whole thing has been some kidnapping, or assassination plot by right wing nutjobs?",
+        "source": "user"
+    },
+    {
+        "text": "You fumble for the switch, and turn on the light.",
+        "source": "user"
+    },
+    {
+        "text": "The light goes on, and you're stunned to see John F.",
+        "source": "user"
+    },
+    {
+        "text": "Kennedy, LBJ, Richard Nixon, Ronald Reagan, and every other president of the U.",
+        "source": "user"
+    },
+    {
+        "text": "S.",
+        "source": "user"
+    },
+    {
+        "text": "from the last 60 waiting for you, along with your family, and they've hung up a big sign in the house.",
+        "source": "user"
+    },
+    {
+        "text": "It reads \"Happy Birthday!\"",
+        "source": "user"
+    },
+    {
+        "text": "You smile, and wipe a tear from your cheek.",
+        "source": "user"
+    },
+    {
+        "text": "\"I thought you guys had forgotten.\" you say.",
+        "source": "user"
+    },
+    {
+        "text": "You smile as JFK hands you a piece of your favorite cake, and go on to have the best birthday party of your life.",
+        "source": "user"
+    }
 ]

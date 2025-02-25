@@ -1,37 +1,170 @@
 [
-    "You're Barack Obama.",
-    "4 years into your retirement, you awake to find a letter with no return address on your bedside table.",
-    "It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below.",
-    "It's time to start the real job.\" Signed simply, \"JFK.\"\n\nJFK has always been a bit of a prankster with you, so you're not sure if this is a joke or not.",
-    "You decide to text JFK to make sure he's not just pulling your leg.",
-    "JFK doesn't respond to your text, which is unusual because he's always been a quick texter.",
-    "In fact, you've never known him to not respond to a text.",
-    "You decide to call him instead.",
-    "JFK picks up on the first ring.",
-    "\"Hey Barack, what's up?\" he asks.",
-    "\"I got this letter from you and I was just calling to make sure it wasn't a joke.\"\n\nJFK has no idea what you're talking about, and he's a little offended that you'd think he'd pull a prank like that.",
-    "\"I didn't send you a letter, Barack.\" \n\n\"Well, I have it right here on my bedside table.\" JFK asks you to read it aloud to him.",
-    "\"Well, it says 'I hope you've had a chance to relax Barack...but pack your bags and call the number below.\" \n\nJFK is a little creeped out that someone would be impersonating him.",
-    "\"Well, why don't you call the number and see what happens?\"\n\nYou decide to do a three-way call so that JFK can hear the conversation.",
-    "The phone rings once, twice, three times...and then a voice answers.",
-    "As it turns out, the voice belongs to none other than John F.",
-    "Kennedy.",
-    "You're confused, because JFK just told you that he had no idea who sent you that letter and swore to you that it wasn't him.",
-    "You ask JFK what's going on, since he is also on the line as a looped-in call participant.",
-    "JFK is just as confused as you are.",
-    "But make no mistake, this is definitely JFK on the other end of the line -- in fact, it is definitely JFK on both ends of the line for the three-way call.",
-    "You have no idea what to think of the situation.",
-    "You ask JFK to explain the contents of the letter and the man who answered your call responds, \"It's a job offer to come be my personal chef.\" \n\n\"But I'm retired,\" you say.",
-    "\"Plus, I don't know how to cook.",
-    "You know that, ever since I tried hosting that dinner party the one time and everyone got food poisoning.\"\n\nThe man who answered your call has no idea what you're talking about, even though JFK was certainly a guest at the dinner party you are referencing and most certainly must remember the horrible food poisoning he got from eating your attempt at roasted chicken with a side of mashed potatoes.",
-    "Suddenly, you realize what must be going on.",
-    "You must be living in parallel time zones or parallel worlds, because JFK is in one world and the man who answered your call is in another, even though both of these men are JFK.",
-    "The theory is a little wonky but quite frankly, you're not sure what else to think.",
-    "There is no other good explanation for these circumstances.",
-    "The man who answered your call must have offered you the job as a chef because he doesn't realize, as the real JFK should realize, how bad your cooking skills are.",
-    "You feel a little weird that you must have your feet straddling two different time periods, but you decide to go with it.",
-    "I mean, you've seen weirder things while living in the White House.",
-    "You bid the two JFKs goodbye on the phone after explaining your theory of what's going on, and the two JFKs are surprised as well.",
-    "Interestingly, that aspect of your life is the only one that you experience this split time zone experience over!",
-    ""
+    {
+        "text": "You're Barack Obama.",
+        "source": "api"
+    },
+    {
+        "text": "4 years into your retirement, you awake to find a letter with no return address on your bedside table.",
+        "source": "api"
+    },
+    {
+        "text": "It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\"",
+        "source": "api"
+    },
+    {
+        "text": "JFK has always been a bit of a prankster with you, so you're not sure if this is a joke or not.",
+        "source": "user"
+    },
+    {
+        "text": "You decide to text JFK to make sure he's not just pulling your leg.",
+        "source": "user"
+    },
+    {
+        "text": "JFK doesn't respond to your text, which is unusual because he's always been a quick texter.",
+        "source": "user"
+    },
+    {
+        "text": "In fact, you've never known him to not respond to a text.",
+        "source": "user"
+    },
+    {
+        "text": "You decide to call him instead.",
+        "source": "user"
+    },
+    {
+        "text": "JFK picks up on the first ring.",
+        "source": "user"
+    },
+    {
+        "text": "\"Hey Barack, what's up?\" he asks.",
+        "source": "user"
+    },
+    {
+        "text": "\"I got this letter from you and I was just calling to make sure it wasn't a joke.\"",
+        "source": "user"
+    },
+    {
+        "text": "JFK has no idea what you're talking about, and he's a little offended that you'd think he'd pull a prank like that.",
+        "source": "user"
+    },
+    {
+        "text": "\"I didn't send you a letter, Barack.\"",
+        "source": "user"
+    },
+    {
+        "text": "\"Well, I have it right here on my bedside table.\" JFK asks you to read it aloud to him.",
+        "source": "api"
+    },
+    {
+        "text": "\"Well, it says 'I hope you've had a chance to relax Barack...but pack your bags and call the number below.\"",
+        "source": "user"
+    },
+    {
+        "text": "JFK is a little creeped out that someone would be impersonating him.",
+        "source": "user"
+    },
+    {
+        "text": "\"Well, why don't you call the number and see what happens?\"",
+        "source": "user"
+    },
+    {
+        "text": "You decide to do a three-way call so that JFK can hear the conversation.",
+        "source": "user"
+    },
+    {
+        "text": "The phone rings once, twice, three times.",
+        "source": "user"
+    },
+    {
+        "text": ".",
+        "source": "api"
+    },
+    {
+        "text": ".",
+        "source": "api"
+    },
+    {
+        "text": "and then a voice answers.",
+        "source": "api"
+    },
+    {
+        "text": "As it turns out, the voice belongs to none other than John F.",
+        "source": "user"
+    },
+    {
+        "text": "Kennedy.",
+        "source": "api"
+    },
+    {
+        "text": "You're confused, because JFK just told you that he had no idea who sent you that letter and swore to you that it wasn't him.",
+        "source": "user"
+    },
+    {
+        "text": "You ask JFK what's going on, since he is also on the line as a looped-in call participant.",
+        "source": "user"
+    },
+    {
+        "text": "JFK is just as confused as you are.",
+        "source": "user"
+    },
+    {
+        "text": "But make no mistake, this is definitely JFK on the other end of the line -- in fact, it is definitely JFK on both ends of the line for the three-way call.",
+        "source": "user"
+    },
+    {
+        "text": "You have no idea what to think of the situation.",
+        "source": "user"
+    },
+    {
+        "text": "You ask JFK to explain the contents of the letter and the man who answered your call responds, \"It's a job offer to come be my personal chef.\"",
+        "source": "user"
+    },
+    {
+        "text": "\"But I'm retired,\" you say.",
+        "source": "api"
+    },
+    {
+        "text": "\"Plus, I don't know how to cook. You know that, ever since I tried hosting that dinner party the one time and everyone got food poisoning.\"",
+        "source": "user"
+    },
+    {
+        "text": "The man who answered your call has no idea what you're talking about, even though JFK was certainly a guest at the dinner party you are referencing and most certainly must remember the horrible food poisoning he got from eating your attempt at roasted chicken with a side of mashed potatoes.",
+        "source": "user"
+    },
+    {
+        "text": "Suddenly, you realize what must be going on.",
+        "source": "user"
+    },
+    {
+        "text": "You must be living in parallel time zones or parallel worlds, because JFK is in one world and the man who answered your call is in another, even though both of these men are JFK.",
+        "source": "user"
+    },
+    {
+        "text": "The theory is a little wonky but quite frankly, you're not sure what else to think.",
+        "source": "user"
+    },
+    {
+        "text": "There is no other good explanation for these circumstances.",
+        "source": "user"
+    },
+    {
+        "text": "The man who answered your call must have offered you the job as a chef because he doesn't realize, as the real JFK should realize, how bad your cooking skills are.",
+        "source": "user"
+    },
+    {
+        "text": "You feel a little weird that you must have your feet straddling two different time periods, but you decide to go with it.",
+        "source": "user"
+    },
+    {
+        "text": "I mean, you've seen weirder things while living in the White House.",
+        "source": "user"
+    },
+    {
+        "text": "You bid the two JFKs goodbye on the phone after explaining your theory of what's going on, and the two JFKs are surprised as well.",
+        "source": "user"
+    },
+    {
+        "text": "Interestingly, that aspect of your life is the only one that you experience this split time zone experience over!",
+        "source": "user"
+    }
 ]

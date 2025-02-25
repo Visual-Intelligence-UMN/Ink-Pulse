@@ -1,54 +1,226 @@
 [
-    "You're Barack Obama.",
-    "4 years into your retirement, you awake to find a letter with no return address on your bedside table.",
-    "It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below.",
-    "It's time to start the real job.\" Signed simply, \"JFK.\" You have no idea if this is a hoax or not.",
-    "After all, hasn't JFK been dead for years?",
-    "Has he really risen from the dead just to send you this letter?",
-    "Perhaps one of your kids is playing a prank on you.",
-    "But you can't shake the feeling that it's real.",
-    "You decide to call the number that is listed in the letter.",
-    "To your surprise, it's a real number.",
-    "As you place the call, you can't help feeling that your life is about to change forever.",
-    "You are right!",
-    "The voice on the other end of the line is familiar...it's John F.",
-    "Kennedy!",
-    "You are absolutely stunned that JFK is actually alive.",
-    "You stammer when you hear is voice.",
-    "Then he says \"Don't worry Barack, I know you're shocked...I'd be too if I were in your shoes.",
-    "But honestly, you have nothing to fear.",
-    "Just book a ticket to meet me tomorrow in the Caribbean.\" You are not actually sure if you can just drop all of your plans to head to the Caribbean to meet JFK.",
-    "After all, you and Michelle were supposed to meet your neighbors for a game of checkers on their porch tomorrow, and then you and your friends were going to meet for some BBQ at Smith's BBQ Joint in downtown after that.",
-    "But you are also intrigued.",
-    "Checkers and BBQ will have to wait.",
-    "You book the first flight to the Caribbean you can find.",
-    "You arrive at JFK's private island.",
-    "He's already there waiting for you.",
-    "You are beside yourself with excitement.",
-    "How crazy is it that this man is still alive?",
-    "What a strange and fantastic thing to experience!",
-    "JFK dives into the details.",
-    "He tells you that he's been in hiding all these years, working on a secret project.",
-    "It involves creating a new superpower that will rival the United States of America.",
-    "He tells you that he wants your help to implement the project.",
-    "You are honored.",
-    "However, you can't help but think that this superpower would be unpatriotic, especially if it is to rival the U.S.",
-    "But JFK assures you that there is no such thing as an unpatriotic project.",
-    "He says that the purpose of the superpower is to encourage the U.S.",
-    "to continue innovating so it doesn't lose its edge.",
-    "He says that the superpower is just to motivate the U.S.",
-    "so it doesn't get too lax about its policies and then lose out to other countries that are real.",
-    "You are interested in the premise of this superpower and on second thought think this sounds like quite a good idea.",
-    "JFK has already drawn up the plans for the superpower in his lab.",
-    "He says that all you need to do is bring these plans back to DC and introduce them to the White House.",
-    "He tells you that they'll take it from there.",
-    "You agree that you will speak with your colleagues in the White House.",
-    "JFK is delighted to have your assistance and tells you that you absolutely won't regret this.",
-    "The next day, you fly back to the White House and float JFK's ideas past your colleagues.",
-    "They are skeptical, but agree to implement the project since they don't want to offend you and call you crazy.",
-    "You promise them that the superpower is a good idea and will in fact motivate the U.S.",
-    "As it turns out, the project is a massive success.",
-    "It is successfully implemented and everyone is impressed at how much it motivates U.S.",
-    "citizens to keep innovating and brainstorming new ideas all the time.",
-    ""
+    {
+        "text": "You're Barack Obama.",
+        "source": "api"
+    },
+    {
+        "text": "4 years into your retirement, you awake to find a letter with no return address on your bedside table.",
+        "source": "api"
+    },
+    {
+        "text": "It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\" You have no idea if this is a hoax or not.",
+        "source": "api"
+    },
+    {
+        "text": "After all, hasn't JFK been dead for years?",
+        "source": "user"
+    },
+    {
+        "text": "Has he really risen from the dead just to send you this letter?",
+        "source": "user"
+    },
+    {
+        "text": "Perhaps one of your kids is playing a prank on you.",
+        "source": "user"
+    },
+    {
+        "text": "But you can't shake the feeling that it's real.",
+        "source": "user"
+    },
+    {
+        "text": "You decide to call the number that is listed in the letter.",
+        "source": "user"
+    },
+    {
+        "text": "To your surprise, it's a real number.",
+        "source": "user"
+    },
+    {
+        "text": "As you place the call, you can't help feeling that your life is about to change forever.",
+        "source": "user"
+    },
+    {
+        "text": "You are right!",
+        "source": "user"
+    },
+    {
+        "text": "The voice on the other end of the line is familiar.",
+        "source": "user"
+    },
+    {
+        "text": ".",
+        "source": "api"
+    },
+    {
+        "text": ".",
+        "source": "api"
+    },
+    {
+        "text": "it's John F.",
+        "source": "api"
+    },
+    {
+        "text": "Kennedy!",
+        "source": "api"
+    },
+    {
+        "text": "You are absolutely stunned that JFK is actually alive.",
+        "source": "user"
+    },
+    {
+        "text": "You stammer when you hear is voice.",
+        "source": "user"
+    },
+    {
+        "text": "Then he says \"Don't worry Barack, I know you're shocked...I'd be too if I were in your shoes. But honestly, you have nothing to fear. Just book a ticket to meet me tomorrow in the Caribbean.\" You are not actually sure if you can just drop all of your plans to head to the Caribbean to meet JFK.",
+        "source": "user"
+    },
+    {
+        "text": "After all, you and Michelle were supposed to meet your neighbors for a game of checkers on their porch tomorrow, and then you and your friends were going to meet for some BBQ at Smith's BBQ Joint in downtown after that.",
+        "source": "user"
+    },
+    {
+        "text": "But you are also intrigued.",
+        "source": "user"
+    },
+    {
+        "text": "Checkers and BBQ will have to wait.",
+        "source": "user"
+    },
+    {
+        "text": "You book the first flight to the Caribbean you can find.",
+        "source": "user"
+    },
+    {
+        "text": "You arrive at JFK's private island.",
+        "source": "user"
+    },
+    {
+        "text": "He's already there waiting for you.",
+        "source": "user"
+    },
+    {
+        "text": "You are beside yourself with excitement.",
+        "source": "user"
+    },
+    {
+        "text": "How crazy is it that this man is still alive?",
+        "source": "user"
+    },
+    {
+        "text": "What a strange and fantastic thing to experience!",
+        "source": "user"
+    },
+    {
+        "text": "JFK dives into the details.",
+        "source": "user"
+    },
+    {
+        "text": "He tells you that he's been in hiding all these years, working on a secret project.",
+        "source": "user"
+    },
+    {
+        "text": "It involves creating a new superpower that will rival the United States of America.",
+        "source": "user"
+    },
+    {
+        "text": "He tells you that he wants your help to implement the project.",
+        "source": "user"
+    },
+    {
+        "text": "You are honored.",
+        "source": "user"
+    },
+    {
+        "text": "However, you can't help but think that this superpower would be unpatriotic, especially if it is to rival the U.",
+        "source": "user"
+    },
+    {
+        "text": "S.",
+        "source": "user"
+    },
+    {
+        "text": "But JFK assures you that there is no such thing as an unpatriotic project.",
+        "source": "user"
+    },
+    {
+        "text": "He says that the purpose of the superpower is to encourage the U.",
+        "source": "user"
+    },
+    {
+        "text": "S.",
+        "source": "user"
+    },
+    {
+        "text": "to continue innovating so it doesn't lose its edge.",
+        "source": "user"
+    },
+    {
+        "text": "He says that the superpower is just to motivate the U.",
+        "source": "user"
+    },
+    {
+        "text": "S.",
+        "source": "user"
+    },
+    {
+        "text": "so it doesn't get too lax about its policies and then lose out to other countries that are real.",
+        "source": "user"
+    },
+    {
+        "text": "You are interested in the premise of this superpower and on second thought think this sounds like quite a good idea.",
+        "source": "user"
+    },
+    {
+        "text": "JFK has already drawn up the plans for the superpower in his lab.",
+        "source": "user"
+    },
+    {
+        "text": "He says that all you need to do is bring these plans back to DC and introduce them to the White House.",
+        "source": "user"
+    },
+    {
+        "text": "He tells you that they'll take it from there.",
+        "source": "user"
+    },
+    {
+        "text": "You agree that you will speak with your colleagues in the White House.",
+        "source": "user"
+    },
+    {
+        "text": "JFK is delighted to have your assistance and tells you that you absolutely won't regret this.",
+        "source": "user"
+    },
+    {
+        "text": "The next day, you fly back to the White House and float JFK's ideas past your colleagues.",
+        "source": "user"
+    },
+    {
+        "text": "They are skeptical, but agree to implement the project since they don't want to offend you and call you crazy.",
+        "source": "user"
+    },
+    {
+        "text": "You promise them that the superpower is a good idea and will in fact motivate the U.",
+        "source": "user"
+    },
+    {
+        "text": "S.",
+        "source": "api"
+    },
+    {
+        "text": "As it turns out, the project is a massive success.",
+        "source": "user"
+    },
+    {
+        "text": "It is successfully implemented and everyone is impressed at how much it motivates U.",
+        "source": "user"
+    },
+    {
+        "text": "S.",
+        "source": "user"
+    },
+    {
+        "text": "citizens to keep innovating and brainstorming new ideas all the time.",
+        "source": "user"
+    }
 ]

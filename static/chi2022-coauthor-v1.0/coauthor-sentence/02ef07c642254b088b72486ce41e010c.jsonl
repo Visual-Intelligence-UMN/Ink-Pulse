@@ -1,55 +1,210 @@
 [
-    "Your entire life, you've been told you're deathly allergic to bees.",
-    "You've always had people protecting you from them, be it your mother or a hired hand.",
-    "Today, one slips through and lands on your shoulder.",
-    "You hear a tiny voice say \"Your Majesty, what are your orders?\" You look up and see the bee flitting about in front of you.",
-    "You're not sure what to say, since bees stress you out so much that it's hard to think.",
-    "The bee's wings are fluttering in an anxious manner.",
-    "This makes you feel nervous, because you know that bees are very sensitive to their surroundings.",
-    "Aren't they like dogs?",
-    "Dogs can sense anxiety and fear and when they sense that, this is when they start biting.",
-    "So if this bee senses that you're nervous, it might sting you.",
-    "You try to calm yourself down, but it's hard.",
-    "You ask the bee why he's approached you, and he says that he's been sent by the queen to give you a message.",
-    "\"What's the message?\" you ask.",
-    "The bee tells you that the queen wants to know if you'd like to have a picnic with her.",
-    "\"Why would I have a picnic with the queen?\" The bee says that he's really been sent to be your personal butler and that the invitation to picnic with the queen is a rare opportunity, not to be taken lightly.",
-    "\"I don't know,\" you say.",
-    "\"After all, I'm deathly allergic to bees.\" The bee says that he's been specially trained to be gentle and that he'll be sure to keep his stinger tucked away.",
-    "And he promises that the queen doesn't want anything bad to happen to you either, so she'll be sure not to sting you too.",
-    "He also promises that the picnic food will be delicious, including all your favorite foods with a special treat at the end.",
-    "You agree.",
-    "After all, what is there to lose?",
-    "You love picnic food, and you're promised a spread that includes all your favorites, which include fried chicken, egg salad sandwiches, macaroni salad, potato salad, and chocolate cake.",
-    "So off you go with your butler bee to find the queen.",
-    "When you do, you're intrigued because she looks like a normal bee, but she's wearing a crown.",
-    "She's also wearing a long, flowing dress, and she's sitting on a blanket that's spread out over a field of flowers.",
-    "You sit down next to her, and she hands you a plate of fried chicken.",
-    "You're surprised because you didn't know that bees could cook, but this chicken is really good.",
-    "It's crispy on the outside and juicy on the inside.",
-    "You eat two pieces and then you ask for a sandwich.",
-    "The queen hands you an egg salad sandwich, which you eat.",
-    "Then you ask for a macaroni salad, and the queen hands you a bowl of that.",
-    "You eat it, and then you ask for a potato salad.",
-    "The queen hands you a bowl of that, and you eat it.",
-    "You're about to ask for chocolate cake, but you stop yourself.",
-    "You're so full you could almost burst.",
-    "The queen laughs.",
-    "She finds you humorous.",
-    "\"Why did you bring me here?\" you ask.",
-    "The queen smiles.",
-    "\"I wanted to show you my kingdom,\" she says.",
-    "She tells you that she noticed that you have decided to plant a garden recently in your backyard.",
-    "However, you've sprayed a bunch of insecticide everywhere, and that is very concerning to her since some of her bees in her kingdom have gotten sick or died after flitting over to your garden.",
-    "She wants you to stop using the insecticide.",
-    "\"But I'm allergic to most bugs and bees, and thus I need to keep them at bay,\" you tell her.",
-    "\"No,\" she says.",
-    "\"I'm giving my personal orders to my kingdom that no bee shall sting you ever, as long as you get rid of the insecticide.\" You think about this offer and decide to take the queen up on it.",
-    "After all, you don't want to be stung, and she's pretty nice.",
-    "She's even treated you to a delicious picnic.",
-    "So you agree to stop using the insecticide.",
-    "The queen is happy with this arrangement and tells you that she'll be sure to send her butler bee to you every now and then to check up on you.",
-    "She tells you that if you ever need anything from her kingdom, you should just let your butler bee know.",
-    "You tell her that you'll do just that!",
-    ""
+    {
+        "text": "Your entire life, you've been told you're deathly allergic to bees.",
+        "source": "api"
+    },
+    {
+        "text": "You've always had people protecting you from them, be it your mother or a hired hand.",
+        "source": "api"
+    },
+    {
+        "text": "Today, one slips through and lands on your shoulder.",
+        "source": "api"
+    },
+    {
+        "text": "You hear a tiny voice say \"Your Majesty, what are your orders?\" You look up and see the bee flitting about in front of you.",
+        "source": "api"
+    },
+    {
+        "text": "You're not sure what to say, since bees stress you out so much that it's hard to think.",
+        "source": "user"
+    },
+    {
+        "text": "The bee's wings are fluttering in an anxious manner.",
+        "source": "user"
+    },
+    {
+        "text": "This makes you feel nervous, because you know that bees are very sensitive to their surroundings.",
+        "source": "user"
+    },
+    {
+        "text": "Aren't they like dogs?",
+        "source": "user"
+    },
+    {
+        "text": "Dogs can sense anxiety and fear and when they sense that, this is when they start biting.",
+        "source": "user"
+    },
+    {
+        "text": "So if this bee senses that you're nervous, it might sting you.",
+        "source": "user"
+    },
+    {
+        "text": "You try to calm yourself down, but it's hard.",
+        "source": "user"
+    },
+    {
+        "text": "You ask the bee why he's approached you, and he says that he's been sent by the queen to give you a message.",
+        "source": "user"
+    },
+    {
+        "text": "\"What's the message?\" you ask.",
+        "source": "user"
+    },
+    {
+        "text": "The bee tells you that the queen wants to know if you'd like to have a picnic with her.",
+        "source": "user"
+    },
+    {
+        "text": "\"Why would I have a picnic with the queen?\" The bee says that he's really been sent to be your personal butler and that the invitation to picnic with the queen is a rare opportunity, not to be taken lightly.",
+        "source": "user"
+    },
+    {
+        "text": "\"I don't know,\" you say.",
+        "source": "user"
+    },
+    {
+        "text": "\"After all, I'm deathly allergic to bees.\" The bee says that he's been specially trained to be gentle and that he'll be sure to keep his stinger tucked away.",
+        "source": "user"
+    },
+    {
+        "text": "And he promises that the queen doesn't want anything bad to happen to you either, so she'll be sure not to sting you too.",
+        "source": "user"
+    },
+    {
+        "text": "He also promises that the picnic food will be delicious, including all your favorite foods with a special treat at the end.",
+        "source": "user"
+    },
+    {
+        "text": "You agree.",
+        "source": "user"
+    },
+    {
+        "text": "After all, what is there to lose?",
+        "source": "user"
+    },
+    {
+        "text": "You love picnic food, and you're promised a spread that includes all your favorites, which include fried chicken, egg salad sandwiches, macaroni salad, potato salad, and chocolate cake.",
+        "source": "user"
+    },
+    {
+        "text": "So off you go with your butler bee to find the queen.",
+        "source": "user"
+    },
+    {
+        "text": "When you do, you're intrigued because she looks like a normal bee, but she's wearing a crown.",
+        "source": "user"
+    },
+    {
+        "text": "She's also wearing a long, flowing dress, and she's sitting on a blanket that's spread out over a field of flowers.",
+        "source": "user"
+    },
+    {
+        "text": "You sit down next to her, and she hands you a plate of fried chicken.",
+        "source": "user"
+    },
+    {
+        "text": "You're surprised because you didn't know that bees could cook, but this chicken is really good.",
+        "source": "user"
+    },
+    {
+        "text": "It's crispy on the outside and juicy on the inside.",
+        "source": "user"
+    },
+    {
+        "text": "You eat two pieces and then you ask for a sandwich.",
+        "source": "user"
+    },
+    {
+        "text": "The queen hands you an egg salad sandwich, which you eat.",
+        "source": "user"
+    },
+    {
+        "text": "Then you ask for a macaroni salad, and the queen hands you a bowl of that.",
+        "source": "user"
+    },
+    {
+        "text": "You eat it, and then you ask for a potato salad.",
+        "source": "user"
+    },
+    {
+        "text": "The queen hands you a bowl of that, and you eat it.",
+        "source": "user"
+    },
+    {
+        "text": "You're about to ask for chocolate cake, but you stop yourself.",
+        "source": "user"
+    },
+    {
+        "text": "You're so full you could almost burst.",
+        "source": "user"
+    },
+    {
+        "text": "The queen laughs.",
+        "source": "user"
+    },
+    {
+        "text": "She finds you humorous.",
+        "source": "user"
+    },
+    {
+        "text": "\"Why did you bring me here?\" you ask.",
+        "source": "user"
+    },
+    {
+        "text": "The queen smiles.",
+        "source": "user"
+    },
+    {
+        "text": "\"I wanted to show you my kingdom,\" she says.",
+        "source": "user"
+    },
+    {
+        "text": "She tells you that she noticed that you have decided to plant a garden recently in your backyard.",
+        "source": "user"
+    },
+    {
+        "text": "However, you've sprayed a bunch of insecticide everywhere, and that is very concerning to her since some of her bees in her kingdom have gotten sick or died after flitting over to your garden.",
+        "source": "user"
+    },
+    {
+        "text": "She wants you to stop using the insecticide.",
+        "source": "user"
+    },
+    {
+        "text": "\"But I'm allergic to most bugs and bees, and thus I need to keep them at bay,\" you tell her.",
+        "source": "user"
+    },
+    {
+        "text": "\"No,\" she says.",
+        "source": "user"
+    },
+    {
+        "text": "\"I'm giving my personal orders to my kingdom that no bee shall sting you ever, as long as you get rid of the insecticide.\" You think about this offer and decide to take the queen up on it.",
+        "source": "user"
+    },
+    {
+        "text": "After all, you don't want to be stung, and she's pretty nice.",
+        "source": "user"
+    },
+    {
+        "text": "She's even treated you to a delicious picnic.",
+        "source": "user"
+    },
+    {
+        "text": "So you agree to stop using the insecticide.",
+        "source": "user"
+    },
+    {
+        "text": "The queen is happy with this arrangement and tells you that she'll be sure to send her butler bee to you every now and then to check up on you.",
+        "source": "user"
+    },
+    {
+        "text": "She tells you that if you ever need anything from her kingdom, you should just let your butler bee know.",
+        "source": "user"
+    },
+    {
+        "text": "You tell her that you'll do just that!",
+        "source": "user"
+    }
 ]

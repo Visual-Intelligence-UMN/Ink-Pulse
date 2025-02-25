@@ -1,60 +1,222 @@
 [
-    "When you're 28, science discovers a drug that stops all effects of aging, creating immortality.",
-    "Your government decides to give the drug to all citizens under 26, but you and the rest of the \"Lost Generations\" are deemed too high-risk.",
-    "When you're 85, the side effects are finally discovered.",
-    "You're given the choice: take the drug or die.",
-    "The man decided he had enough, and wanted to die.",
-    "He declined his dose of the drug and decided to live out his last days at home.",
-    "His wife, however, was not ready to let him go.",
-    "She begged him to take the drug.",
-    "He refused.",
-    "She was devastated.",
-    "She had already taken her dose, and was going to live on now without him.",
-    "She decided to take matters into her own hands.",
-    "One morning, she was making breakfast.",
-    "He thought it was going to be his last breakfast.",
-    "He was sitting at the table, and she was cooking.",
-    "When he wasn't looking, the woman poured the drug into his tea.",
-    "She then brought his cup to him where he was seated.",
-    "He took a sip of his tea, and then another.",
-    "He was quiet, thinking about his last day on earth.",
-    "\"Listen honey, there's something I want to confess.\" he said.",
-    "\"I've been cheating on you.\" She was shocked.",
-    "\"With who?\" she asked.",
-    "\"With my secretary.\" he said.",
-    "She was furious.",
-    "She felt so betrayed.",
-    "\"You lied to me.\" she said.",
-    "\"I'm sorry.",
-    "The guilt was eating away at me.",
-    "I figured let me just leave you here on earth so you can go on and be happy now.\" he said.",
-    "She was speechless.",
-    "She thought about it for a moment.",
-    "She then said, \"I forgive you.\" \n\n\"You do?\" he asked.",
-    "\"Yes.",
-    "I forgive you.\" she said.",
-    "\"Now, I have something to confess to you too.",
-    "Wait here, and I'll be right back.\" \n\n\"But I don't have much time,\" the man said.",
-    "\"I know, but I'll be right back.\" she said.",
-    "\"Just wait here.",
-    "And...think.\" \n\nShe left the room, and went to the kitchen.",
-    "She never went back into the room.",
-    "The man was still sitting there, thinking about his last day on earth.",
-    "She snuck out to the car and drove away.",
-    "And he sat there, thinking.",
-    "And thinking.",
-    "He thought of every good thing he'd ever done.",
-    "He thought of every bad thing he'd ever done.",
-    "He thought about his wife.",
-    "He wondered about what she would confess to.",
-    "He thought about his life.",
-    "He sat there waiting for death to come, only to be  met with more thoughts and memories.",
-    "He sat there for hours.",
-    "It was never-ending.",
-    "He couldn't take it any longer.",
-    "He got up from the table, and walked out the front door.",
-    "He looked up at the sky, and saw the stars.",
-    "For the first time in his life, he wondered if there was more to life than what's here on earth.",
-    "And that's when he got hit by a truck.",
-    ""
+    {
+        "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality.",
+        "source": "api"
+    },
+    {
+        "text": "Your government decides to give the drug to all citizens under 26, but you and the rest of the \"Lost Generations\" are deemed too high-risk.",
+        "source": "api"
+    },
+    {
+        "text": "When you're 85, the side effects are finally discovered.",
+        "source": "api"
+    },
+    {
+        "text": "You're given the choice: take the drug or die.",
+        "source": "user"
+    },
+    {
+        "text": "The man decided he had enough, and wanted to die.",
+        "source": "user"
+    },
+    {
+        "text": "He declined his dose of the drug and decided to live out his last days at home.",
+        "source": "user"
+    },
+    {
+        "text": "His wife, however, was not ready to let him go.",
+        "source": "user"
+    },
+    {
+        "text": "She begged him to take the drug.",
+        "source": "user"
+    },
+    {
+        "text": "He refused.",
+        "source": "user"
+    },
+    {
+        "text": "She was devastated.",
+        "source": "user"
+    },
+    {
+        "text": "She had already taken her dose, and was going to live on now without him.",
+        "source": "user"
+    },
+    {
+        "text": "She decided to take matters into her own hands.",
+        "source": "user"
+    },
+    {
+        "text": "One morning, she was making breakfast.",
+        "source": "user"
+    },
+    {
+        "text": "He thought it was going to be his last breakfast.",
+        "source": "user"
+    },
+    {
+        "text": "He was sitting at the table, and she was cooking.",
+        "source": "user"
+    },
+    {
+        "text": "When he wasn't looking, the woman poured the drug into his tea.",
+        "source": "user"
+    },
+    {
+        "text": "She then brought his cup to him where he was seated.",
+        "source": "user"
+    },
+    {
+        "text": "He took a sip of his tea, and then another.",
+        "source": "user"
+    },
+    {
+        "text": "He was quiet, thinking about his last day on earth.",
+        "source": "user"
+    },
+    {
+        "text": "\"Listen honey, there's something I want to confess.\" he said.",
+        "source": "user"
+    },
+    {
+        "text": "\"I've been cheating on you.\" She was shocked.",
+        "source": "user"
+    },
+    {
+        "text": "\"With who?\" she asked.",
+        "source": "user"
+    },
+    {
+        "text": "\"With my secretary.\" he said.",
+        "source": "user"
+    },
+    {
+        "text": "She was furious.",
+        "source": "user"
+    },
+    {
+        "text": "She felt so betrayed.",
+        "source": "user"
+    },
+    {
+        "text": "\"You lied to me.\" she said.",
+        "source": "user"
+    },
+    {
+        "text": "\"I'm sorry. The guilt was eating away at me. I figured let me just leave you here on earth so you can go on and be happy now.\" he said.",
+        "source": "user"
+    },
+    {
+        "text": "She was speechless.",
+        "source": "user"
+    },
+    {
+        "text": "She thought about it for a moment.",
+        "source": "user"
+    },
+    {
+        "text": "She then said, \"I forgive you.\"",
+        "source": "user"
+    },
+    {
+        "text": "\"You do?\" he asked.",
+        "source": "user"
+    },
+    {
+        "text": "\"Yes. I forgive you.\" she said.",
+        "source": "user"
+    },
+    {
+        "text": "\"Now, I have something to confess to you too. Wait here, and I'll be right back.\"",
+        "source": "user"
+    },
+    {
+        "text": "\"But I don't have much time,\" the man said.",
+        "source": "user"
+    },
+    {
+        "text": "\"I know, but I'll be right back.\" she said.",
+        "source": "user"
+    },
+    {
+        "text": "\"Just wait here. And...think.\"",
+        "source": "user"
+    },
+    {
+        "text": "She left the room, and went to the kitchen.",
+        "source": "api"
+    },
+    {
+        "text": "She never went back into the room.",
+        "source": "user"
+    },
+    {
+        "text": "The man was still sitting there, thinking about his last day on earth.",
+        "source": "user"
+    },
+    {
+        "text": "She snuck out to the car and drove away.",
+        "source": "user"
+    },
+    {
+        "text": "And he sat there, thinking.",
+        "source": "user"
+    },
+    {
+        "text": "And thinking.",
+        "source": "user"
+    },
+    {
+        "text": "He thought of every good thing he'd ever done.",
+        "source": "user"
+    },
+    {
+        "text": "He thought of every bad thing he'd ever done.",
+        "source": "user"
+    },
+    {
+        "text": "He thought about his wife.",
+        "source": "user"
+    },
+    {
+        "text": "He wondered about what she would confess to.",
+        "source": "user"
+    },
+    {
+        "text": "He thought about his life.",
+        "source": "user"
+    },
+    {
+        "text": "He sat there waiting for death to come, only to be  met with more thoughts and memories.",
+        "source": "user"
+    },
+    {
+        "text": "He sat there for hours.",
+        "source": "user"
+    },
+    {
+        "text": "It was never-ending.",
+        "source": "user"
+    },
+    {
+        "text": "He couldn't take it any longer.",
+        "source": "user"
+    },
+    {
+        "text": "He got up from the table, and walked out the front door.",
+        "source": "user"
+    },
+    {
+        "text": "He looked up at the sky, and saw the stars.",
+        "source": "user"
+    },
+    {
+        "text": "For the first time in his life, he wondered if there was more to life than what's here on earth.",
+        "source": "user"
+    },
+    {
+        "text": "And that's when he got hit by a truck.",
+        "source": "user"
+    }
 ]
