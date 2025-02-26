@@ -113,6 +113,7 @@
   };
 
   onMount(() => {
+    document.title = "Ink-Pulse";
     fetchSessions();
     if (selectedSession) {
       fetchData(selectedSession);
