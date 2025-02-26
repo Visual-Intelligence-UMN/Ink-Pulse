@@ -113,6 +113,7 @@
   };
 
   onMount(() => {
+    document.title = "Ink-Pulse";
     fetchSessions();
     if (selectedSession) {
       fetchData(selectedSession);
@@ -658,7 +659,7 @@
         <div class="text-container">
           {#if textElements && textElements.length > 0}
             {#if textElements[0].text !== "\n"}
-              <span class="text-span" style="color: black; font-weight: bold;">
+              <span class="text-span" style="color: blue; font-weight: bold;">
                 1.
               </span>
             {/if}
@@ -668,7 +669,7 @@
                 {#if index + 1 < textElements.length && textElements[index + 1].text === "\n"}{:else if index > 0 && textElements[index - 1].text === "\n"}
                   <span
                     class="text-span"
-                    style="color: black; font-weight: bold;"
+                    style="color: blue; font-weight: bold;"
                   >
                     {(() => {
                       let count = textElements[0].text !== "\n" ? 1 : 0;
