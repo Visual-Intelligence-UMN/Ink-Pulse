@@ -67,6 +67,7 @@
     "mattdamon", "dad", "isolation", "bee", "sideeffect"
   ];
   let isAllSelected = true;
+  let showMulti = false;
 
   function open2close() {
     isOpen = !isOpen;
@@ -95,11 +96,16 @@
           selectedTags = new Set(tags);
       }
       isAllSelected = !isAllSelected;
+      selectedTags = new Set([...selectedTags]);
       filterSessions();
   }
 
   const toggleFilter = () => {
     showFilter = !showFilter;
+  };
+
+  const toggleMulti = () => {
+    showMulti = !showMulti;
   };
 
   const fetchData = async (sessionFile) => {
@@ -621,11 +627,13 @@
 <div class="App">
   <header class="App-header">
     <nav>
-      <a on:click={toggleFilter} href=" " aria-label="Filter" class="material-symbols--filter-alt-outline"></a>
+      <a on:click={toggleFilter} href=" " aria-label="Filter" 
+        class={showFilter ? "material-symbols--filter-alt" : "material-symbols--filter-alt-outline"}>
+      </a>
       <div class="filter-container {showFilter ? 'show' : ''}">
-        <!-- <button on:click={toggleSelectAll} class="toggle-btn">
+        <a on:click={toggleSelectAll} href=" " aria-label="toggle-btn" class="material-symbols--refresh-rounded">
           {isAllSelected ? 'Clear All' : 'Select All'}
-        </button> -->
+        </a>
         {#each filterOptions as option}
           <label>
             <input type="checkbox" value={option} on:change={toggleTag} checked={selectedTags.has(option)}>
@@ -643,6 +651,10 @@
             </option>
           {/each}
         </select>
+      </div>
+      <div>
+        <a on:click={toggleMulti} href=" " aria-label="multiple-session" class={showMulti ? "material-symbols--stack-rounded" : "material-symbols--stack-off-rounded"}>
+        </a>
       </div>
       <a on:click={open2close} href=" " aria-label="Instruction" class="material-symbols--info-outline-rounded"></a>
     </nav>
@@ -1028,6 +1040,20 @@
     mask-size: 100% 100%;
   }
 
+  .material-symbols--filter-alt {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M11 20q-.425 0-.712-.288T10 19v-6L4.2 5.6q-.375-.5-.112-1.05T5 4h14q.65 0 .913.55T19.8 5.6L14 13v6q0 .425-.288.713T13 20z'/%3E%3C/svg%3E");
+    background-color: currentColor;
+    -webkit-mask-image: var(--svg);
+    mask-image: var(--svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+}
+
   .filter-container {
     position: absolute;
     top: 40px;
@@ -1054,19 +1080,79 @@
   .filter-container input[type="checkbox"] {
     cursor: pointer;
   }
-/* 
-  .toggle-btn {
-    background: #137a7f;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    border-radius: 5px;
+
+  .material-symbols--refresh-rounded {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 20q-3.35 0-5.675-2.325T4 12t2.325-5.675T12 4q1.725 0 3.3.712T18 6.75V5q0-.425.288-.712T19 4t.713.288T20 5v5q0 .425-.288.713T19 11h-5q-.425 0-.712-.288T13 10t.288-.712T14 9h3.2q-.8-1.4-2.187-2.2T12 6Q9.5 6 7.75 7.75T6 12t1.75 4.25T12 18q1.7 0 3.113-.862t2.187-2.313q.2-.35.563-.487t.737-.013q.4.125.575.525t-.025.75q-1.025 2-2.925 3.2T12 20'/%3E%3C/svg%3E");
+    background-color: currentColor;
+    -webkit-mask-image: var(--svg);
+    mask-image: var(--svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    margin-left: auto;
   }
 
-  .toggle-btn:hover {
-      background: #86cecb;
-  } */
+  input[type="checkbox"] {
+    vertical-align: middle;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    position: relative;
+  }
+
+  input[type="checkbox"]:checked {
+    background-color: #86cecb;
+    border-color: #86cecb;
+  }
+
+  input[type="checkbox"]:checked::before {
+    content: "✔";
+    font-size: 12px;
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+  }
+
+  .material-symbols--stack-rounded {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M4 16q-.825 0-1.412-.587T2 14V4q0-.825.588-1.412T4 2h10q.825 0 1.413.588T16 4v1q0 .425-.288.713T15 6t-.712-.288T14 5V4H4v10h1q.425 0 .713.288T6 15t-.288.713T5 16zm6 6q-.825 0-1.412-.587T8 20V10q0-.825.588-1.412T10 8h10q.825 0 1.413.588T22 10v10q0 .825-.587 1.413T20 22z'/%3E%3C/svg%3E");
+    background-color: currentColor;
+    -webkit-mask-image: var(--svg);
+    mask-image: var(--svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+  }
+
+  .material-symbols--stack-off-rounded {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M22 19.15L10.85 8H20q.825 0 1.413.588T22 10zM6.85 4l-2-2H14q.825 0 1.413.588T16 4v2h-2V4zM10 22q-.85 0-1.425-.575T8 20v-9.15l-4-4V14h2v2H4q-.85 0-1.425-.575T2 14V4.85l-.725-.725q-.3-.3-.288-.712T1.3 2.7t.713-.3t.712.3L21.3 21.3q.3.3.3.7t-.3.7t-.712.3t-.713-.3l-.725-.7z'/%3E%3C/svg%3E");
+    background-color: currentColor;
+    -webkit-mask-image: var(--svg);
+    mask-image: var(--svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+  }
+
 
 </style>
