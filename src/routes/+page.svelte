@@ -58,10 +58,49 @@
   let time100 = null; // process bar's end time
   let endTime = null; // last paragraph time
   let isOpen = false;
+  let showFilter = false;
+  let tags = ['shapeshifter', 'reincarnation', 'mana', 'obama', 'pig', 'mattdamon', 'dad', 'isolation', 'bee', 'sideeffect'];
+  let selectedTags = new Set(tags);
+  let filteredSessions = [];
+  let filterOptions = [
+    "shapeshifter", "reincarnation", "mana", "obama", "pig",
+    "mattdamon", "dad", "isolation", "bee", "sideeffect"
+  ];
+  let isAllSelected = true;
 
   function open2close() {
     isOpen = !isOpen;
   }
+
+  function toggleTag(event) {
+    const tag = event.target.value;
+    if (event.target.checked) {
+      selectedTags.add(tag);
+    } else {
+      selectedTags.delete(tag);
+    }
+    filterSessions();
+  }
+
+  function filterSessions() {
+    filteredSessions = sessions.filter(session =>
+      selectedTags.size === 0 || selectedTags.has(session.prompt_code)
+    );
+  }
+
+  function toggleSelectAll() {
+      if (isAllSelected) {
+          selectedTags.clear();
+      } else {
+          selectedTags = new Set(tags);
+      }
+      isAllSelected = !isAllSelected;
+      filterSessions();
+  }
+
+  const toggleFilter = () => {
+    showFilter = !showFilter;
+  };
 
   const fetchData = async (sessionFile) => {
     try {
@@ -98,6 +137,7 @@
       const response = await fetch(`${base}/fine.json`);
       const data = await response.json();
       sessions = data || [];
+      fetchSessions()
     } catch (error) {
       console.error("Error when fetching sessions:", error);
     }
@@ -162,7 +202,6 @@
         mergeParagraph.push(current);
       }
     }
-    console.log(mergeParagraph);
     const getTimeFromPercentage = (percentage, chartData) => {
       let closest = chartData.reduce((prev, curr) =>
         Math.abs(curr.percentage - percentage) <
@@ -170,13 +209,14 @@
           ? curr
           : prev
       );
+
       return closest.time;
     };
     let newParagraphTime = mergeParagraph.map((percentage) => ({
       time: getTimeFromPercentage(percentage, chartData),
       pos: Math.round((percentage / 100) * textLength),
     }));
-    console.log(newParagraphTime);
+
     return newParagraphTime;
   }
 
@@ -330,7 +370,6 @@
     }
 
     combinedText = combinedText.slice(0, -1); // delete last "\n"
-    console.log("I am gayu", combinedText);
     textElements = combinedText;
     chartData = chartData.slice(0, -1); // delete last "\n"
     chartData[0].isSuggestionOpen = false; // change the init api insert into false so not show in the chart
@@ -582,7 +621,30 @@
 <div class="App">
   <header class="App-header">
     <nav>
-      <a on:click={open2close} href=" ">Instruction</a>
+      <a on:click={toggleFilter} href=" " aria-label="Filter" class="material-symbols--filter-alt-outline"></a>
+      <div class="filter-container {showFilter ? 'show' : ''}">
+        <!-- <button on:click={toggleSelectAll} class="toggle-btn">
+          {isAllSelected ? 'Clear All' : 'Select All'}
+        </button> -->
+        {#each filterOptions as option}
+          <label>
+            <input type="checkbox" value={option} on:change={toggleTag} checked={selectedTags.has(option)}>
+              {option}
+          </label>
+          <br />
+        {/each}
+      </div>
+      <div class="dropdown-container">
+        <b>Select Session: &nbsp;</b>
+        <select bind:value={selectedSession} on:change={handleSessionChange}>
+          {#each (filteredSessions.length > 0 ? filteredSessions : sessions) as session}
+            <option value={session.session_id}>
+              {session.prompt_code} - {session.session_id}
+            </option>
+          {/each}
+        </select>
+      </div>
+      <a on:click={open2close} href=" " aria-label="Instruction" class="material-symbols--info-outline-rounded"></a>
     </nav>
     <div class="container">
       {#if isOpen}
@@ -609,17 +671,8 @@
           </div>
         </div>
       {/if}
+      <div class="display-box">
       <div class="content-box">
-        <div class="dropdown-container">
-          <b>Select Session: &nbsp;</b>
-          <select bind:value={selectedSession} on:change={handleSessionChange}>
-            {#each sessions as session}
-              <option value={session.session_id}>
-                {session.prompt_code} - {session.session_id}
-              </option>
-            {/each}
-          </select>
-        </div>
 
         <div class="summary-container">
           <div class="chart-explanation">
@@ -644,7 +697,7 @@
         </div>
 
         <div class="chart-container">
-          <canvas id="chart" height="300" width="500"></canvas>
+          <canvas id="chart"></canvas>
         </div>
         <button on:click={resetZoom} class="zoom-reset-btn">Reset Zoom</button>
       </div>
@@ -696,6 +749,7 @@
         </div>
       </div>
     </div>
+    </div>
   </header>
 </div>
 
@@ -726,15 +780,17 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 20px;
-    width: 90%;
+    width: 100%;
     max-width: 1200px;
     margin: 0 auto;
     margin-top: 70px;
   }
 
-  .content-box {
-    flex: 1;
+  .display-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 20px;
     border: 1px solid lightgray;
     border-radius: 15px;
     padding: 25px;
@@ -746,14 +802,32 @@
     font-size: 14px;
     white-space: pre-wrap;
     text-align: left;
+    width: 100%;
+  }
+
+  .content-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 500px;
+    font-family: Poppins, sans-serif;
+    font-size: 14px;
+    white-space: pre-wrap;
+    text-align: left;
+    padding: 15px;
   }
 
   .chart-container {
     width: 100%;
+    margin-top: 20px;
   }
 
   .text-container {
+    flex: 1;
     width: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    margin-top: 20px;
   }
 
   .text-span {
@@ -809,10 +883,10 @@
   }
 
   .dropdown-container {
+    align-self: flex-start;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 20px;
   }
 
   .summary-container {
@@ -915,7 +989,6 @@
     z-index: 1;
     left: 0;
     display: flex;
-    justify-content: flex-end;
   }
 
   nav a {
@@ -925,4 +998,75 @@
     font-weight: 500;
     cursor: pointer;
   }
+
+  .material-symbols--info-outline-rounded {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11t-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8t-.288-.712T12 7t-.712.288T11 8t.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12t-2.325-5.675T12 4T6.325 6.325T4 12t2.325 5.675T12 20m0-8'/%3E%3C/svg%3E");
+    background-color: currentColor;
+    -webkit-mask-image: var(--svg);
+    mask-image: var(--svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    margin-left: auto;
+  }
+
+  .material-symbols--filter-alt-outline {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M11 20q-.425 0-.712-.288T10 19v-6L4.2 5.6q-.375-.5-.112-1.05T5 4h14q.65 0 .913.55T19.8 5.6L14 13v6q0 .425-.288.713T13 20zm1-7.7L16.95 6h-9.9zm0 0'/%3E%3C/svg%3E");
+    background-color: currentColor;
+    -webkit-mask-image: var(--svg);
+    mask-image: var(--svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+  }
+
+  .filter-container {
+    position: absolute;
+    top: 40px;
+    left: 30px;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 12px;
+    display: none;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    width: 200px;
+    text-align: left;
+    border-radius: 8px;
+  }
+
+  .filter-container.show {
+    display: block;
+  }
+
+  .filter-container label {
+    display: block;
+    cursor: pointer;
+  }
+
+  .filter-container input[type="checkbox"] {
+    cursor: pointer;
+  }
+/* 
+  .toggle-btn {
+    background: #137a7f;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+
+  .toggle-btn:hover {
+      background: #86cecb;
+  } */
+
 </style>
