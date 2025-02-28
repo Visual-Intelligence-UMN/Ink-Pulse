@@ -531,7 +531,19 @@
               pinch: {
                 enabled: true, // Enable zooming with pinch gestures
               },
-              mode: "xy", // Allow zooming in both directions
+              mode: "xy",
+            },
+            limits: {
+              x: {
+                min: "original",
+                max: 100,
+                minRange: 20,
+              },
+              y: {
+                min: 0,
+                max: 100,
+                minRange: 20,
+              },
             },
           },
           tooltip: {
