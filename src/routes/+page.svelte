@@ -766,7 +766,10 @@
           <div class="text-container">
             {#if textElements && textElements.length > 0}
               {#if textElements[0].text !== "\n"}
-                <span class="text-span" style="color: blue; font-weight: bold;">
+                <span
+                  class="text-span"
+                  style="color: black; font-weight: normal;"
+                >
                   1.
                 </span>
               {/if}
@@ -776,7 +779,7 @@
                   {#if index + 1 < textElements.length && textElements[index + 1].text === "\n"}{:else if index > 0 && textElements[index - 1].text === "\n"}
                     <span
                       class="text-span"
-                      style="color: blue; font-weight: bold;"
+                      style="color: black; font-weight: normal;"
                     >
                       {(() => {
                         let count = textElements[0].text !== "\n" ? 1 : 0;
