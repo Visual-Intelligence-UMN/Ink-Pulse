@@ -59,12 +59,31 @@
   let endTime = null; // last paragraph time
   let isOpen = false;
   let showFilter = false;
-  let tags = ['shapeshifter', 'reincarnation', 'mana', 'obama', 'pig', 'mattdamon', 'dad', 'isolation', 'bee', 'sideeffect'];
+  let tags = [
+    "shapeshifter",
+    "reincarnation",
+    "mana",
+    "obama",
+    "pig",
+    "mattdamon",
+    "dad",
+    "isolation",
+    "bee",
+    "sideeffect",
+  ];
   let selectedTags = new Set(tags);
   let filteredSessions = [];
   let filterOptions = [
-    "shapeshifter", "reincarnation", "mana", "obama", "pig",
-    "mattdamon", "dad", "isolation", "bee", "sideeffect"
+    "shapeshifter",
+    "reincarnation",
+    "mana",
+    "obama",
+    "pig",
+    "mattdamon",
+    "dad",
+    "isolation",
+    "bee",
+    "sideeffect",
   ];
   let isAllSelected = true;
   let showMulti = false;
@@ -84,20 +103,21 @@
   }
 
   function filterSessions() {
-    filteredSessions = sessions.filter(session =>
-      selectedTags.size === 0 || selectedTags.has(session.prompt_code)
+    filteredSessions = sessions.filter(
+      (session) =>
+        selectedTags.size === 0 || selectedTags.has(session.prompt_code)
     );
   }
 
   function toggleSelectAll() {
-      if (isAllSelected) {
-          selectedTags.clear();
-      } else {
-          selectedTags = new Set(tags);
-      }
-      isAllSelected = !isAllSelected;
-      selectedTags = new Set([...selectedTags]);
-      filterSessions();
+    if (isAllSelected) {
+      selectedTags.clear();
+    } else {
+      selectedTags = new Set(tags);
+    }
+    isAllSelected = !isAllSelected;
+    selectedTags = new Set([...selectedTags]);
+    filterSessions();
   }
 
   const toggleFilter = () => {
@@ -143,7 +163,7 @@
       const response = await fetch(`${base}/fine.json`);
       const data = await response.json();
       sessions = data || [];
-      fetchSessions()
+      fetchSessions();
     } catch (error) {
       console.error("Error when fetching sessions:", error);
     }
@@ -177,16 +197,10 @@
     return colors[index % colors.length];
   }
 
-  // function generateColorGrey(index) {
-  //   const colors = [
-  //     "rgba(200, 200, 200, 0.3)",
-  //     "rgba(220, 220, 220, 0.3)",
-  //     "rgba(240, 240, 240, 0.3)",
-  //     "rgba(210, 210, 210, 0.3)",
-  //     "rgba(230, 230, 230, 0.3)",
-  //   ];
-  //   return colors[index % colors.length];
-  // }
+  function generateColorGrey(index) {
+    const colors = ["rgba(220, 220, 220, 0.3)", "rgba(240, 240, 240, 0.3)"];
+    return colors[index % colors.length];
+  }
 
   function adjustTime(paragraphTime, currentText, chartData) {
     let wholeText = currentText;
@@ -360,7 +374,7 @@
     for (let i = 0; i < paragraphTime.length - 1; i++) {
       const startTime = paragraphTime[i].time;
       const endTime = paragraphTime[i + 1].time;
-      const color = generateColor(i);
+      const color = generateColorGrey(i);
       paragraphColor.push({
         type: "box",
         xMin: startTime,
@@ -627,17 +641,33 @@
 <div class="App">
   <header class="App-header">
     <nav>
-      <a on:click={toggleFilter} href=" " aria-label="Filter" 
-        class={showFilter ? "material-symbols--filter-alt" : "material-symbols--filter-alt-outline"}>
+      <a
+        on:click={toggleFilter}
+        href=" "
+        aria-label="Filter"
+        class={showFilter
+          ? "material-symbols--filter-alt"
+          : "material-symbols--filter-alt-outline"}
+      >
       </a>
       <div class="filter-container {showFilter ? 'show' : ''}">
-        <a on:click={toggleSelectAll} href=" " aria-label="toggle-btn" class="material-symbols--refresh-rounded">
-          {isAllSelected ? 'Clear All' : 'Select All'}
+        <a
+          on:click={toggleSelectAll}
+          href=" "
+          aria-label="toggle-btn"
+          class="material-symbols--refresh-rounded"
+        >
+          {isAllSelected ? "Clear All" : "Select All"}
         </a>
         {#each filterOptions as option}
           <label>
-            <input type="checkbox" value={option} on:change={toggleTag} checked={selectedTags.has(option)}>
-              {option}
+            <input
+              type="checkbox"
+              value={option}
+              on:change={toggleTag}
+              checked={selectedTags.has(option)}
+            />
+            {option}
           </label>
           <br />
         {/each}
@@ -645,7 +675,7 @@
       <div class="dropdown-container">
         <b>Select Session: &nbsp;</b>
         <select bind:value={selectedSession} on:change={handleSessionChange}>
-          {#each (filteredSessions.length > 0 ? filteredSessions : sessions) as session}
+          {#each filteredSessions.length > 0 ? filteredSessions : sessions as session}
             <option value={session.session_id}>
               {session.prompt_code} - {session.session_id}
             </option>
@@ -653,10 +683,22 @@
         </select>
       </div>
       <div>
-        <a on:click={toggleMulti} href=" " aria-label="multiple-session" class={showMulti ? "material-symbols--stack-rounded" : "material-symbols--stack-off-rounded"}>
+        <a
+          on:click={toggleMulti}
+          href=" "
+          aria-label="multiple-session"
+          class={showMulti
+            ? "material-symbols--stack-rounded"
+            : "material-symbols--stack-off-rounded"}
+        >
         </a>
       </div>
-      <a on:click={open2close} href=" " aria-label="Instruction" class="material-symbols--info-outline-rounded"></a>
+      <a
+        on:click={open2close}
+        href=" "
+        aria-label="Instruction"
+        class="material-symbols--info-outline-rounded"
+      ></a>
     </nav>
     <div class="container">
       {#if isOpen}
@@ -684,83 +726,83 @@
         </div>
       {/if}
       <div class="display-box">
-      <div class="content-box">
-
-        <div class="summary-container">
-          <div class="chart-explanation">
-            <div>
-              <span class="triangle-text">▼</span>
-              user open the AI suggestion
+        <div class="content-box">
+          <div class="summary-container">
+            <div class="chart-explanation">
+              <div>
+                <span class="triangle-text">▼</span>
+                user open the AI suggestion
+              </div>
+              <div>
+                <span class="user-line">●</span> user writing
+              </div>
+              <div>
+                <span class="api-line">●</span> AI writing
+              </div>
             </div>
-            <div>
-              <span class="user-line">●</span> user writing
-            </div>
-            <div>
-              <span class="api-line">●</span> AI writing
+            <div class="session-summary">
+              <h3>Session Summary</h3>
+              <div id="totalText"></div>
+              <div id="totalInsertions"></div>
+              <div id="totalDeletions"></div>
+              <div id="totalSuggestions"></div>
             </div>
           </div>
-          <div class="session-summary">
-            <h3>Session Summary</h3>
-            <div id="totalText"></div>
-            <div id="totalInsertions"></div>
-            <div id="totalDeletions"></div>
-            <div id="totalSuggestions"></div>
-          </div>
-        </div>
 
-        <div class="chart-container">
-          <canvas id="chart"></canvas>
+          <div class="chart-container">
+            <canvas id="chart"></canvas>
+          </div>
+          <button on:click={resetZoom} class="zoom-reset-btn">Reset Zoom</button
+          >
         </div>
-        <button on:click={resetZoom} class="zoom-reset-btn">Reset Zoom</button>
-      </div>
-      <div class="content-box">
-        <div class="progress-container">
-          <span>{currentTime.toFixed(2)}mins</span>
-          <progress value={currentTime} max={time100}></progress>
-        </div>
-        <div class="scale-container">
-          <div class="scale" id="scale"></div>
-        </div>
-        <div class="text-container">
-          {#if textElements && textElements.length > 0}
-            {#if textElements[0].text !== "\n"}
-              <span class="text-span" style="color: blue; font-weight: bold;">
-                1.
-              </span>
-            {/if}
-            {#each textElements as element, index}
-              {#if element.text === "\n" && index + 1 < textElements.length}
-                <br />
-                {#if index + 1 < textElements.length && textElements[index + 1].text === "\n"}{:else if index > 0 && textElements[index - 1].text === "\n"}
-                  <span
-                    class="text-span"
-                    style="color: blue; font-weight: bold;"
-                  >
-                    {(() => {
-                      let count = textElements[0].text !== "\n" ? 1 : 0;
-                      for (let i = 0; i < index; i++) {
-                        if (
-                          textElements[i].text === "\n" &&
-                          i > 0 &&
-                          textElements[i - 1].text === "\n"
-                        ) {
-                          count++;
-                        }
-                      }
-                      return count + 1;
-                    })()}.
-                  </span>
-                {/if}
-              {:else}
-                <span class="text-span" style="color: {element.textColor}">
-                  {element.text}
+        <div class="content-box">
+          <div class="progress-container">
+            <span>{currentTime.toFixed(2)}mins</span>
+            <progress value={currentTime} max={time100}></progress>
+          </div>
+          <div class="scale-container">
+            <div class="scale" id="scale"></div>
+          </div>
+          <div class="text-container">
+            {#if textElements && textElements.length > 0}
+              {#if textElements[0].text !== "\n"}
+                <span class="text-span" style="color: blue; font-weight: bold;">
+                  1.
                 </span>
               {/if}
-            {/each}
-          {/if}
+              {#each textElements as element, index}
+                {#if element.text === "\n" && index + 1 < textElements.length}
+                  <br />
+                  {#if index + 1 < textElements.length && textElements[index + 1].text === "\n"}{:else if index > 0 && textElements[index - 1].text === "\n"}
+                    <span
+                      class="text-span"
+                      style="color: blue; font-weight: bold;"
+                    >
+                      {(() => {
+                        let count = textElements[0].text !== "\n" ? 1 : 0;
+                        for (let i = 0; i < index; i++) {
+                          if (
+                            textElements[i].text === "\n" &&
+                            i > 0 &&
+                            textElements[i - 1].text === "\n"
+                          ) {
+                            count++;
+                          }
+                        }
+                        return count + 1;
+                      })()}.
+                    </span>
+                  {/if}
+                {:else}
+                  <span class="text-span" style="color: {element.textColor}">
+                    {element.text}
+                  </span>
+                {/if}
+              {/each}
+            {/if}
+          </div>
         </div>
       </div>
-    </div>
     </div>
   </header>
 </div>
@@ -1052,7 +1094,7 @@
     mask-repeat: no-repeat;
     -webkit-mask-size: 100% 100%;
     mask-size: 100% 100%;
-}
+  }
 
   .filter-container {
     position: absolute;
@@ -1153,6 +1195,4 @@
     -webkit-mask-size: 100% 100%;
     mask-size: 100% 100%;
   }
-
-
 </style>
