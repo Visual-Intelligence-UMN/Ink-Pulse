@@ -468,14 +468,14 @@
   ) => {
     const totalEvents = totalInsertions + totalDeletions + totalSuggestions;
 
-    // document.getElementById("totalText").textContent =
-    //   `Total Text: ${totalProcessedCharacters} characters`;
-    // document.getElementById("totalInsertions").textContent =
-    //   `Insertions: ${totalInsertions}`;
-    // document.getElementById("totalDeletions").textContent =
-    //   `Deletions: ${totalDeletions}`;
-    // document.getElementById("totalSuggestions").textContent =
-    //   `Suggestions: ${totalSuggestions}`;
+    document.getElementById("totalText").textContent =
+      `Total Text: ${totalProcessedCharacters} characters`;
+    document.getElementById("totalInsertions").textContent =
+      `Insertions: ${totalInsertions}`;
+    document.getElementById("totalDeletions").textContent =
+      `Deletions: ${totalDeletions}`;
+    document.getElementById("totalSuggestions").textContent =
+      `Suggestions: ${totalSuggestions}`;
   };
 
   function resetZoom() {
