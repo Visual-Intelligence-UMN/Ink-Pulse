@@ -14,7 +14,9 @@
   } from "chart.js";
   import "chartjs-adapter-date-fns";
   import annotationPlugin from "chartjs-plugin-annotation";
-
+  import { writable } from "svelte/store";
+  import { get } from "svelte/store";
+  import { tick } from 'svelte';
   import { base } from "$app/paths";
 
   Chart.register(
@@ -59,15 +61,35 @@
   let endTime = null; // last paragraph time
   let isOpen = false;
   let showFilter = false;
-  let tags = ['shapeshifter', 'reincarnation', 'mana', 'obama', 'pig', 'mattdamon', 'dad', 'isolation', 'bee', 'sideeffect'];
+  let tags = [
+    "shapeshifter",
+    "reincarnation",
+    "mana",
+    "obama",
+    "pig",
+    "mattdamon",
+    "dad",
+    "isolation",
+    "bee",
+    "sideeffect",
+  ];
   let selectedTags = new Set(tags);
   let filteredSessions = [];
   let filterOptions = [
-    "shapeshifter", "reincarnation", "mana", "obama", "pig",
-    "mattdamon", "dad", "isolation", "bee", "sideeffect"
+    "shapeshifter",
+    "reincarnation",
+    "mana",
+    "obama",
+    "pig",
+    "mattdamon",
+    "dad",
+    "isolation",
+    "bee",
+    "sideeffect",
   ];
   let isAllSelected = true;
   let showMulti = false;
+  export const storeSessionData = writable([]);
 
   function open2close() {
     isOpen = !isOpen;
@@ -84,20 +106,21 @@
   }
 
   function filterSessions() {
-    filteredSessions = sessions.filter(session =>
-      selectedTags.size === 0 || selectedTags.has(session.prompt_code)
+    filteredSessions = sessions.filter(
+      (session) =>
+        selectedTags.size === 0 || selectedTags.has(session.prompt_code)
     );
   }
 
   function toggleSelectAll() {
-      if (isAllSelected) {
-          selectedTags.clear();
-      } else {
-          selectedTags = new Set(tags);
-      }
-      isAllSelected = !isAllSelected;
-      selectedTags = new Set([...selectedTags]);
-      filterSessions();
+    if (isAllSelected) {
+      selectedTags.clear();
+    } else {
+      selectedTags = new Set(tags);
+    }
+    isAllSelected = !isAllSelected;
+    selectedTags = new Set([...selectedTags]);
+    filterSessions();
   }
 
   const toggleFilter = () => {
@@ -131,8 +154,31 @@
         progressElement.value = currentTime;
       }
 
-      dataDict = data;
-      handleEvents(data);
+      if (!showMulti) {
+        dataDict = data;
+        let sessionData = {
+        sessionId: sessionFile,
+        time0,
+        time100,
+        currentTime,
+        chartData: [],
+        };
+        storeSessionData.set([sessionData]);
+        await tick(); // wait for storeSessionData update
+
+        const { chartData, textElements } = handleEvents(data, sessionFile);
+        storeSessionData.update(sessions => {
+            let sessionIndex = sessions.findIndex(s => s.sessionId === sessionFile);
+            if (sessionIndex !== -1) {
+                sessions[sessionIndex].chartData = chartData;
+                sessions[sessionIndex].textElements = textElements;
+            }
+            return [...sessions];
+        });
+        await tick();
+        renderChart(sessionFile); // Ensure this function is correctly updating and re-rendering the chart
+      }
+      
     } catch (error) {
       console.error("Error when reading the data file:", error);
     }
@@ -143,7 +189,7 @@
       const response = await fetch(`${base}/fine.json`);
       const data = await response.json();
       sessions = data || [];
-      fetchSessions()
+      fetchSessions();
     } catch (error) {
       console.error("Error when fetching sessions:", error);
     }
@@ -154,7 +200,7 @@
     paragraphTime = [];
     paragraphColor = [];
     fetchData(selectedSession).then(() => {
-      renderChart();
+      renderChart(selectedSession);
     });
   };
 
@@ -177,16 +223,10 @@
     return colors[index % colors.length];
   }
 
-  // function generateColorGrey(index) {
-  //   const colors = [
-  //     "rgba(200, 200, 200, 0.3)",
-  //     "rgba(220, 220, 220, 0.3)",
-  //     "rgba(240, 240, 240, 0.3)",
-  //     "rgba(210, 210, 210, 0.3)",
-  //     "rgba(230, 230, 230, 0.3)",
-  //   ];
-  //   return colors[index % colors.length];
-  // }
+  function generateColorGrey(index) {
+    const colors = ["rgba(220, 220, 220, 0.3)", "rgba(240, 240, 240, 0.3)"];
+    return colors[index % colors.length];
+  }
 
   function adjustTime(paragraphTime, currentText, chartData) {
     let wholeText = currentText;
@@ -226,7 +266,7 @@
     return newParagraphTime;
   }
 
-  const handleEvents = (data) => {
+  const handleEvents = (data, sessionId) => {
     let initText = data.init_text.join("");
     let currentText = initText;
     let currentColor = [];
@@ -360,7 +400,7 @@
     for (let i = 0; i < paragraphTime.length - 1; i++) {
       const startTime = paragraphTime[i].time;
       const endTime = paragraphTime[i + 1].time;
-      const color = generateColor(i);
+      const color = generateColorGrey(i);
       paragraphColor.push({
         type: "box",
         xMin: startTime,
@@ -379,8 +419,12 @@
     textElements = combinedText;
     chartData = chartData.slice(0, -1); // delete last "\n"
     chartData[0].isSuggestionOpen = false; // change the init api insert into false so not show in the chart
-    renderChart(); // Ensure this function is correctly updating and re-rendering the chart
     calculateSessionAnalytics(data);
+
+    return {
+      chartData,
+      textElements
+    }
   };
 
   const calculateSessionAnalytics = (data) => {
@@ -424,14 +468,14 @@
   ) => {
     const totalEvents = totalInsertions + totalDeletions + totalSuggestions;
 
-    document.getElementById("totalText").textContent =
-      `Total Text: ${totalProcessedCharacters} characters`;
-    document.getElementById("totalInsertions").textContent =
-      `Insertions: ${totalInsertions}`;
-    document.getElementById("totalDeletions").textContent =
-      `Deletions: ${totalDeletions}`;
-    document.getElementById("totalSuggestions").textContent =
-      `Suggestions: ${totalSuggestions}`;
+    // document.getElementById("totalText").textContent =
+    //   `Total Text: ${totalProcessedCharacters} characters`;
+    // document.getElementById("totalInsertions").textContent =
+    //   `Insertions: ${totalInsertions}`;
+    // document.getElementById("totalDeletions").textContent =
+    //   `Deletions: ${totalDeletions}`;
+    // document.getElementById("totalSuggestions").textContent =
+    //   `Suggestions: ${totalSuggestions}`;
   };
 
   function resetZoom() {
@@ -440,186 +484,217 @@
     }
   }
 
-  const renderChart = () => {
+  const renderChart = (sessionId) => {
     if (chart) {
       chart.destroy();
     }
-    const lineChart = document.getElementById("chart").getContext("2d");
-    const processedData = chartData.map((data, index) => {
-      if (index > 0 && chartData[index - 1].percentage === data.percentage) {
-        return { x: data.time, y: null };
-      }
-      if (
-        index > 0 &&
-        chartData[index - 1].eventSource === "api" &&
-        chartData[index].eventSource === "user"
-      ) {
-        return { x: data.time, y: null };
-      }
-      if (
-        index > 0 &&
-        chartData[index - 1].eventSource === "user" &&
-        chartData[index].eventSource === "user" &&
-        chartData[index].time - chartData[index - 1].time > 0.3
-      ) {
-        return { x: data.time, y: null };
-      }
+    storeSessionData.update(sessions => {
+      let sessionIndex = sessions.findIndex(s => s.sessionId == sessionId);
+      if (sessionIndex === -1) return sessions; // check whether empty
 
-      return { x: data.time, y: data.percentage };
-    });
+      let session = sessions[sessionIndex];
 
-    let selectPoint = null;
-    chart = new Chart(lineChart, {
-      type: "line",
-      data: {
-        labels: chartData.map((data) => data.time.toFixed(2)),
-        datasets: [
-          {
-            label: "process",
-            data: processedData,
-            borderColor: chartData.map((data) => data.color),
-            backgroundColor: "transparent",
-            segment: {
-              borderColor: (lineChart) =>
-                chartData[lineChart.p1DataIndex].color,
-            },
-            tension: 0.1,
-          },
-        ],
-      },
-      options: {
-        interaction: {
-          mode: "nearest",
-          intersect: true,
-        },
-        onClick: (event, chartElements) => {
-          if (chartElements.length > 0) {
-            const index = chartElements[0].index;
-            if (selectPoint !== index) {
-              selectPoint = index;
-              chart.update();
-            }
-          }
-        },
-        plugins: {
-          legend: {
-            display: false,
-          },
-          zoom: {
-            pan: {
-              enabled: true,
-              mode: "xy",
-            },
-            zoom: {
-              wheel: {
-                enabled: true, // Enable zooming with mouse wheel
+      const lineChart = document.getElementById(`chart-${sessionId}`).getContext("2d");
+      const processedData = session.chartData.map((data, index) => {
+        if (index > 0 && session.chartData[index - 1].percentage === data.percentage) {
+          return { x: data.time, y: null };
+        }
+        if (
+          index > 0 &&
+          session.chartData[index - 1].eventSource === "api" &&
+          session.chartData[index].eventSource === "user"
+        ) {
+          return { x: data.time, y: null };
+        }
+        if (
+          index > 0 &&
+          session.chartData[index - 1].eventSource === "user" &&
+          session.chartData[index].eventSource === "user" &&
+          session.chartData[index].time - session.chartData[index - 1].time > 0.3
+        ) {
+          return { x: data.time, y: null };
+        }
+
+        return { x: data.time, y: data.percentage };
+      });
+
+      let selectPoint = null;
+      chart = new Chart(lineChart, {
+        type: "line",
+        data: {
+          labels: session.chartData.map((data) => data.time.toFixed(2)),
+          datasets: [
+            {
+              label: "process",
+              data: processedData,
+              borderColor: session.chartData.map((data) => data.color),
+              backgroundColor: "transparent",
+              segment: {
+                borderColor: (lineChart) =>
+                session.chartData[lineChart.p1DataIndex].color,
               },
-              pinch: {
-                enabled: true, // Enable zooming with pinch gestures
-              },
-              mode: "xy", // Allow zooming in both directions
+              tension: 0.1,
             },
-          },
-          tooltip: {
-            enabled: true,
+          ],
+        },
+        options: {
+          interaction: {
             mode: "nearest",
             intersect: true,
-            callbacks: {
-              title: (tooltipItems) => {
-                const data = chartData[tooltipItems[0].dataIndex];
-                return `Time: ${data.time.toFixed(2)} mins`;
-              },
-              label: (tooltipItem) => {
-                const data = chartData[tooltipItem.dataIndex];
-                const eventType = data.eventSource === "user" ? "User" : "API";
-                return `Progress: ${data.percentage.toFixed(2)}% | Event: ${data.eventSource}`;
-              },
-            },
           },
-          annotation: {
-            annotations: [
-              ...paragraphColor,
-              ...chartData
-                .filter((data) => data.isSuggestionOpen)
-                .map((data) => ({
-                  type: "point",
-                  pointStyle: "triangle",
-                  rotation: 180,
-                  xMax: data.time,
-                  xMin: data.time,
-                  yMin: data.percentage + 1,
-                  yMax: data.percentage + 5,
-                  borderColor: "#FFB6B3",
-                  borderWidth: 1,
-                  radius: 3,
-                  backgroundColor: "#FFB6B3",
-                  interactive: true,
-                })),
-            ],
-          },
-        },
-        elements: {
-          point: {
-            radius: (context) => {
-              if (selectPoint !== null && context.dataIndex === selectPoint) {
-                return 8;
+          onClick: (event, chartElements) => {
+            if (chartElements.length > 0) {
+              const index = chartElements[0].index;
+              if (selectPoint !== index) {
+                selectPoint = index;
+                chart.update();
               }
-              return 1;
-            },
-            hoverRadius: 8,
-            hoverBackgroundColor: "rgba(255, 99, 132, 0.8)",
-            hoverBorderColor: "rgba(255, 99, 132, 1)",
+            }
           },
-        },
-        scales: {
-          x: {
-            type: "linear",
-            title: {
-              display: true,
-              text: "Time (mins)",
-            },
-            ticks: {
-              stepSize: 1,
-            },
-            grid: {
+          plugins: {
+            legend: {
               display: false,
             },
+            zoom: {
+              pan: {
+                enabled: true,
+                mode: "xy",
+              },
+              zoom: {
+                wheel: {
+                  enabled: true, // Enable zooming with mouse wheel
+                },
+                pinch: {
+                  enabled: true, // Enable zooming with pinch gestures
+                },
+                mode: "xy",
+              },
+              limits: {
+                x: {
+                  min: "original",
+                  max: 100,
+                  minRange: 20,
+                },
+                y: {
+                  min: 0,
+                  max: 100,
+                  minRange: 20,
+                },
+              },
+            },
+            tooltip: {
+              enabled: true,
+              mode: "nearest",
+              intersect: true,
+              callbacks: {
+                title: (tooltipItems) => {
+                  const data = session.chartData[tooltipItems[0].dataIndex];
+                  return `Time: ${data.time.toFixed(2)} mins`;
+                },
+                label: (tooltipItem) => {
+                  const data = session.chartData[tooltipItem.dataIndex];
+                  const eventType = data.eventSource === "user" ? "User" : "API";
+                  return `Progress: ${data.percentage.toFixed(2)}% | Event: ${data.eventSource}`;
+                },
+              },
+            },
+            annotation: {
+              annotations: [
+                ...paragraphColor,
+                ...session.chartData
+                  .filter((data) => data.isSuggestionOpen)
+                  .map((data) => ({
+                    type: "point",
+                    pointStyle: "triangle",
+                    rotation: 180,
+                    xMax: data.time,
+                    xMin: data.time,
+                    yMin: data.percentage + 1,
+                    yMax: data.percentage + 5,
+                    borderColor: "#FFB6B3",
+                    borderWidth: 1,
+                    radius: 3,
+                    backgroundColor: "#FFB6B3",
+                    interactive: true,
+                  })),
+              ],
+            },
           },
-          y: {
-            min: 0,
-            max: 100,
-            offset: true,
-            title: {
-              display: true,
-              text: "Process(%)",
+          elements: {
+            point: {
+              radius: (context) => {
+                if (selectPoint !== null && context.dataIndex === selectPoint) {
+                  return 8;
+                }
+                return 1;
+              },
+              hoverRadius: 8,
+              hoverBackgroundColor: "rgba(255, 99, 132, 0.8)",
+              hoverBorderColor: "rgba(255, 99, 132, 1)",
             },
-            ticks: {
-              stepSize: 10,
+          },
+          scales: {
+            x: {
+              type: "linear",
+              title: {
+                display: true,
+                text: "Time (mins)",
+              },
+              ticks: {
+                stepSize: 1,
+              },
+              grid: {
+                display: false,
+              },
             },
-            grid: {
-              display: false,
+            y: {
+              min: 0,
+              max: 100,
+              offset: true,
+              title: {
+                display: true,
+                text: "Process(%)",
+              },
+              ticks: {
+                stepSize: 10,
+              },
+              grid: {
+                display: false,
+              },
             },
           },
         },
-      },
-    });
-    lineChart.canvas.addEventListener("click", (event) => {
-      const points = chart.getElementsAtEventForMode(
-        event,
-        "nearest",
-        { intersect: true },
-        true
-      );
-      if (points.length > 0) {
-        const point = points[0];
-        const data = chartData[point.index];
+      });
+      lineChart.canvas.addEventListener("click", (event) => {
+        const points = chart.getElementsAtEventForMode(
+          event,
+          "nearest",
+          { intersect: true },
+          true
+        );
+        if (points.length > 0) {
+          const point = points[0];
+          const data = session.chartData[point.index];
 
-        textElements = data.currentText.split("").map((char, index) => ({
-          text: char,
-          textColor: data.currentColor[index],
-        }));
-        currentTime = data.time;
-      }
+          textElements = data.currentText.split("").map((char, index) => ({
+            text: char,
+            textColor: data.currentColor[index],
+          }));
+          currentTime = data.time;
+          storeSessionData.update(sessions => {
+            let sessionIndex = sessions.findIndex(s => s.sessionId === sessionId);
+            if (sessionIndex !== -1) {
+                sessions[sessionIndex].textElements = data.currentText.split("").map((char, index) => ({
+                    text: char,
+                    textColor: data.currentColor[index],
+                }));
+                sessions[sessionIndex].currentTime = data.time;
+            }
+            return [...sessions];
+          });
+        }
+      });
+      return sessions;
     });
   };
 </script>
@@ -627,17 +702,33 @@
 <div class="App">
   <header class="App-header">
     <nav>
-      <a on:click={toggleFilter} href=" " aria-label="Filter" 
-        class={showFilter ? "material-symbols--filter-alt" : "material-symbols--filter-alt-outline"}>
+      <a
+        on:click={toggleFilter}
+        href=" "
+        aria-label="Filter"
+        class={showFilter
+          ? "material-symbols--filter-alt"
+          : "material-symbols--filter-alt-outline"}
+      >
       </a>
       <div class="filter-container {showFilter ? 'show' : ''}">
-        <a on:click={toggleSelectAll} href=" " aria-label="toggle-btn" class="material-symbols--refresh-rounded">
-          {isAllSelected ? 'Clear All' : 'Select All'}
+        <a
+          on:click={toggleSelectAll}
+          href=" "
+          aria-label="toggle-btn"
+          class="material-symbols--refresh-rounded"
+        >
+          {isAllSelected ? "Clear All" : "Select All"}
         </a>
         {#each filterOptions as option}
           <label>
-            <input type="checkbox" value={option} on:change={toggleTag} checked={selectedTags.has(option)}>
-              {option}
+            <input
+              type="checkbox"
+              value={option}
+              on:change={toggleTag}
+              checked={selectedTags.has(option)}
+            />
+            {option}
           </label>
           <br />
         {/each}
@@ -645,7 +736,7 @@
       <div class="dropdown-container">
         <b>Select Session: &nbsp;</b>
         <select bind:value={selectedSession} on:change={handleSessionChange}>
-          {#each (filteredSessions.length > 0 ? filteredSessions : sessions) as session}
+          {#each filteredSessions.length > 0 ? filteredSessions : sessions as session}
             <option value={session.session_id}>
               {session.prompt_code} - {session.session_id}
             </option>
@@ -653,10 +744,22 @@
         </select>
       </div>
       <div>
-        <a on:click={toggleMulti} href=" " aria-label="multiple-session" class={showMulti ? "material-symbols--stack-rounded" : "material-symbols--stack-off-rounded"}>
+        <a
+          on:click={toggleMulti}
+          href=" "
+          aria-label="multiple-session"
+          class={showMulti
+            ? "material-symbols--stack-rounded"
+            : "material-symbols--stack-off-rounded"}
+        >
         </a>
       </div>
-      <a on:click={open2close} href=" " aria-label="Instruction" class="material-symbols--info-outline-rounded"></a>
+      <a
+        on:click={open2close}
+        href=" "
+        aria-label="Instruction"
+        class="material-symbols--info-outline-rounded"
+      ></a>
     </nav>
     <div class="container">
       {#if isOpen}
@@ -683,84 +786,90 @@
           </div>
         </div>
       {/if}
+{#if !showMulti && $storeSessionData.length > 0}
       <div class="display-box">
-      <div class="content-box">
-
-        <div class="summary-container">
-          <div class="chart-explanation">
-            <div>
-              <span class="triangle-text">▼</span>
-              user open the AI suggestion
+        <div class="content-box">
+          <div class="summary-container">
+            <div class="chart-explanation">
+              <div>
+                <span class="triangle-text">▼</span>
+                user open the AI suggestion
+              </div>
+              <div>
+                <span class="user-line">●</span> user writing
+              </div>
+              <div>
+                <span class="api-line">●</span> AI writing
+              </div>
             </div>
-            <div>
-              <span class="user-line">●</span> user writing
-            </div>
-            <div>
-              <span class="api-line">●</span> AI writing
+            <div class="session-summary">
+              <h3>Session Summary</h3>
+              <div id="totalText"></div>
+              <div id="totalInsertions"></div>
+              <div id="totalDeletions"></div>
+              <div id="totalSuggestions"></div>
             </div>
           </div>
-          <div class="session-summary">
-            <h3>Session Summary</h3>
-            <div id="totalText"></div>
-            <div id="totalInsertions"></div>
-            <div id="totalDeletions"></div>
-            <div id="totalSuggestions"></div>
-          </div>
-        </div>
 
-        <div class="chart-container">
-          <canvas id="chart"></canvas>
+          <div class="chart-container">
+            <canvas id="chart-{$storeSessionData[0].sessionId}"></canvas>
+          </div>
+          <button on:click={resetZoom} class="zoom-reset-btn">Reset Zoom</button
+          >
         </div>
-        <button on:click={resetZoom} class="zoom-reset-btn">Reset Zoom</button>
-      </div>
-      <div class="content-box">
-        <div class="progress-container">
-          <span>{currentTime.toFixed(2)}mins</span>
-          <progress value={currentTime} max={time100}></progress>
-        </div>
-        <div class="scale-container">
-          <div class="scale" id="scale"></div>
-        </div>
-        <div class="text-container">
-          {#if textElements && textElements.length > 0}
-            {#if textElements[0].text !== "\n"}
-              <span class="text-span" style="color: blue; font-weight: bold;">
-                1.
-              </span>
-            {/if}
-            {#each textElements as element, index}
-              {#if element.text === "\n" && index + 1 < textElements.length}
-                <br />
-                {#if index + 1 < textElements.length && textElements[index + 1].text === "\n"}{:else if index > 0 && textElements[index - 1].text === "\n"}
-                  <span
-                    class="text-span"
-                    style="color: blue; font-weight: bold;"
-                  >
-                    {(() => {
-                      let count = textElements[0].text !== "\n" ? 1 : 0;
-                      for (let i = 0; i < index; i++) {
-                        if (
-                          textElements[i].text === "\n" &&
-                          i > 0 &&
-                          textElements[i - 1].text === "\n"
-                        ) {
-                          count++;
-                        }
-                      }
-                      return count + 1;
-                    })()}.
-                  </span>
-                {/if}
-              {:else}
-                <span class="text-span" style="color: {element.textColor}">
-                  {element.text}
+        <div class="content-box">
+          <div class="progress-container">
+            <span>{($storeSessionData[0]?.currentTime || 0).toFixed(2)} mins</span>
+            <progress value={$storeSessionData[0]?.currentTime || 0} max={$storeSessionData[0]?.time100 || 1}></progress>
+          </div>
+          <div class="scale-container">
+            <div class="scale" id="scale"></div>
+          </div>
+          <div class="text-container">
+            {#if $storeSessionData[0].textElements && $storeSessionData[0].textElements.length > 0}
+              {#if $storeSessionData[0].textElements[0].text !== "\n"}
+                <span
+                  class="text-span"
+                  style="color: black; font-weight: normal;"
+                >
+                  1.
                 </span>
               {/if}
-            {/each}
-          {/if}
+              {#each $storeSessionData[0].textElements as element, index}
+                {#if element.text === "\n" && index + 1 < $storeSessionData[0].textElements.length}
+                  <br />
+                  {#if index + 1 < $storeSessionData[0].textElements.length && $storeSessionData[0].textElements[index + 1].text === "\n"}{:else if index > 0 && $storeSessionData[0].textElements[index - 1].text === "\n"}
+                    <span
+                      class="text-span"
+                      style="color: black; font-weight: normal;"
+                    >
+                      {(() => {
+                        let count = $storeSessionData[0].textElements[0].text !== "\n" ? 1 : 0;
+                        for (let i = 0; i < index; i++) {
+                          if (
+                            $storeSessionData[0].textElements[i].text === "\n" &&
+                            i > 0 &&
+                            $storeSessionData[0].textElements[i - 1].text === "\n"
+                          ) {
+                            count++;
+                          }
+                        }
+                        return count + 1;
+                      })()}.
+                    </span>
+                  {/if}
+                {:else}
+                  <span class="text-span" style="color: {element.textColor}">
+                    {element.text}
+                  </span>
+                {/if}
+              {/each}
+            {/if}
+          </div>
         </div>
       </div>
-    </div>
+{/if}
+
     </div>
   </header>
 </div>
@@ -1052,7 +1161,7 @@
     mask-repeat: no-repeat;
     -webkit-mask-size: 100% 100%;
     mask-size: 100% 100%;
-}
+  }
 
   .filter-container {
     position: absolute;
@@ -1153,6 +1262,4 @@
     -webkit-mask-size: 100% 100%;
     mask-size: 100% 100%;
   }
-
-
 </style>
