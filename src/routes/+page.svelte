@@ -961,6 +961,17 @@
           {#each $storeSessionData as sessionData (sessionData.sessionId)}
             <div class="display-box">
               <div class="content-box">
+                <div class="session-identifier">
+                  <h3>
+                    {#if sessions && sessions.find((s) => s.session_id === sessionData.sessionId)}
+                      {sessions.find(
+                        (s) => s.session_id === sessionData.sessionId
+                      ).prompt_code} - {sessionData.sessionId}
+                    {:else}
+                      Session: {sessionData.sessionId}
+                    {/if}
+                  </h3>
+                </div>
                 <div class="summary-container">
                   <div class="chart-explanation">
                     <div>
@@ -1202,6 +1213,18 @@
     display: flex;
     justify-content: center;
     align-items: center;
+  }
+
+  .session-identifier {
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+
+  .session-identifier h3 {
+    margin: 0;
+    font-size: 14px;
+    color: #333;
   }
 
   .summary-container {
