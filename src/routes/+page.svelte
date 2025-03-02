@@ -16,7 +16,7 @@
   import annotationPlugin from "chartjs-plugin-annotation";
   import { writable } from "svelte/store";
   import { get } from "svelte/store";
-  import { tick } from 'svelte';
+  import { tick } from "svelte";
   import { base } from "$app/paths";
 
   Chart.register(
@@ -163,23 +163,25 @@
       if (!showMulti) {
         dataDict = data;
         let sessionData = {
-        sessionId: sessionFile,
-        time0,
-        time100,
-        currentTime,
-        chartData: [],
+          sessionId: sessionFile,
+          time0,
+          time100,
+          currentTime,
+          chartData: [],
         };
         storeSessionData.set([sessionData]);
         await tick(); // wait for storeSessionData update
 
         const { chartData, textElements } = handleEvents(data, sessionFile);
-        storeSessionData.update(sessions => {
-            let sessionIndex = sessions.findIndex(s => s.sessionId === sessionFile);
-            if (sessionIndex !== -1) {
-                sessions[sessionIndex].chartData = chartData;
-                sessions[sessionIndex].textElements = textElements;
-            }
-            return [...sessions];
+        storeSessionData.update((sessions) => {
+          let sessionIndex = sessions.findIndex(
+            (s) => s.sessionId === sessionFile
+          );
+          if (sessionIndex !== -1) {
+            sessions[sessionIndex].chartData = chartData;
+            sessions[sessionIndex].textElements = textElements;
+          }
+          return [...sessions];
         });
         await tick();
         renderChart(sessionFile); // Ensure this function is correctly updating and re-rendering the chart
@@ -187,38 +189,42 @@
       if (showMulti) {
         dataDict = data;
         let sessionData = {
-            sessionId: sessionFile,
-            time0,
-            time100,
-            currentTime,
-            chartData: [],
+          sessionId: sessionFile,
+          time0,
+          time100,
+          currentTime,
+          chartData: [],
         };
 
-        storeSessionData.update(sessions => {
-            let sessionIndex = sessions.findIndex(s => s.sessionId === sessionFile);
-            if (sessionIndex !== -1) {
-                sessions[sessionIndex] = {
-                    ...sessions[sessionIndex],
-                    time0,
-                    time100,
-                    currentTime,
-                    chartData: [],
-                };
-            } else {
-                sessions.push(sessionData);
-            }
-            return [...sessions];
+        storeSessionData.update((sessions) => {
+          let sessionIndex = sessions.findIndex(
+            (s) => s.sessionId === sessionFile
+          );
+          if (sessionIndex !== -1) {
+            sessions[sessionIndex] = {
+              ...sessions[sessionIndex],
+              time0,
+              time100,
+              currentTime,
+              chartData: [],
+            };
+          } else {
+            sessions.push(sessionData);
+          }
+          return [...sessions];
         });
 
         await tick();
         const { chartData, textElements } = handleEvents(data, sessionFile);
-        storeSessionData.update(sessions => {
-            let sessionIndex = sessions.findIndex(s => s.sessionId === sessionFile);
-            if (sessionIndex !== -1) {
-                sessions[sessionIndex].chartData = chartData;
-                sessions[sessionIndex].textElements = textElements;
-            }
-            return [...sessions];
+        storeSessionData.update((sessions) => {
+          let sessionIndex = sessions.findIndex(
+            (s) => s.sessionId === sessionFile
+          );
+          if (sessionIndex !== -1) {
+            sessions[sessionIndex].chartData = chartData;
+            sessions[sessionIndex].textElements = textElements;
+          }
+          return [...sessions];
         });
 
         await tick();
@@ -464,15 +470,15 @@
     textElements = combinedText;
     chartData = chartData.slice(0, -1); // delete last "\n"
     chartData[0].isSuggestionOpen = false; // change the init api insert into false so not show in the chart
-    calculateSessionAnalytics(data);
+    calculateSessionAnalytics(data, sessionId);
 
     return {
       chartData,
-      textElements
-    }
+      textElements,
+    };
   };
 
-  const calculateSessionAnalytics = (data) => {
+  const calculateSessionAnalytics = (data, sessionId) => {
     let totalInsertions = 0;
     let totalDeletions = 0;
     let totalSuggestions = 0;
@@ -482,9 +488,11 @@
     let totalProcessedCharacters = data.text[0].length;
 
     data.info.forEach((event) => {
-      const { name, event_time, count, pos } = event;
+      const { name, event_time } = event;
       const eventTime = new Date(event_time);
-      const relativeTime = (eventTime - data.info[0].event_time) / (1000 * 60); // in minutes
+      const relativeTime =
+        (eventTime - new Date(data.info[0].event_time)) / (1000 * 60); // in minutes
+
       if (name === "text-insert") {
         totalInsertions++;
         totalInsertionTime += relativeTime;
@@ -498,6 +506,7 @@
     });
 
     updateSessionSummary(
+      sessionId,
       totalProcessedCharacters,
       totalInsertions,
       totalDeletions,
@@ -506,20 +515,25 @@
   };
 
   const updateSessionSummary = (
+    sessionId,
     totalProcessedCharacters,
     totalInsertions,
     totalDeletions,
     totalSuggestions
   ) => {
-    const totalEvents = totalInsertions + totalDeletions + totalSuggestions;
+    console.log("Gayu", sessionId);
+    const sessionSummaryContainer = document.getElementById(
+      `summary-${sessionId}`
+    );
+    if (!sessionSummaryContainer) return;
 
-    document.getElementById("totalText").textContent =
+    sessionSummaryContainer.querySelector(".totalText").textContent =
       `Total Text: ${totalProcessedCharacters} characters`;
-    document.getElementById("totalInsertions").textContent =
+    sessionSummaryContainer.querySelector(".totalInsertions").textContent =
       `Insertions: ${totalInsertions}`;
-    document.getElementById("totalDeletions").textContent =
+    sessionSummaryContainer.querySelector(".totalDeletions").textContent =
       `Deletions: ${totalDeletions}`;
-    document.getElementById("totalSuggestions").textContent =
+    sessionSummaryContainer.querySelector(".totalSuggestions").textContent =
       `Suggestions: ${totalSuggestions}`;
   };
 
@@ -535,15 +549,20 @@
         chart.destroy();
       }
     }
-    storeSessionData.update(sessions => {
-      let sessionIndex = sessions.findIndex(s => s.sessionId == sessionId);
+    storeSessionData.update((sessions) => {
+      let sessionIndex = sessions.findIndex((s) => s.sessionId == sessionId);
       if (sessionIndex === -1) return sessions; // check whether empty
 
       let session = sessions[sessionIndex];
 
-      const lineChart = document.getElementById(`chart-${sessionId}`).getContext("2d");
+      const lineChart = document
+        .getElementById(`chart-${sessionId}`)
+        .getContext("2d");
       const processedData = session.chartData.map((data, index) => {
-        if (index > 0 && session.chartData[index - 1].percentage === data.percentage) {
+        if (
+          index > 0 &&
+          session.chartData[index - 1].percentage === data.percentage
+        ) {
           return { x: data.time, y: null };
         }
         if (
@@ -557,7 +576,8 @@
           index > 0 &&
           session.chartData[index - 1].eventSource === "user" &&
           session.chartData[index].eventSource === "user" &&
-          session.chartData[index].time - session.chartData[index - 1].time > 0.3
+          session.chartData[index].time - session.chartData[index - 1].time >
+            0.3
         ) {
           return { x: data.time, y: null };
         }
@@ -578,7 +598,7 @@
               backgroundColor: "transparent",
               segment: {
                 borderColor: (lineChart) =>
-                session.chartData[lineChart.p1DataIndex].color,
+                  session.chartData[lineChart.p1DataIndex].color,
               },
               tension: 0.1,
             },
@@ -640,7 +660,8 @@
                 },
                 label: (tooltipItem) => {
                   const data = session.chartData[tooltipItem.dataIndex];
-                  const eventType = data.eventSource === "user" ? "User" : "API";
+                  const eventType =
+                    data.eventSource === "user" ? "User" : "API";
                   return `Progress: ${data.percentage.toFixed(2)}% | Event: ${data.eventSource}`;
                 },
               },
@@ -728,14 +749,18 @@
             textColor: data.currentColor[index],
           }));
           currentTime = data.time;
-          storeSessionData.update(sessions => {
-            let sessionIndex = sessions.findIndex(s => s.sessionId === sessionId);
+          storeSessionData.update((sessions) => {
+            let sessionIndex = sessions.findIndex(
+              (s) => s.sessionId === sessionId
+            );
             if (sessionIndex !== -1) {
-                sessions[sessionIndex].textElements = data.currentText.split("").map((char, index) => ({
-                    text: char,
-                    textColor: data.currentColor[index],
+              sessions[sessionIndex].textElements = data.currentText
+                .split("")
+                .map((char, index) => ({
+                  text: char,
+                  textColor: data.currentColor[index],
                 }));
-                sessions[sessionIndex].currentTime = data.time;
+              sessions[sessionIndex].currentTime = data.time;
             }
             return [...sessions];
           });
@@ -833,177 +858,204 @@
           </div>
         </div>
       {/if}
-{#if !showMulti && $storeSessionData.length > 0}
-      <div class="display-box">
-        <div class="content-box">
-          <div class="summary-container">
-            <div class="chart-explanation">
-              <div>
-                <span class="triangle-text">▼</span>
-                user open the AI suggestion
+      {#if !showMulti && $storeSessionData.length > 0}
+        <div class="display-box">
+          <div class="content-box">
+            <div class="summary-container">
+              <div class="chart-explanation">
+                <div>
+                  <span class="triangle-text">▼</span>
+                  user open the AI suggestion
+                </div>
+                <div>
+                  <span class="user-line">●</span> user writing
+                </div>
+                <div>
+                  <span class="api-line">●</span> AI writing
+                </div>
               </div>
-              <div>
-                <span class="user-line">●</span> user writing
-              </div>
-              <div>
-                <span class="api-line">●</span> AI writing
-              </div>
-            </div>
-            <div class="session-summary">
-              <h3>Session Summary</h3>
-              <div id="totalText"></div>
-              <div id="totalInsertions"></div>
-              <div id="totalDeletions"></div>
-              <div id="totalSuggestions"></div>
-            </div>
-          </div>
-
-          <div class="chart-container">
-            <canvas id="chart-{$storeSessionData[0].sessionId}"></canvas>
-          </div>
-          <button on:click={resetZoom} class="zoom-reset-btn">Reset Zoom</button
-          >
-        </div>
-        <div class="content-box">
-          <div class="progress-container">
-            <span>{($storeSessionData[0]?.currentTime || 0).toFixed(2)} mins</span>
-            <progress value={$storeSessionData[0]?.currentTime || 0} max={$storeSessionData[0]?.time100 || 1}></progress>
-          </div>
-          <div class="scale-container">
-            <div class="scale" id="scale"></div>
-          </div>
-          <div class="text-container">
-            {#if $storeSessionData[0].textElements && $storeSessionData[0].textElements.length > 0}
-              {#if $storeSessionData[0].textElements[0].text !== "\n"}
-                <span
-                  class="text-span"
-                  style="color: black; font-weight: normal;"
-                >
-                  1.
-                </span>
-              {/if}
-              {#each $storeSessionData[0].textElements as element, index}
-                {#if element.text === "\n" && index + 1 < $storeSessionData[0].textElements.length}
-                  <br />
-                  {#if index + 1 < $storeSessionData[0].textElements.length && $storeSessionData[0].textElements[index + 1].text === "\n"}{:else if index > 0 && $storeSessionData[0].textElements[index - 1].text === "\n"}
-                    <span
-                      class="text-span"
-                      style="color: black; font-weight: normal;"
-                    >
-                      {(() => {
-                        let count = $storeSessionData[0].textElements[0].text !== "\n" ? 1 : 0;
-                        for (let i = 0; i < index; i++) {
-                          if (
-                            $storeSessionData[0].textElements[i].text === "\n" &&
-                            i > 0 &&
-                            $storeSessionData[0].textElements[i - 1].text === "\n"
-                          ) {
-                            count++;
-                          }
-                        }
-                        return count + 1;
-                      })()}.
-                    </span>
-                  {/if}
-                {:else}
-                  <span class="text-span" style="color: {element.textColor}">
-                    {element.text}
-                  </span>
-                {/if}
-              {/each}
-            {/if}
-          </div>
-        </div>
-      </div>
-{/if}
-
-{#if showMulti && $storeSessionData.length > 0}
-<div class="multi-box">
-  {#each $storeSessionData as sessionData (sessionData.sessionId)}
-    <div class="display-box">
-      <div class="content-box">
-        <div class="summary-container">
-          <div class="chart-explanation">
-            <div>
-              <span class="triangle-text">▼</span>
-              user open the AI suggestion
-            </div>
-            <div>
-              <span class="user-line">●</span> user writing
-            </div>
-            <div>
-              <span class="api-line">●</span> AI writing
-            </div>
-          </div>
-          <div class="session-summary">
-            <h3>Session Summary</h3>
-            <div id="totalText"></div>
-            <div id="totalInsertions"></div>
-            <div id="totalDeletions"></div>
-            <div id="totalSuggestions"></div>
-          </div>
-        </div>
-
-        <div class="chart-container">
-          <canvas id="chart-{sessionData.sessionId}"></canvas>
-        </div>
-        <button on:click={resetZoom} class="zoom-reset-btn">Reset Zoom</button
-        >
-      </div>
-      <div class="content-box">
-        <div class="progress-container">
-          <span>{(sessionData?.currentTime || 0).toFixed(2)} mins</span>
-          <progress value={sessionData?.currentTime || 0} max={sessionData?.time100 || 1}></progress>
-        </div>
-        <div class="scale-container">
-          <div class="scale" id="scale"></div>
-        </div>
-        <div class="text-container">
-          {#if sessionData.textElements && sessionData.textElements.length > 0}
-            {#if sessionData.textElements[0].text !== "\n"}
-              <span
-                class="text-span"
-                style="color: black; font-weight: normal;"
+              <div
+                class="session-summary"
+                id="summary-{$storeSessionData[0].sessionId}"
               >
-                1.
-              </span>
-            {/if}
-            {#each sessionData.textElements as element, index}
-              {#if element.text === "\n" && index + 1 < sessionData.textElements.length}
-                <br />
-                {#if index + 1 < sessionData.textElements.length && sessionData.textElements[index + 1].text === "\n"}{:else if index > 0 && sessionData.textElements[index - 1].text === "\n"}
+                <h3>Session Summary</h3>
+                <div class="totalText"></div>
+                <div class="totalInsertions"></div>
+                <div class="totalDeletions"></div>
+                <div class="totalSuggestions"></div>
+              </div>
+            </div>
+
+            <div class="chart-container">
+              <canvas id="chart-{$storeSessionData[0].sessionId}"></canvas>
+            </div>
+            <button on:click={resetZoom} class="zoom-reset-btn"
+              >Reset Zoom</button
+            >
+          </div>
+          <div class="content-box">
+            <div class="progress-container">
+              <span
+                >{($storeSessionData[0]?.currentTime || 0).toFixed(2)} mins</span
+              >
+              <progress
+                value={$storeSessionData[0]?.currentTime || 0}
+                max={$storeSessionData[0]?.time100 || 1}
+              ></progress>
+            </div>
+            <div class="scale-container">
+              <div class="scale" id="scale"></div>
+            </div>
+            <div class="text-container">
+              {#if $storeSessionData[0].textElements && $storeSessionData[0].textElements.length > 0}
+                {#if $storeSessionData[0].textElements[0].text !== "\n"}
                   <span
                     class="text-span"
                     style="color: black; font-weight: normal;"
                   >
-                    {(() => {
-                      let count = sessionData.textElements[0].text !== "\n" ? 1 : 0;
-                      for (let i = 0; i < index; i++) {
-                        if (
-                          sessionData.textElements[i].text === "\n" &&
-                          i > 0 &&
-                          sessionData.textElements[i - 1].text === "\n"
-                        ) {
-                          count++;
-                        }
-                      }
-                      return count + 1;
-                    })()}.
+                    1.
                   </span>
                 {/if}
-              {:else}
-                <span class="text-span" style="color: {element.textColor}">
-                  {element.text}
-                </span>
+                {#each $storeSessionData[0].textElements as element, index}
+                  {#if element.text === "\n" && index + 1 < $storeSessionData[0].textElements.length}
+                    <br />
+                    {#if index + 1 < $storeSessionData[0].textElements.length && $storeSessionData[0].textElements[index + 1].text === "\n"}{:else if index > 0 && $storeSessionData[0].textElements[index - 1].text === "\n"}
+                      <span
+                        class="text-span"
+                        style="color: black; font-weight: normal;"
+                      >
+                        {(() => {
+                          let count =
+                            $storeSessionData[0].textElements[0].text !== "\n"
+                              ? 1
+                              : 0;
+                          for (let i = 0; i < index; i++) {
+                            if (
+                              $storeSessionData[0].textElements[i].text ===
+                                "\n" &&
+                              i > 0 &&
+                              $storeSessionData[0].textElements[i - 1].text ===
+                                "\n"
+                            ) {
+                              count++;
+                            }
+                          }
+                          return count + 1;
+                        })()}.
+                      </span>
+                    {/if}
+                  {:else}
+                    <span class="text-span" style="color: {element.textColor}">
+                      {element.text}
+                    </span>
+                  {/if}
+                {/each}
               {/if}
-            {/each}
-          {/if}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  {/each}
-  </div>
-{/if}
+      {/if}
+
+      {#if showMulti && $storeSessionData.length > 0}
+        <div class="multi-box">
+          {#each $storeSessionData as sessionData (sessionData.sessionId)}
+            <div class="display-box">
+              <div class="content-box">
+                <div class="summary-container">
+                  <div class="chart-explanation">
+                    <div>
+                      <span class="triangle-text">▼</span>
+                      user open the AI suggestion
+                    </div>
+                    <div>
+                      <span class="user-line">●</span> user
+                    </div>
+                    <div>
+                      <span class="api-line">●</span> AI writing
+                    </div>
+                  </div>
+                  <div
+                    class="session-summary"
+                    id="summary-{sessionData.sessionId}"
+                  >
+                    <h3>Session Summary</h3>
+                    <div class="totalText"></div>
+                    <div class="totalInsertions"></div>
+                    <div class="totalDeletions"></div>
+                    <div class="totalSuggestions"></div>
+                  </div>
+                </div>
+
+                <div class="chart-container">
+                  <canvas id="chart-{sessionData.sessionId}"></canvas>
+                </div>
+                <button on:click={resetZoom} class="zoom-reset-btn"
+                  >Reset Zoom</button
+                >
+              </div>
+              <div class="content-box">
+                <div class="progress-container">
+                  <span>{(sessionData?.currentTime || 0).toFixed(2)} mins</span>
+                  <progress
+                    value={sessionData?.currentTime || 0}
+                    max={sessionData?.time100 || 1}
+                  ></progress>
+                </div>
+                <div class="scale-container">
+                  <div class="scale" id="scale"></div>
+                </div>
+                <div class="text-container">
+                  {#if sessionData.textElements && sessionData.textElements.length > 0}
+                    {#if sessionData.textElements[0].text !== "\n"}
+                      <span
+                        class="text-span"
+                        style="color: black; font-weight: normal;"
+                      >
+                        1.
+                      </span>
+                    {/if}
+                    {#each sessionData.textElements as element, index}
+                      {#if element.text === "\n" && index + 1 < sessionData.textElements.length}
+                        <br />
+                        {#if index + 1 < sessionData.textElements.length && sessionData.textElements[index + 1].text === "\n"}{:else if index > 0 && sessionData.textElements[index - 1].text === "\n"}
+                          <span
+                            class="text-span"
+                            style="color: black; font-weight: normal;"
+                          >
+                            {(() => {
+                              let count =
+                                sessionData.textElements[0].text !== "\n"
+                                  ? 1
+                                  : 0;
+                              for (let i = 0; i < index; i++) {
+                                if (
+                                  sessionData.textElements[i].text === "\n" &&
+                                  i > 0 &&
+                                  sessionData.textElements[i - 1].text === "\n"
+                                ) {
+                                  count++;
+                                }
+                              }
+                              return count + 1;
+                            })()}.
+                          </span>
+                        {/if}
+                      {:else}
+                        <span
+                          class="text-span"
+                          style="color: {element.textColor}"
+                        >
+                          {element.text}
+                        </span>
+                      {/if}
+                    {/each}
+                  {/if}
+                </div>
+              </div>
+            </div>
+          {/each}
+        </div>
+      {/if}
     </div>
   </header>
 </div>
