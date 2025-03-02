@@ -123,11 +123,17 @@
     filterSessions();
   }
 
+  function resetDisplay() {
+    storeSessionData.set([]);
+  }
+
   const toggleFilter = () => {
     showFilter = !showFilter;
   };
 
   const toggleMulti = () => {
+    // when change the display destory all
+    resetDisplay();
     showMulti = !showMulti;
   };
 
@@ -178,7 +184,46 @@
         await tick();
         renderChart(sessionFile); // Ensure this function is correctly updating and re-rendering the chart
       }
-      
+      if (showMulti) {
+        dataDict = data;
+        let sessionData = {
+            sessionId: sessionFile,
+            time0,
+            time100,
+            currentTime,
+            chartData: [],
+        };
+
+        storeSessionData.update(sessions => {
+            let sessionIndex = sessions.findIndex(s => s.sessionId === sessionFile);
+            if (sessionIndex !== -1) {
+                sessions[sessionIndex] = {
+                    ...sessions[sessionIndex],
+                    time0,
+                    time100,
+                    currentTime,
+                    chartData: [],
+                };
+            } else {
+                sessions.push(sessionData);
+            }
+            return [...sessions];
+        });
+
+        await tick();
+        const { chartData, textElements } = handleEvents(data, sessionFile);
+        storeSessionData.update(sessions => {
+            let sessionIndex = sessions.findIndex(s => s.sessionId === sessionFile);
+            if (sessionIndex !== -1) {
+                sessions[sessionIndex].chartData = chartData;
+                sessions[sessionIndex].textElements = textElements;
+            }
+            return [...sessions];
+        });
+
+        await tick();
+        renderChart(sessionFile);
+      }
     } catch (error) {
       console.error("Error when reading the data file:", error);
     }
@@ -485,8 +530,10 @@
   }
 
   const renderChart = (sessionId) => {
-    if (chart) {
-      chart.destroy();
+    if (!showMulti) {
+      if (chart) {
+        chart.destroy();
+      }
     }
     storeSessionData.update(sessions => {
       let sessionIndex = sessions.findIndex(s => s.sessionId == sessionId);
@@ -870,6 +917,93 @@
       </div>
 {/if}
 
+{#if showMulti && $storeSessionData.length > 0}
+<div class="multi-box">
+  {#each $storeSessionData as sessionData (sessionData.sessionId)}
+    <div class="display-box">
+      <div class="content-box">
+        <div class="summary-container">
+          <div class="chart-explanation">
+            <div>
+              <span class="triangle-text">▼</span>
+              user open the AI suggestion
+            </div>
+            <div>
+              <span class="user-line">●</span> user writing
+            </div>
+            <div>
+              <span class="api-line">●</span> AI writing
+            </div>
+          </div>
+          <div class="session-summary">
+            <h3>Session Summary</h3>
+            <div id="totalText"></div>
+            <div id="totalInsertions"></div>
+            <div id="totalDeletions"></div>
+            <div id="totalSuggestions"></div>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <canvas id="chart-{sessionData.sessionId}"></canvas>
+        </div>
+        <button on:click={resetZoom} class="zoom-reset-btn">Reset Zoom</button
+        >
+      </div>
+      <div class="content-box">
+        <div class="progress-container">
+          <span>{(sessionData?.currentTime || 0).toFixed(2)} mins</span>
+          <progress value={sessionData?.currentTime || 0} max={sessionData?.time100 || 1}></progress>
+        </div>
+        <div class="scale-container">
+          <div class="scale" id="scale"></div>
+        </div>
+        <div class="text-container">
+          {#if sessionData.textElements && sessionData.textElements.length > 0}
+            {#if sessionData.textElements[0].text !== "\n"}
+              <span
+                class="text-span"
+                style="color: black; font-weight: normal;"
+              >
+                1.
+              </span>
+            {/if}
+            {#each sessionData.textElements as element, index}
+              {#if element.text === "\n" && index + 1 < sessionData.textElements.length}
+                <br />
+                {#if index + 1 < sessionData.textElements.length && sessionData.textElements[index + 1].text === "\n"}{:else if index > 0 && sessionData.textElements[index - 1].text === "\n"}
+                  <span
+                    class="text-span"
+                    style="color: black; font-weight: normal;"
+                  >
+                    {(() => {
+                      let count = sessionData.textElements[0].text !== "\n" ? 1 : 0;
+                      for (let i = 0; i < index; i++) {
+                        if (
+                          sessionData.textElements[i].text === "\n" &&
+                          i > 0 &&
+                          sessionData.textElements[i - 1].text === "\n"
+                        ) {
+                          count++;
+                        }
+                      }
+                      return count + 1;
+                    })()}.
+                  </span>
+                {/if}
+              {:else}
+                <span class="text-span" style="color: {element.textColor}">
+                  {element.text}
+                </span>
+              {/if}
+            {/each}
+          {/if}
+        </div>
+      </div>
+    </div>
+  {/each}
+  </div>
+{/if}
     </div>
   </header>
 </div>
@@ -905,6 +1039,14 @@
     max-width: 1200px;
     margin: 0 auto;
     margin-top: 70px;
+  }
+
+  .multi-box {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: stretch;
+    width: 100%;
   }
 
   .display-box {
