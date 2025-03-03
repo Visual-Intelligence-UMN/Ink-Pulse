@@ -18,6 +18,8 @@
   import { get } from "svelte/store";
   import { tick } from "svelte";
   import { base } from "$app/paths";
+  import tippy from "tippy.js";
+  import "tippy.js/dist/tippy.css";
 
   Chart.register(
     TimeScale,
@@ -33,6 +35,23 @@
   );
 
   let zoomPlugin;
+  let filterButton;
+  let multiSessionButton;
+
+  onMount(() => {
+    if (filterButton) {
+      tippy(filterButton, {
+        content: "Click to filter based on prompt type",
+        placement: "top",
+      });
+    }
+    if (multiSessionButton) {
+      tippy(multiSessionButton, {
+        content: "Click to enable/disable multi session view",
+        placement: "top",
+      });
+    }
+  });
 
   onMount(async () => {
     const module = await import("chartjs-plugin-zoom");
@@ -775,6 +794,7 @@
   <header class="App-header">
     <nav>
       <a
+        bind:this={filterButton}
         on:click={toggleFilter}
         href=" "
         aria-label="Filter"
@@ -817,6 +837,7 @@
       </div>
       <div>
         <a
+          bind:this={multiSessionButton}
           on:click={toggleMulti}
           href=" "
           aria-label="multiple-session"
@@ -979,7 +1000,7 @@
                       user open the AI suggestion
                     </div>
                     <div>
-                      <span class="user-line">●</span> user
+                      <span class="user-line">●</span> User written
                     </div>
                     <div>
                       <span class="api-line">●</span> AI writing
