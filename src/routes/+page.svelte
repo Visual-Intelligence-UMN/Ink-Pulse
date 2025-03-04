@@ -11,6 +11,8 @@
     Legend,
     CategoryScale,
     LinearScale,
+    BarController,
+    BarElement,
   } from "chart.js";
   import "chartjs-adapter-date-fns";
   import annotationPlugin from "chartjs-plugin-annotation";
@@ -30,8 +32,10 @@
     Tooltip,
     Legend,
     CategoryScale,
+    BarController,
     LinearScale,
-    annotationPlugin
+    annotationPlugin,
+    BarElement
   );
 
   let zoomPlugin;
@@ -254,6 +258,22 @@
     }
   };
 
+  const fetchSimilarityData = async (sessionFile) => {
+    try {
+      const response = await fetch(
+        `${base}/similarity_results/${sessionFile}_similarity.json`
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch session data: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error when reading the data file:", error);
+    }
+  };
+
   const fetchSessions = async () => {
     try {
       const response = await fetch(`${base}/fine.json`);
@@ -272,6 +292,9 @@
     fetchData(selectedSession).then(() => {
       renderChart(selectedSession);
     });
+    // fetchSimilarityData(selectedSession).then((data) => {
+    //   renderSimilarityChart(selectedSession, data);
+    // });
   };
 
   onMount(() => {
@@ -280,6 +303,9 @@
     if (selectedSession) {
       fetchData(selectedSession);
     }
+    // fetchSimilarityData(selectedSession).then((data) => {
+    //   renderSimilarityChart(selectedSession, data);
+    // });
   });
 
   function generateColor(index) {
@@ -540,7 +566,6 @@
     totalDeletions,
     totalSuggestions
   ) => {
-    console.log("Gayu", sessionId);
     const sessionSummaryContainer = document.getElementById(
       `summary-${sessionId}`
     );
@@ -910,6 +935,11 @@
             <div class="chart-container">
               <canvas id="chart-{$storeSessionData[0].sessionId}"></canvas>
             </div>
+            <!--<div class="chart-container">
+              <canvas id="similarity-chart-{$storeSessionData[0].sessionId}"
+              ></canvas>
+            </div> -->
+
             <button on:click={resetZoom} class="zoom-reset-btn"
               >Reset Zoom</button
             >
