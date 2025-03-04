@@ -117,25 +117,39 @@ def analyze_sentence_similarity(sentences, model):
     
     return results
 
+def save_results_to_json(results, session_id, output_dir):
+    output_file = os.path.join(output_dir, f"{session_id}_similarity.json")
+    
+    def convert_types(obj):
+        if isinstance(obj, np.float32) or isinstance(obj, np.float64):
+            return float(obj)
+        elif isinstance(obj, np.int32) or isinstance(obj, np.int64):
+            return int(obj)
+        return obj
+
+    results_converted = [{k: convert_types(v) for k, v in entry.items()} for entry in results]
+    
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(results_converted, f, indent=4, ensure_ascii=False)
+
+    print(f"Results saved to {output_file}")
+
 if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))  
     static_dir = os.path.dirname(script_dir)
     
-    file_name = "0a8e182a20df447db4846b1223c619b5.jsonl"
     session_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", "coauthor-sentence")
-    file_path = os.path.join(session_dir, file_name)
-        
-    sentences = read_sentences(file_path)
+    output_dir = os.path.join(static_dir, "similarity_results")
+    os.makedirs(output_dir, exist_ok=True)
+
+    for file_name in os.listdir(session_dir):
+        if file_name.endswith(".jsonl"):
+            file_path = os.path.join(session_dir, file_name)
+            session_id = os.path.splitext(file_name)[0]
+
             
-    print(f"Found the file")
-        
-    model = train_word2vec_model(sentences)
-        
-    results = analyze_sentence_similarity(sentences, model)
-        
-    for i, result in enumerate(results):
-        print(f"\nSentence {i}: {result['sentence']}")
-        if i > 0:
-            print(f"  Most similar to sentence {result['most_similar_previous']}")
-            print(f"  Similarity score: {result['max_similarity']:.4f}")
-            print(f"  Dissimilarity score: {result['dissimilarity']:.4f}")
+            sentences = read_sentences(file_path)
+            model = train_word2vec_model(sentences)
+            results = analyze_sentence_similarity(sentences, model)
+            
+            save_results_to_json(results, session_id, output_dir)
