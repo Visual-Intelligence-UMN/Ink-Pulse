@@ -14,14 +14,15 @@
     BarController,
     BarElement,
   } from "chart.js";
+  import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
   import "chartjs-adapter-date-fns";
   import annotationPlugin from "chartjs-plugin-annotation";
   import { writable } from "svelte/store";
-  import { get } from "svelte/store";
   import { tick } from "svelte";
   import { base } from "$app/paths";
   import tippy from "tippy.js";
   import "tippy.js/dist/tippy.css";
+  import 'flowbite/dist/flowbite.min.css';
 
   Chart.register(
     TimeScale,
@@ -41,6 +42,7 @@
   let zoomPlugin;
   let filterButton;
   let multiSessionButton;
+  let collapseButton;
 
   onMount(() => {
     if (filterButton) {
@@ -52,6 +54,12 @@
     if (multiSessionButton) {
       tippy(multiSessionButton, {
         content: "Click to enable/disable multi session view",
+        placement: "top",
+      });
+    }
+    if (collapseButton) {
+      tippy(collapseButton, {
+        content: "Click to collapse/expand table view",
         placement: "top",
       });
     }
@@ -97,7 +105,6 @@
     "sideeffect",
   ];
   let selectedTags = new Set(tags);
-  let filteredSessions = [];
   let filterOptions = [
     "shapeshifter",
     "reincarnation",
@@ -113,6 +120,10 @@
   let isAllSelected = true;
   let showMulti = false;
   export const storeSessionData = writable([]);
+  let tableData = [];
+  let firstSession = true;
+  let filterTableData = [];
+  let isCollapsed = false;
 
   function open2close() {
     isOpen = !isOpen;
@@ -125,29 +136,43 @@
     } else {
       selectedTags.delete(tag);
     }
+    isAllSelected = selectedTags.size === tags.length;
     filterSessions();
   }
 
   function filterSessions() {
-    filteredSessions = sessions.filter(
+    filterTableData = tableData.filter(
       (session) =>
         selectedTags.size === 0 || selectedTags.has(session.prompt_code)
     );
   }
 
   function toggleSelectAll() {
-    if (isAllSelected) {
+
+    if (selectedTags.size !== 0) {
       selectedTags.clear();
+      selectedTags = new Set([...selectedTags]);
     } else {
-      selectedTags = new Set(tags);
+      filterOptions.forEach(option => {
+        selectedTags.add(option);
+      });
+      selectedTags = new Set([...selectedTags]);
     }
-    isAllSelected = !isAllSelected;
-    selectedTags = new Set([...selectedTags]);
-    filterSessions();
+  }
+
+  function toggleTableCollapse() {
+    isCollapsed = !isCollapsed;
   }
 
   function resetDisplay() {
     storeSessionData.set([]);
+    filterTableData = tableData.map(session => {
+      return {
+        session_id: session.session_id,
+        prompt_code: session.prompt_code,
+        selected: false
+      };
+    });
   }
 
   const toggleFilter = () => {
@@ -160,7 +185,14 @@
     showMulti = !showMulti;
   };
 
-  const fetchData = async (sessionFile) => {
+  const fetchData = async (sessionFile, isDelete) => {
+    if (!firstSession && isDelete) {
+      storeSessionData.update(data => {
+        return data.filter(item => item.sessionId !== sessionFile);
+      });
+      return;
+    }
+
     try {
       const response = await fetch(
         `${base}/chi2022-coauthor-v1.0/coauthor-json/${sessionFile}.jsonl`
@@ -279,29 +311,78 @@
       const response = await fetch(`${base}/fine.json`);
       const data = await response.json();
       sessions = data || [];
-      fetchSessions();
+      if (firstSession) {
+        tableData = sessions.map(session => {
+          return {
+            session_id: session.session_id,
+            prompt_code: session.prompt_code,
+            selected: session.session_id === "0c7bfadbd8db49b4b793e2a46e581759" ? true : false
+          };
+        });
+        firstSession = false;
+        filterTableData = tableData;
+      }
+      // fetchSessions()
     } catch (error) {
       console.error("Error when fetching sessions:", error);
     }
   };
 
-  const handleSessionChange = (event) => {
-    selectedSession = event.target.value;
+  const handleSessionChange = (sessionId) => {
+    let isCurrentlySelected = filterTableData.find(row => row.session_id == sessionId)?.selected;
+
+    if (!showMulti) {
+      if (isCurrentlySelected) {
+        selectedSession = null;
+        filterTableData = filterTableData.map(row => ({ ...row, selected: false }));
+        storeSessionData.update(data => {
+          return data.filter(item => item.session_id !== sessionId);
+        });
+        fetchData(sessionId, true);
+      } else {
+        selectedSession = sessionId;
+        filterTableData = filterTableData.map(row => ({
+          ...row,
+          selected: row.session_id == selectedSession
+        }));
+        fetchData(sessionId, false);
+      }
+    } else {
+      filterTableData = filterTableData.map(row => {
+        if (row.session_id == sessionId) {
+          return { ...row, selected: !row.selected };
+        }
+        return row;
+      });
+
+      if (!isCurrentlySelected) {
+        selectedSession = sessionId;
+        fetchData(sessionId, false);
+      } else {
+        storeSessionData.update(data => {
+          return data.filter(item => item.session_id !== sessionId);
+        });
+        fetchData(sessionId, true);
+      }
+    }
+
     paragraphTime = [];
     paragraphColor = [];
-    fetchData(selectedSession).then(() => {
-      renderChart(selectedSession);
-    });
+      
     // fetchSimilarityData(selectedSession).then((data) => {
     //   renderSimilarityChart(selectedSession, data);
     // });
   };
 
+  function handleSelectChange(index) {
+    handleSessionChange(sessions[index].session_id);
+  }
+
   onMount(() => {
     document.title = "Ink-Pulse";
     fetchSessions();
     if (selectedSession) {
-      fetchData(selectedSession);
+      fetchData(selectedSession, true);
     }
     // fetchSimilarityData(selectedSession).then((data) => {
     //   renderSimilarityChart(selectedSession, data);
@@ -578,7 +659,7 @@
     sessionSummaryContainer.querySelector(".totalDeletions").textContent =
       `Deletions: ${totalDeletions}`;
     sessionSummaryContainer.querySelector(".totalSuggestions").textContent =
-      `Suggestions: ${totalSuggestions}`;
+      `Suggestions: ${totalSuggestions - 1}`;
   };
 
   function resetZoom() {
@@ -818,16 +899,6 @@
 <div class="App">
   <header class="App-header">
     <nav>
-      <a
-        bind:this={filterButton}
-        on:click={toggleFilter}
-        href=" "
-        aria-label="Filter"
-        class={showFilter
-          ? "material-symbols--filter-alt"
-          : "material-symbols--filter-alt-outline"}
-      >
-      </a>
       <div class="filter-container {showFilter ? 'show' : ''}">
         <a
           on:click={toggleSelectAll}
@@ -850,16 +921,16 @@
           <br />
         {/each}
       </div>
-      <div class="dropdown-container">
+      <!-- <div class="dropdown-container">
         <b>Select Session: &nbsp;</b>
         <select bind:value={selectedSession} on:change={handleSessionChange}>
-          {#each filteredSessions.length > 0 ? filteredSessions : sessions as session}
+          {#each filterTableData.length > 0 ? filterTableData : sessions as session}
             <option value={session.session_id}>
               {session.prompt_code} - {session.session_id}
             </option>
           {/each}
         </select>
-      </div>
+      </div> -->
       <div>
         <a
           bind:this={multiSessionButton}
@@ -871,6 +942,11 @@
             : "material-symbols--stack-off-rounded"}
         >
         </a>
+      </div>
+      <div class="chart-explanation">
+          <span class="triangle-text">▼</span> user open the AI suggestion
+          <span class="user-line">●</span> User written
+          <span class="api-line">●</span> AI writing
       </div>
       <a
         on:click={open2close}
@@ -907,31 +983,18 @@
       {#if !showMulti && $storeSessionData.length > 0}
         <div class="display-box">
           <div class="content-box">
-            <div class="summary-container">
-              <div class="chart-explanation">
-                <div>
-                  <span class="triangle-text">▼</span>
-                  user open the AI suggestion
-                </div>
-                <div>
-                  <span class="user-line">●</span> user writing
-                </div>
-                <div>
-                  <span class="api-line">●</span> AI writing
-                </div>
-              </div>
               <div
                 class="session-summary"
                 id="summary-{$storeSessionData[0].sessionId}"
               >
                 <h3>Session Summary</h3>
-                <div class="totalText"></div>
-                <div class="totalInsertions"></div>
-                <div class="totalDeletions"></div>
-                <div class="totalSuggestions"></div>
+                <div class="summary-container">
+                  <div class="totalText"></div>
+                  <div class="totalInsertions"></div>
+                  <div class="totalDeletions"></div>
+                  <div class="totalSuggestions"></div>
+                </div>
               </div>
-            </div>
-
             <div class="chart-container">
               <canvas id="chart-{$storeSessionData[0].sessionId}"></canvas>
             </div>
@@ -1023,31 +1086,18 @@
                     {/if}
                   </h3>
                 </div>
-                <div class="summary-container">
-                  <div class="chart-explanation">
-                    <div>
-                      <span class="triangle-text">▼</span>
-                      user open the AI suggestion
-                    </div>
-                    <div>
-                      <span class="user-line">●</span> User written
-                    </div>
-                    <div>
-                      <span class="api-line">●</span> AI writing
-                    </div>
-                  </div>
-                  <div
-                    class="session-summary"
-                    id="summary-{sessionData.sessionId}"
-                  >
-                    <h3>Session Summary</h3>
+                <div
+                  class="session-summary"
+                  id="summary-{$storeSessionData[0].sessionId}"
+                >
+                  <h3>Session Summary</h3>
+                  <div class="summary-container">
                     <div class="totalText"></div>
                     <div class="totalInsertions"></div>
                     <div class="totalDeletions"></div>
                     <div class="totalSuggestions"></div>
                   </div>
                 </div>
-
                 <div class="chart-container">
                   <canvas id="chart-{sessionData.sessionId}"></canvas>
                 </div>
@@ -1119,6 +1169,54 @@
         </div>
       {/if}
     </div>
+    <div class="table" class:collapsed={isCollapsed}>
+    <Table>
+      <TableHead>
+        <TableHeadCell>Session ID</TableHeadCell>
+        <TableHeadCell>Prompt Code</TableHeadCell>
+        <TableHeadCell>Selected</TableHeadCell>
+        <TableBodyCell>
+          <a
+            bind:this={filterButton}
+            on:click={toggleFilter}
+            href=" "
+            aria-label="Filter"
+            class={showFilter
+              ? "material-symbols--filter-alt"
+              : "material-symbols--filter-alt-outline"}
+          >
+          </a>
+        </TableBodyCell>
+        <TableBodyCell>
+          <a
+            bind:this={collapseButton}
+            on:click={toggleTableCollapse}
+            href=" "
+            aria-label="collapse"
+            class={isCollapsed
+            ? "material-symbols--stat-1-rounded"
+            : "material-symbols--stat-minus-1-rounded"}
+          >
+          </a>
+        </TableBodyCell>
+      </TableHead>
+      <TableBody tableBodyClass="divide-y">
+        {#each filterTableData as row, index (row.session_id)}
+          <TableBodyRow>
+            <TableBodyCell>{row.session_id}</TableBodyCell>
+            <TableBodyCell>{row.prompt_code}</TableBodyCell>
+            <TableBodyCell>
+              <input
+                type="checkbox" 
+                checked={row.selected} 
+                on:change={() => handleSelectChange(index)} 
+              />
+            </TableBodyCell>
+          </TableBodyRow>
+        {/each}
+      </TableBody>
+    </Table>
+  </div>
   </header>
 </div>
 
@@ -1153,6 +1251,7 @@
     max-width: 1200px;
     margin: 0 auto;
     margin-top: 70px;
+    margin-bottom: 70px;
   }
 
   .multi-box {
@@ -1186,7 +1285,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    height: 500px;
+    height: 400px;
     font-family: Poppins, sans-serif;
     font-size: 14px;
     white-space: pre-wrap;
@@ -1259,12 +1358,13 @@
     background: var(--progColor);
   }
 
-  .dropdown-container {
+  /* .dropdown-container {
     align-self: flex-start;
     display: flex;
     justify-content: center;
     align-items: center;
-  }
+    margin-left: 20px;
+  } */
 
   .session-identifier {
     padding: 8px 12px;
@@ -1281,22 +1381,14 @@
   .summary-container {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 20px;
   }
 
   .session-summary {
-    padding: 5px;
-    border: 1px solid lightgray;
-    border-radius: 5px;
-    box-shadow: 0px 2px 3px rgba(0, 0, 0, 0.2);
     font-family: Poppins, sans-serif;
     font-size: 12px;
-    background-color: #f9f9f9;
-    width: 200px;
     line-height: 1.1;
   }
+
   .session-summary h3 {
     margin-bottom: 2px;
     font-size: 12px;
@@ -1306,12 +1398,17 @@
     margin-bottom: 2px;
   }
 
+  .totalText, .totalInsertions, .totalDeletions, .totalSuggestions {
+    display: inline-block;
+    white-space: nowrap;
+    margin-right: 15px;
+  }
+
   .chart-explanation {
-    padding: 5px;
+    margin-top: 5px;
     font-family: Poppins, sans-serif;
     font-size: 12px;
-    width: 200px;
-    line-height: 1.1;
+    display: flex;
   }
 
   .triangle-text {
@@ -1324,6 +1421,14 @@
 
   .api-line {
     color: #fc8d62;
+  }
+
+  .triangle-text, .user-line, .api-line {
+    margin-right: 3px;
+  }
+
+  .chart-explanation span {
+    margin-left: 7px;
   }
 
   .introduction-background {
@@ -1375,7 +1480,7 @@
     padding: 1em 0;
     margin: 0px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    z-index: 1;
+    z-index: 2;
     left: 0;
     display: flex;
   }
@@ -1386,6 +1491,40 @@
     margin: 0 1em;
     font-weight: 500;
     cursor: pointer;
+  }
+
+  .table {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 200px;
+    background-color: white;
+    padding: 1em 0;
+    margin: 0px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+
+  .collapsed {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 80px;
+    background-color: white;
+    padding: 1em 0;
+    margin: 0px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    overflow-y: auto;
   }
 
   .material-symbols--info-outline-rounded {
@@ -1433,7 +1572,7 @@
 
   .filter-container {
     position: absolute;
-    top: 40px;
+    top: 70px;
     left: 30px;
     background: white;
     border: 1px solid #ccc;
@@ -1451,10 +1590,6 @@
 
   .filter-container label {
     display: block;
-    cursor: pointer;
-  }
-
-  .filter-container input[type="checkbox"] {
     cursor: pointer;
   }
 
@@ -1493,7 +1628,6 @@
   }
 
   input[type="checkbox"]:checked::before {
-    content: "✔";
     font-size: 12px;
     color: white;
     position: absolute;
@@ -1529,5 +1663,37 @@
     mask-repeat: no-repeat;
     -webkit-mask-size: 100% 100%;
     mask-size: 100% 100%;
+  }
+
+  .material-symbols--stat-1-rounded {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='m12 10.8l-3.9 3.875q-.275.275-.687.288t-.713-.288q-.275-.275-.275-.7t.275-.7l4.6-4.6q.15-.15.325-.213T12 8.4t.375.063t.325.212l4.6 4.6q.275.275.288.688t-.288.712q-.275.275-.7.275t-.7-.275z'/%3E%3C/svg%3E");
+    background-color: currentColor;
+    -webkit-mask-image: var(--svg);
+    mask-image: var(--svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+  }
+
+  .material-symbols--stat-minus-1-rounded {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 14.95q-.2 0-.375-.062t-.325-.213l-4.6-4.6q-.275-.275-.288-.687t.288-.713q.275-.275.7-.275t.7.275L12 12.55l3.9-3.875q.275-.275.688-.288t.712.288q.275.275.275.7t-.275.7l-4.6 4.6q-.15.15-.325.213T12 14.95'/%3E%3C/svg%3E");
+    background-color: currentColor;
+    -webkit-mask-image: var(--svg);
+    mask-image: var(--svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+  }
+
+  a:focus, a:active {
+    color: #86cecb;
   }
 </style>
