@@ -84,7 +84,7 @@
   let currentTime = 0;
   let paragraphTime = [];
   let paragraphColor = [];
-  let selectedSession = "0c7bfadbd8db49b4b793e2a46e581759";
+  let selectedSession = "e4611bd31b794677b02c52d5700b2e38";
   let sessions = [];
   let chart = null;
   let time0 = null; // process bar's start time
@@ -105,7 +105,7 @@
     "bee",
     "sideeffect",
   ];
-  let showMulti = false;
+  let showMulti = true;
   export const storeSessionData = writable([]);
   let tableData = [];
   let firstSession = true;
@@ -132,7 +132,30 @@
       }
       return selected;
     });
+    if (!event.target.checked) {
+      storeSessionData.update(sessionData => {
+        return sessionData.filter(session => 
+          !tableData.some(item => item.prompt_code === tag && item.session_id === session.sessionId)
+        );
+      });
+    }
     filterSessions();
+  }
+
+  function filterSessions() {
+    if ($selectedTags.length === 0) {
+      filterTableData.set([]);
+      storeSessionData.set([]);
+    } else {
+      const filteredData = tableData.filter(session => 
+        $selectedTags.includes(session.prompt_code)
+      );
+      const updatedData = filteredData.map(row => ({
+        ...row,
+        selected: $storeSessionData.some(item => item.sessionId == row.session_id)
+      }));
+      filterTableData.set(updatedData);
+    }
   }
 
   function toggleCleanAll() {
@@ -141,44 +164,12 @@
     storeSessionData.set([]);
   }
 
-  function filterSessions() {
-    if ($selectedTags.length === 0) {
-      filterTableData.set([]);
-      storeSessionData.set([]);
-    } else {
-      const filteredData = tableData.filter(session => $selectedTags.includes(session.prompt_code));
-      const updatedData = filteredData.map(row => ({
-          ...row,
-          selected: $storeSessionData.some(item => item.session_id === row.session_id)
-      }));
-
-      filterTableData.set(updatedData);
-    }
-  }
-
   function toggleTableCollapse() {
     isCollapsed = !isCollapsed;
   }
 
-  function resetDisplay() {
-    storeSessionData.set([]);
-    filterTableData.set(
-      tableData.map(session => ({
-        session_id: session.session_id,
-        prompt_code: session.prompt_code,
-        selected: false
-      }))
-    );
-  }
-
   const toggleFilter = () => {
     showFilter = !showFilter;
-  };
-
-  const toggleMulti = () => {
-    // when change the display destory all
-    resetDisplay();
-    showMulti = !showMulti;
   };
 
   const fetchData = async (sessionFile, isDelete) => {
@@ -312,7 +303,7 @@
           return {
             session_id: session.session_id,
             prompt_code: session.prompt_code,
-            selected: session.session_id === "0c7bfadbd8db49b4b793e2a46e581759" ? true : false
+            selected: session.session_id === "e4611bd31b794677b02c52d5700b2e38" ? true : false
           };
         });
         firstSession = false;
@@ -327,27 +318,7 @@
   const handleSessionChange = (sessionId) => {
     let isCurrentlySelected = $filterTableData.find(row => row.session_id == sessionId)?.selected;
 
-    if (!showMulti) {
-      if (isCurrentlySelected) {
-        selectedSession = null;
-        filterTableData.set(
-          $filterTableData.map(row => ({ ...row, selected: false }))
-        );
-        storeSessionData.update(data => {
-          return data.filter(item => item.session_id !== sessionId);
-        });
-        fetchData(sessionId, true);
-      } else {
-        selectedSession = sessionId;
-        filterTableData.set(
-          $filterTableData.map(row => ({
-            ...row,
-            selected: row.session_id == selectedSession
-          }))
-        );
-        fetchData(sessionId, false);
-      }
-    } else {
+    if (showMulti) {
       filterTableData.set(
         $filterTableData.map(row => {
           if (row.session_id == sessionId) {
@@ -397,7 +368,7 @@
     return colors[index % colors.length];
   }
 
-  function adjustTime(paragraphTime, currentText, chartData) {
+  function adjustTime(currentText, chartData) {
     let wholeText = currentText;
     let textLength = wholeText.length;
 
@@ -530,7 +501,7 @@
       return acc;
     }, []);
 
-    paragraphTime = adjustTime(paragraphTime, currentText, chartData);
+    paragraphTime = adjustTime(currentText, chartData);
 
     const customLabelPlugin = {
       id: "customLabel",
@@ -796,10 +767,10 @@
                     xMin: data.time,
                     yMin: data.percentage + 1,
                     yMax: data.percentage + 5,
-                    borderColor: "#FFB6B3",
+                    borderColor: "#FFBBCC",
                     borderWidth: 1,
                     radius: 3,
-                    backgroundColor: "#FFB6B3",
+                    backgroundColor: "#FFBBCC",
                     interactive: true,
                   })),
               ],
@@ -912,18 +883,6 @@
           <br />
         {/each}
       </div>
-      <div>
-        <a
-          bind:this={multiSessionButton}
-          on:click={toggleMulti}
-          href=" "
-          aria-label="multiple-session"
-          class={showMulti
-            ? "material-symbols--stack-rounded"
-            : "material-symbols--stack-off-rounded"}
-        >
-        </a>
-      </div>
       <div class="chart-explanation">
           <span class="triangle-text">▼</span> user open the AI suggestion
           <span class="user-line">●</span> User written
@@ -961,91 +920,6 @@
           </div>
         </div>
       {/if}
-      {#if !showMulti && $storeSessionData.length > 0}
-        <div class="display-box">
-          <div class="content-box">
-              <div
-                class="session-summary"
-                id="summary-{$storeSessionData[0].sessionId}"
-              >
-                <h3>Session Summary</h3>
-                <div class="summary-container">
-                  <div class="totalText"></div>
-                  <div class="totalInsertions"></div>
-                  <div class="totalDeletions"></div>
-                  <div class="totalSuggestions"></div>
-                </div>
-              </div>
-            <div class="chart-container">
-              <canvas id="chart-{$storeSessionData[0].sessionId}"></canvas>
-            </div>
-            <button on:click={resetZoom} class="zoom-reset-btn"
-              >Reset Zoom</button
-            >
-          </div>
-          <div class="content-box">
-            <div class="progress-container">
-              <span
-                >{($storeSessionData[0]?.currentTime || 0).toFixed(2)} mins</span
-              >
-              <progress
-                value={$storeSessionData[0]?.currentTime || 0}
-                max={$storeSessionData[0]?.time100 || 1}
-              ></progress>
-            </div>
-            <div class="scale-container">
-              <div class="scale" id="scale"></div>
-            </div>
-            <div class="text-container">
-              {#if $storeSessionData[0].textElements && $storeSessionData[0].textElements.length > 0}
-                {#if $storeSessionData[0].textElements[0].text !== "\n"}
-                  <span
-                    class="text-span"
-                    style="color: black; font-weight: normal;"
-                  >
-                    1.
-                  </span>
-                {/if}
-                {#each $storeSessionData[0].textElements as element, index}
-                  {#if element.text === "\n" && index + 1 < $storeSessionData[0].textElements.length}
-                    <br />
-                    {#if index + 1 < $storeSessionData[0].textElements.length && $storeSessionData[0].textElements[index + 1].text === "\n"}{:else if index > 0 && $storeSessionData[0].textElements[index - 1].text === "\n"}
-                      <span
-                        class="text-span"
-                        style="color: black; font-weight: normal;"
-                      >
-                        {(() => {
-                          let count =
-                            $storeSessionData[0].textElements[0].text !== "\n"
-                              ? 1
-                              : 0;
-                          for (let i = 0; i < index; i++) {
-                            if (
-                              $storeSessionData[0].textElements[i].text ===
-                                "\n" &&
-                              i > 0 &&
-                              $storeSessionData[0].textElements[i - 1].text ===
-                                "\n"
-                            ) {
-                              count++;
-                            }
-                          }
-                          return count + 1;
-                        })()}.
-                      </span>
-                    {/if}
-                  {:else}
-                    <span class="text-span" style="color: {element.textColor}">
-                      {element.text}
-                    </span>
-                  {/if}
-                {/each}
-              {/if}
-            </div>
-          </div>
-        </div>
-      {/if}
-
       {#if showMulti && $storeSessionData.length > 0}
         <div class="multi-box">
           {#each $storeSessionData as sessionData (sessionData.sessionId)}
@@ -1149,8 +1023,8 @@
     <Table>
       <TableHead>
         <TableHeadCell>Session ID</TableHeadCell>
-        <TableHeadCell>Prompt Code</TableHeadCell>
-        <TableHeadCell>Selected</TableHeadCell>
+        <TableHeadCell>Prompt Code
+        </TableHeadCell>
         <TableBodyCell>
           <a
             bind:this={filterButton}
@@ -1163,6 +1037,7 @@
           >
           </a>
         </TableBodyCell>
+        <TableHeadCell>Selected</TableHeadCell>
         <TableBodyCell>
           <a
             bind:this={collapseButton}
@@ -1181,6 +1056,7 @@
           <TableBodyRow>
             <TableBodyCell>{row.session_id}</TableBodyCell>
             <TableBodyCell>{row.prompt_code}</TableBodyCell>
+            <TableBodyCell></TableBodyCell>
             <TableBodyCell>
               <input
                 type="checkbox" 
@@ -1197,6 +1073,13 @@
 </div>
 
 <style>
+  :root {
+    color-scheme: light !important;
+    --progColor: hsl(6, 100%, 75%);
+    --progHeight: 20px;
+    --progBackgroundColor: hsl(6, 100%, 90%);
+  }
+
   .App-header {
     text-align: center;
   }
@@ -1305,12 +1188,6 @@
     top: 10%;
   }
 
-  :root {
-    --progColor: hsl(6, 100%, 75%);
-    --progHeight: 20px;
-    --progBackgroundColor: hsl(6, 100%, 90%);
-  }
-
   progress {
     width: 600px;
     appearance: none;
@@ -1333,14 +1210,6 @@
     border-radius: 20px;
     background: var(--progColor);
   }
-
-  /* .dropdown-container {
-    align-self: flex-start;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-left: 20px;
-  } */
 
   .session-identifier {
     padding: 8px 12px;
@@ -1388,7 +1257,7 @@
   }
 
   .triangle-text {
-    color: hsl(6, 100%, 75%);
+    color: #FFBBCC;
   }
 
   .user-line {
@@ -1482,7 +1351,6 @@
     left: 0;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
     overflow-y: auto;
   }
 
@@ -1499,7 +1367,6 @@
     left: 0;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
     overflow-y: auto;
   }
 
@@ -1611,34 +1478,6 @@
     left: 50%;
     transform: translate(-50%, -50%);
     font-weight: bold;
-  }
-
-  .material-symbols--stack-rounded {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M4 16q-.825 0-1.412-.587T2 14V4q0-.825.588-1.412T4 2h10q.825 0 1.413.588T16 4v1q0 .425-.288.713T15 6t-.712-.288T14 5V4H4v10h1q.425 0 .713.288T6 15t-.288.713T5 16zm6 6q-.825 0-1.412-.587T8 20V10q0-.825.588-1.412T10 8h10q.825 0 1.413.588T22 10v10q0 .825-.587 1.413T20 22z'/%3E%3C/svg%3E");
-    background-color: currentColor;
-    -webkit-mask-image: var(--svg);
-    mask-image: var(--svg);
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: 100% 100%;
-    mask-size: 100% 100%;
-  }
-
-  .material-symbols--stack-off-rounded {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M22 19.15L10.85 8H20q.825 0 1.413.588T22 10zM6.85 4l-2-2H14q.825 0 1.413.588T16 4v2h-2V4zM10 22q-.85 0-1.425-.575T8 20v-9.15l-4-4V14h2v2H4q-.85 0-1.425-.575T2 14V4.85l-.725-.725q-.3-.3-.288-.712T1.3 2.7t.713-.3t.712.3L21.3 21.3q.3.3.3.7t-.3.7t-.712.3t-.713-.3l-.725-.7z'/%3E%3C/svg%3E");
-    background-color: currentColor;
-    -webkit-mask-image: var(--svg);
-    mask-image: var(--svg);
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: 100% 100%;
-    mask-size: 100% 100%;
   }
 
   .material-symbols--stat-1-rounded {
