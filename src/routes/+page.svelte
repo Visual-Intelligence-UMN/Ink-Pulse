@@ -92,19 +92,7 @@
   let endTime = null; // last paragraph time
   let isOpen = false;
   let showFilter = false;
-  let tags = [
-    "shapeshifter",
-    "reincarnation",
-    "mana",
-    "obama",
-    "pig",
-    "mattdamon",
-    "dad",
-    "isolation",
-    "bee",
-    "sideeffect",
-  ];
-  let selectedTags = new Set(tags);
+  export const selectedTags = writable(["shapeshifter", "reincarnation", "mana", "obama", "pig", "mattdamon", "dad", "isolation", "bee", "sideeffect"]);
   let filterOptions = [
     "shapeshifter",
     "reincarnation",
@@ -117,12 +105,11 @@
     "bee",
     "sideeffect",
   ];
-  let isAllSelected = true;
   let showMulti = false;
   export const storeSessionData = writable([]);
   let tableData = [];
   let firstSession = true;
-  let filterTableData = [];
+  export const filterTableData = writable([]);
   let isCollapsed = false;
 
   function open2close() {
@@ -131,32 +118,41 @@
 
   function toggleTag(event) {
     const tag = event.target.value;
-    if (event.target.checked) {
-      selectedTags.add(tag);
-    } else {
-      selectedTags.delete(tag);
-    }
-    isAllSelected = selectedTags.size === tags.length;
+
+    selectedTags.update(selected => {
+      if (event.target.checked) {
+        if (!selected.includes(tag)) {
+          selected.push(tag);
+        }
+      } else {
+        const index = selected.indexOf(tag);
+        if (index !== -1) {
+          selected.splice(index, 1);
+        }
+      }
+      return selected;
+    });
     filterSessions();
   }
 
-  function filterSessions() {
-    filterTableData = tableData.filter(
-      (session) =>
-        selectedTags.size === 0 || selectedTags.has(session.prompt_code)
-    );
+  function toggleCleanAll() {
+    filterTableData.set([]);
+    selectedTags.set([]);
+    storeSessionData.set([]);
   }
 
-  function toggleSelectAll() {
-
-    if (selectedTags.size !== 0) {
-      selectedTags.clear();
-      selectedTags = new Set([...selectedTags]);
+  function filterSessions() {
+    if ($selectedTags.length === 0) {
+      filterTableData.set([]);
+      storeSessionData.set([]);
     } else {
-      filterOptions.forEach(option => {
-        selectedTags.add(option);
-      });
-      selectedTags = new Set([...selectedTags]);
+      const filteredData = tableData.filter(session => $selectedTags.includes(session.prompt_code));
+      const updatedData = filteredData.map(row => ({
+          ...row,
+          selected: $storeSessionData.some(item => item.session_id === row.session_id)
+      }));
+
+      filterTableData.set(updatedData);
     }
   }
 
@@ -166,13 +162,13 @@
 
   function resetDisplay() {
     storeSessionData.set([]);
-    filterTableData = tableData.map(session => {
-      return {
+    filterTableData.set(
+      tableData.map(session => ({
         session_id: session.session_id,
         prompt_code: session.prompt_code,
         selected: false
-      };
-    });
+      }))
+    );
   }
 
   const toggleFilter = () => {
@@ -239,7 +235,7 @@
           return [...sessions];
         });
         await tick();
-        renderChart(sessionFile); // Ensure this function is correctly updating and re-rendering the chart
+        renderChart(sessionFile);
       }
       if (showMulti) {
         dataDict = data;
@@ -320,7 +316,7 @@
           };
         });
         firstSession = false;
-        filterTableData = tableData;
+        filterTableData.set(tableData);
       }
       // fetchSessions()
     } catch (error) {
@@ -329,31 +325,37 @@
   };
 
   const handleSessionChange = (sessionId) => {
-    let isCurrentlySelected = filterTableData.find(row => row.session_id == sessionId)?.selected;
+    let isCurrentlySelected = $filterTableData.find(row => row.session_id == sessionId)?.selected;
 
     if (!showMulti) {
       if (isCurrentlySelected) {
         selectedSession = null;
-        filterTableData = filterTableData.map(row => ({ ...row, selected: false }));
+        filterTableData.set(
+          $filterTableData.map(row => ({ ...row, selected: false }))
+        );
         storeSessionData.update(data => {
           return data.filter(item => item.session_id !== sessionId);
         });
         fetchData(sessionId, true);
       } else {
         selectedSession = sessionId;
-        filterTableData = filterTableData.map(row => ({
-          ...row,
-          selected: row.session_id == selectedSession
-        }));
+        filterTableData.set(
+          $filterTableData.map(row => ({
+            ...row,
+            selected: row.session_id == selectedSession
+          }))
+        );
         fetchData(sessionId, false);
       }
     } else {
-      filterTableData = filterTableData.map(row => {
-        if (row.session_id == sessionId) {
-          return { ...row, selected: !row.selected };
-        }
-        return row;
-      });
+      filterTableData.set(
+        $filterTableData.map(row => {
+          if (row.session_id == sessionId) {
+            return { ...row, selected: !row.selected };
+          }
+          return row;
+        })
+      );
 
       if (!isCurrentlySelected) {
         selectedSession = sessionId;
@@ -365,7 +367,7 @@
         fetchData(sessionId, true);
       }
     }
-
+  
     paragraphTime = [];
     paragraphColor = [];
       
@@ -375,8 +377,9 @@
   };
 
   function handleSelectChange(index) {
-    handleSessionChange(sessions[index].session_id);
+    handleSessionChange($filterTableData[index].session_id);
   }
+
 
   onMount(() => {
     document.title = "Ink-Pulse";
@@ -388,17 +391,6 @@
     //   renderSimilarityChart(selectedSession, data);
     // });
   });
-
-  function generateColor(index) {
-    const colors = [
-      "rgba(211, 179, 255, 0.2)",
-      "rgba(255, 183, 77, 0.2)",
-      "rgba(179, 217, 255, 0.2)",
-      "rgba(179, 255, 179, 0.2)",
-      "rgba(255, 217, 179, 0.2)",
-    ];
-    return colors[index % colors.length];
-  }
 
   function generateColorGrey(index) {
     const colors = ["rgba(220, 220, 220, 0.3)", "rgba(240, 240, 240, 0.3)"];
@@ -901,12 +893,11 @@
     <nav>
       <div class="filter-container {showFilter ? 'show' : ''}">
         <a
-          on:click={toggleSelectAll}
+          on:click={toggleCleanAll}
           href=" "
           aria-label="toggle-btn"
           class="material-symbols--refresh-rounded"
         >
-          {isAllSelected ? "Clear All" : "Select All"}
         </a>
         {#each filterOptions as option}
           <label>
@@ -914,23 +905,13 @@
               type="checkbox"
               value={option}
               on:change={toggleTag}
-              checked={selectedTags.has(option)}
+              checked={$selectedTags.includes(option)}
             />
             {option}
           </label>
           <br />
         {/each}
       </div>
-      <!-- <div class="dropdown-container">
-        <b>Select Session: &nbsp;</b>
-        <select bind:value={selectedSession} on:change={handleSessionChange}>
-          {#each filterTableData.length > 0 ? filterTableData : sessions as session}
-            <option value={session.session_id}>
-              {session.prompt_code} - {session.session_id}
-            </option>
-          {/each}
-        </select>
-      </div> -->
       <div>
         <a
           bind:this={multiSessionButton}
@@ -998,11 +979,6 @@
             <div class="chart-container">
               <canvas id="chart-{$storeSessionData[0].sessionId}"></canvas>
             </div>
-            <!--<div class="chart-container">
-              <canvas id="similarity-chart-{$storeSessionData[0].sessionId}"
-              ></canvas>
-            </div> -->
-
             <button on:click={resetZoom} class="zoom-reset-btn"
               >Reset Zoom</button
             >
@@ -1201,7 +1177,7 @@
         </TableBodyCell>
       </TableHead>
       <TableBody tableBodyClass="divide-y">
-        {#each filterTableData as row, index (row.session_id)}
+        {#each $filterTableData as row, index (row.session_id)}
           <TableBodyRow>
             <TableBodyCell>{row.session_id}</TableBodyCell>
             <TableBodyCell>{row.prompt_code}</TableBodyCell>
