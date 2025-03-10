@@ -14,7 +14,14 @@
     BarController,
     BarElement,
   } from "chart.js";
-  import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
+  import {
+    Table,
+    TableBody,
+    TableBodyCell,
+    TableBodyRow,
+    TableHead,
+    TableHeadCell,
+  } from "flowbite-svelte";
   import "chartjs-adapter-date-fns";
   import annotationPlugin from "chartjs-plugin-annotation";
   import { writable } from "svelte/store";
@@ -22,7 +29,7 @@
   import { base } from "$app/paths";
   import tippy from "tippy.js";
   import "tippy.js/dist/tippy.css";
-  import 'flowbite/dist/flowbite.min.css';
+  import "flowbite/dist/flowbite.min.css";
 
   Chart.register(
     TimeScale,
@@ -87,12 +94,24 @@
   let selectedSession = "e4611bd31b794677b02c52d5700b2e38";
   let sessions = [];
   let chart = null;
+  let barchart = null;
   let time0 = null; // process bar's start time
   let time100 = null; // process bar's end time
   let endTime = null; // last paragraph time
   let isOpen = false;
   let showFilter = false;
-  export const selectedTags = writable(["shapeshifter", "reincarnation", "mana", "obama", "pig", "mattdamon", "dad", "isolation", "bee", "sideeffect"]);
+  export const selectedTags = writable([
+    "shapeshifter",
+    "reincarnation",
+    "mana",
+    "obama",
+    "pig",
+    "mattdamon",
+    "dad",
+    "isolation",
+    "bee",
+    "sideeffect",
+  ]);
   let filterOptions = [
     "shapeshifter",
     "reincarnation",
@@ -119,7 +138,7 @@
   function toggleTag(event) {
     const tag = event.target.value;
 
-    selectedTags.update(selected => {
+    selectedTags.update((selected) => {
       if (event.target.checked) {
         if (!selected.includes(tag)) {
           selected.push(tag);
@@ -133,9 +152,14 @@
       return selected;
     });
     if (!event.target.checked) {
-      storeSessionData.update(sessionData => {
-        return sessionData.filter(session => 
-          !tableData.some(item => item.prompt_code === tag && item.session_id === session.sessionId)
+      storeSessionData.update((sessionData) => {
+        return sessionData.filter(
+          (session) =>
+            !tableData.some(
+              (item) =>
+                item.prompt_code === tag &&
+                item.session_id === session.sessionId
+            )
         );
       });
     }
@@ -147,12 +171,14 @@
       filterTableData.set([]);
       storeSessionData.set([]);
     } else {
-      const filteredData = tableData.filter(session => 
+      const filteredData = tableData.filter((session) =>
         $selectedTags.includes(session.prompt_code)
       );
-      const updatedData = filteredData.map(row => ({
+      const updatedData = filteredData.map((row) => ({
         ...row,
-        selected: $storeSessionData.some(item => item.sessionId == row.session_id)
+        selected: $storeSessionData.some(
+          (item) => item.sessionId == row.session_id
+        ),
       }));
       filterTableData.set(updatedData);
     }
@@ -174,8 +200,8 @@
 
   const fetchData = async (sessionFile, isDelete) => {
     if (!firstSession && isDelete) {
-      storeSessionData.update(data => {
-        return data.filter(item => item.sessionId !== sessionFile);
+      storeSessionData.update((data) => {
+        return data.filter((item) => item.sessionId !== sessionFile);
       });
       return;
     }
@@ -271,6 +297,22 @@
 
         await tick();
         renderChart(sessionFile);
+
+        fetchSimilarityData(sessionFile).then((data) => {
+          if (data) {
+            const similarityChart = renderSimilarityChart(sessionFile, data);
+
+            storeSessionData.update((sessions) => {
+              let sessionIndex = sessions.findIndex(
+                (s) => s.sessionId === sessionFile
+              );
+              if (sessionIndex !== -1) {
+                sessions[sessionIndex].similarityChart = similarityChart;
+              }
+              return [...sessions];
+            });
+          }
+        });
       }
     } catch (error) {
       console.error("Error when reading the data file:", error);
@@ -299,11 +341,14 @@
       const data = await response.json();
       sessions = data || [];
       if (firstSession) {
-        tableData = sessions.map(session => {
+        tableData = sessions.map((session) => {
           return {
             session_id: session.session_id,
             prompt_code: session.prompt_code,
-            selected: session.session_id === "e4611bd31b794677b02c52d5700b2e38" ? true : false
+            selected:
+              session.session_id === "e4611bd31b794677b02c52d5700b2e38"
+                ? true
+                : false,
           };
         });
         firstSession = false;
@@ -316,11 +361,13 @@
   };
 
   const handleSessionChange = (sessionId) => {
-    let isCurrentlySelected = $filterTableData.find(row => row.session_id == sessionId)?.selected;
+    let isCurrentlySelected = $filterTableData.find(
+      (row) => row.session_id == sessionId
+    )?.selected;
 
     if (showMulti) {
       filterTableData.set(
-        $filterTableData.map(row => {
+        $filterTableData.map((row) => {
           if (row.session_id == sessionId) {
             return { ...row, selected: !row.selected };
           }
@@ -332,25 +379,40 @@
         selectedSession = sessionId;
         fetchData(sessionId, false);
       } else {
-        storeSessionData.update(data => {
-          return data.filter(item => item.session_id !== sessionId);
+        storeSessionData.update((data) => {
+          return data.filter((item) => item.session_id !== sessionId);
         });
         fetchData(sessionId, true);
       }
     }
-  
+
     paragraphTime = [];
     paragraphColor = [];
-      
+
     // fetchSimilarityData(selectedSession).then((data) => {
     //   renderSimilarityChart(selectedSession, data);
     // });
+
+    fetchSimilarityData(selectedSession).then((data) => {
+      if (data) {
+        const similarityChart = renderSimilarityChart(selectedSession, data);
+
+        storeSessionData.update((sessions) => {
+          let sessionIndex = sessions.findIndex(
+            (s) => s.sessionId === selectedSession
+          );
+          if (sessionIndex !== -1) {
+            sessions[sessionIndex].similarityChart = similarityChart;
+          }
+          return [...sessions];
+        });
+      }
+    });
   };
 
   function handleSelectChange(index) {
     handleSessionChange($filterTableData[index].session_id);
   }
-
 
   onMount(() => {
     document.title = "Ink-Pulse";
@@ -361,6 +423,22 @@
     // fetchSimilarityData(selectedSession).then((data) => {
     //   renderSimilarityChart(selectedSession, data);
     // });
+
+    fetchSimilarityData(selectedSession).then((data) => {
+      if (data) {
+        const similarityChart = renderSimilarityChart(selectedSession, data);
+
+        storeSessionData.update((sessions) => {
+          let sessionIndex = sessions.findIndex(
+            (s) => s.sessionId === selectedSession
+          );
+          if (sessionIndex !== -1) {
+            sessions[sessionIndex].similarityChart = similarityChart;
+          }
+          return [...sessions];
+        });
+      }
+    });
   });
 
   function generateColorGrey(index) {
@@ -857,6 +935,80 @@
       return sessions;
     });
   };
+
+  const renderSimilarityChart = (sessionId, similarityData) => {
+    if (!showMulti) {
+      if (barchart) {
+        barchart.destroy();
+      }
+    }
+
+    let canvas = document.getElementById(`similarity-chart-${sessionId}`);
+
+    if (!canvas) {
+      const container = document.querySelector(
+        `.bar-chart-container[data-session-id="${sessionId}"]`
+      );
+
+      if (!container) {
+        console.error(`Container for session ${sessionId} not found`);
+        return;
+      }
+
+      canvas = document.createElement("canvas");
+      canvas.id = `similarity-chart-${sessionId}`;
+      container.appendChild(canvas);
+    }
+
+    const processedData = similarityData.map((item, index) => ({
+      sentenceNum: index + 1,
+      dissimilarity: item.dissimilarity * 100,
+    }));
+
+    const labels = processedData.map((item) => `${item.sentenceNum}`);
+    const dissimilarityData = processedData.map((item) => item.dissimilarity);
+
+    const barCount = dissimilarityData.length;
+    const dynamicBarThickness = Math.max(5, Math.min(15, 150 / barCount));
+
+    barchart = new Chart(canvas.getContext("2d"), {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "Semantic Change (%)",
+            data: dissimilarityData,
+            backgroundColor: "rgba(0, 0, 255, 0.8)",
+            borderColor: "rgba(0, 0, 255, 1)",
+            borderWidth: 1,
+            barThickness: dynamicBarThickness,
+          },
+        ],
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            beginAtZero: true,
+            max: 100,
+            title: { display: true, text: "Semantic Change (%)" },
+            reverse: true,
+          },
+          y: {
+            title: { display: true, text: "Sentence Number" },
+            reverse: true,
+          },
+        },
+        plugins: { legend: { display: false } },
+      },
+    });
+
+    canvas.style.height = `${Math.min(300, barCount * 10)}px`;
+    canvas.style.width = "250px";
+  };
 </script>
 
 <div class="App">
@@ -884,9 +1036,9 @@
         {/each}
       </div>
       <div class="chart-explanation">
-          <span class="triangle-text">▼</span> user open the AI suggestion
-          <span class="user-line">●</span> User written
-          <span class="api-line">●</span> AI writing
+        <span class="triangle-text">▼</span> user open the AI suggestion
+        <span class="user-line">●</span> User written
+        <span class="api-line">●</span> AI writing
       </div>
       <a
         on:click={open2close}
@@ -948,12 +1100,26 @@
                     <div class="totalSuggestions"></div>
                   </div>
                 </div>
-                <div class="chart-container">
-                  <canvas id="chart-{sessionData.sessionId}"></canvas>
+                <div class="chart-wrapper">
+                  <div
+                    class="bar-chart-container"
+                    data-session-id={sessionData.sessionId}
+                  >
+                    <canvas id="similarity-chart-{sessionData.sessionId}"
+                    ></canvas>
+                  </div>
+                  <div class="line-chart-container">
+                    <canvas id="chart-{sessionData.sessionId}"></canvas>
+                  </div>
                 </div>
-                <button on:click={resetZoom} class="zoom-reset-btn"
-                  >Reset Zoom</button
+                <!--<div
+                  class="chart-controls"
+                  style="text-align: right; margin-top: 5px;"
                 >
+                  <button on:click={resetZoom} class="zoom-reset-btn"
+                    >Reset Zoom</button
+                  >
+                </div> -->
               </div>
               <div class="content-box">
                 <div class="progress-container">
@@ -1020,55 +1186,54 @@
       {/if}
     </div>
     <div class="table" class:collapsed={isCollapsed}>
-    <Table>
-      <TableHead>
-        <TableHeadCell>Session ID</TableHeadCell>
-        <TableHeadCell>Prompt Code
-        </TableHeadCell>
-        <TableBodyCell>
-          <a
-            bind:this={filterButton}
-            on:click={toggleFilter}
-            href=" "
-            aria-label="Filter"
-            class={showFilter
-              ? "material-symbols--filter-alt"
-              : "material-symbols--filter-alt-outline"}
-          >
-          </a>
-        </TableBodyCell>
-        <TableHeadCell>Selected</TableHeadCell>
-        <TableBodyCell>
-          <a
-            bind:this={collapseButton}
-            on:click={toggleTableCollapse}
-            href=" "
-            aria-label="collapse"
-            class={isCollapsed
-            ? "material-symbols--stat-1-rounded"
-            : "material-symbols--stat-minus-1-rounded"}
-          >
-          </a>
-        </TableBodyCell>
-      </TableHead>
-      <TableBody tableBodyClass="divide-y">
-        {#each $filterTableData as row, index (row.session_id)}
-          <TableBodyRow>
-            <TableBodyCell>{row.session_id}</TableBodyCell>
-            <TableBodyCell>{row.prompt_code}</TableBodyCell>
-            <TableBodyCell></TableBodyCell>
-            <TableBodyCell>
-              <input
-                type="checkbox" 
-                checked={row.selected} 
-                on:change={() => handleSelectChange(index)} 
-              />
-            </TableBodyCell>
-          </TableBodyRow>
-        {/each}
-      </TableBody>
-    </Table>
-  </div>
+      <Table>
+        <TableHead>
+          <TableHeadCell>Session ID</TableHeadCell>
+          <TableHeadCell>Prompt Code</TableHeadCell>
+          <TableBodyCell>
+            <a
+              bind:this={filterButton}
+              on:click={toggleFilter}
+              href=" "
+              aria-label="Filter"
+              class={showFilter
+                ? "material-symbols--filter-alt"
+                : "material-symbols--filter-alt-outline"}
+            >
+            </a>
+          </TableBodyCell>
+          <TableHeadCell>Selected</TableHeadCell>
+          <TableBodyCell>
+            <a
+              bind:this={collapseButton}
+              on:click={toggleTableCollapse}
+              href=" "
+              aria-label="collapse"
+              class={isCollapsed
+                ? "material-symbols--stat-1-rounded"
+                : "material-symbols--stat-minus-1-rounded"}
+            >
+            </a>
+          </TableBodyCell>
+        </TableHead>
+        <TableBody tableBodyClass="divide-y">
+          {#each $filterTableData as row, index (row.session_id)}
+            <TableBodyRow>
+              <TableBodyCell>{row.session_id}</TableBodyCell>
+              <TableBodyCell>{row.prompt_code}</TableBodyCell>
+              <TableBodyCell></TableBodyCell>
+              <TableBodyCell>
+                <input
+                  type="checkbox"
+                  checked={row.selected}
+                  on:change={() => handleSelectChange(index)}
+                />
+              </TableBodyCell>
+            </TableBodyRow>
+          {/each}
+        </TableBody>
+      </Table>
+    </div>
   </header>
 </div>
 
@@ -1119,6 +1284,64 @@
     gap: 20px;
     align-items: stretch;
     width: 100%;
+  }
+
+  .table-container {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .collapsed {
+    height: 50px;
+    overflow: hidden;
+  }
+
+  .table-header {
+    font-weight: bold;
+    background-color: #f8fafc;
+  }
+
+  .table-row {
+    display: flex;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .table-body .table-row:last-child {
+    border-bottom: none;
+  }
+
+  .table-head-cell,
+  .table-cell {
+    padding: 12px 16px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+
+  .table-head-cell {
+    position: relative;
+  }
+
+  .filter-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    padding: 8px;
+  }
+
+  .filter-dropdown input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
   }
 
   .display-box {
@@ -1243,7 +1466,31 @@
     margin-bottom: 2px;
   }
 
-  .totalText, .totalInsertions, .totalDeletions, .totalSuggestions {
+  .chart-wrapper {
+    display: flex;
+    align-items: flex-start;
+    justify-content: start;
+    gap: 20px;
+  }
+
+  .bar-chart-container {
+    width: 160px;
+    height: 250px;
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .line-chart-container {
+    flex: 1;
+    height: 550px;
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .totalText,
+  .totalInsertions,
+  .totalDeletions,
+  .totalSuggestions {
     display: inline-block;
     white-space: nowrap;
     margin-right: 15px;
@@ -1257,7 +1504,7 @@
   }
 
   .triangle-text {
-    color: #FFBBCC;
+    color: #ffbbcc;
   }
 
   .user-line {
@@ -1268,7 +1515,9 @@
     color: #fc8d62;
   }
 
-  .triangle-text, .user-line, .api-line {
+  .triangle-text,
+  .user-line,
+  .api-line {
     margin-right: 3px;
   }
 
@@ -1508,7 +1757,8 @@
     mask-size: 100% 100%;
   }
 
-  a:focus, a:active {
+  a:focus,
+  a:active {
     color: #86cecb;
   }
 </style>
