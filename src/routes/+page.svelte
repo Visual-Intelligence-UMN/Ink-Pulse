@@ -1,45 +1,13 @@
 <script>
   import { onMount } from "svelte";
-  import {
-    Chart,
-    TimeScale,
-    LineController,
-    LineElement,
-    PointElement,
-    Title,
-    Tooltip,
-    Legend,
-    CategoryScale,
-    LinearScale,
-    BarController,
-    BarElement,
-  } from "chart.js";
-  import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
   import "chartjs-adapter-date-fns";
-  import annotationPlugin from "chartjs-plugin-annotation";
   import { writable } from "svelte/store";
   import { tick } from "svelte";
   import { base } from "$app/paths";
   import tippy from "tippy.js";
   import "tippy.js/dist/tippy.css";
-  import 'flowbite/dist/flowbite.min.css';
+  import * as d3 from 'd3';
 
-  Chart.register(
-    TimeScale,
-    LineController,
-    LineElement,
-    PointElement,
-    Title,
-    Tooltip,
-    Legend,
-    CategoryScale,
-    BarController,
-    LinearScale,
-    annotationPlugin,
-    BarElement
-  );
-
-  let zoomPlugin;
   let filterButton;
   let multiSessionButton;
   let collapseButton;
@@ -65,12 +33,6 @@
     }
   });
 
-  onMount(async () => {
-    const module = await import("chartjs-plugin-zoom");
-    zoomPlugin = module.default;
-    Chart.register(zoomPlugin);
-  });
-
   let dataDict = {
     init_text: [], // Initial text
     init_time: [], // Start time
@@ -86,31 +48,20 @@
   let paragraphColor = [];
   let selectedSession = "e4611bd31b794677b02c52d5700b2e38";
   let sessions = [];
-  let chart = null;
   let time0 = null; // process bar's start time
   let time100 = null; // process bar's end time
   let endTime = null; // last paragraph time
   let isOpen = false;
   let showFilter = false;
-  export const selectedTags = writable(["shapeshifter", "reincarnation", "mana", "obama", "pig", "mattdamon", "dad", "isolation", "bee", "sideeffect"]);
-  let filterOptions = [
-    "shapeshifter",
-    "reincarnation",
-    "mana",
-    "obama",
-    "pig",
-    "mattdamon",
-    "dad",
-    "isolation",
-    "bee",
-    "sideeffect",
-  ];
+  export const selectedTags = writable([]);
+  let filterOptions = [];
   let showMulti = true;
   export const storeSessionData = writable([]);
   let tableData = [];
   let firstSession = true;
   export const filterTableData = writable([]);
   let isCollapsed = false;
+  const chartInstances = {};
 
   function open2close() {
     isOpen = !isOpen;
@@ -308,6 +259,8 @@
         });
         firstSession = false;
         filterTableData.set(tableData);
+        filterOptions = Array.from(new Set(tableData.map(row => row.prompt_code)));
+        selectedTags.set(Array.from(new Set(tableData.map(row => row.prompt_code))));
       }
       // fetchSessions()
     } catch (error) {
@@ -364,7 +317,7 @@
   });
 
   function generateColorGrey(index) {
-    const colors = ["rgba(220, 220, 220, 0.3)", "rgba(240, 240, 240, 0.3)"];
+    const colors = ["rgba(220, 220, 220, 0.5)", "rgba(240, 240, 240, 0.3)"];
     return colors[index % colors.length];
   }
 
@@ -503,40 +456,6 @@
 
     paragraphTime = adjustTime(currentText, chartData);
 
-    const customLabelPlugin = {
-      id: "customLabel",
-      afterDatasetsDraw(chart) {
-        const ctx = chart.ctx;
-
-        paragraphColor.forEach((box) => {
-          const { xMin, xMax, yMin, yMax, value } = box;
-
-          if (
-            value &&
-            xMin !== undefined &&
-            xMax !== undefined &&
-            yMin !== undefined &&
-            yMax !== undefined
-          ) {
-            const xPosition =
-              (chart.scales["x"].getPixelForValue(xMin) +
-                chart.scales["x"].getPixelForValue(xMax)) /
-              2;
-
-            const yPosition = chart.scales["y"].getPixelForValue(yMax) - 5;
-
-            ctx.fillStyle = "black";
-            ctx.font = "12px Arial";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "bottom";
-
-            ctx.fillText(value, xPosition, yPosition);
-          }
-        });
-      },
-    };
-    Chart.register(customLabelPlugin);
-
     for (let i = 0; i < paragraphTime.length - 1; i++) {
       const startTime = paragraphTime[i].time;
       const endTime = paragraphTime[i + 1].time;
@@ -625,251 +544,197 @@
       `Suggestions: ${totalSuggestions - 1}`;
   };
 
-  function resetZoom() {
-    if (chart) {
-      chart.resetZoom();
+  const renderChart = (sessionId) => {
+    storeSessionData.update((sessions) => {
+        let sessionIndex = sessions.findIndex((s) => s.sessionId == sessionId);
+        if (sessionIndex === -1) return sessions;
+        
+        let session = sessions[sessionIndex];
+        const chartContainer = d3.select(`#chart-${sessionId}`);
+        chartContainer.html("");
+        
+        const width = 500;
+        const height = 200;
+        const margin = { top: 20, right: 30, bottom: 20, left: 40 };
+        
+        const svg = chartContainer
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+        
+        chartInstances[sessionId] = { svg };
+        
+        const x = d3.scaleLinear()
+            .domain(d3.extent(session.chartData, d => d.time))
+            .range([0, width - margin.left - margin.right]);
+        
+        const y = d3.scaleLinear()
+            .domain([0, 100])
+            .range([height - margin.top - margin.bottom, 0]);
+        
+        svg.append("defs")
+          .append("clipPath")
+          .attr("id", "clip-rect")
+          .append("rect")
+          .attr("width", width - margin.left - margin.right)
+          .attr("height", height - margin.top - margin.bottom)
+          .attr("x", 0)
+          .attr("y", 0);
+        
+        const backgroundRects = svg.selectAll(".background-rect")
+            .data(paragraphColor)
+            .enter()
+            .append("rect")
+            .attr("class", "background-rect")
+            .attr("x", d => x(d.xMin))
+            .attr("width", d => x(d.xMax) - x(d.xMin))
+            .attr("y", d => y(d.yMax))
+            .attr("height", d => y(d.yMin) - y(d.yMax))
+            .attr("fill", d => d.backgroundColor)
+            .attr("opacity", 1)
+            .attr("clip-path", "url(#clip-rect)");
+
+        svg.selectAll(".background-text")
+            .data(paragraphColor)
+            .enter()
+            .append("text")
+            .attr("class", "background-text")
+            .attr("x", d => (x(d.xMin) + x(d.xMax)) / 2)
+            .attr("y", d => y(d.yMax) - 5)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "12px")
+            .attr("fill", "black")
+            .text(d => d.value);
+
+        const points = svg.selectAll("circle")
+            .data(session.chartData)
+            .enter().append("circle")
+            .attr("class", "data-point")
+            .attr("cx", d => x(d.time))
+            .attr("cy", d => y(d.percentage))
+            .attr("r", 2)
+            .attr("fill", d => d.color)
+            .style("cursor", "pointer")
+            .attr("clip-path", "url(#clip-rect)");
+
+        const suggestionGroup = svg.append("g").attr("clip-path", "url(#clip-rect)");
+        session.chartData.filter(d => d.isSuggestionOpen).forEach(d => {
+            suggestionGroup.append("path")
+                .attr("class", "suggestion-point")
+                .attr("d", d3.symbol().type(d3.symbolTriangle).size(20))
+                .attr("fill", "#FFBBCC")
+                .attr("transform", `translate(${x(d.time)},${y(d.percentage + 6)}) rotate(180)`)
+        });
+
+        let selectedPoint = null;
+        points
+            .on("mouseover", function () {
+                d3.select(this).attr("r", 5);
+            })
+            .on("mouseout", function () {
+                if (selectedPoint !== this) {
+                    d3.select(this).attr("r", 2);
+                }
+            })
+            .on("click", function (event, d) {
+                if (selectedPoint) {
+                    d3.select(selectedPoint).attr("r", 2);
+                }
+                selectedPoint = this;
+                d3.select(this).attr("r", 6);
+                d3.select("#selected-text").text(`Time: ${d.time.toFixed(2)} mins\nProgress: ${d.percentage.toFixed(2)}%\nText: ${d.currentText}`);
+
+                storeSessionData.update((sessions) => {
+                    let sessionIndex = sessions.findIndex(s => s.sessionId === sessionId);
+                    if (sessionIndex !== -1) {
+                        sessions[sessionIndex].textElements = d.currentText.split("").map((char, index) => ({
+                            text: char,
+                            textColor: d.currentColor[index]
+                        }));
+                        sessions[sessionIndex].currentTime = d.time;
+                    }
+                    return [...sessions];
+                });
+            });
+
+        const xAxis = d3.axisBottom(x);
+        const yAxis = d3.axisLeft(y);
+        const xAxisGroup = svg.append("g")
+            .attr("class", "chart-axis")
+            .attr("transform", `translate(0, ${height - margin.top - margin.bottom})`)
+            .call(xAxis);
+        const yAxisGroup = svg.append("g")
+            .attr("class", "chart-axis")
+            .call(yAxis);
+        
+        const zoom = d3.zoom()
+            .scaleExtent([1, 5])
+            .translateExtent([[0, 0], [width, height]])
+            .on("zoom", zoomed);
+        svg.call(zoom);
+        chartInstances[sessionId].zoom = zoom;
+
+        function zoomed(event) {
+            const newX = event.transform.rescaleX(x);
+            const newY = event.transform.rescaleY(y);
+            xAxisGroup.call(d3.axisBottom(newX));
+            yAxisGroup.call(d3.axisLeft(newY));
+            const { svg } = chartInstances[sessionId];
+
+            points.attr("cx", d => newX(d.time))
+                  .attr("cy", d => newY(d.percentage));
+
+            backgroundRects
+                .attr("x", d => newX(d.xMin))
+                .attr("width", d => newX(d.xMax) - newX(d.xMin))
+                .attr("y", d => newY(d.yMax))
+                .attr("height", d => newY(d.yMin) - newY(d.yMax));
+            svg.selectAll(".background-text")
+                .attr("x", d => (newX(d.xMin) + newX(d.xMax)) / 2)
+                .attr("y", d => newY(d.yMax) - 5);
+
+            const suggestionPoints = suggestionGroup.selectAll(".suggestion-point")
+              .data(session.chartData.filter(d => d.isSuggestionOpen));
+            suggestionPoints.join(
+              enter => enter.append("path")
+                  .attr("class", "suggestion-point")
+                  .attr("d", d3.symbol().type(d3.symbolTriangle).size(20 * Math.pow(event.transform.k, 2))())
+                  .attr("fill", "#FFBBCC")
+                  .attr("transform", d => `translate(${newX(d.time)},${newY(d.percentage + 6)}) rotate(180)`),
+              update => update
+                  .attr("d", d3.symbol().type(d3.symbolTriangle).size(20 * Math.pow(event.transform.k, 2))())
+                  .attr("transform", d => `translate(${newX(d.time)},${newY(d.percentage + 6)}) rotate(180)`),
+              exit => exit.remove()
+            );
+        }
+
+        return sessions;
+    });
+};
+
+  function resetZoom(sessionId) {
+    if (chartInstances[sessionId]) {
+        const { svg, zoom } = chartInstances[sessionId];
+        svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
     }
   }
 
-  const renderChart = (sessionId) => {
-    if (!showMulti) {
-      if (chart) {
-        chart.destroy();
-      }
-    }
-    storeSessionData.update((sessions) => {
-      let sessionIndex = sessions.findIndex((s) => s.sessionId == sessionId);
-      if (sessionIndex === -1) return sessions; // check whether empty
 
-      let session = sessions[sessionIndex];
-
-      const lineChart = document
-        .getElementById(`chart-${sessionId}`)
-        .getContext("2d");
-      const processedData = session.chartData.map((data, index) => {
-        if (
-          index > 0 &&
-          session.chartData[index - 1].percentage === data.percentage
-        ) {
-          return { x: data.time, y: null };
-        }
-        if (
-          index > 0 &&
-          session.chartData[index - 1].eventSource === "api" &&
-          session.chartData[index].eventSource === "user"
-        ) {
-          return { x: data.time, y: null };
-        }
-        if (
-          index > 0 &&
-          session.chartData[index - 1].eventSource === "user" &&
-          session.chartData[index].eventSource === "user" &&
-          session.chartData[index].time - session.chartData[index - 1].time >
-            0.3
-        ) {
-          return { x: data.time, y: null };
-        }
-
-        return { x: data.time, y: data.percentage };
-      });
-
-      let selectPoint = null;
-      chart = new Chart(lineChart, {
-        type: "line",
-        data: {
-          labels: session.chartData.map((data) => data.time.toFixed(2)),
-          datasets: [
-            {
-              label: "process",
-              data: processedData,
-              borderColor: session.chartData.map((data) => data.color),
-              backgroundColor: "transparent",
-              segment: {
-                borderColor: (lineChart) =>
-                  session.chartData[lineChart.p1DataIndex].color,
-              },
-              tension: 0.1,
-            },
-          ],
-        },
-        options: {
-          interaction: {
-            mode: "nearest",
-            intersect: true,
-          },
-          onClick: (event, chartElements) => {
-            if (chartElements.length > 0) {
-              const index = chartElements[0].index;
-              if (selectPoint !== index) {
-                selectPoint = index;
-                chart.update();
-              }
-            }
-          },
-          plugins: {
-            legend: {
-              display: false,
-            },
-            zoom: {
-              pan: {
-                enabled: true,
-                mode: "xy",
-              },
-              zoom: {
-                wheel: {
-                  enabled: true, // Enable zooming with mouse wheel
-                },
-                pinch: {
-                  enabled: true, // Enable zooming with pinch gestures
-                },
-                mode: "xy",
-              },
-              limits: {
-                x: {
-                  min: "original",
-                  max: 100,
-                  minRange: 20,
-                },
-                y: {
-                  min: 0,
-                  max: 100,
-                  minRange: 20,
-                },
-              },
-            },
-            tooltip: {
-              enabled: true,
-              mode: "nearest",
-              intersect: true,
-              callbacks: {
-                title: (tooltipItems) => {
-                  const data = session.chartData[tooltipItems[0].dataIndex];
-                  return `Time: ${data.time.toFixed(2)} mins`;
-                },
-                label: (tooltipItem) => {
-                  const data = session.chartData[tooltipItem.dataIndex];
-                  const eventType =
-                    data.eventSource === "user" ? "User" : "API";
-                  return `Progress: ${data.percentage.toFixed(2)}% | Event: ${data.eventSource}`;
-                },
-              },
-            },
-            annotation: {
-              annotations: [
-                ...paragraphColor,
-                ...session.chartData
-                  .filter((data) => data.isSuggestionOpen)
-                  .map((data) => ({
-                    type: "point",
-                    pointStyle: "triangle",
-                    rotation: 180,
-                    xMax: data.time,
-                    xMin: data.time,
-                    yMin: data.percentage + 1,
-                    yMax: data.percentage + 5,
-                    borderColor: "#FFBBCC",
-                    borderWidth: 1,
-                    radius: 3,
-                    backgroundColor: "#FFBBCC",
-                    interactive: true,
-                  })),
-              ],
-            },
-          },
-          elements: {
-            point: {
-              radius: (context) => {
-                if (selectPoint !== null && context.dataIndex === selectPoint) {
-                  return 8;
-                }
-                return 1;
-              },
-              hoverRadius: 8,
-              hoverBackgroundColor: "rgba(255, 99, 132, 0.8)",
-              hoverBorderColor: "rgba(255, 99, 132, 1)",
-            },
-          },
-          scales: {
-            x: {
-              type: "linear",
-              title: {
-                display: true,
-                text: "Time (mins)",
-              },
-              ticks: {
-                stepSize: 1,
-              },
-              grid: {
-                display: false,
-              },
-            },
-            y: {
-              min: 0,
-              max: 100,
-              offset: true,
-              title: {
-                display: true,
-                text: "Process(%)",
-              },
-              ticks: {
-                stepSize: 10,
-              },
-              grid: {
-                display: false,
-              },
-            },
-          },
-        },
-      });
-      lineChart.canvas.addEventListener("click", (event) => {
-        const points = chart.getElementsAtEventForMode(
-          event,
-          "nearest",
-          { intersect: true },
-          true
-        );
-        if (points.length > 0) {
-          const point = points[0];
-          const data = session.chartData[point.index];
-
-          textElements = data.currentText.split("").map((char, index) => ({
-            text: char,
-            textColor: data.currentColor[index],
-          }));
-          currentTime = data.time;
-          storeSessionData.update((sessions) => {
-            let sessionIndex = sessions.findIndex(
-              (s) => s.sessionId === sessionId
-            );
-            if (sessionIndex !== -1) {
-              sessions[sessionIndex].textElements = data.currentText
-                .split("")
-                .map((char, index) => ({
-                  text: char,
-                  textColor: data.currentColor[index],
-                }));
-              sessions[sessionIndex].currentTime = data.time;
-            }
-            return [...sessions];
-          });
-        }
-      });
-      return sessions;
-    });
-  };
 </script>
 
 <div class="App">
   <header class="App-header">
     <nav>
       <div class="filter-container {showFilter ? 'show' : ''}">
-        <a
+        <!-- <a
           on:click={toggleCleanAll}
           href=" "
           aria-label="toggle-btn"
           class="material-symbols--refresh-rounded"
         >
-        </a>
+        </a> -->
         {#each filterOptions as option}
           <label>
             <input
@@ -949,11 +814,11 @@
                   </div>
                 </div>
                 <div class="chart-container">
-                  <canvas id="chart-{sessionData.sessionId}"></canvas>
+                  <div id="chart-{sessionData.sessionId}"></div>
                 </div>
-                <button on:click={resetZoom} class="zoom-reset-btn"
-                  >Reset Zoom</button
-                >
+                <button on:click={() => resetZoom(sessionData.sessionId)} class="zoom-reset-btn">
+                  Reset Zoom
+                </button>
               </div>
               <div class="content-box">
                 <div class="progress-container">
@@ -1020,54 +885,51 @@
       {/if}
     </div>
     <div class="table" class:collapsed={isCollapsed}>
-    <Table>
-      <TableHead>
-        <TableHeadCell>Session ID</TableHeadCell>
-        <TableHeadCell>Prompt Code
-        </TableHeadCell>
-        <TableBodyCell>
-          <a
-            bind:this={filterButton}
-            on:click={toggleFilter}
-            href=" "
-            aria-label="Filter"
-            class={showFilter
-              ? "material-symbols--filter-alt"
-              : "material-symbols--filter-alt-outline"}
-          >
-          </a>
-        </TableBodyCell>
-        <TableHeadCell>Selected</TableHeadCell>
-        <TableBodyCell>
-          <a
-            bind:this={collapseButton}
-            on:click={toggleTableCollapse}
-            href=" "
-            aria-label="collapse"
-            class={isCollapsed
-            ? "material-symbols--stat-1-rounded"
-            : "material-symbols--stat-minus-1-rounded"}
-          >
-          </a>
-        </TableBodyCell>
-      </TableHead>
-      <TableBody tableBodyClass="divide-y">
-        {#each $filterTableData as row, index (row.session_id)}
-          <TableBodyRow>
-            <TableBodyCell>{row.session_id}</TableBodyCell>
-            <TableBodyCell>{row.prompt_code}</TableBodyCell>
-            <TableBodyCell></TableBodyCell>
-            <TableBodyCell>
-              <input
-                type="checkbox" 
-                checked={row.selected} 
-                on:change={() => handleSelectChange(index)} 
-              />
-            </TableBodyCell>
-          </TableBodyRow>
-        {/each}
-      </TableBody>
-    </Table>
+      <table>
+        <thead>
+          <tr>
+            <th style="text-transform: uppercase">Session ID</th>
+            <th style="display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase">Prompt Code
+              <a
+                on:click|preventDefault={toggleFilter}
+                href=" "
+                aria-label="Filter"
+                class={showFilter
+                  ? "material-symbols--filter-alt"
+                  : "material-symbols--filter-alt-outline"}
+              >
+              </a>
+            </th>
+            <th style="text-transform: uppercase">Selected</th>
+            <th>
+              <a
+                on:click|preventDefault={toggleTableCollapse}
+                href=" "
+                aria-label="Collapse"
+                class={isCollapsed
+                  ? "material-symbols--stat-1-rounded"
+                  : "material-symbols--stat-minus-1-rounded"}
+              >
+              </a>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each $filterTableData as row, index}
+            <tr>
+              <td>{row.session_id}</td>
+              <td>{row.prompt_code}</td>
+              <td>
+                <input
+                  type="checkbox"
+                  checked={row.selected}
+                  on:change={() => handleSelectChange(index)}
+                />
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
   </div>
   </header>
 </div>
@@ -1358,7 +1220,7 @@
     position: fixed;
     bottom: 0;
     width: 100%;
-    height: 80px;
+    height: 25px;
     background-color: white;
     padding: 1em 0;
     margin: 0px;
@@ -1415,8 +1277,8 @@
 
   .filter-container {
     position: absolute;
-    top: 70px;
-    left: 30px;
+    top: 55px;
+    left: 1055px;
     background: white;
     border: 1px solid #ccc;
     padding: 12px;
@@ -1436,7 +1298,7 @@
     cursor: pointer;
   }
 
-  .material-symbols--refresh-rounded {
+  /* .material-symbols--refresh-rounded {
     display: inline-block;
     width: 24px;
     height: 24px;
@@ -1449,7 +1311,7 @@
     -webkit-mask-size: 100% 100%;
     mask-size: 100% 100%;
     margin-left: auto;
-  }
+  } */
 
   input[type="checkbox"] {
     vertical-align: middle;
@@ -1471,6 +1333,17 @@
   }
 
   input[type="checkbox"]:checked::before {
+    font-size: 12px;
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+  }
+
+  input[type="checkbox"]:checked::before {
+    content: "✔";
     font-size: 12px;
     color: white;
     position: absolute;
@@ -1511,4 +1384,23 @@
   a:focus, a:active {
     color: #86cecb;
   }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    background-color: #f8f8f8;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    display: table-row; 
+  }
+
+  td {
+    padding: 12px 16px;
+  }
+
 </style>
