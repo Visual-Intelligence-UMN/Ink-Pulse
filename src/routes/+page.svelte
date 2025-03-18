@@ -6,7 +6,7 @@
   import { base } from "$app/paths";
   import tippy from "tippy.js";
   import "tippy.js/dist/tippy.css";
-  import * as d3 from 'd3';
+  import * as d3 from "d3";
 
   let filterButton;
   let multiSessionButton;
@@ -70,7 +70,7 @@
   function toggleTag(event) {
     const tag = event.target.value;
 
-    selectedTags.update(selected => {
+    selectedTags.update((selected) => {
       if (event.target.checked) {
         if (!selected.includes(tag)) {
           selected.push(tag);
@@ -84,9 +84,14 @@
       return selected;
     });
     if (!event.target.checked) {
-      storeSessionData.update(sessionData => {
-        return sessionData.filter(session => 
-          !tableData.some(item => item.prompt_code === tag && item.session_id === session.sessionId)
+      storeSessionData.update((sessionData) => {
+        return sessionData.filter(
+          (session) =>
+            !tableData.some(
+              (item) =>
+                item.prompt_code === tag &&
+                item.session_id === session.sessionId
+            )
         );
       });
     }
@@ -98,12 +103,14 @@
       filterTableData.set([]);
       storeSessionData.set([]);
     } else {
-      const filteredData = tableData.filter(session => 
+      const filteredData = tableData.filter((session) =>
         $selectedTags.includes(session.prompt_code)
       );
-      const updatedData = filteredData.map(row => ({
+      const updatedData = filteredData.map((row) => ({
         ...row,
-        selected: $storeSessionData.some(item => item.sessionId == row.session_id)
+        selected: $storeSessionData.some(
+          (item) => item.sessionId == row.session_id
+        ),
       }));
       filterTableData.set(updatedData);
     }
@@ -125,8 +132,8 @@
 
   const fetchData = async (sessionFile, isDelete) => {
     if (!firstSession && isDelete) {
-      storeSessionData.update(data => {
-        return data.filter(item => item.sessionId !== sessionFile);
+      storeSessionData.update((data) => {
+        return data.filter((item) => item.sessionId !== sessionFile);
       });
       return;
     }
@@ -178,6 +185,21 @@
         });
         await tick();
         renderChart(sessionFile);
+        fetchSimilarityData(sessionFile).then((data) => {
+          if (data) {
+            const similarityChart = renderSimilarityChart(sessionFile, data);
+
+            storeSessionData.update((sessions) => {
+              let sessionIndex = sessions.findIndex(
+                (s) => s.sessionId === sessionFile
+              );
+              if (sessionIndex !== -1) {
+                sessions[sessionIndex].similarityChart = similarityChart;
+              }
+              return [...sessions];
+            });
+          }
+        });
       }
       if (showMulti) {
         dataDict = data;
@@ -250,17 +272,24 @@
       const data = await response.json();
       sessions = data || [];
       if (firstSession) {
-        tableData = sessions.map(session => {
+        tableData = sessions.map((session) => {
           return {
             session_id: session.session_id,
             prompt_code: session.prompt_code,
-            selected: session.session_id === "e4611bd31b794677b02c52d5700b2e38" ? true : false
+            selected:
+              session.session_id === "e4611bd31b794677b02c52d5700b2e38"
+                ? true
+                : false,
           };
         });
         firstSession = false;
         filterTableData.set(tableData);
-        filterOptions = Array.from(new Set(tableData.map(row => row.prompt_code)));
-        selectedTags.set(Array.from(new Set(tableData.map(row => row.prompt_code))));
+        filterOptions = Array.from(
+          new Set(tableData.map((row) => row.prompt_code))
+        );
+        selectedTags.set(
+          Array.from(new Set(tableData.map((row) => row.prompt_code)))
+        );
       }
       // fetchSessions()
     } catch (error) {
@@ -269,11 +298,13 @@
   };
 
   const handleSessionChange = (sessionId) => {
-    let isCurrentlySelected = $filterTableData.find(row => row.session_id == sessionId)?.selected;
+    let isCurrentlySelected = $filterTableData.find(
+      (row) => row.session_id == sessionId
+    )?.selected;
 
     if (showMulti) {
       filterTableData.set(
-        $filterTableData.map(row => {
+        $filterTableData.map((row) => {
           if (row.session_id == sessionId) {
             return { ...row, selected: !row.selected };
           }
@@ -285,25 +316,40 @@
         selectedSession = sessionId;
         fetchData(sessionId, false);
       } else {
-        storeSessionData.update(data => {
-          return data.filter(item => item.session_id !== sessionId);
+        storeSessionData.update((data) => {
+          return data.filter((item) => item.session_id !== sessionId);
         });
         fetchData(sessionId, true);
       }
     }
-  
+
     paragraphTime = [];
     paragraphColor = [];
-      
+
     // fetchSimilarityData(selectedSession).then((data) => {
     //   renderSimilarityChart(selectedSession, data);
     // });
+
+    fetchSimilarityData(sessionId).then((data) => {
+      if (data) {
+        const similarityChart = renderSimilarityChart(sessionId, data);
+
+        storeSessionData.update((sessions) => {
+          let sessionIndex = sessions.findIndex(
+            (s) => s.sessionId === selectedSession
+          );
+          if (sessionIndex !== -1) {
+            sessions[sessionIndex].similarityChart = similarityChart;
+          }
+          return [...sessions];
+        });
+      }
+    });
   };
 
   function handleSelectChange(index) {
     handleSessionChange($filterTableData[index].session_id);
   }
-
 
   onMount(() => {
     document.title = "Ink-Pulse";
@@ -314,6 +360,21 @@
     // fetchSimilarityData(selectedSession).then((data) => {
     //   renderSimilarityChart(selectedSession, data);
     // });
+    fetchSimilarityData(selectedSession).then((data) => {
+      if (data) {
+        const similarityChart = renderSimilarityChart(selectedSession, data);
+
+        storeSessionData.update((sessions) => {
+          let sessionIndex = sessions.findIndex(
+            (s) => s.sessionId === selectedSession
+          );
+          if (sessionIndex !== -1) {
+            sessions[sessionIndex].similarityChart = similarityChart;
+          }
+          return [...sessions];
+        });
+      }
+    });
   });
 
   function generateColorGrey(index) {
@@ -546,182 +607,316 @@
 
   const renderChart = (sessionId) => {
     storeSessionData.update((sessions) => {
-        let sessionIndex = sessions.findIndex((s) => s.sessionId == sessionId);
-        if (sessionIndex === -1) return sessions;
-        
-        let session = sessions[sessionIndex];
-        const chartContainer = d3.select(`#chart-${sessionId}`);
-        chartContainer.html("");
-        
-        const width = 500;
-        const height = 200;
-        const margin = { top: 20, right: 30, bottom: 20, left: 40 };
-        
-        const svg = chartContainer
-            .append("svg")
-            .attr("width", width)
-            .attr("height", height)
-            .append("g")
-            .attr("transform", `translate(${margin.left},${margin.top})`);
-        
-        chartInstances[sessionId] = { svg };
-        
-        const x = d3.scaleLinear()
-            .domain(d3.extent(session.chartData, d => d.time))
-            .range([0, width - margin.left - margin.right]);
-        
-        const y = d3.scaleLinear()
-            .domain([0, 100])
-            .range([height - margin.top - margin.bottom, 0]);
-        
-        svg.append("defs")
-          .append("clipPath")
-          .attr("id", "clip-rect")
-          .append("rect")
-          .attr("width", width - margin.left - margin.right)
-          .attr("height", height - margin.top - margin.bottom)
-          .attr("x", 0)
-          .attr("y", 0);
-        
-        const backgroundRects = svg.selectAll(".background-rect")
-            .data(paragraphColor)
-            .enter()
-            .append("rect")
-            .attr("class", "background-rect")
-            .attr("x", d => x(d.xMin))
-            .attr("width", d => x(d.xMax) - x(d.xMin))
-            .attr("y", d => y(d.yMax))
-            .attr("height", d => y(d.yMin) - y(d.yMax))
-            .attr("fill", d => d.backgroundColor)
-            .attr("opacity", 1)
-            .attr("clip-path", "url(#clip-rect)");
+      let sessionIndex = sessions.findIndex((s) => s.sessionId == sessionId);
+      if (sessionIndex === -1) return sessions;
 
-        svg.selectAll(".background-text")
-            .data(paragraphColor)
-            .enter()
-            .append("text")
-            .attr("class", "background-text")
-            .attr("x", d => (x(d.xMin) + x(d.xMax)) / 2)
-            .attr("y", d => y(d.yMax) - 5)
-            .attr("text-anchor", "middle")
-            .attr("font-size", "12px")
-            .attr("fill", "black")
-            .text(d => d.value);
+      let session = sessions[sessionIndex];
+      const chartContainer = d3.select(`#chart-${sessionId}`);
+      chartContainer.html("");
 
-        const points = svg.selectAll("circle")
-            .data(session.chartData)
-            .enter().append("circle")
-            .attr("class", "data-point")
-            .attr("cx", d => x(d.time))
-            .attr("cy", d => y(d.percentage))
-            .attr("r", 2)
-            .attr("fill", d => d.color)
-            .style("cursor", "pointer")
-            .attr("clip-path", "url(#clip-rect)");
+      const width = 500;
+      const height = 200;
+      const margin = { top: 20, right: 30, bottom: 20, left: 40 };
 
-        const suggestionGroup = svg.append("g").attr("clip-path", "url(#clip-rect)");
-        session.chartData.filter(d => d.isSuggestionOpen).forEach(d => {
-            suggestionGroup.append("path")
-                .attr("class", "suggestion-point")
-                .attr("d", d3.symbol().type(d3.symbolTriangle).size(20))
-                .attr("fill", "#FFBBCC")
-                .attr("transform", `translate(${x(d.time)},${y(d.percentage + 6)}) rotate(180)`)
+      const svg = chartContainer
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+      chartInstances[sessionId] = { svg };
+
+      const x = d3
+        .scaleLinear()
+        .domain(d3.extent(session.chartData, (d) => d.time))
+        .range([0, width - margin.left - margin.right]);
+
+      const y = d3
+        .scaleLinear()
+        .domain([0, 100])
+        .range([height - margin.top - margin.bottom, 0]);
+
+      svg
+        .append("defs")
+        .append("clipPath")
+        .attr("id", "clip-rect")
+        .append("rect")
+        .attr("width", width - margin.left - margin.right)
+        .attr("height", height - margin.top - margin.bottom)
+        .attr("x", 0)
+        .attr("y", 0);
+
+      const backgroundRects = svg
+        .selectAll(".background-rect")
+        .data(paragraphColor)
+        .enter()
+        .append("rect")
+        .attr("class", "background-rect")
+        .attr("x", (d) => x(d.xMin))
+        .attr("width", (d) => x(d.xMax) - x(d.xMin))
+        .attr("y", (d) => y(d.yMax))
+        .attr("height", (d) => y(d.yMin) - y(d.yMax))
+        .attr("fill", (d) => d.backgroundColor)
+        .attr("opacity", 1)
+        .attr("clip-path", "url(#clip-rect)");
+
+      svg
+        .selectAll(".background-text")
+        .data(paragraphColor)
+        .enter()
+        .append("text")
+        .attr("class", "background-text")
+        .attr("x", (d) => (x(d.xMin) + x(d.xMax)) / 2)
+        .attr("y", (d) => y(d.yMax) - 5)
+        .attr("text-anchor", "middle")
+        .attr("font-size", "12px")
+        .attr("fill", "black")
+        .text((d) => d.value);
+
+      const points = svg
+        .selectAll("circle")
+        .data(session.chartData)
+        .enter()
+        .append("circle")
+        .attr("class", "data-point")
+        .attr("cx", (d) => x(d.time))
+        .attr("cy", (d) => y(d.percentage))
+        .attr("r", 2)
+        .attr("fill", (d) => d.color)
+        .style("cursor", "pointer")
+        .attr("clip-path", "url(#clip-rect)");
+
+      const suggestionGroup = svg
+        .append("g")
+        .attr("clip-path", "url(#clip-rect)");
+      session.chartData
+        .filter((d) => d.isSuggestionOpen)
+        .forEach((d) => {
+          suggestionGroup
+            .append("path")
+            .attr("class", "suggestion-point")
+            .attr("d", d3.symbol().type(d3.symbolTriangle).size(20))
+            .attr("fill", "#FFBBCC")
+            .attr(
+              "transform",
+              `translate(${x(d.time)},${y(d.percentage + 6)}) rotate(180)`
+            );
         });
 
-        let selectedPoint = null;
-        points
-            .on("mouseover", function () {
-                d3.select(this).attr("r", 5);
-            })
-            .on("mouseout", function () {
-                if (selectedPoint !== this) {
-                    d3.select(this).attr("r", 2);
-                }
-            })
-            .on("click", function (event, d) {
-                if (selectedPoint) {
-                    d3.select(selectedPoint).attr("r", 2);
-                }
-                selectedPoint = this;
-                d3.select(this).attr("r", 6);
-                d3.select("#selected-text").text(`Time: ${d.time.toFixed(2)} mins\nProgress: ${d.percentage.toFixed(2)}%\nText: ${d.currentText}`);
+      let selectedPoint = null;
+      points
+        .on("mouseover", function () {
+          d3.select(this).attr("r", 5);
+        })
+        .on("mouseout", function () {
+          if (selectedPoint !== this) {
+            d3.select(this).attr("r", 2);
+          }
+        })
+        .on("click", function (event, d) {
+          if (selectedPoint) {
+            d3.select(selectedPoint).attr("r", 2);
+          }
+          selectedPoint = this;
+          d3.select(this).attr("r", 6);
+          d3.select("#selected-text").text(
+            `Time: ${d.time.toFixed(2)} mins\nProgress: ${d.percentage.toFixed(2)}%\nText: ${d.currentText}`
+          );
 
-                storeSessionData.update((sessions) => {
-                    let sessionIndex = sessions.findIndex(s => s.sessionId === sessionId);
-                    if (sessionIndex !== -1) {
-                        sessions[sessionIndex].textElements = d.currentText.split("").map((char, index) => ({
-                            text: char,
-                            textColor: d.currentColor[index]
-                        }));
-                        sessions[sessionIndex].currentTime = d.time;
-                    }
-                    return [...sessions];
-                });
-            });
-
-        const xAxis = d3.axisBottom(x);
-        const yAxis = d3.axisLeft(y);
-        const xAxisGroup = svg.append("g")
-            .attr("class", "chart-axis")
-            .attr("transform", `translate(0, ${height - margin.top - margin.bottom})`)
-            .call(xAxis);
-        const yAxisGroup = svg.append("g")
-            .attr("class", "chart-axis")
-            .call(yAxis);
-        
-        const zoom = d3.zoom()
-            .scaleExtent([1, 5])
-            .translateExtent([[0, 0], [width, height]])
-            .on("zoom", zoomed);
-        svg.call(zoom);
-        chartInstances[sessionId].zoom = zoom;
-
-        function zoomed(event) {
-            const newX = event.transform.rescaleX(x);
-            const newY = event.transform.rescaleY(y);
-            xAxisGroup.call(d3.axisBottom(newX));
-            yAxisGroup.call(d3.axisLeft(newY));
-            const { svg } = chartInstances[sessionId];
-
-            points.attr("cx", d => newX(d.time))
-                  .attr("cy", d => newY(d.percentage));
-
-            backgroundRects
-                .attr("x", d => newX(d.xMin))
-                .attr("width", d => newX(d.xMax) - newX(d.xMin))
-                .attr("y", d => newY(d.yMax))
-                .attr("height", d => newY(d.yMin) - newY(d.yMax));
-            svg.selectAll(".background-text")
-                .attr("x", d => (newX(d.xMin) + newX(d.xMax)) / 2)
-                .attr("y", d => newY(d.yMax) - 5);
-
-            const suggestionPoints = suggestionGroup.selectAll(".suggestion-point")
-              .data(session.chartData.filter(d => d.isSuggestionOpen));
-            suggestionPoints.join(
-              enter => enter.append("path")
-                  .attr("class", "suggestion-point")
-                  .attr("d", d3.symbol().type(d3.symbolTriangle).size(20 * Math.pow(event.transform.k, 2))())
-                  .attr("fill", "#FFBBCC")
-                  .attr("transform", d => `translate(${newX(d.time)},${newY(d.percentage + 6)}) rotate(180)`),
-              update => update
-                  .attr("d", d3.symbol().type(d3.symbolTriangle).size(20 * Math.pow(event.transform.k, 2))())
-                  .attr("transform", d => `translate(${newX(d.time)},${newY(d.percentage + 6)}) rotate(180)`),
-              exit => exit.remove()
+          storeSessionData.update((sessions) => {
+            let sessionIndex = sessions.findIndex(
+              (s) => s.sessionId === sessionId
             );
-        }
+            if (sessionIndex !== -1) {
+              sessions[sessionIndex].textElements = d.currentText
+                .split("")
+                .map((char, index) => ({
+                  text: char,
+                  textColor: d.currentColor[index],
+                }));
+              sessions[sessionIndex].currentTime = d.time;
+            }
+            return [...sessions];
+          });
+        });
 
-        return sessions;
+      const xAxis = d3.axisBottom(x);
+      const yAxis = d3.axisLeft(y);
+      const xAxisGroup = svg
+        .append("g")
+        .attr("class", "chart-axis")
+        .attr(
+          "transform",
+          `translate(0, ${height - margin.top - margin.bottom})`
+        )
+        .call(xAxis);
+      const yAxisGroup = svg
+        .append("g")
+        .attr("class", "chart-axis")
+        .call(yAxis);
+
+      const zoom = d3
+        .zoom()
+        .scaleExtent([1, 5])
+        .translateExtent([
+          [0, 0],
+          [width, height],
+        ])
+        .on("zoom", zoomed);
+      svg.call(zoom);
+      chartInstances[sessionId].zoom = zoom;
+
+      function zoomed(event) {
+        const newX = event.transform.rescaleX(x);
+        const newY = event.transform.rescaleY(y);
+        xAxisGroup.call(d3.axisBottom(newX));
+        yAxisGroup.call(d3.axisLeft(newY));
+        const { svg } = chartInstances[sessionId];
+
+        points
+          .attr("cx", (d) => newX(d.time))
+          .attr("cy", (d) => newY(d.percentage));
+
+        backgroundRects
+          .attr("x", (d) => newX(d.xMin))
+          .attr("width", (d) => newX(d.xMax) - newX(d.xMin))
+          .attr("y", (d) => newY(d.yMax))
+          .attr("height", (d) => newY(d.yMin) - newY(d.yMax));
+        svg
+          .selectAll(".background-text")
+          .attr("x", (d) => (newX(d.xMin) + newX(d.xMax)) / 2)
+          .attr("y", (d) => newY(d.yMax) - 5);
+
+        const suggestionPoints = suggestionGroup
+          .selectAll(".suggestion-point")
+          .data(session.chartData.filter((d) => d.isSuggestionOpen));
+        suggestionPoints.join(
+          (enter) =>
+            enter
+              .append("path")
+              .attr("class", "suggestion-point")
+              .attr(
+                "d",
+                d3
+                  .symbol()
+                  .type(d3.symbolTriangle)
+                  .size(20 * Math.pow(event.transform.k, 2))()
+              )
+              .attr("fill", "#FFBBCC")
+              .attr(
+                "transform",
+                (d) =>
+                  `translate(${newX(d.time)},${newY(d.percentage + 6)}) rotate(180)`
+              ),
+          (update) =>
+            update
+              .attr(
+                "d",
+                d3
+                  .symbol()
+                  .type(d3.symbolTriangle)
+                  .size(20 * Math.pow(event.transform.k, 2))()
+              )
+              .attr(
+                "transform",
+                (d) =>
+                  `translate(${newX(d.time)},${newY(d.percentage + 6)}) rotate(180)`
+              ),
+          (exit) => exit.remove()
+        );
+      }
+
+      return sessions;
     });
-};
+  };
+
+  const renderSimilarityChart = (sessionId, similarityData) => {
+    console.log("Data passed", sessionId, similarityData);
+    const containerId = `bar-chart-container-${sessionId}`;
+
+    d3.select(`#${containerId} svg`).remove();
+
+    const processedData = similarityData.map((item, index) => ({
+      sentenceNum: index + 1,
+      dissimilarity: item.dissimilarity * 100,
+    }));
+
+    const margin = { top: 20, right: 30, bottom: 40, left: 60 };
+    const width = 250 - margin.left - margin.right;
+    const height =
+      Math.min(300, processedData.length * 20) - margin.top - margin.bottom;
+
+    const svg = d3
+      .select(`.chart-wrapper [data-session-id="${sessionId}"]`)
+      .append("svg")
+      .attr("id", `similarity-chart-svg-${sessionId}`)
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+    const xScale = d3.scaleLinear().domain([100, 0]).range([0, width]);
+
+    const yScale = d3
+      .scaleBand()
+      .domain(processedData.map((d) => d.sentenceNum).reverse())
+      .range([0, height])
+      .padding(0.1);
+
+    svg
+      .append("g")
+      .attr("transform", `translate(0, ${height})`)
+      .call(d3.axisBottom(xScale))
+      .append("text")
+      .attr("x", width / 2)
+      .attr("y", 30)
+      .attr("fill", "black")
+      .attr("text-anchor", "middle")
+      .text("Semantic Change (%)");
+
+    svg
+      .append("g")
+      .call(d3.axisLeft(yScale))
+      .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", -40)
+      .attr("x", -height / 2)
+      .attr("fill", "black")
+      .attr("text-anchor", "middle")
+      .text("Sentence Number");
+
+    svg
+      .selectAll(".bar")
+      .data(processedData)
+      .enter()
+      .append("rect")
+      .attr("class", "bar")
+      .attr("y", (d) => yScale(d.sentenceNum))
+      .attr("x", (d) => xScale(d.dissimilarity))
+      .attr("width", (d) => xScale(0) - xScale(d.dissimilarity))
+      .attr("height", yScale.bandwidth())
+      .attr("fill", "rgba(0, 0, 255, 0.8)")
+      .attr("stroke", "rgba(0, 0, 255, 1)")
+      .attr("stroke-width", 1);
+
+    // Add title
+    svg
+      .append("text")
+      .attr("x", width / 2)
+      .attr("y", -5)
+      .attr("text-anchor", "middle")
+      .style("font-size", "14px")
+      .style("font-weight", "500")
+      .text("Semantic Change by Sentence");
+  };
 
   function resetZoom(sessionId) {
     if (chartInstances[sessionId]) {
-        const { svg, zoom } = chartInstances[sessionId];
-        svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
+      const { svg, zoom } = chartInstances[sessionId];
+      svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
     }
   }
-
-
 </script>
 
 <div class="App">
@@ -749,9 +944,9 @@
         {/each}
       </div>
       <div class="chart-explanation">
-          <span class="triangle-text">▼</span> user open the AI suggestion
-          <span class="user-line">●</span> User written
-          <span class="api-line">●</span> AI writing
+        <span class="triangle-text">▼</span> user open the AI suggestion
+        <span class="user-line">●</span> User written
+        <span class="api-line">●</span> AI writing
       </div>
       <a
         on:click={open2close}
@@ -813,12 +1008,23 @@
                     <div class="totalSuggestions"></div>
                   </div>
                 </div>
-                <div class="chart-container">
-                  <div id="chart-{sessionData.sessionId}"></div>
+                <div class="chart-wrapper">
+                  <div
+                    class="bar-chart-container"
+                    data-session-id={sessionData.sessionId}
+                    id="bar-chart-container-{sessionData.sessionId}"
+                  ></div>
+
+                  <div class="line-chart-container">
+                    <div id="chart-{sessionData.sessionId}"></div>
+                    <button
+                      on:click={() => resetZoom(sessionData.sessionId)}
+                      class="zoom-reset-btn"
+                    >
+                      Reset Zoom
+                    </button>
+                  </div>
                 </div>
-                <button on:click={() => resetZoom(sessionData.sessionId)} class="zoom-reset-btn">
-                  Reset Zoom
-                </button>
               </div>
               <div class="content-box">
                 <div class="progress-container">
@@ -889,7 +1095,9 @@
         <thead>
           <tr>
             <th style="text-transform: uppercase">Session ID</th>
-            <th style="display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase">Prompt Code
+            <th
+              style="display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase"
+              >Prompt Code
               <a
                 on:click|preventDefault={toggleFilter}
                 href=" "
@@ -930,7 +1138,7 @@
           {/each}
         </tbody>
       </table>
-  </div>
+    </div>
   </header>
 </div>
 
@@ -1014,9 +1222,30 @@
     padding: 15px;
   }
 
-  .chart-container {
+  .chart-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin: 15px 0;
     width: 100%;
-    margin-top: 20px;
+    max-width: 800px;
+  }
+
+  .bar-chart-container {
+    width: 250px;
+    height: 300px;
+    position: relative;
+  }
+
+  .line-chart-container {
+    width: 500px;
+    height: 300px;
+    position: relative;
+  }
+
+  .zoom-reset-btn {
+    margin-top: 10px;
   }
 
   .text-container {
@@ -1105,7 +1334,10 @@
     margin-bottom: 2px;
   }
 
-  .totalText, .totalInsertions, .totalDeletions, .totalSuggestions {
+  .totalText,
+  .totalInsertions,
+  .totalDeletions,
+  .totalSuggestions {
     display: inline-block;
     white-space: nowrap;
     margin-right: 15px;
@@ -1119,7 +1351,7 @@
   }
 
   .triangle-text {
-    color: #FFBBCC;
+    color: #ffbbcc;
   }
 
   .user-line {
@@ -1130,7 +1362,9 @@
     color: #fc8d62;
   }
 
-  .triangle-text, .user-line, .api-line {
+  .triangle-text,
+  .user-line,
+  .api-line {
     margin-right: 3px;
   }
 
@@ -1381,7 +1615,8 @@
     mask-size: 100% 100%;
   }
 
-  a:focus, a:active {
+  a:focus,
+  a:active {
     color: #86cecb;
   }
 
@@ -1396,11 +1631,10 @@
 
   tbody tr {
     border-bottom: 1px solid #e0e0e0;
-    display: table-row; 
+    display: table-row;
   }
 
   td {
     padding: 12px 16px;
   }
-
 </style>
