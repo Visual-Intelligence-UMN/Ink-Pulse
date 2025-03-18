@@ -222,6 +222,23 @@
 
         await tick();
         renderChart(sessionFile);
+
+        fetchSimilarityData(sessionFile).then((data) => {
+          if (data) {
+            const similarityChart = renderSimilarityChart(sessionFile, data);
+
+            storeSessionData.update((sessions) => {
+              let sessionIndex = sessions.findIndex(
+                (s) => s.sessionId === sessionFile
+              );
+              if (sessionIndex !== -1) {
+                sessions[sessionIndex].similarityChart = similarityChart;
+              }
+              return [...sessions];
+            });
+          }
+        });
+
       }
     } catch (error) {
       console.error("Error when reading the data file:", error);
@@ -298,6 +315,23 @@
     // fetchSimilarityData(selectedSession).then((data) => {
     //   renderSimilarityChart(selectedSession, data);
     // });
+
+    fetchSimilarityData(sessionId).then((data) => {
+      if (data) {
+        const similarityChart = renderSimilarityChart(sessionId, data);
+
+        storeSessionData.update((sessions) => {
+          let sessionIndex = sessions.findIndex(
+            (s) => s.sessionId === selectedSession
+          );
+          if (sessionIndex !== -1) {
+            sessions[sessionIndex].similarityChart = similarityChart;
+          }
+          return [...sessions];
+        });
+      }
+    });
+
   };
 
   function handleSelectChange(index) {
@@ -314,6 +348,23 @@
     // fetchSimilarityData(selectedSession).then((data) => {
     //   renderSimilarityChart(selectedSession, data);
     // });
+
+    fetchSimilarityData(selectedSession).then((data) => {
+      if (data) {
+        const similarityChart = renderSimilarityChart(selectedSession, data);
+
+        storeSessionData.update((sessions) => {
+          let sessionIndex = sessions.findIndex(
+            (s) => s.sessionId === selectedSession
+          );
+          if (sessionIndex !== -1) {
+            sessions[sessionIndex].similarityChart = similarityChart;
+          }
+          return [...sessions];
+        });
+      }
+    });
+
   });
 
   function generateColorGrey(index) {
@@ -553,7 +604,7 @@
         const chartContainer = d3.select(`#chart-${sessionId}`);
         chartContainer.html("");
         
-        const width = 500;
+        const width = 300;
         const height = 200;
         const margin = { top: 20, right: 30, bottom: 20, left: 40 };
         
@@ -721,6 +772,85 @@
     }
   }
 
+  const renderSimilarityChart = (sessionId, similarityData) => {
+    console.log("Data passed", sessionId, similarityData);
+    const containerId = `bar-chart-container-${sessionId}`;
+
+    d3.select(`#${containerId} svg`).remove();
+
+    const processedData = similarityData.map((item, index) => ({
+      sentenceNum: index + 1,
+      dissimilarity: item.dissimilarity * 100,
+    }));
+
+    const margin = { top: 20, right: 30, bottom: 40, left: 60 };
+    const width = 250 - margin.left - margin.right;
+    const height =
+      Math.min(200, processedData.length * 20) - margin.top - margin.bottom;
+
+    const svg = d3
+      .select(`.chart-wrapper [data-session-id="${sessionId}"]`)
+      .append("svg")
+      .attr("id", `similarity-chart-svg-${sessionId}`)
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+    const xScale = d3.scaleLinear().domain([100, 0]).range([0, width]);
+
+    const yScale = d3
+      .scaleBand()
+      .domain(processedData.map((d) => d.sentenceNum).reverse())
+      .range([0, height])
+      .padding(0.1);
+
+    svg
+      .append("g")
+      .attr("transform", `translate(0, ${height})`)
+      .call(d3.axisBottom(xScale))
+      .append("text")
+      .attr("x", width / 2)
+      .attr("y", 30)
+      .attr("fill", "black")
+      .attr("text-anchor", "middle")
+      .text("Semantic Change (%)");
+
+    svg
+      .append("g")
+      .call(d3.axisLeft(yScale))
+      .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", -40)
+      .attr("x", -height / 2)
+      .attr("fill", "black")
+      .attr("text-anchor", "middle")
+      .text("Sentence Number");
+
+    svg
+      .selectAll(".bar")
+      .data(processedData)
+      .enter()
+      .append("rect")
+      .attr("class", "bar")
+      .attr("y", (d) => yScale(d.sentenceNum))
+      .attr("x", (d) => xScale(d.dissimilarity))
+      .attr("width", (d) => xScale(0) - xScale(d.dissimilarity))
+      .attr("height", yScale.bandwidth())
+      .attr("fill", "rgba(0, 0, 255, 0.8)")
+      .attr("stroke", "rgba(0, 0, 255, 1)")
+      .attr("stroke-width", 1);
+
+    // Add title
+    svg
+      .append("text")
+      .attr("x", width / 2)
+      .attr("y", -5)
+      .attr("text-anchor", "middle")
+      .style("font-size", "14px")
+      .style("font-weight", "500")
+      .text("Semantic Change by Sentence");
+  };
 
 </script>
 
@@ -814,11 +944,23 @@
                   </div>
                 </div>
                 <div class="chart-container">
-                  <div id="chart-{sessionData.sessionId}"></div>
+                  <div class="chart-wrapper">
+                  <div
+                    class="bar-chart-container"
+                    data-session-id={sessionData.sessionId}
+                    id="bar-chart-container-{sessionData.sessionId}"
+                  ></div>
+                
+                    <div id="chart-{sessionData.sessionId}"></div>
+                  </div>
+                  <button
+                      on:click={() => resetZoom(sessionData.sessionId)}
+                      class="zoom-reset-btn"
+                    >
+                    Reset Zoom
+                  </button>
                 </div>
-                <button on:click={() => resetZoom(sessionData.sessionId)} class="zoom-reset-btn">
-                  Reset Zoom
-                </button>
+
               </div>
               <div class="content-box">
                 <div class="progress-container">
@@ -1401,6 +1543,12 @@
 
   td {
     padding: 12px 16px;
+  }
+
+  .chart-wrapper {
+    display: flex;
+    justify-content: space-between;
+    margin: 15px 0;
   }
 
 </style>
