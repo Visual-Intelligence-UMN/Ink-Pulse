@@ -22,6 +22,8 @@
     let hoveredPoint: any = null;
 
     let zoom: any;
+    let xAxisG: SVGGElement;
+    let yAxisG: SVGGElement;
 
     export function resetZoom() {
         d3.select(svgContainer)
@@ -33,14 +35,25 @@
     $: if (chartData.length) {
       initChart();
     }
+
+    function updateAxes() {
+        if (!xScale || !yScale) return;
+
+        const xAxis = d3.axisBottom(zoomTransform.rescaleX(xScale)).ticks(5);
+        const yAxis = d3.axisLeft(zoomTransform.rescaleY(yScale)).ticks(5);
+
+        d3.select(xAxisG).call(xAxis);
+        d3.select(yAxisG).call(yAxis);
+    }
+
   
     function initChart() {
-      const minTime = d3.min(chartData, d => d.time) ?? 0;
+      const minTime = 0;
       const maxTime = d3.max(chartData, d => d.time) ?? 10;
       const padding = Math.max(2, (maxTime - minTime) * 0.2);
   
       xScale = d3.scaleLinear()
-        .domain([minTime - padding, maxTime + padding])
+        .domain([minTime, maxTime + padding])
         .range([0, width - margin.left - margin.right]);
   
       yScale = d3.scaleLinear()
@@ -52,9 +65,11 @@
         .translateExtent([[0, 0], [width, height]])
         .on("zoom", (event) => {
           zoomTransform = event.transform;
+          updateAxes();
         });
   
       d3.select(svgContainer).call(zoom);
+      updateAxes();
     }
   
     function handlePointClick(d) {
@@ -74,14 +89,20 @@
   </script>
   
   <svg bind:this={svgContainer} width={width} height={height}>
+    <defs>
+        <clipPath id="clip">
+          <rect x="0" y="0" width={width - margin.left - margin.right} height={height - margin.top - margin.bottom} />
+        </clipPath>
+    </defs>
     <g transform={`translate(${margin.left},${margin.top})`}>
+    <g clip-path="url(#clip)">
     <g transform={zoomTransform.toString()}>
       {#each paragraphColor as d}
         <rect
           x={scaledX(d.xMin)}
           width={scaledX(d.xMax) - scaledX(d.xMin)}
           y={scaledY(d.yMax)}
-          height={scaledY(d.yMin) - scaledY(d.yMax)}
+          height={scaledY(d.yMin) - scaledY(d.yMax) + 100}
           fill={d.backgroundColor}
         />
         <text
@@ -115,6 +136,9 @@
         />
       {/each}
     </g>
+    </g>
+    <g class="x-axis" transform={`translate(0, ${height - margin.top - margin.bottom})`} bind:this={xAxisG}></g>
+    <g class="y-axis" bind:this={yAxisG}></g>
     </g>
   </svg>
   
