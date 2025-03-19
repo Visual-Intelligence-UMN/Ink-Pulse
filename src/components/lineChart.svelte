@@ -49,7 +49,7 @@
   
     function initChart() {
       const minTime = 0;
-      const maxTime = d3.max(chartData, d => d.time) ?? 10;
+      const maxTime = d3.max(chartData, d => d.time);
       const padding = Math.max(2, (maxTime - minTime) * 0.2);
   
       xScale = d3.scaleLinear()
@@ -90,55 +90,68 @@
   
   <svg bind:this={svgContainer} width={width} height={height}>
     <defs>
-        <clipPath id="clip">
-          <rect x="0" y="0" width={width - margin.left - margin.right} height={height - margin.top - margin.bottom} />
-        </clipPath>
+      <clipPath id="clip">
+        <rect x="0" y="0" width={width - margin.left - margin.right} height={height - margin.top - margin.bottom} />
+      </clipPath>
+      <clipPath id="clip-text">
+        <rect x="0" y="-20" width={width - margin.left - margin.right} height={height - margin.top - margin.bottom} />
+      </clipPath>
     </defs>
-    <g transform={`translate(${margin.left},${margin.top})`}>
-    <g clip-path="url(#clip)">
-    <g transform={zoomTransform.toString()}>
-      {#each paragraphColor as d}
-        <rect
-          x={scaledX(d.xMin)}
-          width={scaledX(d.xMax) - scaledX(d.xMin)}
-          y={scaledY(d.yMax)}
-          height={scaledY(d.yMin) - scaledY(d.yMax) + 100}
-          fill={d.backgroundColor}
-        />
-        <text
-          x={(scaledX(d.xMin) + scaledX(d.xMax)) / 2}
-          y={scaledY(d.yMax) - 5}
-          text-anchor="middle"
-          font-size="12px"
-        >
-          {d.value}
-        </text>
-      {/each}
-
-      {#each chartData as d}
-        <circle
-          cx={scaledX(d.time)}
-          cy={scaledY(d.percentage)}
-          r={selectedPoint === d ? 5 : hoveredPoint === d ? 5 : 2}
-          fill={d.color}
-          on:click={() => handlePointClick(d)}
-          on:mouseover={() => hoveredPoint = d}
-          on:mouseout={() => hoveredPoint = null}
-          style="cursor: pointer;"
-        />
-      {/each}
   
-      {#each chartData.filter(d => d.isSuggestionOpen) as d}
-        <path
-          d={d3.symbol().type(d3.symbolTriangle).size(40)()}
-          fill="#FFBBCC"
-          transform={`translate(${scaledX(d.time)},${scaledY(d.percentage + 6)}) rotate(180)`}
-        />
-      {/each}
-    </g>
-    </g>
-    <g class="x-axis" transform={`translate(0, ${height - margin.top - margin.bottom})`} bind:this={xAxisG}></g>
-    <g class="y-axis" bind:this={yAxisG}></g>
+    <g transform={`translate(${margin.left},${margin.top})`}>
+      <g clip-path="url(#clip)">
+        <g transform={zoomTransform.toString()}>
+          {#each paragraphColor as d}
+            <rect
+              x={scaledX(d.xMin)}
+              width={scaledX(d.xMax) - scaledX(d.xMin)}
+              y={scaledY(d.yMax)}
+              height={scaledY(d.yMin) - scaledY(d.yMax)}
+              fill={d.backgroundColor}
+            />
+          {/each}
+  
+          {#each chartData as d}
+            <circle
+              cx={scaledX(d.time)}
+              cy={scaledY(d.percentage)}
+              r={selectedPoint === d ? 5 : hoveredPoint === d ? 5 : 2}
+              fill={d.color}
+              on:click={() => handlePointClick(d)}
+              on:mouseover={() => hoveredPoint = d}
+              on:mouseout={() => hoveredPoint = null}
+              style="cursor: pointer;"
+            />
+          {/each}
+  
+          {#each chartData.filter(d => d.isSuggestionOpen) as d}
+            <path
+              d={d3.symbol().type(d3.symbolTriangle).size(40)()}
+              fill="#FFBBCC"
+              transform={`translate(${scaledX(d.time)},${scaledY(d.percentage + 6)}) rotate(180)`}
+            />
+          {/each}
+        </g>
+      </g>
+
+      <g clip-path="url(#clip-text)">
+      <g transform={zoomTransform.toString()}>
+        {#each paragraphColor as d}
+          <text
+            x={(scaledX(d.xMin) + scaledX(d.xMax)) / 2}
+            y={scaledY(d.yMax) - 5}
+            text-anchor="middle"
+            font-size="12px"
+          >
+            {d.value}
+          </text>
+        {/each}
+      </g>
+      </g>
+
+      <g class="x-axis" transform={`translate(0, ${height - margin.top - margin.bottom})`} bind:this={xAxisG}></g>
+      <g class="y-axis" bind:this={yAxisG}></g>
     </g>
   </svg>
+  
   
