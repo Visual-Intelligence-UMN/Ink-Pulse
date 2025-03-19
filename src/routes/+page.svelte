@@ -7,21 +7,20 @@
   import tippy from "tippy.js";
   import "tippy.js/dist/tippy.css";
   import * as d3 from 'd3';
+  import LineChart from "../components/lineChart.svelte";
+
+  let chartRefs = {};
+  function resetZoom(sessionId) {
+    chartRefs[sessionId]?.resetZoom();
+  }
 
   let filterButton;
-  let multiSessionButton;
   let collapseButton;
 
   onMount(() => {
     if (filterButton) {
       tippy(filterButton, {
         content: "Click to filter based on prompt type",
-        placement: "top",
-      });
-    }
-    if (multiSessionButton) {
-      tippy(multiSessionButton, {
-        content: "Click to enable/disable multi session view",
         placement: "top",
       });
     }
@@ -61,7 +60,6 @@
   let firstSession = true;
   export const filterTableData = writable([]);
   let isCollapsed = false;
-  const chartInstances = {};
 
   function open2close() {
     isOpen = !isOpen;
@@ -107,12 +105,6 @@
       }));
       filterTableData.set(updatedData);
     }
-  }
-
-  function toggleCleanAll() {
-    filterTableData.set([]);
-    selectedTags.set([]);
-    storeSessionData.set([]);
   }
 
   function toggleTableCollapse() {
@@ -177,7 +169,6 @@
           return [...sessions];
         });
         await tick();
-        renderChart(sessionFile);
       }
       if (showMulti) {
         dataDict = data;
@@ -208,7 +199,7 @@
         });
 
         await tick();
-        const { chartData, textElements } = handleEvents(data, sessionFile);
+        const { chartData, textElements, paragraphColor } = handleEvents(data, sessionFile);
         storeSessionData.update((sessions) => {
           let sessionIndex = sessions.findIndex(
             (s) => s.sessionId === sessionFile
@@ -216,12 +207,12 @@
           if (sessionIndex !== -1) {
             sessions[sessionIndex].chartData = chartData;
             sessions[sessionIndex].textElements = textElements;
+            sessions[sessionIndex].paragraphColor = paragraphColor;
           }
           return [...sessions];
         });
 
         await tick();
-        renderChart(sessionFile);
 
         fetchSimilarityData(sessionFile).then((data) => {
           if (data) {
@@ -534,6 +525,7 @@
     return {
       chartData,
       textElements,
+      paragraphColor,
     };
   };
 
@@ -595,185 +587,8 @@
       `Suggestions: ${totalSuggestions - 1}`;
   };
 
-  const renderChart = (sessionId) => {
-    storeSessionData.update((sessions) => {
-        let sessionIndex = sessions.findIndex((s) => s.sessionId == sessionId);
-        if (sessionIndex === -1) return sessions;
-        
-        let session = sessions[sessionIndex];
-        const chartContainer = d3.select(`#chart-${sessionId}`);
-        chartContainer.html("");
-        
-        const width = 300;
-        const height = 200;
-        const margin = { top: 20, right: 30, bottom: 20, left: 40 };
-        
-        const svg = chartContainer
-            .append("svg")
-            .attr("width", width)
-            .attr("height", height)
-            .append("g")
-            .attr("transform", `translate(${margin.left},${margin.top})`);
-        
-        chartInstances[sessionId] = { svg };
-        
-        const x = d3.scaleLinear()
-            .domain(d3.extent(session.chartData, d => d.time))
-            .range([0, width - margin.left - margin.right]);
-        
-        const y = d3.scaleLinear()
-            .domain([0, 100])
-            .range([height - margin.top - margin.bottom, 0]);
-        
-        svg.append("defs")
-          .append("clipPath")
-          .attr("id", "clip-rect")
-          .append("rect")
-          .attr("width", width - margin.left - margin.right)
-          .attr("height", height - margin.top - margin.bottom)
-          .attr("x", 0)
-          .attr("y", 0);
-        
-        const backgroundRects = svg.selectAll(".background-rect")
-            .data(paragraphColor)
-            .enter()
-            .append("rect")
-            .attr("class", "background-rect")
-            .attr("x", d => x(d.xMin))
-            .attr("width", d => x(d.xMax) - x(d.xMin))
-            .attr("y", d => y(d.yMax))
-            .attr("height", d => y(d.yMin) - y(d.yMax))
-            .attr("fill", d => d.backgroundColor)
-            .attr("opacity", 1)
-            .attr("clip-path", "url(#clip-rect)");
-
-        svg.selectAll(".background-text")
-            .data(paragraphColor)
-            .enter()
-            .append("text")
-            .attr("class", "background-text")
-            .attr("x", d => (x(d.xMin) + x(d.xMax)) / 2)
-            .attr("y", d => y(d.yMax) - 5)
-            .attr("text-anchor", "middle")
-            .attr("font-size", "12px")
-            .attr("fill", "black")
-            .text(d => d.value);
-
-        const points = svg.selectAll("circle")
-            .data(session.chartData)
-            .enter().append("circle")
-            .attr("class", "data-point")
-            .attr("cx", d => x(d.time))
-            .attr("cy", d => y(d.percentage))
-            .attr("r", 2)
-            .attr("fill", d => d.color)
-            .style("cursor", "pointer")
-            .attr("clip-path", "url(#clip-rect)");
-
-        const suggestionGroup = svg.append("g").attr("clip-path", "url(#clip-rect)");
-        session.chartData.filter(d => d.isSuggestionOpen).forEach(d => {
-            suggestionGroup.append("path")
-                .attr("class", "suggestion-point")
-                .attr("d", d3.symbol().type(d3.symbolTriangle).size(20))
-                .attr("fill", "#FFBBCC")
-                .attr("transform", `translate(${x(d.time)},${y(d.percentage + 6)}) rotate(180)`)
-        });
-
-        let selectedPoint = null;
-        points
-            .on("mouseover", function () {
-                d3.select(this).attr("r", 5);
-            })
-            .on("mouseout", function () {
-                if (selectedPoint !== this) {
-                    d3.select(this).attr("r", 2);
-                }
-            })
-            .on("click", function (event, d) {
-                if (selectedPoint) {
-                    d3.select(selectedPoint).attr("r", 2);
-                }
-                selectedPoint = this;
-                d3.select(this).attr("r", 6);
-                d3.select("#selected-text").text(`Time: ${d.time.toFixed(2)} mins\nProgress: ${d.percentage.toFixed(2)}%\nText: ${d.currentText}`);
-
-                storeSessionData.update((sessions) => {
-                    let sessionIndex = sessions.findIndex(s => s.sessionId === sessionId);
-                    if (sessionIndex !== -1) {
-                        sessions[sessionIndex].textElements = d.currentText.split("").map((char, index) => ({
-                            text: char,
-                            textColor: d.currentColor[index]
-                        }));
-                        sessions[sessionIndex].currentTime = d.time;
-                    }
-                    return [...sessions];
-                });
-            });
-
-        const xAxis = d3.axisBottom(x);
-        const yAxis = d3.axisLeft(y);
-        const xAxisGroup = svg.append("g")
-            .attr("class", "chart-axis")
-            .attr("transform", `translate(0, ${height - margin.top - margin.bottom})`)
-            .call(xAxis);
-        const yAxisGroup = svg.append("g")
-            .attr("class", "chart-axis")
-            .call(yAxis);
-        
-        const zoom = d3.zoom()
-            .scaleExtent([1, 5])
-            .translateExtent([[0, 0], [width, height]])
-            .on("zoom", zoomed);
-        svg.call(zoom);
-        chartInstances[sessionId].zoom = zoom;
-
-        function zoomed(event) {
-            const newX = event.transform.rescaleX(x);
-            const newY = event.transform.rescaleY(y);
-            xAxisGroup.call(d3.axisBottom(newX));
-            yAxisGroup.call(d3.axisLeft(newY));
-            const { svg } = chartInstances[sessionId];
-
-            points.attr("cx", d => newX(d.time))
-                  .attr("cy", d => newY(d.percentage));
-
-            backgroundRects
-                .attr("x", d => newX(d.xMin))
-                .attr("width", d => newX(d.xMax) - newX(d.xMin))
-                .attr("y", d => newY(d.yMax))
-                .attr("height", d => newY(d.yMin) - newY(d.yMax));
-            svg.selectAll(".background-text")
-                .attr("x", d => (newX(d.xMin) + newX(d.xMax)) / 2)
-                .attr("y", d => newY(d.yMax) - 5);
-
-            const suggestionPoints = suggestionGroup.selectAll(".suggestion-point")
-              .data(session.chartData.filter(d => d.isSuggestionOpen));
-            suggestionPoints.join(
-              enter => enter.append("path")
-                  .attr("class", "suggestion-point")
-                  .attr("d", d3.symbol().type(d3.symbolTriangle).size(20 * Math.pow(event.transform.k, 2))())
-                  .attr("fill", "#FFBBCC")
-                  .attr("transform", d => `translate(${newX(d.time)},${newY(d.percentage + 6)}) rotate(180)`),
-              update => update
-                  .attr("d", d3.symbol().type(d3.symbolTriangle).size(20 * Math.pow(event.transform.k, 2))())
-                  .attr("transform", d => `translate(${newX(d.time)},${newY(d.percentage + 6)}) rotate(180)`),
-              exit => exit.remove()
-            );
-        }
-
-        return sessions;
-    });
-};
-
-  function resetZoom(sessionId) {
-    if (chartInstances[sessionId]) {
-        const { svg, zoom } = chartInstances[sessionId];
-        svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
-    }
-  }
-
   const renderSimilarityChart = (sessionId, similarityData) => {
-    console.log("Data passed", sessionId, similarityData);
+    // console.log("Data passed", sessionId, similarityData);
     const containerId = `bar-chart-container-${sessionId}`;
 
     d3.select(`#${containerId} svg`).remove();
@@ -852,19 +667,27 @@
       .text("Semantic Change by Sentence");
   };
 
+  function handlePointSelected(e, sessionId) {
+    const d = e.detail;
+    storeSessionData.update((sessions) => {
+      const idx = sessions.findIndex(s => s.sessionId === sessionId);
+      if (idx !== -1) {
+        sessions[idx].textElements = d.currentText.split("").map((char, index) => ({
+          text: char,
+          textColor: d.currentColor[index]
+        }));
+        sessions[idx].currentTime = d.time;
+      }
+      return [...sessions];
+    });
+  }
+
 </script>
 
 <div class="App">
   <header class="App-header">
     <nav>
       <div class="filter-container {showFilter ? 'show' : ''}">
-        <!-- <a
-          on:click={toggleCleanAll}
-          href=" "
-          aria-label="toggle-btn"
-          class="material-symbols--refresh-rounded"
-        >
-        </a> -->
         {#each filterOptions as option}
           <label>
             <input
@@ -950,8 +773,12 @@
                     data-session-id={sessionData.sessionId}
                     id="bar-chart-container-{sessionData.sessionId}"
                   ></div>
-                
-                    <div id="chart-{sessionData.sessionId}"></div>
+                    <LineChart
+                      bind:this={chartRefs[sessionData.sessionId]}
+                      chartData={sessionData.chartData}
+                      paragraphColor={sessionData.paragraphColor}
+                      on:pointSelected={(e) => handlePointSelected(e, sessionData.sessionId)}
+                    />
                   </div>
                   <button
                       on:click={() => resetZoom(sessionData.sessionId)}
@@ -1439,21 +1266,6 @@
     display: block;
     cursor: pointer;
   }
-
-  /* .material-symbols--refresh-rounded {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 20q-3.35 0-5.675-2.325T4 12t2.325-5.675T12 4q1.725 0 3.3.712T18 6.75V5q0-.425.288-.712T19 4t.713.288T20 5v5q0 .425-.288.713T19 11h-5q-.425 0-.712-.288T13 10t.288-.712T14 9h3.2q-.8-1.4-2.187-2.2T12 6Q9.5 6 7.75 7.75T6 12t1.75 4.25T12 18q1.7 0 3.113-.862t2.187-2.313q.2-.35.563-.487t.737-.013q.4.125.575.525t-.025.75q-1.025 2-2.925 3.2T12 20'/%3E%3C/svg%3E");
-    background-color: currentColor;
-    -webkit-mask-image: var(--svg);
-    mask-image: var(--svg);
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: 100% 100%;
-    mask-size: 100% 100%;
-    margin-left: auto;
-  } */
 
   input[type="checkbox"] {
     vertical-align: middle;
