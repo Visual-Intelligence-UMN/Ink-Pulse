@@ -86,6 +86,7 @@
       if (!yScale) return 0;
       return zoomTransform.rescaleY(yScale)(val);
     }
+
   </script>
   
   <svg bind:this={svgContainer} width={width} height={height}>
@@ -94,7 +95,7 @@
         <rect x="0" y="0" width={width - margin.left - margin.right} height={height - margin.top - margin.bottom} />
       </clipPath>
       <clipPath id="clip-text">
-        <rect x="0" y="-20" width={width - margin.left - margin.right} height={height - margin.top - margin.bottom} />
+        <rect x="-5" y="-20" width={width - margin.left - margin.right} height={height - margin.top - margin.bottom} />
       </clipPath>
     </defs>
   
@@ -136,16 +137,32 @@
 
       <g clip-path="url(#clip-text)">
       <g transform={zoomTransform.toString()}>
-        {#each paragraphColor as d}
-          <text
-            x={(scaledX(d.xMin) + scaledX(d.xMax)) / 2}
-            y={scaledY(d.yMax) - 5}
-            text-anchor="middle"
-            font-size="12px"
-          >
-            {d.value}
-          </text>
-        {/each}
+        {#if paragraphColor.length < 10}
+          {#each paragraphColor as d}
+            <text
+              x={(scaledX(d.xMin) + scaledX(d.xMax)) / 2}
+              y={scaledY(d.yMax) - 5}
+              text-anchor="middle"
+              font-size="12px"
+            >
+              {d.value}
+            </text>
+          {/each}
+        {/if}
+        {#if paragraphColor.length > 10}
+          {#each paragraphColor as d, index}
+            {#if index === 0 || index % 4 === 0}
+              <text
+                  x={(scaledX(d.xMin) + scaledX(d.xMax)) / 2}
+                  y={scaledY(d.yMax) - 5}
+                  text-anchor="middle"
+                  font-size="12px"
+                >
+                  {d.value}
+              </text>
+            {/if}
+          {/each}
+        {/if}
       </g>
       </g>
 
@@ -153,5 +170,3 @@
       <g class="y-axis" bind:this={yAxisG}></g>
     </g>
   </svg>
-  
-  

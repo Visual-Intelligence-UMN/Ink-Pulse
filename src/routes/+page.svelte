@@ -8,6 +8,7 @@
   import "tippy.js/dist/tippy.css";
   import * as d3 from 'd3';
   import LineChart from "../components/lineChart.svelte";
+  import { get } from 'svelte/store';
 
   let chartRefs = {};
   function resetZoom(sessionId) {
@@ -45,7 +46,7 @@
   let currentTime = 0;
   let paragraphTime = [];
   let paragraphColor = [];
-  let selectedSession = "e4611bd31b794677b02c52d5700b2e38";
+  let selectedSession = ["e4611bd31b794677b02c52d5700b2e38", "233f1efcf0274acba92f46bf2f8766d2"];
   let sessions = [];
   let time0 = null; // process bar's start time
   let time100 = null; // process bar's end time
@@ -65,7 +66,7 @@
     isOpen = !isOpen;
   }
 
-  function toggleTag(event) {
+  async function toggleTag(event) {
     const tag = event.target.value;
 
     selectedTags.update(selected => {
@@ -81,14 +82,54 @@
       }
       return selected;
     });
-    if (!event.target.checked) {
+    filterSessions();
+    if (event.target.checked) {
+      const newSessions = tableData.filter(item => item.prompt_code === tag);
+      for (const newSession of newSessions) {
+        storeSessionData.update(sessionData => {
+          if (!sessionData.some(session => session.sessionId === newSession.session_id)) {
+            sessionData.push({
+              sessionId: newSession.session_id,
+            });
+          }
+          return sessionData;
+        });
+        await fetchData(newSession.session_id, false);
+      }
+    } else {
       storeSessionData.update(sessionData => {
-        return sessionData.filter(session => 
+        return sessionData.filter(session =>
           !tableData.some(item => item.prompt_code === tag && item.session_id === session.sessionId)
         );
       });
+      const sessionsToRemove = tableData.filter(item => item.prompt_code === tag);
+      for (const sessionToRemove of sessionsToRemove) {
+        await fetchData(sessionToRemove.session_id, true);
+      }
     }
-    filterSessions();
+
+    const selectedSessions = get(storeSessionData);
+    const selectedTagsList = get(selectedTags);
+    if (selectedTagsList.length > 1) {
+      const tagSessionCount = selectedSessions.filter(session => 
+        selectedTagsList.some(tag => tableData.some(item => item.session_id === session.sessionId && item.prompt_code === tag))
+      ).length;
+      if (tagSessionCount === 1) {
+        const allSessionsForTag = tableData.filter(item =>
+          selectedTagsList.includes(item.prompt_code)
+        );
+        for (const session of allSessionsForTag) {
+          await fetchData(session.session_id, false);
+        }
+      }
+    } else {
+      const allSessionsForTag = tableData.filter(item =>
+        selectedTagsList.includes(item.prompt_code)
+      );
+      for (const session of allSessionsForTag) {
+        await fetchData(session.session_id, false);
+      }
+    }
   }
 
   function filterSessions() {
@@ -101,7 +142,7 @@
       );
       const updatedData = filteredData.map(row => ({
         ...row,
-        selected: $storeSessionData.some(item => item.sessionId == row.session_id)
+        selected: $storeSessionData.some(item => item.sessionId == row.session_id) || true
       }));
       filterTableData.set(updatedData);
     }
@@ -209,6 +250,7 @@
             sessions[sessionIndex].textElements = textElements;
             sessions[sessionIndex].paragraphColor = paragraphColor;
           }
+          console.log("this one",sessionFile, sessions[sessionIndex].paragraphColor)
           return [...sessions];
         });
 
@@ -262,13 +304,16 @@
           return {
             session_id: session.session_id,
             prompt_code: session.prompt_code,
-            selected: session.session_id === "e4611bd31b794677b02c52d5700b2e38" ? true : false
+            selected: session.session_id === "e4611bd31b794677b02c52d5700b2e38" || session.session_id === "233f1efcf0274acba92f46bf2f8766d2" ? true : false
           };
         });
         firstSession = false;
-        filterTableData.set(tableData);
+        selectedTags.set(["reincarnation", "bee"]);
+        filterSessions();
+        $filterTableData = tableData.filter(session => 
+          $selectedTags.includes(session.prompt_code)
+        );
         filterOptions = Array.from(new Set(tableData.map(row => row.prompt_code)));
-        selectedTags.set(Array.from(new Set(tableData.map(row => row.prompt_code))));
       }
       // fetchSessions()
     } catch (error) {
@@ -290,8 +335,10 @@
       );
 
       if (!isCurrentlySelected) {
-        selectedSession = sessionId;
-        fetchData(sessionId, false);
+        for (let i = 0; i < selectedSession.length; i++ ) {
+          selectedSession[i] = sessionId;
+          fetchData(sessionId, false);
+        }
       } else {
         storeSessionData.update(data => {
           return data.filter(item => item.session_id !== sessionId);
@@ -299,29 +346,24 @@
         fetchData(sessionId, true);
       }
     }
-  
-    paragraphTime = [];
-    paragraphColor = [];
-      
-    // fetchSimilarityData(selectedSession).then((data) => {
-    //   renderSimilarityChart(selectedSession, data);
-    // });
 
-    fetchSimilarityData(sessionId).then((data) => {
-      if (data) {
-        const similarityChart = renderSimilarityChart(sessionId, data);
+    for (let i = 0; i < selectedSession.length; i++ ) {
+      fetchSimilarityData(sessionId).then((data) => {
+        if (data) {
+          const similarityChart = renderSimilarityChart(sessionId, data);
 
-        storeSessionData.update((sessions) => {
-          let sessionIndex = sessions.findIndex(
-            (s) => s.sessionId === selectedSession
-          );
-          if (sessionIndex !== -1) {
-            sessions[sessionIndex].similarityChart = similarityChart;
-          }
-          return [...sessions];
-        });
+          storeSessionData.update((sessions) => {
+            let sessionIndex = sessions.findIndex(
+              (s) => s.sessionId === selectedSession[i]
+            );
+            if (sessionIndex !== -1) {
+              sessions[sessionIndex].similarityChart = similarityChart;
+            }
+            return [...sessions];
+          });
+        }
       }
-    });
+    );}
 
   };
 
@@ -333,29 +375,27 @@
   onMount(() => {
     document.title = "Ink-Pulse";
     fetchSessions();
-    if (selectedSession) {
-      fetchData(selectedSession, true);
+    for (let i = 0; i < selectedSession.length; i++ ){
+      fetchData(selectedSession[i], true);
+      fetchSimilarityData(selectedSession[i]).then((data) => {
+        renderSimilarityChart(selectedSession[i], data);
+      });
+      fetchSimilarityData(selectedSession[i]).then((data) => {
+        if (data) {
+          const similarityChart = renderSimilarityChart(selectedSession[i], data);
+
+          storeSessionData.update((sessions) => {
+            let sessionIndex = sessions.findIndex(
+              (s) => s.sessionId === selectedSession[i]
+            );
+            if (sessionIndex !== -1) {
+              sessions[sessionIndex].similarityChart = similarityChart;
+            }
+            return [...sessions];
+          });
+        }
+      });
     }
-    // fetchSimilarityData(selectedSession).then((data) => {
-    //   renderSimilarityChart(selectedSession, data);
-    // });
-
-    fetchSimilarityData(selectedSession).then((data) => {
-      if (data) {
-        const similarityChart = renderSimilarityChart(selectedSession, data);
-
-        storeSessionData.update((sessions) => {
-          let sessionIndex = sessions.findIndex(
-            (s) => s.sessionId === selectedSession
-          );
-          if (sessionIndex !== -1) {
-            sessions[sessionIndex].similarityChart = similarityChart;
-          }
-          return [...sessions];
-        });
-      }
-    });
-
   });
 
   function generateColorGrey(index) {
@@ -408,6 +448,7 @@
     let wholeText = data.text[0];
     wholeText = wholeText.slice(0, -1);
     chartData = [];
+    paragraphColor = [];
     let firstTime = null;
     let preEvent = null;
 
@@ -1342,10 +1383,6 @@
   table {
     width: 100%;
     border-collapse: collapse;
-  }
-
-  thead th {
-    background-color: #f8f8f8;
   }
 
   tbody tr {
