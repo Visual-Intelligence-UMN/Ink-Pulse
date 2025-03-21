@@ -136,12 +136,12 @@
       </g>
 
       <g clip-path="url(#clip-text)">
-      <g transform={zoomTransform.toString()}>
+        <!-- <g transform={zoomTransform.toString()}> -->
         {#if paragraphColor.length < 10}
           {#each paragraphColor as d}
             <text
-              x={(scaledX(d.xMin) + scaledX(d.xMax)) / 2}
-              y={scaledY(d.yMax) - 5}
+              x={zoomTransform.applyX((scaledX(d.xMin) + scaledX(d.xMax)) / 2)}
+              y={-3}
               text-anchor="middle"
               font-size="12px"
             >
@@ -153,17 +153,17 @@
           {#each paragraphColor as d, index}
             {#if index === 0 || index % 4 === 0}
               <text
-                  x={(scaledX(d.xMin) + scaledX(d.xMax)) / 2}
-                  y={scaledY(d.yMax) - 5}
-                  text-anchor="middle"
-                  font-size="12px"
-                >
-                  {d.value}
+                x={zoomTransform.applyX((scaledX(d.xMin) + scaledX(d.xMax)) / 2)}
+                y={-3}
+                text-anchor="middle"
+                font-size="12px"
+              >
+                {d.value}
               </text>
             {/if}
           {/each}
         {/if}
-      </g>
+        <!-- </g> -->
       </g>
 
       <g class="x-axis" transform={`translate(0, ${height - margin.top - margin.bottom})`} bind:this={xAxisG}></g>
