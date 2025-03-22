@@ -8,6 +8,7 @@
   import "tippy.js/dist/tippy.css";
   import * as d3 from "d3";
   import LineChart from "../components/lineChart.svelte";
+  import BarChart from "../components/barChart.svelte";
   import { get } from "svelte/store";
 
   let chartRefs = {};
@@ -231,7 +232,22 @@
           return [...sessions];
         });
         await tick();
+
+        fetchSimilarityData(sessionFile).then((similarityData) => {
+          if (similarityData) {
+            storeSessionData.update((sessions) => {
+              let sessionIndex = sessions.findIndex(
+                (s) => s.sessionId === sessionFile
+              );
+              if (sessionIndex !== -1) {
+                sessions[sessionIndex].similarityData = similarityData;
+              }
+              return [...sessions];
+            });
+          }
+        });
       }
+
       if (showMulti) {
         dataDict = data;
         let sessionData = {
@@ -284,16 +300,14 @@
 
         await tick();
 
-        fetchSimilarityData(sessionFile).then((data) => {
-          if (data) {
-            const similarityChart = renderSimilarityChart(sessionFile, data);
-
+        fetchSimilarityData(sessionFile).then((similarityData) => {
+          if (similarityData) {
             storeSessionData.update((sessions) => {
               let sessionIndex = sessions.findIndex(
                 (s) => s.sessionId === sessionFile
               );
               if (sessionIndex !== -1) {
-                sessions[sessionIndex].similarityChart = similarityChart;
+                sessions[sessionIndex].similarityData = similarityData;
               }
               return [...sessions];
             });
@@ -318,6 +332,7 @@
       return data;
     } catch (error) {
       console.error("Error when reading the data file:", error);
+      return null;
     }
   };
 
@@ -383,16 +398,14 @@
     }
 
     for (let i = 0; i < selectedSession.length; i++) {
-      fetchSimilarityData(sessionId).then((data) => {
-        if (data) {
-          const similarityChart = renderSimilarityChart(sessionId, data);
-
+      fetchSimilarityData(sessionId).then((similarityData) => {
+        if (similarityData) {
           storeSessionData.update((sessions) => {
             let sessionIndex = sessions.findIndex(
               (s) => s.sessionId === selectedSession[i]
             );
             if (sessionIndex !== -1) {
-              sessions[sessionIndex].similarityChart = similarityChart;
+              sessions[sessionIndex].similarityData = similarityData;
             }
             return [...sessions];
           });
@@ -408,24 +421,18 @@
   onMount(() => {
     document.title = "Ink-Pulse";
     fetchSessions();
+
     for (let i = 0; i < selectedSession.length; i++) {
       fetchData(selectedSession[i], true);
-      fetchSimilarityData(selectedSession[i]).then((data) => {
-        renderSimilarityChart(selectedSession[i], data);
-      });
+
       fetchSimilarityData(selectedSession[i]).then((data) => {
         if (data) {
-          const similarityChart = renderSimilarityChart(
-            selectedSession[i],
-            data
-          );
-
           storeSessionData.update((sessions) => {
             let sessionIndex = sessions.findIndex(
               (s) => s.sessionId === selectedSession[i]
             );
             if (sessionIndex !== -1) {
-              sessions[sessionIndex].similarityChart = similarityChart;
+              sessions[sessionIndex].similarityData = data;
             }
             return [...sessions];
           });
@@ -669,86 +676,6 @@
       `Suggestions: ${totalSuggestions - 1}`;
   };
 
-  const renderSimilarityChart = (sessionId, similarityData) => {
-    // console.log("Data passed", sessionId, similarityData);
-    const containerId = `bar-chart-container-${sessionId}`;
-
-    d3.select(`#${containerId} svg`).remove();
-
-    const processedData = similarityData.map((item, index) => ({
-      sentenceNum: index + 1,
-      dissimilarity: item.dissimilarity * 100,
-    }));
-
-    const margin = { top: 20, right: 30, bottom: 40, left: 60 };
-    const width = 250 - margin.left - margin.right;
-    const height =
-      Math.min(200, processedData.length * 20) - margin.top - margin.bottom;
-
-    const svg = d3
-      .select(`.chart-wrapper [data-session-id="${sessionId}"]`)
-      .append("svg")
-      .attr("id", `similarity-chart-svg-${sessionId}`)
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-      .append("g")
-      .attr("transform", `translate(${margin.left}, ${margin.top})`);
-
-    const xScale = d3.scaleLinear().domain([100, 0]).range([0, width]);
-
-    const yScale = d3
-      .scaleBand()
-      .domain(processedData.map((d) => d.sentenceNum).reverse())
-      .range([0, height])
-      .padding(0.1);
-
-    svg
-      .append("g")
-      .attr("transform", `translate(0, ${height})`)
-      .call(d3.axisBottom(xScale))
-      .append("text")
-      .attr("x", width / 2)
-      .attr("y", 30)
-      .attr("fill", "black")
-      .attr("text-anchor", "middle")
-      .text("Semantic Change (%)");
-
-    svg
-      .append("g")
-      .call(d3.axisLeft(yScale))
-      .append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", -40)
-      .attr("x", -height / 2)
-      .attr("fill", "black")
-      .attr("text-anchor", "middle")
-      .text("Sentence Number");
-
-    svg
-      .selectAll(".bar")
-      .data(processedData)
-      .enter()
-      .append("rect")
-      .attr("class", "bar")
-      .attr("y", (d) => yScale(d.sentenceNum))
-      .attr("x", (d) => xScale(d.dissimilarity))
-      .attr("width", (d) => xScale(0) - xScale(d.dissimilarity))
-      .attr("height", yScale.bandwidth())
-      .attr("fill", "rgba(0, 0, 255, 0.8)")
-      .attr("stroke", "rgba(0, 0, 255, 1)")
-      .attr("stroke-width", 1);
-
-    // Add title
-    svg
-      .append("text")
-      .attr("x", width / 2)
-      .attr("y", -5)
-      .attr("text-anchor", "middle")
-      .style("font-size", "14px")
-      .style("font-weight", "500")
-      .text("Semantic Change by Sentence");
-  };
-
   function handlePointSelected(e, sessionId) {
     const d = e.detail;
     storeSessionData.update((sessions) => {
@@ -851,11 +778,12 @@
                 </div>
                 <div class="chart-container">
                   <div class="chart-wrapper">
-                    <div
-                      class="bar-chart-container"
-                      data-session-id={sessionData.sessionId}
-                      id="bar-chart-container-{sessionData.sessionId}"
-                    ></div>
+                    {#if sessionData.similarityData}
+                      <BarChart
+                        sessionId={sessionData.sessionId}
+                        similarityData={sessionData.similarityData}
+                      />
+                    {/if}
                     <LineChart
                       bind:this={chartRefs[sessionData.sessionId]}
                       chartData={sessionData.chartData}
@@ -1446,7 +1374,8 @@
 
   .chart-wrapper {
     display: flex;
-    justify-content: space-between;
+    align-items: flex-start;
+    gap: 5px;
     margin: 15px 0;
   }
 </style>

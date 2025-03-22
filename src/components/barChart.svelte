@@ -2,10 +2,10 @@
   import { onMount } from "svelte";
   import * as d3 from "d3";
 
-  export let sessionId; // The session ID
-  export let similarityData; // The data for the chart
-  export let width = 250;
-  export let height = 200;
+  export let sessionId;
+  export let similarityData;
+  export let width = 200;
+  export let height = 150;
 
   let container;
 
@@ -20,7 +20,6 @@
   }
 
   function renderChart() {
-    // Clear previous chart if any
     d3.select(container).selectAll("svg").remove();
 
     const processedData = similarityData.map((item, index) => ({
@@ -28,16 +27,21 @@
       dissimilarity: item.dissimilarity * 100,
     }));
 
-    const margin = { top: 20, right: 30, bottom: 40, left: 60 };
+    const margin = { top: 10, right: 30, bottom: 30, left: 50 };
     const chartWidth = width - margin.left - margin.right;
     const chartHeight =
-      Math.min(height, processedData.length * 20) - margin.top - margin.bottom;
+      Math.min(height, processedData.length * 15) - margin.top - margin.bottom;
 
     const svg = d3
       .select(container)
       .append("svg")
-      .attr("width", chartWidth + margin.left + margin.right)
+      .attr("width", "100%")
       .attr("height", chartHeight + margin.top + margin.bottom)
+      .attr(
+        "viewBox",
+        `0 0 ${chartWidth + margin.left + margin.right} ${chartHeight + margin.top + margin.bottom}`
+      )
+      .attr("preserveAspectRatio", "xMidYMid meet")
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
@@ -49,31 +53,37 @@
       .range([0, chartHeight])
       .padding(0.1);
 
-    // Add X axis
     svg
       .append("g")
       .attr("transform", `translate(0, ${chartHeight})`)
-      .call(d3.axisBottom(xScale))
+      .call(d3.axisBottom(xScale).ticks(5))
       .append("text")
       .attr("x", chartWidth / 2)
-      .attr("y", 30)
+      .attr("y", 25)
       .attr("fill", "black")
       .attr("text-anchor", "middle")
+      .style("font-size", "10px")
       .text("Semantic Change (%)");
 
-    // Add Y axis
     svg
       .append("g")
-      .call(d3.axisLeft(yScale))
+      .call(
+        d3
+          .axisLeft(yScale)
+          .tickSize(0)
+          .tickValues(
+            filterTicks(processedData.map((d) => d.sentenceNum).reverse())
+          )
+      )
       .append("text")
       .attr("transform", "rotate(-90)")
-      .attr("y", -40)
+      .attr("y", -35)
       .attr("x", -chartHeight / 2)
       .attr("fill", "black")
       .attr("text-anchor", "middle")
+      .style("font-size", "10px")
       .text("Sentence Number");
 
-    // Add bars
     svg
       .selectAll(".bar")
       .data(processedData)
@@ -88,15 +98,21 @@
       .attr("stroke", "rgba(0, 0, 255, 1)")
       .attr("stroke-width", 1);
 
-    // Add title
-    svg
-      .append("text")
-      .attr("x", chartWidth / 2)
-      .attr("y", -5)
-      .attr("text-anchor", "middle")
-      .style("font-size", "14px")
-      .style("font-weight", "500")
-      .text("Semantic Change by Sentence");
+    // svg
+    //   .append("text")
+    //   .attr("x", chartWidth / 2)
+    //   .attr("y", -2)
+    //   .attr("text-anchor", "middle")
+    //   .style("font-size", "12px")
+    //   .style("font-weight", "500")
+    //   .text("Semantic Change by Sentence");
+  }
+
+  function filterTicks(ticks) {
+    if (ticks.length <= 20) return ticks;
+
+    const step = Math.ceil(ticks.length / 10);
+    return ticks.filter((_, i) => i % step === 0);
   }
 </script>
 
@@ -108,7 +124,9 @@
 
 <style>
   .bar-chart-container {
-    width: 100%;
+    width: 50%;
     height: 100%;
+    margin-bottom: 0;
+    margin-right: 0;
   }
 </style>
