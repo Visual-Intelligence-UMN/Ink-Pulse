@@ -6,9 +6,9 @@
   import { base } from "$app/paths";
   import tippy from "tippy.js";
   import "tippy.js/dist/tippy.css";
-  import * as d3 from 'd3';
+  import * as d3 from "d3";
   import LineChart from "../components/lineChart.svelte";
-  import { get } from 'svelte/store';
+  import { get } from "svelte/store";
 
   let chartRefs = {};
   function resetZoom(sessionId) {
@@ -46,7 +46,10 @@
   let currentTime = 0;
   let paragraphTime = [];
   let paragraphColor = [];
-  let selectedSession = ["e4611bd31b794677b02c52d5700b2e38", "233f1efcf0274acba92f46bf2f8766d2"];
+  let selectedSession = [
+    "e4611bd31b794677b02c52d5700b2e38",
+    "233f1efcf0274acba92f46bf2f8766d2",
+  ];
   let sessions = [];
   let time0 = null; // process bar's start time
   let time100 = null; // process bar's end time
@@ -69,7 +72,7 @@
   async function toggleTag(event) {
     const tag = event.target.value;
 
-    selectedTags.update(selected => {
+    selectedTags.update((selected) => {
       if (event.target.checked) {
         if (!selected.includes(tag)) {
           selected.push(tag);
@@ -84,10 +87,14 @@
     });
     filterSessions();
     if (event.target.checked) {
-      const newSessions = tableData.filter(item => item.prompt_code === tag);
+      const newSessions = tableData.filter((item) => item.prompt_code === tag);
       for (const newSession of newSessions) {
-        storeSessionData.update(sessionData => {
-          if (!sessionData.some(session => session.sessionId === newSession.session_id)) {
+        storeSessionData.update((sessionData) => {
+          if (
+            !sessionData.some(
+              (session) => session.sessionId === newSession.session_id
+            )
+          ) {
             sessionData.push({
               sessionId: newSession.session_id,
             });
@@ -97,12 +104,19 @@
         await fetchData(newSession.session_id, false);
       }
     } else {
-      storeSessionData.update(sessionData => {
-        return sessionData.filter(session =>
-          !tableData.some(item => item.prompt_code === tag && item.session_id === session.sessionId)
+      storeSessionData.update((sessionData) => {
+        return sessionData.filter(
+          (session) =>
+            !tableData.some(
+              (item) =>
+                item.prompt_code === tag &&
+                item.session_id === session.sessionId
+            )
         );
       });
-      const sessionsToRemove = tableData.filter(item => item.prompt_code === tag);
+      const sessionsToRemove = tableData.filter(
+        (item) => item.prompt_code === tag
+      );
       for (const sessionToRemove of sessionsToRemove) {
         await fetchData(sessionToRemove.session_id, true);
       }
@@ -111,11 +125,16 @@
     const selectedSessions = get(storeSessionData);
     const selectedTagsList = get(selectedTags);
     if (selectedTagsList.length > 1) {
-      const tagSessionCount = selectedSessions.filter(session => 
-        selectedTagsList.some(tag => tableData.some(item => item.session_id === session.sessionId && item.prompt_code === tag))
+      const tagSessionCount = selectedSessions.filter((session) =>
+        selectedTagsList.some((tag) =>
+          tableData.some(
+            (item) =>
+              item.session_id === session.sessionId && item.prompt_code === tag
+          )
+        )
       ).length;
       if (tagSessionCount === 1) {
-        const allSessionsForTag = tableData.filter(item =>
+        const allSessionsForTag = tableData.filter((item) =>
           selectedTagsList.includes(item.prompt_code)
         );
         for (const session of allSessionsForTag) {
@@ -123,7 +142,7 @@
         }
       }
     } else {
-      const allSessionsForTag = tableData.filter(item =>
+      const allSessionsForTag = tableData.filter((item) =>
         selectedTagsList.includes(item.prompt_code)
       );
       for (const session of allSessionsForTag) {
@@ -137,12 +156,14 @@
       filterTableData.set([]);
       storeSessionData.set([]);
     } else {
-      const filteredData = tableData.filter(session => 
+      const filteredData = tableData.filter((session) =>
         $selectedTags.includes(session.prompt_code)
       );
-      const updatedData = filteredData.map(row => ({
+      const updatedData = filteredData.map((row) => ({
         ...row,
-        selected: $storeSessionData.some(item => item.sessionId == row.session_id) || true
+        selected:
+          $storeSessionData.some((item) => item.sessionId == row.session_id) ||
+          true,
       }));
       filterTableData.set(updatedData);
     }
@@ -158,8 +179,8 @@
 
   const fetchData = async (sessionFile, isDelete) => {
     if (!firstSession && isDelete) {
-      storeSessionData.update(data => {
-        return data.filter(item => item.sessionId !== sessionFile);
+      storeSessionData.update((data) => {
+        return data.filter((item) => item.sessionId !== sessionFile);
       });
       return;
     }
@@ -240,7 +261,10 @@
         });
 
         await tick();
-        const { chartData, textElements, paragraphColor } = handleEvents(data, sessionFile);
+        const { chartData, textElements, paragraphColor } = handleEvents(
+          data,
+          sessionFile
+        );
         storeSessionData.update((sessions) => {
           let sessionIndex = sessions.findIndex(
             (s) => s.sessionId === sessionFile
@@ -250,7 +274,11 @@
             sessions[sessionIndex].textElements = textElements;
             sessions[sessionIndex].paragraphColor = paragraphColor;
           }
-          console.log("this one",sessionFile, sessions[sessionIndex].paragraphColor)
+          console.log(
+            "this one",
+            sessionFile,
+            sessions[sessionIndex].paragraphColor
+          );
           return [...sessions];
         });
 
@@ -271,7 +299,6 @@
             });
           }
         });
-
       }
     } catch (error) {
       console.error("Error when reading the data file:", error);
@@ -300,20 +327,26 @@
       const data = await response.json();
       sessions = data || [];
       if (firstSession) {
-        tableData = sessions.map(session => {
+        tableData = sessions.map((session) => {
           return {
             session_id: session.session_id,
             prompt_code: session.prompt_code,
-            selected: session.session_id === "e4611bd31b794677b02c52d5700b2e38" || session.session_id === "233f1efcf0274acba92f46bf2f8766d2" ? true : false
+            selected:
+              session.session_id === "e4611bd31b794677b02c52d5700b2e38" ||
+              session.session_id === "233f1efcf0274acba92f46bf2f8766d2"
+                ? true
+                : false,
           };
         });
         firstSession = false;
         selectedTags.set(["reincarnation", "bee"]);
         filterSessions();
-        $filterTableData = tableData.filter(session => 
+        $filterTableData = tableData.filter((session) =>
           $selectedTags.includes(session.prompt_code)
         );
-        filterOptions = Array.from(new Set(tableData.map(row => row.prompt_code)));
+        filterOptions = Array.from(
+          new Set(tableData.map((row) => row.prompt_code))
+        );
       }
       // fetchSessions()
     } catch (error) {
@@ -322,11 +355,13 @@
   };
 
   const handleSessionChange = (sessionId) => {
-    let isCurrentlySelected = $filterTableData.find(row => row.session_id == sessionId)?.selected;
+    let isCurrentlySelected = $filterTableData.find(
+      (row) => row.session_id == sessionId
+    )?.selected;
 
     if (showMulti) {
       filterTableData.set(
-        $filterTableData.map(row => {
+        $filterTableData.map((row) => {
           if (row.session_id == sessionId) {
             return { ...row, selected: !row.selected };
           }
@@ -335,19 +370,19 @@
       );
 
       if (!isCurrentlySelected) {
-        for (let i = 0; i < selectedSession.length; i++ ) {
+        for (let i = 0; i < selectedSession.length; i++) {
           selectedSession[i] = sessionId;
           fetchData(sessionId, false);
         }
       } else {
-        storeSessionData.update(data => {
-          return data.filter(item => item.session_id !== sessionId);
+        storeSessionData.update((data) => {
+          return data.filter((item) => item.session_id !== sessionId);
         });
         fetchData(sessionId, true);
       }
     }
 
-    for (let i = 0; i < selectedSession.length; i++ ) {
+    for (let i = 0; i < selectedSession.length; i++) {
       fetchSimilarityData(sessionId).then((data) => {
         if (data) {
           const similarityChart = renderSimilarityChart(sessionId, data);
@@ -362,27 +397,28 @@
             return [...sessions];
           });
         }
-      }
-    );}
-
+      });
+    }
   };
 
   function handleSelectChange(index) {
     handleSessionChange($filterTableData[index].session_id);
   }
 
-
   onMount(() => {
     document.title = "Ink-Pulse";
     fetchSessions();
-    for (let i = 0; i < selectedSession.length; i++ ){
+    for (let i = 0; i < selectedSession.length; i++) {
       fetchData(selectedSession[i], true);
       fetchSimilarityData(selectedSession[i]).then((data) => {
         renderSimilarityChart(selectedSession[i], data);
       });
       fetchSimilarityData(selectedSession[i]).then((data) => {
         if (data) {
-          const similarityChart = renderSimilarityChart(selectedSession[i], data);
+          const similarityChart = renderSimilarityChart(
+            selectedSession[i],
+            data
+          );
 
           storeSessionData.update((sessions) => {
             let sessionIndex = sessions.findIndex(
@@ -616,7 +652,12 @@
     const sessionSummaryContainer = document.getElementById(
       `summary-${sessionId}`
     );
-    if (!sessionSummaryContainer) return;
+    console.log(`Looking for summary-${sessionId}`, sessionSummaryContainer);
+
+    if (!sessionSummaryContainer) {
+      console.error(`Summary container for session ${sessionId} not found`);
+      return;
+    }
 
     sessionSummaryContainer.querySelector(".totalText").textContent =
       `Total Text: ${totalProcessedCharacters} characters`;
@@ -711,18 +752,19 @@
   function handlePointSelected(e, sessionId) {
     const d = e.detail;
     storeSessionData.update((sessions) => {
-      const idx = sessions.findIndex(s => s.sessionId === sessionId);
+      const idx = sessions.findIndex((s) => s.sessionId === sessionId);
       if (idx !== -1) {
-        sessions[idx].textElements = d.currentText.split("").map((char, index) => ({
-          text: char,
-          textColor: d.currentColor[index]
-        }));
+        sessions[idx].textElements = d.currentText
+          .split("")
+          .map((char, index) => ({
+            text: char,
+            textColor: d.currentColor[index],
+          }));
         sessions[idx].currentTime = d.time;
       }
       return [...sessions];
     });
   }
-
 </script>
 
 <div class="App">
@@ -743,9 +785,9 @@
         {/each}
       </div>
       <div class="chart-explanation">
-          <span class="triangle-text">▼</span> user open the AI suggestion
-          <span class="user-line">●</span> User written
-          <span class="api-line">●</span> AI writing
+        <span class="triangle-text">▼</span> user open the AI suggestion
+        <span class="user-line">●</span> User written
+        <span class="api-line">●</span> AI writing
       </div>
       <a
         on:click={open2close}
@@ -797,7 +839,7 @@
                 </div>
                 <div
                   class="session-summary"
-                  id="summary-{$storeSessionData[0].sessionId}"
+                  id="summary-{sessionData.sessionId}"
                 >
                   <h3>Session Summary</h3>
                   <div class="summary-container">
@@ -809,26 +851,26 @@
                 </div>
                 <div class="chart-container">
                   <div class="chart-wrapper">
-                  <div
-                    class="bar-chart-container"
-                    data-session-id={sessionData.sessionId}
-                    id="bar-chart-container-{sessionData.sessionId}"
-                  ></div>
+                    <div
+                      class="bar-chart-container"
+                      data-session-id={sessionData.sessionId}
+                      id="bar-chart-container-{sessionData.sessionId}"
+                    ></div>
                     <LineChart
                       bind:this={chartRefs[sessionData.sessionId]}
                       chartData={sessionData.chartData}
                       paragraphColor={sessionData.paragraphColor}
-                      on:pointSelected={(e) => handlePointSelected(e, sessionData.sessionId)}
+                      on:pointSelected={(e) =>
+                        handlePointSelected(e, sessionData.sessionId)}
                     />
                   </div>
                   <button
-                      on:click={() => resetZoom(sessionData.sessionId)}
-                      class="zoom-reset-btn"
-                    >
+                    on:click={() => resetZoom(sessionData.sessionId)}
+                    class="zoom-reset-btn"
+                  >
                     Reset Zoom
                   </button>
                 </div>
-
               </div>
               <div class="content-box">
                 <div class="progress-container">
@@ -899,7 +941,9 @@
         <thead>
           <tr>
             <th style="text-transform: uppercase">Session ID</th>
-            <th style="display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase">Prompt Code
+            <th
+              style="display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase"
+              >Prompt Code
               <a
                 on:click|preventDefault={toggleFilter}
                 href=" "
@@ -940,7 +984,7 @@
           {/each}
         </tbody>
       </table>
-  </div>
+    </div>
   </header>
 </div>
 
@@ -1115,7 +1159,10 @@
     margin-bottom: 2px;
   }
 
-  .totalText, .totalInsertions, .totalDeletions, .totalSuggestions {
+  .totalText,
+  .totalInsertions,
+  .totalDeletions,
+  .totalSuggestions {
     display: inline-block;
     white-space: nowrap;
     margin-right: 15px;
@@ -1129,7 +1176,7 @@
   }
 
   .triangle-text {
-    color: #FFBBCC;
+    color: #ffbbcc;
   }
 
   .user-line {
@@ -1140,7 +1187,9 @@
     color: #fc8d62;
   }
 
-  .triangle-text, .user-line, .api-line {
+  .triangle-text,
+  .user-line,
+  .api-line {
     margin-right: 3px;
   }
 
@@ -1376,7 +1425,8 @@
     mask-size: 100% 100%;
   }
 
-  a:focus, a:active {
+  a:focus,
+  a:active {
     color: #86cecb;
   }
 
@@ -1387,7 +1437,7 @@
 
   tbody tr {
     border-bottom: 1px solid #e0e0e0;
-    display: table-row; 
+    display: table-row;
   }
 
   td {
@@ -1399,5 +1449,4 @@
     justify-content: space-between;
     margin: 15px 0;
   }
-
 </style>
