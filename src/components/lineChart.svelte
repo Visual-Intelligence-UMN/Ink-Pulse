@@ -41,6 +41,11 @@
     initChart();
   }
 
+  $: if (xAxisG && yAxisG) {
+    updateAxes();
+  }
+
+
   function updateAxes() {
     if (!xScale || !yScale) return;
 
@@ -155,7 +160,6 @@
     </g>
 
     <g clip-path="url(#clip-text)">
-      <!-- <g transform={zoomTransform.toString()}> -->
       {#if paragraphColor.length < 10}
         {#each paragraphColor as d}
           <text
@@ -182,7 +186,6 @@
           {/if}
         {/each}
       {/if}
-      <!-- </g> -->
     </g>
 
     <g

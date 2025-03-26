@@ -6,10 +6,10 @@
   import { base } from "$app/paths";
   import tippy from "tippy.js";
   import "tippy.js/dist/tippy.css";
-  import * as d3 from "d3";
+  import { get } from "svelte/store";
   import LineChart from "../components/lineChart.svelte";
   import BarChart from "../components/barChart.svelte";
-  import { get } from "svelte/store";
+  import ZoomoutChart from "../components/zoomoutChart.svelte"
 
   let chartRefs = {};
   function resetZoom(sessionId) {
@@ -68,6 +68,10 @@
 
   function open2close() {
     isOpen = !isOpen;
+  }
+
+  function change2bar() {
+    showMulti = !showMulti;
   }
 
   async function toggleTag(event) {
@@ -208,112 +212,65 @@
         progressElement.value = currentTime;
       }
 
-      if (!showMulti) {
-        dataDict = data;
-        let sessionData = {
-          sessionId: sessionFile,
-          time0,
-          time100,
-          currentTime,
-          chartData: [],
-        };
-        storeSessionData.set([sessionData]);
-        await tick(); // wait for storeSessionData update
+      dataDict = data;
+      let sessionData = {
+        sessionId: sessionFile,
+        time0,
+        time100,
+        currentTime,
+        chartData: [],
+      };
 
-        const { chartData, textElements } = handleEvents(data, sessionFile);
-        storeSessionData.update((sessions) => {
-          let sessionIndex = sessions.findIndex(
-            (s) => s.sessionId === sessionFile
-          );
-          if (sessionIndex !== -1) {
-            sessions[sessionIndex].chartData = chartData;
-            sessions[sessionIndex].textElements = textElements;
-          }
-          return [...sessions];
-        });
-        await tick();
-
-        fetchSimilarityData(sessionFile).then((similarityData) => {
-          if (similarityData) {
-            storeSessionData.update((sessions) => {
-              let sessionIndex = sessions.findIndex(
-                (s) => s.sessionId === sessionFile
-              );
-              if (sessionIndex !== -1) {
-                sessions[sessionIndex].similarityData = similarityData;
-              }
-              return [...sessions];
-            });
-          }
-        });
-      }
-
-      if (showMulti) {
-        dataDict = data;
-        let sessionData = {
-          sessionId: sessionFile,
-          time0,
-          time100,
-          currentTime,
-          chartData: [],
-        };
-
-        storeSessionData.update((sessions) => {
-          let sessionIndex = sessions.findIndex(
-            (s) => s.sessionId === sessionFile
-          );
-          if (sessionIndex !== -1) {
-            sessions[sessionIndex] = {
-              ...sessions[sessionIndex],
-              time0,
-              time100,
-              currentTime,
-              chartData: [],
-            };
-          } else {
-            sessions.push(sessionData);
-          }
-          return [...sessions];
-        });
-
-        await tick();
-        const { chartData, textElements, paragraphColor } = handleEvents(
-          data,
-          sessionFile
+      storeSessionData.update((sessions) => {
+        let sessionIndex = sessions.findIndex(
+          (s) => s.sessionId === sessionFile
         );
-        storeSessionData.update((sessions) => {
-          let sessionIndex = sessions.findIndex(
-            (s) => s.sessionId === sessionFile
-          );
-          if (sessionIndex !== -1) {
-            sessions[sessionIndex].chartData = chartData;
-            sessions[sessionIndex].textElements = textElements;
-            sessions[sessionIndex].paragraphColor = paragraphColor;
-          }
-          console.log(
-            "this one",
-            sessionFile,
-            sessions[sessionIndex].paragraphColor
-          );
-          return [...sessions];
-        });
+        if (sessionIndex !== -1) {
+          sessions[sessionIndex] = {
+            ...sessions[sessionIndex],
+            time0,
+            time100,
+            currentTime,
+            chartData: [],
+          };
+        } else {
+          sessions.push(sessionData);
+        }
+        return [...sessions];
+      });
 
-        await tick();
+      await tick();
+      const { chartData, textElements, paragraphColor } = handleEvents(
+        data,
+        sessionFile
+      );
+      storeSessionData.update((sessions) => {
+        let sessionIndex = sessions.findIndex(
+          (s) => s.sessionId === sessionFile
+        );
+        if (sessionIndex !== -1) {
+          sessions[sessionIndex].chartData = chartData;
+          sessions[sessionIndex].textElements = textElements;
+          sessions[sessionIndex].paragraphColor = paragraphColor;
+        }
+        return [...sessions];
+      });
 
-        fetchSimilarityData(sessionFile).then((similarityData) => {
-          if (similarityData) {
-            storeSessionData.update((sessions) => {
-              let sessionIndex = sessions.findIndex(
-                (s) => s.sessionId === sessionFile
-              );
-              if (sessionIndex !== -1) {
-                sessions[sessionIndex].similarityData = similarityData;
-              }
-              return [...sessions];
-            });
-          }
-        });
-      }
+      await tick();
+
+      fetchSimilarityData(sessionFile).then((similarityData) => {
+        if (similarityData) {
+          storeSessionData.update((sessions) => {
+            let sessionIndex = sessions.findIndex(
+              (s) => s.sessionId === sessionFile
+            );
+            if (sessionIndex !== -1) {
+              sessions[sessionIndex].similarityData = similarityData;
+            }
+            return [...sessions];
+          });
+        }
+      });
     } catch (error) {
       console.error("Error when reading the data file:", error);
     }
@@ -374,27 +331,25 @@
       (row) => row.session_id == sessionId
     )?.selected;
 
-    if (showMulti) {
-      filterTableData.set(
-        $filterTableData.map((row) => {
-          if (row.session_id == sessionId) {
-            return { ...row, selected: !row.selected };
-          }
-          return row;
-        })
-      );
-
-      if (!isCurrentlySelected) {
-        for (let i = 0; i < selectedSession.length; i++) {
-          selectedSession[i] = sessionId;
-          fetchData(sessionId, false);
+    filterTableData.set(
+      $filterTableData.map((row) => {
+        if (row.session_id == sessionId) {
+          return { ...row, selected: !row.selected };
         }
-      } else {
-        storeSessionData.update((data) => {
-          return data.filter((item) => item.session_id !== sessionId);
-        });
-        fetchData(sessionId, true);
+        return row;
+      })
+    );
+
+    if (!isCurrentlySelected) {
+      for (let i = 0; i < selectedSession.length; i++) {
+        selectedSession[i] = sessionId;
+        fetchData(sessionId, false);
       }
+    } else {
+      storeSessionData.update((data) => {
+        return data.filter((item) => item.session_id !== sessionId);
+      });
+      fetchData(sessionId, true);
     }
 
     for (let i = 0; i < selectedSession.length; i++) {
@@ -421,7 +376,6 @@
   onMount(() => {
     document.title = "Ink-Pulse";
     fetchSessions();
-
     for (let i = 0; i < selectedSession.length; i++) {
       fetchData(selectedSession[i], true);
 
@@ -493,7 +447,6 @@
     chartData = [];
     paragraphColor = [];
     let firstTime = null;
-    let preEvent = null;
 
     let combinedText = data.info.reduce((acc, event) => {
       if (acc.length === 0) {
@@ -575,7 +528,6 @@
           currentColor,
         });
       }
-      preEvent = event;
 
       return acc;
     }, []);
@@ -659,7 +611,6 @@
     const sessionSummaryContainer = document.getElementById(
       `summary-${sessionId}`
     );
-    console.log(`Looking for summary-${sessionId}`, sessionSummaryContainer);
 
     if (!sessionSummaryContainer) {
       console.error(`Summary container for session ${sessionId} not found`);
@@ -716,6 +667,12 @@
         <span class="user-line">●</span> User written
         <span class="api-line">●</span> AI writing
       </div>
+      <a
+        on:click={change2bar}
+        href=" "
+        aria-label="Change2Bar"
+        class="material-symbols--restart-alt-rounded"
+      ></a>
       <a
         on:click={open2close}
         href=" "
@@ -864,6 +821,18 @@
         </div>
       {/if}
     </div>
+
+      {#if !showMulti && $storeSessionData.length > 0}
+        {#each $storeSessionData as sessionData (sessionData.sessionId)}
+          <div class="zoomout-chart">
+            <ZoomoutChart
+              bind:this={chartRefs[sessionData.sessionId]}
+              chartData={sessionData.chartData}
+            />
+          </div>
+        {/each}
+      {/if}
+
     <div class="table" class:collapsed={isCollapsed}>
       <table>
         <thead>
@@ -1377,5 +1346,27 @@
     align-items: flex-start;
     gap: 5px;
     margin: 15px 0;
+  }
+
+  .material-symbols--restart-alt-rounded {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M9.825 20.7q-2.575-.725-4.2-2.837T4 13q0-1.425.475-2.713t1.35-2.362q.275-.3.675-.313t.725.313q.275.275.288.675t-.263.75q-.6.775-.925 1.7T6 13q0 2.025 1.188 3.613t3.062 2.162q.325.1.538.375t.212.6q0 .5-.35.788t-.825.162m4.35 0q-.475.125-.825-.175t-.35-.8q0-.3.213-.575t.537-.375q1.875-.6 3.063-2.175T18 13q0-2.5-1.75-4.25T12 7h-.075l.4.4q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-2.1-2.1q-.15-.15-.212-.325T8.55 6t.063-.375t.212-.325l2.1-2.1q.275-.275.7-.275t.7.275t.275.7t-.275.7l-.4.4H12q3.35 0 5.675 2.325T20 13q0 2.725-1.625 4.85t-4.2 2.85'/%3E%3C/svg%3E");
+    background-color: currentColor;
+    -webkit-mask-image: var(--svg);
+    mask-image: var(--svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+  }
+
+  .zoomout-chart {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    margin-left: 500px;
+    gap: 0;
   }
 </style>
