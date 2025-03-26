@@ -828,6 +828,10 @@
             <ZoomoutChart
               bind:this={chartRefs[sessionData.sessionId]}
               chartData={sessionData.chartData}
+              sessionId={sessionData.sessionId}
+              sessionTopic={sessions.find(
+                (s) => s.session_id === sessionData.sessionId
+              ).prompt_code}
             />
           </div>
         {/each}
@@ -893,14 +897,6 @@
     --progBackgroundColor: hsl(6, 100%, 90%);
   }
 
-  .App-header {
-    text-align: center;
-  }
-
-  .App {
-    margin: 0px;
-  }
-
   .zoom-reset-btn {
     display: block;
     margin: 10px auto;
@@ -911,6 +907,7 @@
     cursor: pointer;
     border-radius: 5px;
   }
+
   .zoom-reset-btn:hover {
     background-color: #86cecb;
   }
@@ -1363,10 +1360,8 @@
   }
 
   .zoomout-chart {
-    display: flex;
-    flex-direction: column;
-    text-align: left;
-    margin-left: 500px;
-    gap: 0;
+    margin-left: 300px;
+    height: 30px;
   }
+
 </style>
