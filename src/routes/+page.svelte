@@ -65,6 +65,7 @@
   let firstSession = true;
   export const filterTableData = writable([]);
   let isCollapsed = false;
+  let loading = true;
 
   function open2close() {
     isOpen = !isOpen;
@@ -240,6 +241,7 @@
       });
 
       await tick();
+
       const { chartData, textElements, paragraphColor } = handleEvents(
         data,
         sessionFile
@@ -271,6 +273,13 @@
           });
         }
       });
+
+      let isCurrentlySelected = $filterTableData.filter(item => item.selected);
+      loading = true;
+      if (isCurrentlySelected.length == $storeSessionData.length) {
+        loading = false;
+      }
+      
     } catch (error) {
       console.error("Error when reading the data file:", error);
     }
@@ -320,7 +329,6 @@
           new Set(tableData.map((row) => row.prompt_code))
         );
       }
-      // fetchSessions()
     } catch (error) {
       console.error("Error when fetching sessions:", error);
     }
@@ -367,6 +375,12 @@
         }
       });
     }
+
+    let nowSelectTag = new Set($filterTableData.filter((f) => f.selected).map(f => f.prompt_code))
+    selectedTags.update((selected) => {
+        selected = selected.filter(tag => nowSelectTag.has(tag))
+      return selected;
+    });
   };
 
   function handleSelectChange(index) {
@@ -643,6 +657,7 @@
       return [...sessions];
     });
   }
+
 </script>
 
 <div class="App">
@@ -706,6 +721,10 @@
         </div>
       {/if}
       {#if showMulti && $storeSessionData.length > 0}
+      {#if loading}
+        <div class="loading"></div>
+        <div class="line-md--loading-twotone-loop"></div>
+      {/if}
         <div class="multi-box">
           {#each $storeSessionData as sessionData (sessionData.sessionId)}
             <div class="display-box">
@@ -936,13 +955,12 @@
     justify-content: space-between;
     align-items: stretch;
     gap: 20px;
-    border: 1px solid lightgray;
     border-radius: 15px;
     padding: 25px;
     box-shadow:
-      0px 2px 5px rgba(0, 0, 0, 0.2),
-      2px 2px 5px rgba(0, 0, 0, 0.2),
-      -2px 2px 5px rgba(0, 0, 0, 0.2);
+      0px 1px 5px rgba(0, 0, 0, 0.1),
+      1px 1px 5px rgba(0, 0, 0, 0.1),
+      -1px 1px 5px rgba(0, 0, 0, 0.1);
     font-family: Poppins, sans-serif;
     font-size: 14px;
     white-space: pre-wrap;
@@ -1097,7 +1115,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1110,7 +1128,7 @@
     border-radius: 10px;
     max-width: 500px;
     text-align: center;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   }
 
   .introduction h2 {
@@ -1231,12 +1249,12 @@
   .filter-container {
     position: absolute;
     top: 55px;
-    left: 1055px;
+    left: 945px;
     background: white;
     border: 1px solid #ccc;
     padding: 12px;
     display: none;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
     width: 200px;
     text-align: left;
     border-radius: 8px;
@@ -1258,7 +1276,7 @@
     -moz-appearance: none;
     width: 16px;
     height: 16px;
-    border: 2px solid rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.2);
     border-radius: 4px;
     background-color: white;
     cursor: pointer;
@@ -1363,5 +1381,37 @@
     margin-left: 300px;
     height: 30px;
   }
+
+  .loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+  }
+
+  .line-md--loading-twotone-loop {
+    display: inline-block;
+    width: 96px;
+    height: 96px;
+    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%23000' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'%3E%3Cpath stroke-dasharray='16' stroke-dashoffset='16' d='M12 3c4.97 0 9 4.03 9 9'%3E%3Canimate fill='freeze' attributeName='stroke-dashoffset' dur='0.3s' values='16;0'/%3E%3CanimateTransform attributeName='transform' dur='1.5s' repeatCount='indefinite' type='rotate' values='0 12 12;360 12 12'/%3E%3C/path%3E%3Cpath stroke-dasharray='64' stroke-dashoffset='64' stroke-opacity='0.3' d='M12 3c4.97 0 9 4.03 9 9c0 4.97 -4.03 9 -9 9c-4.97 0 -9 -4.03 -9 -9c0 -4.97 4.03 -9 9 -9Z'%3E%3Canimate fill='freeze' attributeName='stroke-dashoffset' dur='1.2s' values='64;0'/%3E%3C/path%3E%3C/g%3E%3C/svg%3E");
+    background-color: currentColor;
+    -webkit-mask-image: var(--svg);
+    mask-image: var(--svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    z-index: 1000;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    }
 
 </style>

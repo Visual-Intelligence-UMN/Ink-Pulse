@@ -4,7 +4,7 @@
 
   export let chartData: any[] = [];
   export let paragraphColor: any[] = [];
-
+  
   type ChartEvents = {
     pointSelected: {
       time: number;
