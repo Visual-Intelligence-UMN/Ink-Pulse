@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, afterUpdate } from "svelte";
   import * as d3 from "d3";
 
   export let chartData: any[] = [];
@@ -44,6 +44,12 @@
   $: if (xAxisG && yAxisG) {
     updateAxes();
   }
+
+  afterUpdate(() => {
+    if (svgContainer) {
+      d3.select(svgContainer).call(zoom);
+    }
+  });
 
 
   function updateAxes() {

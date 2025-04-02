@@ -761,6 +761,7 @@
                       />
                     {/if}
                     <LineChart
+                      key={sessionData.sessionId}
                       bind:this={chartRefs[sessionData.sessionId]}
                       chartData={sessionData.chartData}
                       paragraphColor={sessionData.paragraphColor}
