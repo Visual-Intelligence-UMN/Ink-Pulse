@@ -377,6 +377,7 @@
     }
 
     let nowSelectTag = new Set($filterTableData.filter((f) => f.selected).map(f => f.prompt_code))
+    console.log(nowSelectTag)
     selectedTags.update((selected) => {
         selected = selected.filter(tag => nowSelectTag.has(tag))
       return selected;
@@ -761,7 +762,6 @@
                       />
                     {/if}
                     <LineChart
-                      key={sessionData.sessionId}
                       bind:this={chartRefs[sessionData.sessionId]}
                       chartData={sessionData.chartData}
                       paragraphColor={sessionData.paragraphColor}
