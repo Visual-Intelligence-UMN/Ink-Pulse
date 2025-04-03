@@ -75,6 +75,20 @@
 
   function change2bar() {
     showMulti = !showMulti;
+
+    setTimeout(() => {
+      $storeSessionData.forEach((sessionData) => {
+        if (sessionData.summaryData) {
+          updateSessionSummary(
+            sessionData.sessionId,
+            sessionData.summaryData.totalProcessedCharacters,
+            sessionData.summaryData.totalInsertions,
+            sessionData.summaryData.totalDeletions,
+            sessionData.summaryData.totalSuggestions
+          );
+        }
+      });
+    }, 0);
   }
 
   function updatePromptFilterStatus() {
@@ -637,7 +651,7 @@
       const { name, event_time } = event;
       const eventTime = new Date(event_time);
       const relativeTime =
-        (eventTime - new Date(data.info[0].event_time)) / (1000 * 60); // in minutes
+        (eventTime - new Date(data.info[0].event_time)) / (1000 * 60);
 
       if (name === "text-insert") {
         totalInsertions++;
@@ -649,6 +663,19 @@
         totalSuggestions++;
         totalSuggestionTime += relativeTime;
       }
+    });
+
+    storeSessionData.update((sessions) => {
+      const idx = sessions.findIndex((s) => s.sessionId === sessionId);
+      if (idx !== -1) {
+        sessions[idx].summaryData = {
+          totalProcessedCharacters,
+          totalInsertions,
+          totalDeletions,
+          totalSuggestions,
+        };
+      }
+      return [...sessions];
     });
 
     updateSessionSummary(
@@ -805,10 +832,26 @@
                 >
                   <h3>Session Summary</h3>
                   <div class="summary-container">
-                    <div class="totalText"></div>
-                    <div class="totalInsertions"></div>
-                    <div class="totalDeletions"></div>
-                    <div class="totalSuggestions"></div>
+                    <div class="totalText">
+                      {sessionData.summaryData
+                        ? `Total Text: ${sessionData.summaryData.totalProcessedCharacters} characters`
+                        : ""}
+                    </div>
+                    <div class="totalInsertions">
+                      {sessionData.summaryData
+                        ? `Insertions: ${sessionData.summaryData.totalInsertions}`
+                        : ""}
+                    </div>
+                    <div class="totalDeletions">
+                      {sessionData.summaryData
+                        ? `Deletions: ${sessionData.summaryData.totalDeletions}`
+                        : ""}
+                    </div>
+                    <div class="totalSuggestions">
+                      {sessionData.summaryData
+                        ? `Suggestions: ${sessionData.summaryData.totalSuggestions - 1}`
+                        : ""}
+                    </div>
                   </div>
                 </div>
                 <div class="chart-container">
