@@ -16,9 +16,9 @@
   const dispatch = createEventDispatcher<ChartEvents>();
 
   let svgContainer: SVGSVGElement;
-  let width = 400;
+  let width = 300;
   export let height;
-  const margin = { top: 20, right: 30, bottom: 40, left: 40 };
+  const margin = { top: 20, right: 30, bottom: 40, left: 0 };
 
   let xScale: any;
   export let yScale;
@@ -57,7 +57,7 @@
     if (!xScale || !yScale) return;
 
     const xAxis = d3.axisBottom(zoomTransform.rescaleX(xScale)).ticks(5);
-    const yAxis = d3.axisLeft(zoomTransform.rescaleY(yScale)).ticks(5);
+    const yAxis = d3.axisRight(zoomTransform.rescaleY(yScale)).ticks(5);
 
     d3.select(xAxisG).call(xAxis);
     d3.select(yAxisG).call(yAxis);
@@ -66,7 +66,7 @@
   function initChart() {
     const minTime = 0;
     const maxTime = d3.max(chartData, (d) => d.time);
-    // const Padding = Math.max(2, (maxTime - minTime) * 0.2);
+    // const padding = Math.max(2, (maxTime - minTime) * 0.2);
     const padding = 0;
 
     xScale = d3

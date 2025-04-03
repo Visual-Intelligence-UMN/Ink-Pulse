@@ -4,7 +4,7 @@
 
   export let sessionId;
   export let similarityData;
-  export let width = 200;
+  export let width = 150;
   export let height;
 
   let container;
@@ -30,7 +30,7 @@
       source: item.source,
     }));
 
-    const margin = { top: 20, right: 30, bottom: 40, left: 40 };
+    const margin = { top: 20, right: 0, bottom: 40, left: 50 };
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
 
@@ -114,8 +114,8 @@
 
 <style>
   .bar-chart-container {
-    width: 50%;
-    height: 100%;
+    /* width: 100%;
+    height: 100%; */
     margin-bottom: 0;
     margin-right: 0;
   }

@@ -861,11 +861,12 @@
                 <div class="chart-container">
                   <div class="chart-wrapper">
                     {#if sessionData.similarityData}
+                    <div>
                       <BarChart
                         sessionId={sessionData.sessionId}
                         similarityData={sessionData.similarityData}
                         height={height}
-                      />
+                      /></div>
                     {/if}
                     <LineChart
                       bind:this={chartRefs[sessionData.sessionId]}
@@ -1522,8 +1523,6 @@
   .chart-wrapper {
     display: flex;
     align-items: flex-start;
-    justify-content: flex-start;
-    gap: 0;
     margin: 15px 0;
   }
 
