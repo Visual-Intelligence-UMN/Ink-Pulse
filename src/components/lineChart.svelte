@@ -26,7 +26,7 @@
   let selectedPoint: any = null;
   let hoveredPoint: any = null;
 
-  let zoom: any;
+  let zoom: any = null;
   let xAxisG: SVGGElement;
   let yAxisG: SVGGElement;
 
@@ -44,9 +44,9 @@
   $: if (xAxisG && yAxisG) {
     updateAxes();
   }
-
+  
   afterUpdate(() => {
-    if (svgContainer) {
+    if (svgContainer && zoom) {
       d3.select(svgContainer).call(zoom);
     }
   });
