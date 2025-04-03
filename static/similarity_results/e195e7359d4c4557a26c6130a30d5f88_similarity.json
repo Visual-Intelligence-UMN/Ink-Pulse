@@ -4,272 +4,350 @@
         "source": "api",
         "max_similarity": 0.0,
         "dissimilarity": 1.0,
-        "most_similar_previous": null
+        "most_similar_previous": null,
+        "start_progress": 0,
+        "end_progress": 0.10411263430900333
     },
     {
         "sentence": "4 years into your retirement, you awake to find a letter with no return address on your bedside table.",
         "source": "api",
         "max_similarity": 0.19341927766799927,
         "dissimilarity": 0.8065807223320007,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.10411263430900333,
+        "end_progress": 0.10411263430900333
     },
     {
         "sentence": "It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\"  You eye the letter uncertainly.",
         "source": "api",
-        "max_similarity": 0.47769078612327576,
-        "dissimilarity": 0.5223092138767242,
-        "most_similar_previous": 0
+        "max_similarity": 0.47769075632095337,
+        "dissimilarity": 0.5223092436790466,
+        "most_similar_previous": 0,
+        "start_progress": 0.10411263430900333,
+        "end_progress": 0.11633938495739163
     },
     {
         "sentence": "It looks like it was written by a first grader.",
         "source": "user",
-        "max_similarity": 0.45841360092163086,
-        "dissimilarity": 0.5415863990783691,
-        "most_similar_previous": 2
+        "max_similarity": 0.4584135413169861,
+        "dissimilarity": 0.5415864586830139,
+        "most_similar_previous": 2,
+        "start_progress": 0.11670989255279733,
+        "end_progress": 0.1341237495368655
     },
     {
         "sentence": "You suspect that it's a prank from Biden, but the handwriting is a little bit too clear.",
         "source": "user",
         "max_similarity": 0.6132485270500183,
         "dissimilarity": 0.3867514729499817,
-        "most_similar_previous": 2
+        "most_similar_previous": 2,
+        "start_progress": 0.1344942571322712,
+        "end_progress": 0.1670989255279733
     },
     {
         "sentence": "You pick up the paper, hesitate for a moment, then crumple it up and throw it in the trash.",
         "source": "user",
         "max_similarity": 0.6451083421707153,
         "dissimilarity": 0.35489165782928467,
-        "most_similar_previous": 2
+        "most_similar_previous": 2,
+        "start_progress": 0.16746943312337903,
+        "end_progress": 0.20118562430529827
     },
     {
         "sentence": "Forgetting about that, you go downstairs for breakfast.",
         "source": "user",
-        "max_similarity": 0.4957817792892456,
-        "dissimilarity": 0.5042182207107544,
-        "most_similar_previous": 5
+        "max_similarity": 0.495781809091568,
+        "dissimilarity": 0.504218190908432,
+        "most_similar_previous": 5,
+        "start_progress": 0.20155613190070396,
+        "end_progress": 0.2223045572434235
     },
     {
         "sentence": "You're eating a piece of toast when you hear the doorbell ring.",
         "source": "user",
-        "max_similarity": 0.5005170702934265,
-        "dissimilarity": 0.4994829297065735,
-        "most_similar_previous": 2
+        "max_similarity": 0.5005170106887817,
+        "dissimilarity": 0.49948298931121826,
+        "most_similar_previous": 2,
+        "start_progress": 0.2226750648388292,
+        "end_progress": 0.24601704334938868
     },
     {
         "sentence": "You sigh, and put down the toast, and answer the door.",
         "source": "user",
-        "max_similarity": 0.6823834180831909,
-        "dissimilarity": 0.3176165819168091,
-        "most_similar_previous": 2
+        "max_similarity": 0.6823833584785461,
+        "dissimilarity": 0.31761664152145386,
+        "most_similar_previous": 2,
+        "start_progress": 0.24638755094479436,
+        "end_progress": 0.26639496109670247
     },
     {
         "sentence": "It's a man in a black suit.",
         "source": "user",
         "max_similarity": 0.5256584882736206,
         "dissimilarity": 0.4743415117263794,
-        "most_similar_previous": 3
+        "most_similar_previous": 3,
+        "start_progress": 0.2667654686921082,
+        "end_progress": 0.27676917376806226
     },
     {
         "sentence": "\"Who are you, and what do you want?\" you ask him.",
         "source": "user",
-        "max_similarity": 0.6548990607261658,
-        "dissimilarity": 0.34510093927383423,
-        "most_similar_previous": 2
+        "max_similarity": 0.6548989415168762,
+        "dissimilarity": 0.3451010584831238,
+        "most_similar_previous": 2,
+        "start_progress": 0.27713968136346795,
+        "end_progress": 0.29529455353834755
     },
     {
         "sentence": "\"I'm here to help you pack,\" he says.",
         "source": "api",
-        "max_similarity": 0.5975587368011475,
-        "dissimilarity": 0.40244126319885254,
-        "most_similar_previous": 2
+        "max_similarity": 0.5975586771965027,
+        "dissimilarity": 0.4024413228034973,
+        "most_similar_previous": 2,
+        "start_progress": 0.29566506113375324,
+        "end_progress": 0.30937384216376435
     },
     {
         "sentence": "\"For what? I hope it's not for that ridiculous JFK thing.\" \"It is,\" he says.",
         "source": "user",
-        "max_similarity": 0.6242783069610596,
-        "dissimilarity": 0.37572169303894043,
-        "most_similar_previous": 2
+        "max_similarity": 0.6242782473564148,
+        "dissimilarity": 0.3757217526435852,
+        "most_similar_previous": 2,
+        "start_progress": 0.3097443497591701,
+        "end_progress": 0.3379029270100037
     },
     {
         "sentence": "You stand there for a moment, then gracefully, but firmly, close the door in his face.",
         "source": "user",
         "max_similarity": 0.6242429614067078,
         "dissimilarity": 0.37575703859329224,
-        "most_similar_previous": 8
+        "most_similar_previous": 8,
+        "start_progress": 0.33827343460540943,
+        "end_progress": 0.37013708781030014
     },
     {
         "sentence": "You sit back down and finish your breakfast, and then turn to doing the dishes, when the doorbell rings again.",
         "source": "user",
         "max_similarity": 0.7100657224655151,
         "dissimilarity": 0.28993427753448486,
-        "most_similar_previous": 8
+        "most_similar_previous": 8,
+        "start_progress": 0.3705075954057058,
+        "end_progress": 0.41163393849573915
     },
     {
         "sentence": "You grimace, and put down a soapy plate.",
         "source": "user",
-        "max_similarity": 0.6608628034591675,
-        "dissimilarity": 0.3391371965408325,
-        "most_similar_previous": 8
+        "max_similarity": 0.6608627438545227,
+        "dissimilarity": 0.3391372561454773,
+        "most_similar_previous": 8,
+        "start_progress": 0.4120044460911449,
+        "end_progress": 0.4268247499073731
     },
     {
         "sentence": "You head back over to the door, and open it.",
         "source": "user",
-        "max_similarity": 0.6802902817726135,
-        "dissimilarity": 0.3197097182273865,
-        "most_similar_previous": 8
+        "max_similarity": 0.6802902221679688,
+        "dissimilarity": 0.31970977783203125,
+        "most_similar_previous": 8,
+        "start_progress": 0.4271952575027788,
+        "end_progress": 0.44349759170062986
     },
     {
         "sentence": "This time, it's two men in black suits, and they don't look amused.",
         "source": "user",
-        "max_similarity": 0.5897752046585083,
-        "dissimilarity": 0.4102247953414917,
-        "most_similar_previous": 2
+        "max_similarity": 0.5897750854492188,
+        "dissimilarity": 0.41022491455078125,
+        "most_similar_previous": 2,
+        "start_progress": 0.44386809929603555,
+        "end_progress": 0.4686921081882179
     },
     {
         "sentence": "\"Mister Obama, I'm going to have to ask you to come with us.\" \"Who are you, where do you want me to go?\" you repeat.",
         "source": "user",
         "max_similarity": 0.7685065269470215,
         "dissimilarity": 0.23149347305297852,
-        "most_similar_previous": 10
+        "most_similar_previous": 10,
+        "start_progress": 0.46906261578362357,
+        "end_progress": 0.5120414968506855
     },
     {
         "sentence": "\"We're here to take you to meet with JFK,\" says one of the black suited figures.",
         "source": "user",
         "max_similarity": 0.7279602289199829,
         "dissimilarity": 0.2720397710800171,
-        "most_similar_previous": 18
+        "most_similar_previous": 18,
+        "start_progress": 0.5124120044460911,
+        "end_progress": 0.5420526120785476
     },
     {
         "sentence": "\"Not this again.\" you groan, and shut the door once more.",
         "source": "user",
-        "max_similarity": 0.7309132814407349,
-        "dissimilarity": 0.26908671855926514,
-        "most_similar_previous": 2
+        "max_similarity": 0.7309131622314453,
+        "dissimilarity": 0.2690868377685547,
+        "most_similar_previous": 2,
+        "start_progress": 0.5424231196739533,
+        "end_progress": 0.5635420526120786
     },
     {
         "sentence": "You finish the dishes, then get dressed and go outside.",
         "source": "user",
-        "max_similarity": 0.6477277278900146,
-        "dissimilarity": 0.35227227210998535,
-        "most_similar_previous": 14
+        "max_similarity": 0.6477276086807251,
+        "dissimilarity": 0.3522723913192749,
+        "most_similar_previous": 14,
+        "start_progress": 0.5639125602074843,
+        "end_progress": 0.5846609855502037
     },
     {
         "sentence": "You decide to water the petunias, and just as you've filled up the water can and gotten to work, there's a rustling in the bushes.",
         "source": "user",
         "max_similarity": 0.7376126050949097,
         "dissimilarity": 0.26238739490509033,
-        "most_similar_previous": 8
+        "most_similar_previous": 8,
+        "start_progress": 0.5850314931456095,
+        "end_progress": 0.6331974805483512
     },
     {
         "sentence": "You separate the foliage with your hands, and look down.",
         "source": "user",
         "max_similarity": 0.6268714070320129,
         "dissimilarity": 0.37312859296798706,
-        "most_similar_previous": 19
+        "most_similar_previous": 19,
+        "start_progress": 0.6335679881437569,
+        "end_progress": 0.6543164134864765
     },
     {
         "sentence": "It's two more black suited men.",
         "source": "user",
-        "max_similarity": 0.5273066163063049,
-        "dissimilarity": 0.47269338369369507,
-        "most_similar_previous": 17
+        "max_similarity": 0.5273066759109497,
+        "dissimilarity": 0.4726933240890503,
+        "most_similar_previous": 17,
+        "start_progress": 0.6546869210818822,
+        "end_progress": 0.666172656539459
     },
     {
         "sentence": "One of them looks up at you.",
         "source": "user",
-        "max_similarity": 0.45451343059539795,
-        "dissimilarity": 0.545486569404602,
-        "most_similar_previous": 10
+        "max_similarity": 0.4545134902000427,
+        "dissimilarity": 0.5454865097999573,
+        "most_similar_previous": 10,
+        "start_progress": 0.6665431641348648,
+        "end_progress": 0.6769173768062245
     },
     {
         "sentence": "\"Please, Mister Obama, you should come with us.\" You turn aside in disgust, give up on gardening for the moment, and head back to the house.",
         "source": "user",
         "max_similarity": 0.6960550546646118,
         "dissimilarity": 0.3039449453353882,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.6772878844016302,
+        "end_progress": 0.729158947758429
     },
     {
         "sentence": "You open the door, and are surprised to find that the lights are out.",
         "source": "user",
-        "max_similarity": 0.7117473483085632,
-        "dissimilarity": 0.28825265169143677,
-        "most_similar_previous": 16
+        "max_similarity": 0.7117472887039185,
+        "dissimilarity": 0.28825271129608154,
+        "most_similar_previous": 16,
+        "start_progress": 0.7295294553538347,
+        "end_progress": 0.7554649870322342
     },
     {
         "sentence": "Suddenly, you know a moment of fear.",
         "source": "user",
         "max_similarity": 0.5740534663200378,
         "dissimilarity": 0.42594653367996216,
-        "most_similar_previous": 15
+        "most_similar_previous": 15,
+        "start_progress": 0.7558354946276399,
+        "end_progress": 0.7691737680622452
     },
     {
         "sentence": "Is it possible this whole thing has been some kidnapping, or assassination plot by right wing nutjobs?",
         "source": "user",
         "max_similarity": 0.26619651913642883,
         "dissimilarity": 0.7338034808635712,
-        "most_similar_previous": 12
+        "most_similar_previous": 12,
+        "start_progress": 0.7695442756576509,
+        "end_progress": 0.807336050389033
     },
     {
         "sentence": "You fumble for the switch, and turn on the light.",
         "source": "user",
         "max_similarity": 0.7272244095802307,
         "dissimilarity": 0.2727755904197693,
-        "most_similar_previous": 14
+        "most_similar_previous": 14,
+        "start_progress": 0.8077065579844387,
+        "end_progress": 0.8258614301593182
     },
     {
         "sentence": "The light goes on, and you're stunned to see John F.",
         "source": "user",
         "max_similarity": 0.6791278123855591,
         "dissimilarity": 0.3208721876144409,
-        "most_similar_previous": 30
+        "most_similar_previous": 30,
+        "start_progress": 0.8262319377547239,
+        "end_progress": 0.8458688403112263
     },
     {
         "sentence": "Kennedy, LBJ, Richard Nixon, Ronald Reagan, and every other president of the U.",
         "source": "user",
-        "max_similarity": 0.634186327457428,
-        "dissimilarity": 0.365813672542572,
-        "most_similar_previous": 26
+        "max_similarity": 0.6341863870620728,
+        "dissimilarity": 0.36581361293792725,
+        "most_similar_previous": 26,
+        "start_progress": 0.8462393479066321,
+        "end_progress": 0.8755094479436828
     },
     {
         "sentence": "S.",
         "source": "user",
-        "max_similarity": 0.41995882987976074,
-        "dissimilarity": 0.5800411701202393,
-        "most_similar_previous": 25
+        "max_similarity": 0.41995885968208313,
+        "dissimilarity": 0.5800411403179169,
+        "most_similar_previous": 25,
+        "start_progress": 0.8758799555390886,
+        "end_progress": 0.8762504631344943
     },
     {
         "sentence": "from the last 60 waiting for you, along with your family, and they've hung up a big sign in the house.",
         "source": "user",
-        "max_similarity": 0.6653175354003906,
-        "dissimilarity": 0.3346824645996094,
-        "most_similar_previous": 26
+        "max_similarity": 0.6653174757957458,
+        "dissimilarity": 0.33468252420425415,
+        "most_similar_previous": 26,
+        "start_progress": 0.8766209707299,
+        "end_progress": 0.9144127454612819
     },
     {
         "sentence": "It reads \"Happy Birthday!\"",
         "source": "user",
-        "max_similarity": 0.4232233166694641,
-        "dissimilarity": 0.5767766833305359,
-        "most_similar_previous": 12
+        "max_similarity": 0.4232232868671417,
+        "dissimilarity": 0.5767767131328583,
+        "most_similar_previous": 12,
+        "start_progress": 0.9147832530566876,
+        "end_progress": 0.9247869581326417
     },
     {
         "sentence": "You smile, and wipe a tear from your cheek.",
         "source": "user",
-        "max_similarity": 0.6448187232017517,
-        "dissimilarity": 0.3551812767982483,
-        "most_similar_previous": 34
+        "max_similarity": 0.6448187828063965,
+        "dissimilarity": 0.3551812171936035,
+        "most_similar_previous": 34,
+        "start_progress": 0.9251574657280475,
+        "end_progress": 0.9410892923304928
     },
     {
         "sentence": "\"I thought you guys had forgotten.\" you say.",
         "source": "user",
         "max_similarity": 0.644254207611084,
         "dissimilarity": 0.355745792388916,
-        "most_similar_previous": 10
+        "most_similar_previous": 10,
+        "start_progress": 0.9414597999258985,
+        "end_progress": 0.9577621341237496
     },
     {
         "sentence": "You smile as JFK hands you a piece of your favorite cake, and go on to have the best birthday party of your life.",
         "source": "user",
         "max_similarity": 0.6614731550216675,
         "dissimilarity": 0.3385268449783325,
-        "most_similar_previous": 23
+        "most_similar_previous": 23,
+        "start_progress": 0.9581326417191552,
+        "end_progress": 1.0
     }
 ]

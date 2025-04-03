@@ -10,6 +10,7 @@
   import LineChart from "../components/lineChart.svelte";
   import BarChart from "../components/barChart.svelte";
   import ZoomoutChart from "../components/zoomoutChart.svelte";
+  import * as d3 from "d3";
 
   let chartRefs = {};
   function resetZoom(sessionId) {
@@ -68,6 +69,9 @@
   let loading = true;
   // store to track filter states
   const promptFilterStatus = writable({});
+  const yAxisRange = [0, 100];
+  const height = 200;
+  const yScale = d3.scaleLinear().domain(yAxisRange).range([height, 0])
 
   function open2close() {
     isOpen = !isOpen;
@@ -75,6 +79,20 @@
 
   function change2bar() {
     showMulti = !showMulti;
+
+    setTimeout(() => {
+       $storeSessionData.forEach((sessionData) => {
+         if (sessionData.summaryData) {
+           updateSessionSummary(
+             sessionData.sessionId,
+             sessionData.summaryData.totalProcessedCharacters,
+             sessionData.summaryData.totalInsertions,
+             sessionData.summaryData.totalDeletions,
+             sessionData.summaryData.totalSuggestions
+           );
+         }
+       });
+     }, 0);
   }
 
   function updatePromptFilterStatus() {
@@ -651,6 +669,19 @@
       }
     });
 
+    storeSessionData.update((sessions) => {
+       const idx = sessions.findIndex((s) => s.sessionId === sessionId);
+       if (idx !== -1) {
+         sessions[idx].summaryData = {
+           totalProcessedCharacters,
+           totalInsertions,
+           totalDeletions,
+           totalSuggestions,
+         };
+       }
+       return [...sessions];
+    });
+
     updateSessionSummary(
       sessionId,
       totalProcessedCharacters,
@@ -805,10 +836,26 @@
                 >
                   <h3>Session Summary</h3>
                   <div class="summary-container">
-                    <div class="totalText"></div>
-                    <div class="totalInsertions"></div>
-                    <div class="totalDeletions"></div>
-                    <div class="totalSuggestions"></div>
+                    <div class="totalText">
+                      {sessionData.summaryData
+                        ? `Total Text: ${sessionData.summaryData.totalProcessedCharacters} characters`
+                        : ""}
+                    </div>
+                    <div class="totalInsertions">
+                      {sessionData.summaryData
+                        ? `Insertions: ${sessionData.summaryData.totalInsertions}`
+                        : ""}
+                    </div>
+                    <div class="totalDeletions">
+                      {sessionData.summaryData
+                        ? `Deletions: ${sessionData.summaryData.totalDeletions}`
+                        : ""}
+                    </div>
+                    <div class="totalSuggestions">
+                      {sessionData.summaryData
+                        ? `Suggestions: ${sessionData.summaryData.totalSuggestions - 1}`
+                        : ""}
+                    </div>
                   </div>
                 </div>
                 <div class="chart-container">
@@ -817,6 +864,7 @@
                       <BarChart
                         sessionId={sessionData.sessionId}
                         similarityData={sessionData.similarityData}
+                        height={height}
                       />
                     {/if}
                     <LineChart
@@ -825,6 +873,8 @@
                       paragraphColor={sessionData.paragraphColor}
                       on:pointSelected={(e) =>
                         handlePointSelected(e, sessionData.sessionId)}
+                      yScale={yScale}
+                      height={height}
                     />
                   </div>
                   <button
@@ -1042,7 +1092,6 @@
   }
 
   .chart-container {
-    width: 100%;
     margin-top: 20px;
   }
 
@@ -1382,7 +1431,7 @@
     position: absolute;
     left: 50%;
     top: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -20%);
     color: white;
     font-size: 12px;
     font-weight: bold;
@@ -1473,7 +1522,8 @@
   .chart-wrapper {
     display: flex;
     align-items: flex-start;
-    gap: 5px;
+    justify-content: flex-start;
+    gap: 0;
     margin: 15px 0;
   }
 

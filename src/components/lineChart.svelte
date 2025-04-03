@@ -17,10 +17,11 @@
 
   let svgContainer: SVGSVGElement;
   let width = 400;
-  let height = 200;
-  const margin = { top: 20, right: 30, bottom: 20, left: 40 };
+  export let height;
+  const margin = { top: 20, right: 30, bottom: 40, left: 40 };
 
-  let xScale: any, yScale: any;
+  let xScale: any;
+  export let yScale;
   let zoomTransform = d3.zoomIdentity;
 
   let selectedPoint: any = null;
@@ -65,7 +66,8 @@
   function initChart() {
     const minTime = 0;
     const maxTime = d3.max(chartData, (d) => d.time);
-    const padding = Math.max(2, (maxTime - minTime) * 0.2);
+    // const Padding = Math.max(2, (maxTime - minTime) * 0.2);
+    const padding = 0;
 
     xScale = d3
       .scaleLinear()

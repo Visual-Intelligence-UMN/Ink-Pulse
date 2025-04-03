@@ -5,7 +5,7 @@
   export let sessionId;
   export let similarityData;
   export let width = 200;
-  export let height = 150;
+  export let height;
 
   let container;
 
@@ -23,15 +23,16 @@
     d3.select(container).selectAll("svg").remove();
 
     const processedData = similarityData.map((item, index) => ({
-      sentenceNum: index + 1,
+      // sentenceNum: index + 1,
+      startProgress: item.start_progress * 100,
+      endProgress: item.end_progress * 100,
       dissimilarity: item.dissimilarity * 100,
       source: item.source,
     }));
 
-    const margin = { top: 10, right: 30, bottom: 30, left: 50 };
+    const margin = { top: 20, right: 30, bottom: 40, left: 40 };
     const chartWidth = width - margin.left - margin.right;
-    const chartHeight =
-      Math.min(height, processedData.length * 15) - margin.top - margin.bottom;
+    const chartHeight = height - margin.top - margin.bottom;
 
     const svg = d3
       .select(container)
@@ -47,12 +48,7 @@
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
     const xScale = d3.scaleLinear().domain([100, 0]).range([0, chartWidth]);
-
-    const yScale = d3
-      .scaleBand()
-      .domain(processedData.map((d) => d.sentenceNum).reverse())
-      .range([0, chartHeight])
-      .padding(0.1);
+    const yScaleInner = d3.scaleLinear().domain([100, 0]).range([0, chartHeight]);
 
     svg
       .append("g")
@@ -68,14 +64,7 @@
 
     svg
       .append("g")
-      .call(
-        d3
-          .axisLeft(yScale)
-          .tickSize(0)
-          .tickValues(
-            filterTicks(processedData.map((d) => d.sentenceNum).reverse())
-          )
-      )
+      .call(d3.axisLeft(yScaleInner).ticks(5))
       .append("text")
       .attr("transform", "rotate(-90)")
       .attr("y", -35)
@@ -83,7 +72,7 @@
       .attr("fill", "black")
       .attr("text-anchor", "middle")
       .style("font-size", "10px")
-      .text("Sentence Number");
+      .text("Progress");
 
     svg
       .selectAll(".bar")
@@ -91,10 +80,10 @@
       .enter()
       .append("rect")
       .attr("class", "bar")
-      .attr("y", (d) => yScale(d.sentenceNum))
+      .attr("y", (d) => yScaleInner(d.endProgress))
       .attr("x", (d) => xScale(d.dissimilarity))
       .attr("width", (d) => xScale(0) - xScale(d.dissimilarity))
-      .attr("height", yScale.bandwidth())
+      .attr("height", (d) => yScaleInner(d.startProgress) - yScaleInner(d.endProgress))
       .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke-width", 1);
@@ -109,12 +98,12 @@
     //   .text("Semantic Change by Sentence");
   }
 
-  function filterTicks(ticks) {
-    if (ticks.length <= 20) return ticks;
+  // function filterTicks(ticks) {
+  //   if (ticks.length <= 20) return ticks;
 
-    const step = Math.ceil(ticks.length / 10);
-    return ticks.filter((_, i) => i % step === 0);
-  }
+  //   const step = Math.ceil(ticks.length / 10);
+  //   return ticks.filter((_, i) => i % step === 0);
+  // }
 </script>
 
 <div

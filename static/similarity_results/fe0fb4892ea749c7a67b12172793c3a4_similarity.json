@@ -4,314 +4,404 @@
         "source": "api",
         "max_similarity": 0.0,
         "dissimilarity": 1.0,
-        "most_similar_previous": null
+        "most_similar_previous": null,
+        "start_progress": 0,
+        "end_progress": 0.06051732552464617
     },
     {
         "sentence": "At first, they posted flyers saying he was missing.",
         "source": "user",
         "max_similarity": 0.29829031229019165,
         "dissimilarity": 0.7017096877098083,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.061005368472425575,
+        "end_progress": 0.08589555880917521
     },
     {
         "sentence": "And then it was on the news.",
         "source": "user",
         "max_similarity": 0.28637436032295227,
         "dissimilarity": 0.7136256396770477,
-        "most_similar_previous": 1
+        "most_similar_previous": 1,
+        "start_progress": 0.08638360175695461,
+        "end_progress": 0.10004880429477794
     },
     {
         "sentence": "And then they had a press conference.",
         "source": "user",
-        "max_similarity": 0.3938107490539551,
-        "dissimilarity": 0.6061892509460449,
-        "most_similar_previous": 2
+        "max_similarity": 0.3938107192516327,
+        "dissimilarity": 0.6061892807483673,
+        "most_similar_previous": 2,
+        "start_progress": 0.10053684724255735,
+        "end_progress": 0.11859443631039532
     },
     {
         "sentence": "Ben Affleck was the head of press.",
         "source": "user",
         "max_similarity": 0.4223504066467285,
         "dissimilarity": 0.5776495933532715,
-        "most_similar_previous": 3
+        "most_similar_previous": 3,
+        "start_progress": 0.11908247925817472,
+        "end_progress": 0.13567593948267448
     },
     {
         "sentence": "He organized a search party.",
         "source": "user",
         "max_similarity": 0.34684497117996216,
         "dissimilarity": 0.6531550288200378,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.13616398243045388,
+        "end_progress": 0.1498291849682772
     },
     {
         "sentence": "There were people everywhere.",
         "source": "user",
         "max_similarity": 0.19369694590568542,
         "dissimilarity": 0.8063030540943146,
-        "most_similar_previous": 4
+        "most_similar_previous": 4,
+        "start_progress": 0.15031722791605662,
+        "end_progress": 0.16447047340165935
     },
     {
         "sentence": "They had dogs tracking his scent.",
         "source": "user",
         "max_similarity": 0.5284149646759033,
         "dissimilarity": 0.4715850353240967,
-        "most_similar_previous": 3
+        "most_similar_previous": 3,
+        "start_progress": 0.16495851634943876,
+        "end_progress": 0.1810639336261591
     },
     {
         "sentence": "They followed a trail where they could trace him.",
         "source": "user",
-        "max_similarity": 0.4873241186141968,
-        "dissimilarity": 0.5126758813858032,
-        "most_similar_previous": 7
+        "max_similarity": 0.48732414841651917,
+        "dissimilarity": 0.5126758515834808,
+        "most_similar_previous": 7,
+        "start_progress": 0.1815519765739385,
+        "end_progress": 0.20546608101512934
     },
     {
         "sentence": "They were looking for him in the woods.",
         "source": "user",
-        "max_similarity": 0.4274410009384155,
-        "dissimilarity": 0.5725589990615845,
-        "most_similar_previous": 8
+        "max_similarity": 0.4274410307407379,
+        "dissimilarity": 0.5725589692592621,
+        "most_similar_previous": 8,
+        "start_progress": 0.20595412396290874,
+        "end_progress": 0.22498779892630552
     },
     {
         "sentence": "They found his wallet.",
         "source": "user",
         "max_similarity": 0.5861784219741821,
         "dissimilarity": 0.41382157802581787,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.22547584187408493,
+        "end_progress": 0.23621278672523183
     },
     {
         "sentence": "All of its contents were still inside, including cash.",
         "source": "user",
         "max_similarity": 0.33480894565582275,
         "dissimilarity": 0.6651910543441772,
-        "most_similar_previous": 10
+        "most_similar_previous": 10,
+        "start_progress": 0.23670082967301123,
+        "end_progress": 0.26305514885309905
     },
     {
         "sentence": "They found his shoes.",
         "source": "user",
         "max_similarity": 0.785015344619751,
         "dissimilarity": 0.21498465538024902,
-        "most_similar_previous": 10
+        "most_similar_previous": 10,
+        "start_progress": 0.2635431918008785,
+        "end_progress": 0.27379209370424595
     },
     {
         "sentence": "And then they found the same pair of shoes again.",
         "source": "user",
         "max_similarity": 0.5874489545822144,
         "dissimilarity": 0.41255104541778564,
-        "most_similar_previous": 12
+        "most_similar_previous": 12,
+        "start_progress": 0.2742801366520254,
+        "end_progress": 0.2981942410932162
     },
     {
         "sentence": "How strange.",
         "source": "user",
-        "max_similarity": 0.41941404342651367,
-        "dissimilarity": 0.5805859565734863,
-        "most_similar_previous": 3
+        "max_similarity": 0.4194140136241913,
+        "dissimilarity": 0.5805859863758087,
+        "most_similar_previous": 3,
+        "start_progress": 0.2986822840409956,
+        "end_progress": 0.30453879941434847
     },
     {
         "sentence": "Why would he leave behind two pairs of shoes?",
         "source": "user",
-        "max_similarity": 0.24616548418998718,
-        "dissimilarity": 0.7538345158100128,
-        "most_similar_previous": 4
+        "max_similarity": 0.2461654543876648,
+        "dissimilarity": 0.7538345456123352,
+        "most_similar_previous": 4,
+        "start_progress": 0.30502684236212785,
+        "end_progress": 0.32747681795998046
     },
     {
         "sentence": "They kept looking.",
         "source": "user",
-        "max_similarity": 0.5052140951156616,
-        "dissimilarity": 0.4947859048843384,
-        "most_similar_previous": 9
+        "max_similarity": 0.5052140355110168,
+        "dissimilarity": 0.49478596448898315,
+        "most_similar_previous": 9,
+        "start_progress": 0.3279648609077599,
+        "end_progress": 0.3367496339677892
     },
     {
         "sentence": "They found his hat.",
         "source": "user",
-        "max_similarity": 0.7978752255439758,
-        "dissimilarity": 0.20212477445602417,
-        "most_similar_previous": 12
+        "max_similarity": 0.7978752851486206,
+        "dissimilarity": 0.2021247148513794,
+        "most_similar_previous": 12,
+        "start_progress": 0.33723767691556855,
+        "end_progress": 0.34651049292337727
     },
     {
         "sentence": "And then they found the same hat- again!",
         "source": "user",
         "max_similarity": 0.6593202352523804,
         "dissimilarity": 0.34067976474761963,
-        "most_similar_previous": 13
+        "most_similar_previous": 13,
+        "start_progress": 0.34699853587115664,
+        "end_progress": 0.3665202537823328
     },
     {
         "sentence": "They found his shirt, and then found the same shirt again.",
         "source": "user",
-        "max_similarity": 0.6943791508674622,
-        "dissimilarity": 0.30562084913253784,
-        "most_similar_previous": 13
+        "max_similarity": 0.6943792104721069,
+        "dissimilarity": 0.30562078952789307,
+        "most_similar_previous": 13,
+        "start_progress": 0.36700829673011226,
+        "end_progress": 0.3953147877013177
     },
     {
         "sentence": "What was going on?",
         "source": "user",
         "max_similarity": 0.4135657250881195,
         "dissimilarity": 0.5864342749118805,
-        "most_similar_previous": 2
+        "most_similar_previous": 2,
+        "start_progress": 0.3958028306490971,
+        "end_progress": 0.4045876037091264
     },
     {
         "sentence": "They found his pants, and then found the same pants again.",
         "source": "user",
         "max_similarity": 0.7270911931991577,
         "dissimilarity": 0.2729088068008423,
-        "most_similar_previous": 19
+        "most_similar_previous": 19,
+        "start_progress": 0.4050756466569058,
+        "end_progress": 0.4333821376281113
     },
     {
         "sentence": "\"Are you sure we're looking for the right guy?\" said Ben Affleck.",
         "source": "user",
-        "max_similarity": 0.3676756024360657,
-        "dissimilarity": 0.6323243975639343,
-        "most_similar_previous": 4
+        "max_similarity": 0.36767563223838806,
+        "dissimilarity": 0.6323243677616119,
+        "most_similar_previous": 4,
+        "start_progress": 0.43387018057589066,
+        "end_progress": 0.465592972181552
     },
     {
         "sentence": "\"I think we should stop looking for him and just wait for him to come back,\" said Ben Affleck.",
         "source": "user",
         "max_similarity": 0.4458124041557312,
         "dissimilarity": 0.5541875958442688,
-        "most_similar_previous": 22
+        "most_similar_previous": 22,
+        "start_progress": 0.46608101512933137,
+        "end_progress": 0.5119570522205954
     },
     {
         "sentence": "Just then, they heard a sound coming from behind a tree.",
         "source": "user",
-        "max_similarity": 0.4872919023036957,
-        "dissimilarity": 0.5127080976963043,
-        "most_similar_previous": 3
+        "max_similarity": 0.48729193210601807,
+        "dissimilarity": 0.5127080678939819,
+        "most_similar_previous": 3,
+        "start_progress": 0.5124450951683748,
+        "end_progress": 0.5397755002440214
     },
     {
         "sentence": "It was Matt Damon!",
         "source": "api",
-        "max_similarity": 0.3150148391723633,
-        "dissimilarity": 0.6849851608276367,
-        "most_similar_previous": 2
+        "max_similarity": 0.3150147795677185,
+        "dissimilarity": 0.6849852204322815,
+        "most_similar_previous": 2,
+        "start_progress": 0.5402635431918009,
+        "end_progress": 0.5490483162518301
     },
     {
         "sentence": "They ran over to him, when they heard a sound coming from behind another tree a few yards away.",
         "source": "user",
         "max_similarity": 0.7503527402877808,
         "dissimilarity": 0.24964725971221924,
-        "most_similar_previous": 24
+        "most_similar_previous": 24,
+        "start_progress": 0.5495363591996095,
+        "end_progress": 0.595900439238653
     },
     {
         "sentence": "They froze as they watched someone emerge from behind the tree.",
         "source": "user",
         "max_similarity": 0.5509885549545288,
         "dissimilarity": 0.4490114450454712,
-        "most_similar_previous": 26
+        "most_similar_previous": 26,
+        "start_progress": 0.5963884821864324,
+        "end_progress": 0.6271351878965349
     },
     {
         "sentence": "It was Matt Damon!",
         "source": "user",
-        "max_similarity": 1.0000001192092896,
-        "dissimilarity": -1.1920928955078125e-07,
-        "most_similar_previous": 25
+        "max_similarity": 1.0,
+        "dissimilarity": 0.0,
+        "most_similar_previous": 25,
+        "start_progress": 0.6276232308443143,
+        "end_progress": 0.6364080039043436
     },
     {
         "sentence": "\"Matt Damon!\" they all shouted.",
         "source": "api",
-        "max_similarity": 0.4653981924057007,
-        "dissimilarity": 0.5346018075942993,
-        "most_similar_previous": 25
+        "max_similarity": 0.4653981626033783,
+        "dissimilarity": 0.5346018373966217,
+        "most_similar_previous": 25,
+        "start_progress": 0.636896046852123,
+        "end_progress": 0.6520253782332845
     },
     {
         "sentence": "\"Wait a minute!\" shouted Ben Affleck.",
         "source": "user",
-        "max_similarity": 0.46607860922813416,
-        "dissimilarity": 0.5339213907718658,
-        "most_similar_previous": 29
+        "max_similarity": 0.46607857942581177,
+        "dissimilarity": 0.5339214205741882,
+        "most_similar_previous": 29,
+        "start_progress": 0.6525134211810639,
+        "end_progress": 0.6705710102489019
     },
     {
         "sentence": "\"That's not Matt Damon!\"",
         "source": "user",
-        "max_similarity": 0.5937590599060059,
-        "dissimilarity": 0.40624094009399414,
-        "most_similar_previous": 29
+        "max_similarity": 0.5937591791152954,
+        "dissimilarity": 0.4062408208847046,
+        "most_similar_previous": 29,
+        "start_progress": 0.6710590531966814,
+        "end_progress": 0.6837481698389458
     },
     {
         "sentence": "\"Yes I am!\" shouted Matt Damon, with his hands up in the air.",
         "source": "user",
-        "max_similarity": 0.5078923106193542,
-        "dissimilarity": 0.49210768938064575,
-        "most_similar_previous": 29
+        "max_similarity": 0.507892370223999,
+        "dissimilarity": 0.492107629776001,
+        "most_similar_previous": 29,
+        "start_progress": 0.6842362127867252,
+        "end_progress": 0.714006832601269
     },
     {
         "sentence": "\"I'm Matt Damon!\"",
         "source": "user",
         "max_similarity": 0.7045649290084839,
         "dissimilarity": 0.2954350709915161,
-        "most_similar_previous": 31
+        "most_similar_previous": 31,
+        "start_progress": 0.7144948755490483,
+        "end_progress": 0.7232796486090776
     },
     {
         "sentence": "\"No, I'm Matt Damon!\" shouted the Matt Damon from the first tree.",
         "source": "user",
-        "max_similarity": 0.7756987810134888,
-        "dissimilarity": 0.22430121898651123,
-        "most_similar_previous": 33
+        "max_similarity": 0.7756986618041992,
+        "dissimilarity": 0.22430133819580078,
+        "most_similar_previous": 33,
+        "start_progress": 0.723767691556857,
+        "end_progress": 0.7554904831625183
     },
     {
         "sentence": "\"He's the one that kidnapped me! Please, ya gotta believe me!\"",
         "source": "user",
         "max_similarity": 0.5446110963821411,
         "dissimilarity": 0.4553889036178589,
-        "most_similar_previous": 34
+        "most_similar_previous": 34,
+        "start_progress": 0.7559785261102977,
+        "end_progress": 0.06051732552464617
     },
     {
         "sentence": "\"I'm Matt Damon!\" shouted the Matt Damon from the second tree.",
         "source": "api",
         "max_similarity": 0.9322588443756104,
         "dissimilarity": 0.06774115562438965,
-        "most_similar_previous": 34
+        "most_similar_previous": 34,
+        "start_progress": 0.7872132747681796,
+        "end_progress": 0.8174719375305027
     },
     {
         "sentence": "\"I was kidnapped! Please, ya gotta believe me!\"",
         "source": "user",
         "max_similarity": 0.7886404991149902,
         "dissimilarity": 0.21135950088500977,
-        "most_similar_previous": 35
+        "most_similar_previous": 35,
+        "start_progress": 0.8184480234260615,
+        "end_progress": 0.8418740849194729
     },
     {
         "sentence": "Ben Affleck didn't know what to do.",
         "source": "user",
         "max_similarity": 0.4680311679840088,
         "dissimilarity": 0.5319688320159912,
-        "most_similar_previous": 4
+        "most_similar_previous": 4,
+        "start_progress": 0.8423621278672523,
+        "end_progress": 0.8594436310395315
     },
     {
         "sentence": "There wasn't enough time to think it out.",
         "source": "user",
-        "max_similarity": 0.3815118968486786,
-        "dissimilarity": 0.6184881031513214,
-        "most_similar_previous": 6
+        "max_similarity": 0.3815118670463562,
+        "dissimilarity": 0.6184881329536438,
+        "most_similar_previous": 6,
+        "start_progress": 0.8599316739873109,
+        "end_progress": 0.8799414348462665
     },
     {
         "sentence": "He had to act quick.",
         "source": "user",
         "max_similarity": 0.4484645128250122,
         "dissimilarity": 0.5515354871749878,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.8804294777940459,
+        "end_progress": 0.890190336749634
     },
     {
         "sentence": "He drew his gun and shot the Matt Damon from the first tree.",
         "source": "user",
         "max_similarity": 0.6114211082458496,
         "dissimilarity": 0.3885788917541504,
-        "most_similar_previous": 34
+        "most_similar_previous": 34,
+        "start_progress": 0.8906783796974134,
+        "end_progress": 0.9199609565641776
     },
     {
         "sentence": "Then he turned to the other Matt Damon and shot him too.",
         "source": "user",
         "max_similarity": 0.6434547305107117,
         "dissimilarity": 0.35654526948928833,
-        "most_similar_previous": 41
+        "most_similar_previous": 41,
+        "start_progress": 0.920448999511957,
+        "end_progress": 0.9477794045876037
     },
     {
         "sentence": "Everyone on the search team gasped in horror, but Ben Affleck just shrugged.",
         "source": "user",
-        "max_similarity": 0.41016989946365356,
-        "dissimilarity": 0.5898301005363464,
-        "most_similar_previous": 32
+        "max_similarity": 0.4101698696613312,
+        "dissimilarity": 0.5898301303386688,
+        "most_similar_previous": 32,
+        "start_progress": 0.9482674475353832,
+        "end_progress": 0.9853587115666179
     },
     {
         "sentence": "\"How do ya like them apples?\"",
         "source": "user",
         "max_similarity": 0.383217990398407,
         "dissimilarity": 0.616782009601593,
-        "most_similar_previous": 37
+        "most_similar_previous": 37,
+        "start_progress": 0.9858467545143973,
+        "end_progress": 0.8179599804782821
     }
 ]
