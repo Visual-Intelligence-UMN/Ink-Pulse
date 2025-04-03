@@ -9,7 +9,7 @@
   import { get } from "svelte/store";
   import LineChart from "../components/lineChart.svelte";
   import BarChart from "../components/barChart.svelte";
-  import ZoomoutChart from "../components/zoomoutChart.svelte"
+  import ZoomoutChart from "../components/zoomoutChart.svelte";
 
   let chartRefs = {};
   function resetZoom(sessionId) {
@@ -66,6 +66,8 @@
   export const filterTableData = writable([]);
   let isCollapsed = false;
   let loading = true;
+  // store to track filter states
+  const promptFilterStatus = writable({});
 
   function open2close() {
     isOpen = !isOpen;
@@ -73,6 +75,38 @@
 
   function change2bar() {
     showMulti = !showMulti;
+  }
+
+  function updatePromptFilterStatus() {
+    const allSessions = tableData || [];
+    const promptGroups = {};
+
+    allSessions.forEach((session) => {
+      if (!promptGroups[session.prompt_code]) {
+        promptGroups[session.prompt_code] = [];
+      }
+      promptGroups[session.prompt_code].push(session);
+    });
+
+    const statusMap = {};
+    Object.entries(promptGroups).forEach(([promptCode, sessions]) => {
+      const totalSessions = sessions.length;
+      const selectedSessions = sessions.filter((session) =>
+        $filterTableData.find(
+          (item) => item.session_id === session.session_id && item.selected
+        )
+      ).length;
+
+      if (selectedSessions === 0) {
+        statusMap[promptCode] = "none";
+      } else if (selectedSessions === totalSessions) {
+        statusMap[promptCode] = "all";
+      } else {
+        statusMap[promptCode] = "partial";
+      }
+    });
+
+    promptFilterStatus.set(statusMap);
   }
 
   async function toggleTag(event) {
@@ -155,6 +189,8 @@
         await fetchData(session.session_id, false);
       }
     }
+
+    updatePromptFilterStatus();
   }
 
   function filterSessions() {
@@ -172,6 +208,7 @@
           true,
       }));
       filterTableData.set(updatedData);
+      updatePromptFilterStatus();
     }
   }
 
@@ -274,15 +311,18 @@
         }
       });
 
-      let isCurrentlySelected = $filterTableData.filter(item => item.selected);
+      let isCurrentlySelected = $filterTableData.filter(
+        (item) => item.selected
+      );
       loading = true;
       if (isCurrentlySelected.length == $storeSessionData.length) {
         loading = false;
       }
-      
     } catch (error) {
       console.error("Error when reading the data file:", error);
     }
+
+    updatePromptFilterStatus();
   };
 
   const fetchSimilarityData = async (sessionFile) => {
@@ -328,6 +368,7 @@
         filterOptions = Array.from(
           new Set(tableData.map((row) => row.prompt_code))
         );
+        updatePromptFilterStatus();
       }
     } catch (error) {
       console.error("Error when fetching sessions:", error);
@@ -376,12 +417,15 @@
       });
     }
 
-    let nowSelectTag = new Set($filterTableData.filter((f) => f.selected).map(f => f.prompt_code))
-    console.log(nowSelectTag)
+    let nowSelectTag = new Set(
+      $filterTableData.filter((f) => f.selected).map((f) => f.prompt_code)
+    );
+    console.log(nowSelectTag);
     selectedTags.update((selected) => {
-        selected = selected.filter(tag => nowSelectTag.has(tag))
+      selected = selected.filter((tag) => nowSelectTag.has(tag));
       return selected;
     });
+    updatePromptFilterStatus();
   };
 
   function handleSelectChange(index) {
@@ -658,7 +702,6 @@
       return [...sessions];
     });
   }
-
 </script>
 
 <div class="App">
@@ -666,16 +709,31 @@
     <nav>
       <div class="filter-container {showFilter ? 'show' : ''}">
         {#each filterOptions as option}
-          <label>
-            <input
-              type="checkbox"
-              value={option}
-              on:change={toggleTag}
-              checked={$selectedTags.includes(option)}
-            />
+          <label class="filter-label">
+            <span class="checkbox-wrapper">
+              <input
+                id="checkbox-n"
+                type="checkbox"
+                value={option}
+                on:change={toggleTag}
+                checked={$selectedTags.includes(option)}
+                class="filter-checkbox"
+              />
+              <span class="custom-checkbox">
+                {#if $promptFilterStatus[option] === "all"}
+                  <span class="checkbox-indicator">✓</span>
+                {:else if $promptFilterStatus[option] === "partial"}
+                  <span
+                    class="checkbox-indicator"
+                    style="font-weight: bold; font-size: 24px;">-</span
+                  >
+                {:else}
+                  <span class="checkbox-indicator"></span>
+                {/if}
+              </span>
+            </span>
             {option}
           </label>
-          <br />
         {/each}
       </div>
       <div class="chart-explanation">
@@ -722,10 +780,10 @@
         </div>
       {/if}
       {#if showMulti && $storeSessionData.length > 0}
-      {#if loading}
-        <div class="loading"></div>
-        <div class="line-md--loading-twotone-loop"></div>
-      {/if}
+        {#if loading}
+          <div class="loading"></div>
+          <div class="line-md--loading-twotone-loop"></div>
+        {/if}
         <div class="multi-box">
           {#each $storeSessionData as sessionData (sessionData.sessionId)}
             <div class="display-box">
@@ -842,20 +900,20 @@
       {/if}
     </div>
 
-      {#if !showMulti && $storeSessionData.length > 0}
-        {#each $storeSessionData as sessionData (sessionData.sessionId)}
-          <div class="zoomout-chart">
-            <ZoomoutChart
-              bind:this={chartRefs[sessionData.sessionId]}
-              chartData={sessionData.chartData}
-              sessionId={sessionData.sessionId}
-              sessionTopic={sessions.find(
-                (s) => s.session_id === sessionData.sessionId
-              ).prompt_code}
-            />
-          </div>
-        {/each}
-      {/if}
+    {#if !showMulti && $storeSessionData.length > 0}
+      {#each $storeSessionData as sessionData (sessionData.sessionId)}
+        <div class="zoomout-chart">
+          <ZoomoutChart
+            bind:this={chartRefs[sessionData.sessionId]}
+            chartData={sessionData.chartData}
+            sessionId={sessionData.sessionId}
+            sessionTopic={sessions.find(
+              (s) => s.session_id === sessionData.sessionId
+            ).prompt_code}
+          />
+        </div>
+      {/each}
+    {/if}
 
     <div class="table" class:collapsed={isCollapsed}>
       <table>
@@ -869,6 +927,7 @@
                 on:click|preventDefault={toggleFilter}
                 href=" "
                 aria-label="Filter"
+                bind:this={filterButton}
                 class={showFilter
                   ? "material-symbols--filter-alt"
                   : "material-symbols--filter-alt-outline"}
@@ -881,6 +940,7 @@
                 on:click|preventDefault={toggleTableCollapse}
                 href=" "
                 aria-label="Collapse"
+                bind:this={collapseButton}
                 class={isCollapsed
                   ? "material-symbols--stat-1-rounded"
                   : "material-symbols--stat-minus-1-rounded"}
@@ -1188,6 +1248,13 @@
     overflow-y: auto;
   }
 
+  thead {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+  }
+
   .collapsed {
     position: fixed;
     bottom: 0;
@@ -1268,6 +1335,58 @@
   .filter-container label {
     display: block;
     cursor: pointer;
+    margin-bottom: 8px;
+  }
+
+  .filter-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: 8px;
+    position: relative;
+  }
+
+  .checkbox-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+  }
+
+  .filter-checkbox {
+    vertical-align: middle;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    position: relative;
+    margin: 0;
+  }
+
+  .custom-checkbox {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+  }
+
+  .checkbox-indicator {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    pointer-events: none;
   }
 
   input[type="checkbox"] {
@@ -1290,6 +1409,7 @@
   }
 
   input[type="checkbox"]:checked::before {
+    content: "✔";
     font-size: 12px;
     color: white;
     position: absolute;
@@ -1299,15 +1419,8 @@
     font-weight: bold;
   }
 
-  input[type="checkbox"]:checked::before {
-    content: "✔";
-    font-size: 12px;
-    color: white;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-weight: bold;
+  #checkbox-n:checked::before {
+    content: "";
   }
 
   .material-symbols--stat-1-rounded {
@@ -1413,6 +1526,5 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    }
-
+  }
 </style>

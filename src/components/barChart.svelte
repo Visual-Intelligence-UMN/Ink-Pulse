@@ -25,6 +25,7 @@
     const processedData = similarityData.map((item, index) => ({
       sentenceNum: index + 1,
       dissimilarity: item.dissimilarity * 100,
+      source: item.source,
     }));
 
     const margin = { top: 10, right: 30, bottom: 30, left: 50 };
@@ -94,8 +95,8 @@
       .attr("x", (d) => xScale(d.dissimilarity))
       .attr("width", (d) => xScale(0) - xScale(d.dissimilarity))
       .attr("height", yScale.bandwidth())
-      .attr("fill", "rgba(0, 0, 255, 0.8)")
-      .attr("stroke", "rgba(0, 0, 255, 1)")
+      .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
+      .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke-width", 1);
 
     // svg
