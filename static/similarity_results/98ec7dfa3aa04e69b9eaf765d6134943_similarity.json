@@ -1,254 +1,464 @@
 [
     {
         "sentence": "Your entire life, you've been told you're deathly allergic to bees.",
+        "source": "api",
         "max_similarity": 0.0,
         "dissimilarity": 1.0,
-        "most_similar_previous": null
+        "most_similar_previous": null,
+        "start_progress": 0.0,
+        "end_progress": 0.03433922996878252,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You've always had people protecting you from them, be it your mother or a hired hand.",
+        "source": "api",
         "max_similarity": 0.5414005517959595,
         "dissimilarity": 0.4585994482040405,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.03485952133194589,
+        "end_progress": 0.07908428720083246,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Today, one slips through and lands on your shoulder.",
+        "source": "api",
         "max_similarity": 0.30459076166152954,
         "dissimilarity": 0.6954092383384705,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.07960457856399583,
+        "end_progress": 0.10665972944849116,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You hear a tiny voice say \"Your Majesty, what are your orders?\"",
+        "source": "api",
         "max_similarity": 0.41952699422836304,
         "dissimilarity": 0.580473005771637,
-        "most_similar_previous": 1
+        "most_similar_previous": 1,
+        "start_progress": 0.10718002081165452,
+        "end_progress": 0.14099895941727367,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "What do you do?",
-        "max_similarity": 0.3310472071170807,
-        "dissimilarity": 0.6689527928829193,
-        "most_similar_previous": 3
+        "source": "api",
+        "max_similarity": 0.3310471773147583,
+        "dissimilarity": 0.6689528226852417,
+        "most_similar_previous": 3,
+        "start_progress": 0.14151925078043703,
+        "end_progress": 0.14932362122788762,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It's not every day that a bee talks to you.",
+        "source": "user",
         "max_similarity": 0.4890087842941284,
         "dissimilarity": 0.5109912157058716,
-        "most_similar_previous": 1
+        "most_similar_previous": 1,
+        "start_progress": 0.14984391259105098,
+        "end_progress": 0.17221644120707597,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The bee is a magical bee, and it can grant you one wish.",
+        "source": "user",
         "max_similarity": 0.47417575120925903,
         "dissimilarity": 0.525824248790741,
-        "most_similar_previous": 1
+        "most_similar_previous": 1,
+        "start_progress": 0.17273673257023933,
+        "end_progress": 0.20187304890738814,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "That's how it can prove to you just how important you are.",
-        "max_similarity": 0.49921223521232605,
-        "dissimilarity": 0.500787764787674,
-        "most_similar_previous": 1
+        "source": "user",
+        "max_similarity": 0.49921226501464844,
+        "dissimilarity": 0.5007877349853516,
+        "most_similar_previous": 1,
+        "start_progress": 0.2023933402705515,
+        "end_progress": 0.23257023933402707,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "What do you wish for?",
-        "max_similarity": 0.793611466884613,
-        "dissimilarity": 0.20638853311538696,
-        "most_similar_previous": 4
+        "source": "user",
+        "max_similarity": 0.7936115264892578,
+        "dissimilarity": 0.2063884735107422,
+        "most_similar_previous": 4,
+        "start_progress": 0.23309053069719043,
+        "end_progress": 0.24401664932362122,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You could wish for money.",
-        "max_similarity": 0.5565522909164429,
-        "dissimilarity": 0.44344770908355713,
-        "most_similar_previous": 8
+        "source": "user",
+        "max_similarity": 0.5565524101257324,
+        "dissimilarity": 0.4434475898742676,
+        "most_similar_previous": 8,
+        "start_progress": 0.2445369406867846,
+        "end_progress": 0.2575442247658689,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You could wish to live forever.",
+        "source": "user",
         "max_similarity": 0.6680039763450623,
         "dissimilarity": 0.33199602365493774,
-        "most_similar_previous": 9
+        "most_similar_previous": 9,
+        "start_progress": 0.25806451612903225,
+        "end_progress": 0.27419354838709675,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You could wish for a million wishes.",
+        "source": "user",
         "max_similarity": 0.6972299814224243,
         "dissimilarity": 0.3027700185775757,
-        "most_similar_previous": 9
+        "most_similar_previous": 9,
+        "start_progress": 0.27471383975026015,
+        "end_progress": 0.2934443288241415,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "That probably isn't allowed though.",
-        "max_similarity": 0.30160635709762573,
-        "dissimilarity": 0.6983936429023743,
-        "most_similar_previous": 11
+        "source": "user",
+        "max_similarity": 0.3016064167022705,
+        "dissimilarity": 0.6983935832977295,
+        "most_similar_previous": 11,
+        "start_progress": 0.2939646201873049,
+        "end_progress": 0.31217481789802287,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Your Mother approaches and sees what is happening.",
-        "max_similarity": 0.32070106267929077,
-        "dissimilarity": 0.6792989373207092,
-        "most_similar_previous": 2
+        "source": "user",
+        "max_similarity": 0.32070109248161316,
+        "dissimilarity": 0.6792989075183868,
+        "most_similar_previous": 2,
+        "start_progress": 0.31269510926118627,
+        "end_progress": 0.3397502601456816,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She looks nervous.",
-        "max_similarity": 0.352209210395813,
-        "dissimilarity": 0.647790789604187,
-        "most_similar_previous": 12
+        "source": "user",
+        "max_similarity": 0.3522092401981354,
+        "dissimilarity": 0.6477907598018646,
+        "most_similar_previous": 12,
+        "start_progress": 0.34027055150884494,
+        "end_progress": 0.34963579604578565,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Did you make your wish yet?\" she asks.",
+        "source": "user",
         "max_similarity": 0.5782853364944458,
         "dissimilarity": 0.4217146635055542,
-        "most_similar_previous": 3
+        "most_similar_previous": 3,
+        "start_progress": 0.350156087408949,
+        "end_progress": 0.37148803329864727,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"How did you know?\" you ask.",
+        "source": "user",
         "max_similarity": 0.5528557300567627,
         "dissimilarity": 0.4471442699432373,
-        "most_similar_previous": 15
+        "most_similar_previous": 15,
+        "start_progress": 0.3720083246618106,
+        "end_progress": 0.38761706555671177,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She sighs.",
-        "max_similarity": 0.6765420436859131,
-        "dissimilarity": 0.3234579563140869,
-        "most_similar_previous": 14
+        "source": "user",
+        "max_similarity": 0.6765421032905579,
+        "dissimilarity": 0.32345789670944214,
+        "most_similar_previous": 14,
+        "start_progress": 0.3881373569198751,
+        "end_progress": 0.39438085327783556,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Once they offer you a wish, you must take it. I tried to keep you from this as long as I could.\"",
+        "source": "user",
         "max_similarity": 0.5373852252960205,
         "dissimilarity": 0.4626147747039795,
-        "most_similar_previous": 16
+        "most_similar_previous": 16,
+        "start_progress": 0.39490114464099896,
+        "end_progress": 0.4458896982310094,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Why is a wish so bad?\" I ask.",
-        "max_similarity": 0.6245631575584412,
-        "dissimilarity": 0.37543684244155884,
-        "most_similar_previous": 3
+        "source": "user",
+        "max_similarity": 0.6245632171630859,
+        "dissimilarity": 0.37543678283691406,
+        "most_similar_previous": 3,
+        "start_progress": 0.4464099895941727,
+        "end_progress": 0.4620187304890739,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Because you can't wish for anything good,\" she says.",
-        "max_similarity": 0.4620065689086914,
-        "dissimilarity": 0.5379934310913086,
-        "most_similar_previous": 18
+        "source": "user",
+        "max_similarity": 0.462006539106369,
+        "dissimilarity": 0.537993460893631,
+        "most_similar_previous": 18,
+        "start_progress": 0.4625390218522373,
+        "end_progress": 0.4911550468262227,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Not quite understanding, you attempt to wish for something good.",
+        "source": "user",
         "max_similarity": 0.5386187434196472,
         "dissimilarity": 0.4613812565803528,
-        "most_similar_previous": 20
+        "most_similar_previous": 20,
+        "start_progress": 0.4916753381893861,
+        "end_progress": 0.5254942767950052,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You try to wish for money for your family.",
-        "max_similarity": 0.7551062703132629,
-        "dissimilarity": 0.24489372968673706,
-        "most_similar_previous": 9
+        "source": "user",
+        "max_similarity": 0.7551063895225525,
+        "dissimilarity": 0.2448936104774475,
+        "most_similar_previous": 9,
+        "start_progress": 0.5260145681581686,
+        "end_progress": 0.5478668054110302,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "However, it comes out as \"Someone in my family will die and I will get their life insurance money.\"",
-        "max_similarity": 0.4578327238559723,
-        "dissimilarity": 0.5421672761440277,
-        "most_similar_previous": 18
+        "source": "user",
+        "max_similarity": 0.4578326940536499,
+        "dissimilarity": 0.5421673059463501,
+        "most_similar_previous": 18,
+        "start_progress": 0.5483870967741935,
+        "end_progress": 0.6004162330905307,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "My mother isn't surprised.",
+        "source": "user",
         "max_similarity": 0.4892862141132355,
         "dissimilarity": 0.5107137858867645,
-        "most_similar_previous": 13
+        "most_similar_previous": 13,
+        "start_progress": 0.600936524453694,
+        "end_progress": 0.6144640998959418,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She expected this as she falls to the ground, dead.",
-        "max_similarity": 0.5195030570030212,
-        "dissimilarity": 0.48049694299697876,
-        "most_similar_previous": 17
+        "source": "user",
+        "max_similarity": 0.519503116607666,
+        "dissimilarity": 0.480496883392334,
+        "most_similar_previous": 17,
+        "start_progress": 0.6149843912591051,
+        "end_progress": 0.641519250780437,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Your check arrives and you are now wealthy.",
-        "max_similarity": 0.41899991035461426,
-        "dissimilarity": 0.5810000896453857,
-        "most_similar_previous": 1
+        "source": "user",
+        "max_similarity": 0.41899988055229187,
+        "dissimilarity": 0.5810001194477081,
+        "most_similar_previous": 1,
+        "start_progress": 0.6420395421436004,
+        "end_progress": 0.6644120707596254,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You are now the King of Bees as well.",
-        "max_similarity": 0.44032803177833557,
-        "dissimilarity": 0.5596719682216644,
-        "most_similar_previous": 7
+        "source": "user",
+        "max_similarity": 0.4403280019760132,
+        "dissimilarity": 0.5596719980239868,
+        "most_similar_previous": 7,
+        "start_progress": 0.6649323621227887,
+        "end_progress": 0.6841831425598335,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The bee tells you that you had your wish.",
+        "source": "user",
         "max_similarity": 0.5791409611701965,
         "dissimilarity": 0.42085903882980347,
-        "most_similar_previous": 6
+        "most_similar_previous": 6,
+        "start_progress": 0.6847034339229969,
+        "end_progress": 0.7060353798126952,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Now you must lead them.",
-        "max_similarity": 0.4342547059059143,
-        "dissimilarity": 0.5657452940940857,
-        "most_similar_previous": 27
+        "source": "user",
+        "max_similarity": 0.4342547655105591,
+        "dissimilarity": 0.5657452344894409,
+        "most_similar_previous": 27,
+        "start_progress": 0.7065556711758585,
+        "end_progress": 0.7185223725286161,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You reluctantly agree.",
+        "source": "user",
         "max_similarity": 0.4750105142593384,
         "dissimilarity": 0.5249894857406616,
-        "most_similar_previous": 18
+        "most_similar_previous": 18,
+        "start_progress": 0.7190426638917794,
+        "end_progress": 0.7315296566077003,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You let a large swarm of bees into your house.",
-        "max_similarity": 0.4545193016529083,
-        "dissimilarity": 0.5454806983470917,
-        "most_similar_previous": 0
+        "source": "user",
+        "max_similarity": 0.4545193314552307,
+        "dissimilarity": 0.5454806685447693,
+        "most_similar_previous": 0,
+        "start_progress": 0.7320499479708636,
+        "end_progress": 0.7559833506763788,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "They cover every inch of it.",
-        "max_similarity": 0.32764244079589844,
-        "dissimilarity": 0.6723575592041016,
-        "most_similar_previous": 7
+        "source": "user",
+        "max_similarity": 0.32764241099357605,
+        "dissimilarity": 0.672357589006424,
+        "most_similar_previous": 7,
+        "start_progress": 0.7565036420395421,
+        "end_progress": 0.7710718002081165,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You can't see anything, just bees.",
-        "max_similarity": 0.6690685153007507,
-        "dissimilarity": 0.33093148469924927,
-        "most_similar_previous": 20
+        "source": "user",
+        "max_similarity": 0.669068455696106,
+        "dissimilarity": 0.33093154430389404,
+        "most_similar_previous": 20,
+        "start_progress": 0.77159209157128,
+        "end_progress": 0.7892819979188346,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You sit, looking at the bees everywhere.",
+        "source": "user",
         "max_similarity": 0.5459486246109009,
         "dissimilarity": 0.4540513753890991,
-        "most_similar_previous": 33
+        "most_similar_previous": 33,
+        "start_progress": 0.7898022892819979,
+        "end_progress": 0.8106139438085328,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You think about how you now are rich, but you have no mother.",
+        "source": "user",
         "max_similarity": 0.6019130945205688,
         "dissimilarity": 0.39808690547943115,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.8111342351716961,
+        "end_progress": 0.8428720083246618,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You also now have bees everywhere you go.",
+        "source": "user",
         "max_similarity": 0.6159754991531372,
         "dissimilarity": 0.3840245008468628,
-        "most_similar_previous": 29
+        "most_similar_previous": 29,
+        "start_progress": 0.8433922996878251,
+        "end_progress": 0.8647242455775234,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Was this a life you wanted?",
+        "source": "user",
         "max_similarity": 0.5779628753662109,
         "dissimilarity": 0.42203712463378906,
-        "most_similar_previous": 11
+        "most_similar_previous": 11,
+        "start_progress": 0.8652445369406868,
+        "end_progress": 0.8792924037460979,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You think about it and decide you don't want to be the King of Bees.",
+        "source": "user",
         "max_similarity": 0.671820878982544,
         "dissimilarity": 0.32817912101745605,
-        "most_similar_previous": 27
+        "most_similar_previous": 27,
+        "start_progress": 0.8798126951092612,
+        "end_progress": 0.9151925078043704,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You order an industrial bee poison online.",
-        "max_similarity": 0.4206021726131439,
-        "dissimilarity": 0.5793978273868561,
-        "most_similar_previous": 28
+        "source": "user",
+        "max_similarity": 0.4206022024154663,
+        "dissimilarity": 0.5793977975845337,
+        "most_similar_previous": 28,
+        "start_progress": 0.9157127991675338,
+        "end_progress": 0.9375650364203955,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You get a hose and spray it everywhere, including on yourself.",
+        "source": "user",
         "max_similarity": 0.4987393617630005,
         "dissimilarity": 0.5012606382369995,
-        "most_similar_previous": 6
+        "most_similar_previous": 6,
+        "start_progress": 0.9380853277835588,
+        "end_progress": 0.9703433922996878,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Your last thought is that you really don't like bees.",
-        "max_similarity": 0.561629593372345,
-        "dissimilarity": 0.43837040662765503,
-        "most_similar_previous": 12
+        "source": "user",
+        "max_similarity": 0.5616296529769897,
+        "dissimilarity": 0.43837034702301025,
+        "most_similar_previous": 12,
+        "start_progress": 0.9708636836628513,
+        "end_progress": 0.9984391259105099,
+        "start_time": 0.0,
+        "end_time": 0.0
     }
 ]

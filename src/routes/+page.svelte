@@ -1,54 +1,24 @@
 <script>
   import { onMount } from "svelte";
-  import {
-    Chart,
-    TimeScale,
-    LineController,
-    LineElement,
-    PointElement,
-    Title,
-    Tooltip,
-    Legend,
-    CategoryScale,
-    LinearScale,
-    BarController,
-    BarElement,
-  } from "chart.js";
-  import {
-    Table,
-    TableBody,
-    TableBodyCell,
-    TableBodyRow,
-    TableHead,
-    TableHeadCell,
-  } from "flowbite-svelte";
   import "chartjs-adapter-date-fns";
-  import annotationPlugin from "chartjs-plugin-annotation";
   import { writable } from "svelte/store";
   import { tick } from "svelte";
   import { base } from "$app/paths";
   import tippy from "tippy.js";
   import "tippy.js/dist/tippy.css";
-  import "flowbite/dist/flowbite.min.css";
+  import { get } from "svelte/store";
+  import LineChart from "../components/lineChart.svelte";
+  import BarChartY from "../components/barChartY.svelte";
+  import BarChartX from "../components/barChartX.svelte";
+  import ZoomoutChart from "../components/zoomoutChart.svelte";
+  import * as d3 from "d3";
 
-  Chart.register(
-    TimeScale,
-    LineController,
-    LineElement,
-    PointElement,
-    Title,
-    Tooltip,
-    Legend,
-    CategoryScale,
-    BarController,
-    LinearScale,
-    annotationPlugin,
-    BarElement
-  );
+  let chartRefs = {};
+  function resetZoom(sessionId) {
+    chartRefs[sessionId]?.resetZoom();
+  }
 
-  let zoomPlugin;
   let filterButton;
-  let multiSessionButton;
   let collapseButton;
 
   onMount(() => {
@@ -58,24 +28,12 @@
         placement: "top",
       });
     }
-    if (multiSessionButton) {
-      tippy(multiSessionButton, {
-        content: "Click to enable/disable multi session view",
-        placement: "top",
-      });
-    }
     if (collapseButton) {
       tippy(collapseButton, {
         content: "Click to collapse/expand table view",
         placement: "top",
       });
     }
-  });
-
-  onMount(async () => {
-    const module = await import("chartjs-plugin-zoom");
-    zoomPlugin = module.default;
-    Chart.register(zoomPlugin);
   });
 
   let dataDict = {
@@ -91,51 +49,86 @@
   let currentTime = 0;
   let paragraphTime = [];
   let paragraphColor = [];
-  let selectedSession = "e4611bd31b794677b02c52d5700b2e38";
+  let selectedSession = [
+    "e4611bd31b794677b02c52d5700b2e38",
+    "233f1efcf0274acba92f46bf2f8766d2",
+  ];
   let sessions = [];
-  let chart = null;
-  let barchart = null;
   let time0 = null; // process bar's start time
   let time100 = null; // process bar's end time
   let endTime = null; // last paragraph time
   let isOpen = false;
   let showFilter = false;
-  export const selectedTags = writable([
-    "shapeshifter",
-    "reincarnation",
-    "mana",
-    "obama",
-    "pig",
-    "mattdamon",
-    "dad",
-    "isolation",
-    "bee",
-    "sideeffect",
-  ]);
-  let filterOptions = [
-    "shapeshifter",
-    "reincarnation",
-    "mana",
-    "obama",
-    "pig",
-    "mattdamon",
-    "dad",
-    "isolation",
-    "bee",
-    "sideeffect",
-  ];
+  export const selectedTags = writable([]);
+  let filterOptions = [];
   let showMulti = true;
   export const storeSessionData = writable([]);
   let tableData = [];
   let firstSession = true;
   export const filterTableData = writable([]);
   let isCollapsed = false;
+  let loading = true;
+  // store to track filter states
+  const promptFilterStatus = writable({});
+  const yAxisRange = [0, 100];
+  const height = 200;
+  const yScale = d3.scaleLinear().domain(yAxisRange).range([height, 0])
 
   function open2close() {
     isOpen = !isOpen;
   }
 
-  function toggleTag(event) {
+  function change2bar() {
+    showMulti = !showMulti;
+
+    setTimeout(() => {
+       $storeSessionData.forEach((sessionData) => {
+         if (sessionData.summaryData) {
+           updateSessionSummary(
+             sessionData.sessionId,
+             sessionData.summaryData.totalProcessedCharacters,
+             sessionData.summaryData.totalInsertions,
+             sessionData.summaryData.totalDeletions,
+             sessionData.summaryData.totalSuggestions
+           );
+         }
+       });
+     }, 0);
+  }
+
+  function updatePromptFilterStatus() {
+    const allSessions = tableData || [];
+    const promptGroups = {};
+
+    allSessions.forEach((session) => {
+      if (!promptGroups[session.prompt_code]) {
+        promptGroups[session.prompt_code] = [];
+      }
+      promptGroups[session.prompt_code].push(session);
+    });
+
+    const statusMap = {};
+    Object.entries(promptGroups).forEach(([promptCode, sessions]) => {
+      const totalSessions = sessions.length;
+      const selectedSessions = sessions.filter((session) =>
+        $filterTableData.find(
+          (item) => item.session_id === session.session_id && item.selected
+        )
+      ).length;
+
+      if (selectedSessions === 0) {
+        statusMap[promptCode] = "none";
+      } else if (selectedSessions === totalSessions) {
+        statusMap[promptCode] = "all";
+      } else {
+        statusMap[promptCode] = "partial";
+      }
+    });
+
+    promptFilterStatus.set(statusMap);
+  }
+
+  async function toggleTag(event) {
     const tag = event.target.value;
 
     selectedTags.update((selected) => {
@@ -151,7 +144,25 @@
       }
       return selected;
     });
-    if (!event.target.checked) {
+    filterSessions();
+    if (event.target.checked) {
+      const newSessions = tableData.filter((item) => item.prompt_code === tag);
+      for (const newSession of newSessions) {
+        storeSessionData.update((sessionData) => {
+          if (
+            !sessionData.some(
+              (session) => session.sessionId === newSession.session_id
+            )
+          ) {
+            sessionData.push({
+              sessionId: newSession.session_id,
+            });
+          }
+          return sessionData;
+        });
+        await fetchData(newSession.session_id, false);
+      }
+    } else {
       storeSessionData.update((sessionData) => {
         return sessionData.filter(
           (session) =>
@@ -162,8 +173,43 @@
             )
         );
       });
+      const sessionsToRemove = tableData.filter(
+        (item) => item.prompt_code === tag
+      );
+      for (const sessionToRemove of sessionsToRemove) {
+        await fetchData(sessionToRemove.session_id, true);
+      }
     }
-    filterSessions();
+
+    const selectedSessions = get(storeSessionData);
+    const selectedTagsList = get(selectedTags);
+    if (selectedTagsList.length > 1) {
+      const tagSessionCount = selectedSessions.filter((session) =>
+        selectedTagsList.some((tag) =>
+          tableData.some(
+            (item) =>
+              item.session_id === session.sessionId && item.prompt_code === tag
+          )
+        )
+      ).length;
+      if (tagSessionCount === 1) {
+        const allSessionsForTag = tableData.filter((item) =>
+          selectedTagsList.includes(item.prompt_code)
+        );
+        for (const session of allSessionsForTag) {
+          await fetchData(session.session_id, false);
+        }
+      }
+    } else {
+      const allSessionsForTag = tableData.filter((item) =>
+        selectedTagsList.includes(item.prompt_code)
+      );
+      for (const session of allSessionsForTag) {
+        await fetchData(session.session_id, false);
+      }
+    }
+
+    updatePromptFilterStatus();
   }
 
   function filterSessions() {
@@ -176,18 +222,13 @@
       );
       const updatedData = filteredData.map((row) => ({
         ...row,
-        selected: $storeSessionData.some(
-          (item) => item.sessionId == row.session_id
-        ),
+        selected:
+          $storeSessionData.some((item) => item.sessionId == row.session_id) ||
+          true,
       }));
       filterTableData.set(updatedData);
+      updatePromptFilterStatus();
     }
-  }
-
-  function toggleCleanAll() {
-    filterTableData.set([]);
-    selectedTags.set([]);
-    storeSessionData.set([]);
   }
 
   function toggleTableCollapse() {
@@ -228,95 +269,79 @@
         progressElement.value = currentTime;
       }
 
-      if (!showMulti) {
-        dataDict = data;
-        let sessionData = {
-          sessionId: sessionFile,
-          time0,
-          time100,
-          currentTime,
-          chartData: [],
-        };
-        storeSessionData.set([sessionData]);
-        await tick(); // wait for storeSessionData update
+      dataDict = data;
+      let sessionData = {
+        sessionId: sessionFile,
+        time0,
+        time100,
+        currentTime,
+        chartData: [],
+      };
 
-        const { chartData, textElements } = handleEvents(data, sessionFile);
-        storeSessionData.update((sessions) => {
-          let sessionIndex = sessions.findIndex(
-            (s) => s.sessionId === sessionFile
-          );
-          if (sessionIndex !== -1) {
-            sessions[sessionIndex].chartData = chartData;
-            sessions[sessionIndex].textElements = textElements;
-          }
-          return [...sessions];
-        });
-        await tick();
-        renderChart(sessionFile);
-      }
-      if (showMulti) {
-        dataDict = data;
-        let sessionData = {
-          sessionId: sessionFile,
-          time0,
-          time100,
-          currentTime,
-          chartData: [],
-        };
+      storeSessionData.update((sessions) => {
+        let sessionIndex = sessions.findIndex(
+          (s) => s.sessionId === sessionFile
+        );
+        if (sessionIndex !== -1) {
+          sessions[sessionIndex] = {
+            ...sessions[sessionIndex],
+            time0,
+            time100,
+            currentTime,
+            chartData: [],
+          };
+        } else {
+          sessions.push(sessionData);
+        }
+        return [...sessions];
+      });
 
-        storeSessionData.update((sessions) => {
-          let sessionIndex = sessions.findIndex(
-            (s) => s.sessionId === sessionFile
-          );
-          if (sessionIndex !== -1) {
-            sessions[sessionIndex] = {
-              ...sessions[sessionIndex],
-              time0,
-              time100,
-              currentTime,
-              chartData: [],
-            };
-          } else {
-            sessions.push(sessionData);
-          }
-          return [...sessions];
-        });
+      await tick();
 
-        await tick();
-        const { chartData, textElements } = handleEvents(data, sessionFile);
-        storeSessionData.update((sessions) => {
-          let sessionIndex = sessions.findIndex(
-            (s) => s.sessionId === sessionFile
-          );
-          if (sessionIndex !== -1) {
-            sessions[sessionIndex].chartData = chartData;
-            sessions[sessionIndex].textElements = textElements;
-          }
-          return [...sessions];
-        });
+      const { chartData, textElements, paragraphColor } = handleEvents(
+        data,
+        sessionFile
+      );
+      storeSessionData.update((sessions) => {
+        let sessionIndex = sessions.findIndex(
+          (s) => s.sessionId === sessionFile
+        );
+        if (sessionIndex !== -1) {
+          sessions[sessionIndex].chartData = chartData;
+          sessions[sessionIndex].textElements = textElements;
+          sessions[sessionIndex].paragraphColor = paragraphColor;
+        }
+        return [...sessions];
+      });
 
-        await tick();
-        renderChart(sessionFile);
+      await tick();
 
-        fetchSimilarityData(sessionFile).then((data) => {
-          if (data) {
-            const similarityChart = renderSimilarityChart(sessionFile, data);
+      fetchSimilarityData(sessionFile).then((similarityData) => {
+        if (similarityData) {
+          storeSessionData.update((sessions) => {
+            let sessionIndex = sessions.findIndex(
+              (s) => s.sessionId === sessionFile
+            );
+            if (sessionIndex !== -1) {
+              sessions[sessionIndex].similarityData = similarityData;
+            }
+            return [...sessions];
+          });
+        }
+      });
 
-            storeSessionData.update((sessions) => {
-              let sessionIndex = sessions.findIndex(
-                (s) => s.sessionId === sessionFile
-              );
-              if (sessionIndex !== -1) {
-                sessions[sessionIndex].similarityChart = similarityChart;
-              }
-              return [...sessions];
-            });
-          }
-        });
+      let isCurrentlySelected = $filterTableData.filter(
+        (item) => item.selected
+      );
+      loading = true;
+      if (isCurrentlySelected.length == $storeSessionData.length) {
+        loading = false;
       }
     } catch (error) {
       console.error("Error when reading the data file:", error);
     }
+
+    updatePromptFilterStatus();
   };
 
   const fetchSimilarityData = async (sessionFile) => {
@@ -332,6 +357,7 @@
       return data;
     } catch (error) {
       console.error("Error when reading the data file:", error);
+      return null;
     }
   };
 
@@ -346,15 +372,23 @@
             session_id: session.session_id,
             prompt_code: session.prompt_code,
             selected:
-              session.session_id === "e4611bd31b794677b02c52d5700b2e38"
+              session.session_id === "e4611bd31b794677b02c52d5700b2e38" ||
+              session.session_id === "233f1efcf0274acba92f46bf2f8766d2"
                 ? true
                 : false,
           };
         });
         firstSession = false;
-        filterTableData.set(tableData);
+        selectedTags.set(["reincarnation", "bee"]);
+        filterSessions();
+        $filterTableData = tableData.filter((session) =>
+          $selectedTags.includes(session.prompt_code)
+        );
+        filterOptions = Array.from(
+          new Set(tableData.map((row) => row.prompt_code))
+        );
+        updatePromptFilterStatus();
       }
-      // fetchSessions()
     } catch (error) {
       console.error("Error when fetching sessions:", error);
     }
@@ -365,49 +399,52 @@
       (row) => row.session_id == sessionId
     )?.selected;
 
-    if (showMulti) {
-      filterTableData.set(
-        $filterTableData.map((row) => {
-          if (row.session_id == sessionId) {
-            return { ...row, selected: !row.selected };
-          }
-          return row;
-        })
-      );
+    filterTableData.set(
+      $filterTableData.map((row) => {
+        if (row.session_id == sessionId) {
+          return { ...row, selected: !row.selected };
+        }
+        return row;
+      })
+    );
 
-      if (!isCurrentlySelected) {
-        selectedSession = sessionId;
+    if (!isCurrentlySelected) {
+      for (let i = 0; i < selectedSession.length; i++) {
+        selectedSession[i] = sessionId;
         fetchData(sessionId, false);
-      } else {
-        storeSessionData.update((data) => {
-          return data.filter((item) => item.session_id !== sessionId);
-        });
-        fetchData(sessionId, true);
       }
+    } else {
+      storeSessionData.update((data) => {
+        return data.filter((item) => item.session_id !== sessionId);
+      });
+      fetchData(sessionId, true);
     }
 
-    paragraphTime = [];
-    paragraphColor = [];
+    for (let i = 0; i < selectedSession.length; i++) {
+      fetchSimilarityData(sessionId).then((similarityData) => {
+        if (similarityData) {
+          storeSessionData.update((sessions) => {
+            let sessionIndex = sessions.findIndex(
+              (s) => s.sessionId === selectedSession[i]
+            );
+            if (sessionIndex !== -1) {
+              sessions[sessionIndex].similarityData = similarityData;
+            }
+            return [...sessions];
+          });
+        }
+      });
+    }
 
-    // fetchSimilarityData(selectedSession).then((data) => {
-    //   renderSimilarityChart(selectedSession, data);
-    // });
-
-    fetchSimilarityData(selectedSession).then((data) => {
-      if (data) {
-        const similarityChart = renderSimilarityChart(selectedSession, data);
-
-        storeSessionData.update((sessions) => {
-          let sessionIndex = sessions.findIndex(
-            (s) => s.sessionId === selectedSession
-          );
-          if (sessionIndex !== -1) {
-            sessions[sessionIndex].similarityChart = similarityChart;
-          }
-          return [...sessions];
-        });
-      }
+    let nowSelectTag = new Set(
+      $filterTableData.filter((f) => f.selected).map((f) => f.prompt_code)
+    );
+    console.log(nowSelectTag);
+    selectedTags.update((selected) => {
+      selected = selected.filter((tag) => nowSelectTag.has(tag));
+      return selected;
     });
+    updatePromptFilterStatus();
   };
 
   function handleSelectChange(index) {
@@ -417,32 +454,27 @@
   onMount(() => {
     document.title = "Ink-Pulse";
     fetchSessions();
-    if (selectedSession) {
-      fetchData(selectedSession, true);
+    for (let i = 0; i < selectedSession.length; i++) {
+      fetchData(selectedSession[i], true);
+
+      fetchSimilarityData(selectedSession[i]).then((data) => {
+        if (data) {
+          storeSessionData.update((sessions) => {
+            let sessionIndex = sessions.findIndex(
+              (s) => s.sessionId === selectedSession[i]
+            );
+            if (sessionIndex !== -1) {
+              sessions[sessionIndex].similarityData = data;
+            }
+            return [...sessions];
+          });
+        }
+      });
     }
-    // fetchSimilarityData(selectedSession).then((data) => {
-    //   renderSimilarityChart(selectedSession, data);
-    // });
-
-    fetchSimilarityData(selectedSession).then((data) => {
-      if (data) {
-        const similarityChart = renderSimilarityChart(selectedSession, data);
-
-        storeSessionData.update((sessions) => {
-          let sessionIndex = sessions.findIndex(
-            (s) => s.sessionId === selectedSession
-          );
-          if (sessionIndex !== -1) {
-            sessions[sessionIndex].similarityChart = similarityChart;
-          }
-          return [...sessions];
-        });
-      }
-    });
   });
 
   function generateColorGrey(index) {
-    const colors = ["rgba(220, 220, 220, 0.3)", "rgba(240, 240, 240, 0.3)"];
+    const colors = ["rgba(220, 220, 220, 0.5)", "rgba(240, 240, 240, 0.3)"];
     return colors[index % colors.length];
   }
 
@@ -491,8 +523,8 @@
     let wholeText = data.text[0];
     wholeText = wholeText.slice(0, -1);
     chartData = [];
+    paragraphColor = [];
     let firstTime = null;
-    let preEvent = null;
 
     let combinedText = data.info.reduce((acc, event) => {
       if (acc.length === 0) {
@@ -574,46 +606,11 @@
           currentColor,
         });
       }
-      preEvent = event;
 
       return acc;
     }, []);
 
     paragraphTime = adjustTime(currentText, chartData);
-
-    const customLabelPlugin = {
-      id: "customLabel",
-      afterDatasetsDraw(chart) {
-        const ctx = chart.ctx;
-
-        paragraphColor.forEach((box) => {
-          const { xMin, xMax, yMin, yMax, value } = box;
-
-          if (
-            value &&
-            xMin !== undefined &&
-            xMax !== undefined &&
-            yMin !== undefined &&
-            yMax !== undefined
-          ) {
-            const xPosition =
-              (chart.scales["x"].getPixelForValue(xMin) +
-                chart.scales["x"].getPixelForValue(xMax)) /
-              2;
-
-            const yPosition = chart.scales["y"].getPixelForValue(yMax) - 5;
-
-            ctx.fillStyle = "black";
-            ctx.font = "12px Arial";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "bottom";
-
-            ctx.fillText(value, xPosition, yPosition);
-          }
-        });
-      },
-    };
-    Chart.register(customLabelPlugin);
 
     for (let i = 0; i < paragraphTime.length - 1; i++) {
       const startTime = paragraphTime[i].time;
@@ -642,6 +639,7 @@
     return {
       chartData,
       textElements,
+      paragraphColor,
     };
   };
 
@@ -672,6 +670,19 @@
       }
     });
 
+    storeSessionData.update((sessions) => {
+       const idx = sessions.findIndex((s) => s.sessionId === sessionId);
+       if (idx !== -1) {
+         sessions[idx].summaryData = {
+           totalProcessedCharacters,
+           totalInsertions,
+           totalDeletions,
+           totalSuggestions,
+         };
+       }
+       return [...sessions];
+    });
+
     updateSessionSummary(
       sessionId,
       totalProcessedCharacters,
@@ -691,7 +702,11 @@
     const sessionSummaryContainer = document.getElementById(
       `summary-${sessionId}`
     );
-    if (!sessionSummaryContainer) return;
+
+    if (!sessionSummaryContainer) {
+      console.error(`Summary container for session ${sessionId} not found`);
+      return;
+    }
 
     sessionSummaryContainer.querySelector(".totalText").textContent =
       `Total Text: ${totalProcessedCharacters} characters`;
@@ -703,336 +718,54 @@
       `Suggestions: ${totalSuggestions - 1}`;
   };
 
-  function resetZoom() {
-    if (chart) {
-      chart.resetZoom();
-    }
-  }
-
-  const renderChart = (sessionId) => {
-    if (!showMulti) {
-      if (chart) {
-        chart.destroy();
-      }
-    }
+  function handlePointSelected(e, sessionId) {
+    const d = e.detail;
     storeSessionData.update((sessions) => {
-      let sessionIndex = sessions.findIndex((s) => s.sessionId == sessionId);
-      if (sessionIndex === -1) return sessions; // check whether empty
-
-      let session = sessions[sessionIndex];
-
-      const lineChart = document
-        .getElementById(`chart-${sessionId}`)
-        .getContext("2d");
-      const processedData = session.chartData.map((data, index) => {
-        if (
-          index > 0 &&
-          session.chartData[index - 1].percentage === data.percentage
-        ) {
-          return { x: data.time, y: null };
-        }
-        if (
-          index > 0 &&
-          session.chartData[index - 1].eventSource === "api" &&
-          session.chartData[index].eventSource === "user"
-        ) {
-          return { x: data.time, y: null };
-        }
-        if (
-          index > 0 &&
-          session.chartData[index - 1].eventSource === "user" &&
-          session.chartData[index].eventSource === "user" &&
-          session.chartData[index].time - session.chartData[index - 1].time >
-            0.3
-        ) {
-          return { x: data.time, y: null };
-        }
-
-        return { x: data.time, y: data.percentage };
-      });
-
-      let selectPoint = null;
-      chart = new Chart(lineChart, {
-        type: "line",
-        data: {
-          labels: session.chartData.map((data) => data.time.toFixed(2)),
-          datasets: [
-            {
-              label: "process",
-              data: processedData,
-              borderColor: session.chartData.map((data) => data.color),
-              backgroundColor: "transparent",
-              segment: {
-                borderColor: (lineChart) =>
-                  session.chartData[lineChart.p1DataIndex].color,
-              },
-              tension: 0.1,
-            },
-          ],
-        },
-        options: {
-          interaction: {
-            mode: "nearest",
-            intersect: true,
-          },
-          onClick: (event, chartElements) => {
-            if (chartElements.length > 0) {
-              const index = chartElements[0].index;
-              if (selectPoint !== index) {
-                selectPoint = index;
-                chart.update();
-              }
-            }
-          },
-          plugins: {
-            legend: {
-              display: false,
-            },
-            zoom: {
-              pan: {
-                enabled: true,
-                mode: "xy",
-              },
-              zoom: {
-                wheel: {
-                  enabled: true, // Enable zooming with mouse wheel
-                },
-                pinch: {
-                  enabled: true, // Enable zooming with pinch gestures
-                },
-                mode: "xy",
-              },
-              limits: {
-                x: {
-                  min: "original",
-                  max: 100,
-                  minRange: 20,
-                },
-                y: {
-                  min: 0,
-                  max: 100,
-                  minRange: 20,
-                },
-              },
-            },
-            tooltip: {
-              enabled: true,
-              mode: "nearest",
-              intersect: true,
-              callbacks: {
-                title: (tooltipItems) => {
-                  const data = session.chartData[tooltipItems[0].dataIndex];
-                  return `Time: ${data.time.toFixed(2)} mins`;
-                },
-                label: (tooltipItem) => {
-                  const data = session.chartData[tooltipItem.dataIndex];
-                  const eventType =
-                    data.eventSource === "user" ? "User" : "API";
-                  return `Progress: ${data.percentage.toFixed(2)}% | Event: ${data.eventSource}`;
-                },
-              },
-            },
-            annotation: {
-              annotations: [
-                ...paragraphColor,
-                ...session.chartData
-                  .filter((data) => data.isSuggestionOpen)
-                  .map((data) => ({
-                    type: "point",
-                    pointStyle: "triangle",
-                    rotation: 180,
-                    xMax: data.time,
-                    xMin: data.time,
-                    yMin: data.percentage + 1,
-                    yMax: data.percentage + 5,
-                    borderColor: "#FFBBCC",
-                    borderWidth: 1,
-                    radius: 3,
-                    backgroundColor: "#FFBBCC",
-                    interactive: true,
-                  })),
-              ],
-            },
-          },
-          elements: {
-            point: {
-              radius: (context) => {
-                if (selectPoint !== null && context.dataIndex === selectPoint) {
-                  return 8;
-                }
-                return 1;
-              },
-              hoverRadius: 8,
-              hoverBackgroundColor: "rgba(255, 99, 132, 0.8)",
-              hoverBorderColor: "rgba(255, 99, 132, 1)",
-            },
-          },
-          scales: {
-            x: {
-              type: "linear",
-              title: {
-                display: true,
-                text: "Time (mins)",
-              },
-              ticks: {
-                stepSize: 1,
-              },
-              grid: {
-                display: false,
-              },
-            },
-            y: {
-              min: 0,
-              max: 100,
-              offset: true,
-              title: {
-                display: true,
-                text: "Process(%)",
-              },
-              ticks: {
-                stepSize: 10,
-              },
-              grid: {
-                display: false,
-              },
-            },
-          },
-        },
-      });
-      lineChart.canvas.addEventListener("click", (event) => {
-        const points = chart.getElementsAtEventForMode(
-          event,
-          "nearest",
-          { intersect: true },
-          true
-        );
-        if (points.length > 0) {
-          const point = points[0];
-          const data = session.chartData[point.index];
-
-          textElements = data.currentText.split("").map((char, index) => ({
+      const idx = sessions.findIndex((s) => s.sessionId === sessionId);
+      if (idx !== -1) {
+        sessions[idx].textElements = d.currentText
+          .split("")
+          .map((char, index) => ({
             text: char,
-            textColor: data.currentColor[index],
+            textColor: d.currentColor[index],
           }));
-          currentTime = data.time;
-          storeSessionData.update((sessions) => {
-            let sessionIndex = sessions.findIndex(
-              (s) => s.sessionId === sessionId
-            );
-            if (sessionIndex !== -1) {
-              sessions[sessionIndex].textElements = data.currentText
-                .split("")
-                .map((char, index) => ({
-                  text: char,
-                  textColor: data.currentColor[index],
-                }));
-              sessions[sessionIndex].currentTime = data.time;
-            }
-            return [...sessions];
-          });
-        }
-      });
-      return sessions;
-    });
-  };
-
-  const renderSimilarityChart = (sessionId, similarityData) => {
-    if (!showMulti) {
-      if (barchart) {
-        barchart.destroy();
+        sessions[idx].currentTime = d.time;
       }
-    }
-
-    let canvas = document.getElementById(`similarity-chart-${sessionId}`);
-
-    if (!canvas) {
-      const container = document.querySelector(
-        `.bar-chart-container[data-session-id="${sessionId}"]`
-      );
-
-      if (!container) {
-        console.error(`Container for session ${sessionId} not found`);
-        return;
-      }
-
-      canvas = document.createElement("canvas");
-      canvas.id = `similarity-chart-${sessionId}`;
-      container.appendChild(canvas);
-    }
-
-    const processedData = similarityData.map((item, index) => ({
-      sentenceNum: index + 1,
-      dissimilarity: item.dissimilarity * 100,
-    }));
-
-    const labels = processedData.map((item) => `${item.sentenceNum}`);
-    const dissimilarityData = processedData.map((item) => item.dissimilarity);
-
-    const barCount = dissimilarityData.length;
-    const dynamicBarThickness = Math.max(5, Math.min(15, 150 / barCount));
-
-    barchart = new Chart(canvas.getContext("2d"), {
-      type: "bar",
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: "Semantic Change (%)",
-            data: dissimilarityData,
-            backgroundColor: "rgba(0, 0, 255, 0.8)",
-            borderColor: "rgba(0, 0, 255, 1)",
-            borderWidth: 1,
-            barThickness: dynamicBarThickness,
-          },
-        ],
-      },
-      options: {
-        indexAxis: "y",
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            beginAtZero: true,
-            max: 100,
-            title: { display: true, text: "Semantic Change (%)" },
-            reverse: true,
-          },
-          y: {
-            title: { display: true, text: "Sentence Number" },
-            reverse: true,
-          },
-        },
-        plugins: { legend: { display: false } },
-      },
+      return [...sessions];
     });
-
-    canvas.style.height = `${Math.min(300, barCount * 10)}px`;
-    canvas.style.width = "250px";
-  };
+  }
 </script>
 
 <div class="App">
   <header class="App-header">
     <nav>
       <div class="filter-container {showFilter ? 'show' : ''}">
-        <a
-          on:click={toggleCleanAll}
-          href=" "
-          aria-label="toggle-btn"
-          class="material-symbols--refresh-rounded"
-        >
-        </a>
         {#each filterOptions as option}
-          <label>
-            <input
-              type="checkbox"
-              value={option}
-              on:change={toggleTag}
-              checked={$selectedTags.includes(option)}
-            />
+          <label class="filter-label">
+            <span class="checkbox-wrapper">
+              <input
+                id="checkbox-n"
+                type="checkbox"
+                value={option}
+                on:change={toggleTag}
+                checked={$selectedTags.includes(option)}
+                class="filter-checkbox"
+              />
+              <span class="custom-checkbox">
+                {#if $promptFilterStatus[option] === "all"}
+                  <span class="checkbox-indicator">✓</span>
+                {:else if $promptFilterStatus[option] === "partial"}
+                  <span
+                    class="checkbox-indicator"
+                    style="font-weight: bold; font-size: 24px;">-</span
+                  >
+                {:else}
+                  <span class="checkbox-indicator"></span>
+                {/if}
+              </span>
+            </span>
             {option}
           </label>
-          <br />
         {/each}
       </div>
       <div class="chart-explanation">
@@ -1040,6 +773,12 @@
         <span class="user-line">●</span> User written
         <span class="api-line">●</span> AI writing
       </div>
+      <a
+        on:click={change2bar}
+        href=" "
+        aria-label="Change2Bar"
+        class="material-symbols--restart-alt-rounded"
+      ></a>
       <a
         on:click={open2close}
         href=" "
@@ -1073,6 +812,10 @@
         </div>
       {/if}
       {#if showMulti && $storeSessionData.length > 0}
+        {#if loading}
+          <div class="loading"></div>
+          <div class="line-md--loading-twotone-loop"></div>
+        {/if}
         <div class="multi-box">
           {#each $storeSessionData as sessionData (sessionData.sessionId)}
             <div class="display-box">
@@ -1090,36 +833,58 @@
                 </div>
                 <div
                   class="session-summary"
-                  id="summary-{$storeSessionData[0].sessionId}"
+                  id="summary-{sessionData.sessionId}"
                 >
                   <h3>Session Summary</h3>
                   <div class="summary-container">
-                    <div class="totalText"></div>
-                    <div class="totalInsertions"></div>
-                    <div class="totalDeletions"></div>
-                    <div class="totalSuggestions"></div>
+                    <div class="totalText">
+                      {sessionData.summaryData
+                        ? `Total Text: ${sessionData.summaryData.totalProcessedCharacters} characters`
+                        : ""}
+                    </div>
+                    <div class="totalInsertions">
+                      {sessionData.summaryData
+                        ? `Insertions: ${sessionData.summaryData.totalInsertions}`
+                        : ""}
+                    </div>
+                    <div class="totalDeletions">
+                      {sessionData.summaryData
+                        ? `Deletions: ${sessionData.summaryData.totalDeletions}`
+                        : ""}
+                    </div>
+                    <div class="totalSuggestions">
+                      {sessionData.summaryData
+                        ? `Suggestions: ${sessionData.summaryData.totalSuggestions - 1}`
+                        : ""}
+                    </div>
                   </div>
                 </div>
-                <div class="chart-wrapper">
-                  <div
-                    class="bar-chart-container"
-                    data-session-id={sessionData.sessionId}
+                <div class="chart-container">
+                  <div class="chart-wrapper">
+                    {#if sessionData.similarityData}
+                      <BarChartY
+                        sessionId={sessionData.sessionId}
+                        similarityData={sessionData.similarityData}
+                        height={height}
+                      />
+                    {/if}
+                    <LineChart
+                      bind:this={chartRefs[sessionData.sessionId]}
+                      chartData={sessionData.chartData}
+                      paragraphColor={sessionData.paragraphColor}
+                      on:pointSelected={(e) =>
+                        handlePointSelected(e, sessionData.sessionId)}
+                      yScale={yScale}
+                      height={height}
+                    />
+                  </div>
+                  <button
+                    on:click={() => resetZoom(sessionData.sessionId)}
+                    class="zoom-reset-btn"
                   >
-                    <canvas id="similarity-chart-{sessionData.sessionId}"
-                    ></canvas>
-                  </div>
-                  <div class="line-chart-container">
-                    <canvas id="chart-{sessionData.sessionId}"></canvas>
-                  </div>
+                    Reset Zoom
+                  </button>
                 </div>
-                <!--<div
-                  class="chart-controls"
-                  style="text-align: right; margin-top: 5px;"
-                >
-                  <button on:click={resetZoom} class="zoom-reset-btn"
-                    >Reset Zoom</button
-                  >
-                </div> -->
               </div>
               <div class="content-box">
                 <div class="progress-container">
@@ -1185,54 +950,72 @@
         </div>
       {/if}
     </div>
+
+    {#if !showMulti && $storeSessionData.length > 0}
+      {#each $storeSessionData as sessionData (sessionData.sessionId)}
+        <div class="zoomout-chart">
+          <ZoomoutChart
+            bind:this={chartRefs[sessionData.sessionId]}
+            chartData={sessionData.chartData}
+            sessionId={sessionData.sessionId}
+            sessionTopic={sessions.find(
+              (s) => s.session_id === sessionData.sessionId
+            ).prompt_code}
+          />
+        </div>
+      {/each}
+    {/if}
+
     <div class="table" class:collapsed={isCollapsed}>
-      <Table>
-        <TableHead>
-          <TableHeadCell>Session ID</TableHeadCell>
-          <TableHeadCell>Prompt Code</TableHeadCell>
-          <TableBodyCell>
-            <a
-              bind:this={filterButton}
-              on:click={toggleFilter}
-              href=" "
-              aria-label="Filter"
-              class={showFilter
-                ? "material-symbols--filter-alt"
-                : "material-symbols--filter-alt-outline"}
-            >
-            </a>
-          </TableBodyCell>
-          <TableHeadCell>Selected</TableHeadCell>
-          <TableBodyCell>
-            <a
-              bind:this={collapseButton}
-              on:click={toggleTableCollapse}
-              href=" "
-              aria-label="collapse"
-              class={isCollapsed
-                ? "material-symbols--stat-1-rounded"
-                : "material-symbols--stat-minus-1-rounded"}
-            >
-            </a>
-          </TableBodyCell>
-        </TableHead>
-        <TableBody tableBodyClass="divide-y">
-          {#each $filterTableData as row, index (row.session_id)}
-            <TableBodyRow>
-              <TableBodyCell>{row.session_id}</TableBodyCell>
-              <TableBodyCell>{row.prompt_code}</TableBodyCell>
-              <TableBodyCell></TableBodyCell>
-              <TableBodyCell>
+      <table>
+        <thead>
+          <tr>
+            <th style="text-transform: uppercase">Session ID</th>
+            <th
+              style="display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase"
+              >Prompt Code
+              <a
+                on:click|preventDefault={toggleFilter}
+                href=" "
+                aria-label="Filter"
+                bind:this={filterButton}
+                class={showFilter
+                  ? "material-symbols--filter-alt"
+                  : "material-symbols--filter-alt-outline"}
+              >
+              </a>
+            </th>
+            <th style="text-transform: uppercase">Selected</th>
+            <th>
+              <a
+                on:click|preventDefault={toggleTableCollapse}
+                href=" "
+                aria-label="Collapse"
+                bind:this={collapseButton}
+                class={isCollapsed
+                  ? "material-symbols--stat-1-rounded"
+                  : "material-symbols--stat-minus-1-rounded"}
+              >
+              </a>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each $filterTableData as row, index}
+            <tr>
+              <td>{row.session_id}</td>
+              <td>{row.prompt_code}</td>
+              <td>
                 <input
                   type="checkbox"
                   checked={row.selected}
                   on:change={() => handleSelectChange(index)}
                 />
-              </TableBodyCell>
-            </TableBodyRow>
+              </td>
+            </tr>
           {/each}
-        </TableBody>
-      </Table>
+        </tbody>
+      </table>
     </div>
   </header>
 </div>
@@ -1245,14 +1028,6 @@
     --progBackgroundColor: hsl(6, 100%, 90%);
   }
 
-  .App-header {
-    text-align: center;
-  }
-
-  .App {
-    margin: 0px;
-  }
-
   .zoom-reset-btn {
     display: block;
     margin: 10px auto;
@@ -1263,6 +1038,7 @@
     cursor: pointer;
     border-radius: 5px;
   }
+
   .zoom-reset-btn:hover {
     background-color: #86cecb;
   }
@@ -1286,76 +1062,17 @@
     width: 100%;
   }
 
-  .table-container {
-    width: 100%;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    overflow: hidden;
-  }
-
-  .collapsed {
-    height: 50px;
-    overflow: hidden;
-  }
-
-  .table-header {
-    font-weight: bold;
-    background-color: #f8fafc;
-  }
-
-  .table-row {
-    display: flex;
-    border-bottom: 1px solid #e2e8f0;
-  }
-
-  .table-body .table-row:last-child {
-    border-bottom: none;
-  }
-
-  .table-head-cell,
-  .table-cell {
-    padding: 12px 16px;
-    flex: 1;
-    display: flex;
-    align-items: center;
-  }
-
-  .table-head-cell {
-    position: relative;
-  }
-
-  .filter-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    z-index: 10;
-    padding: 8px;
-  }
-
-  .filter-dropdown input {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
-  }
-
   .display-box {
     display: flex;
     justify-content: space-between;
     align-items: stretch;
     gap: 20px;
-    border: 1px solid lightgray;
     border-radius: 15px;
     padding: 25px;
     box-shadow:
-      0px 2px 5px rgba(0, 0, 0, 0.2),
-      2px 2px 5px rgba(0, 0, 0, 0.2),
-      -2px 2px 5px rgba(0, 0, 0, 0.2);
+      0px 1px 5px rgba(0, 0, 0, 0.1),
+      1px 1px 5px rgba(0, 0, 0, 0.1),
+      -1px 1px 5px rgba(0, 0, 0, 0.1);
     font-family: Poppins, sans-serif;
     font-size: 14px;
     white-space: pre-wrap;
@@ -1376,7 +1093,6 @@
   }
 
   .chart-container {
-    width: 100%;
     margin-top: 20px;
   }
 
@@ -1466,27 +1182,6 @@
     margin-bottom: 2px;
   }
 
-  .chart-wrapper {
-    display: flex;
-    align-items: flex-start;
-    justify-content: start;
-    gap: 20px;
-  }
-
-  .bar-chart-container {
-    width: 160px;
-    height: 250px;
-    display: flex;
-    align-items: flex-start;
-  }
-
-  .line-chart-container {
-    flex: 1;
-    height: 550px;
-    display: flex;
-    align-items: flex-start;
-  }
-
   .totalText,
   .totalInsertions,
   .totalDeletions,
@@ -1531,7 +1226,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1544,7 +1239,7 @@
     border-radius: 10px;
     max-width: 500px;
     text-align: center;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   }
 
   .introduction h2 {
@@ -1603,11 +1298,18 @@
     overflow-y: auto;
   }
 
+  thead {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+  }
+
   .collapsed {
     position: fixed;
     bottom: 0;
     width: 100%;
-    height: 80px;
+    height: 25px;
     background-color: white;
     padding: 1em 0;
     margin: 0px;
@@ -1664,13 +1366,13 @@
 
   .filter-container {
     position: absolute;
-    top: 70px;
-    left: 30px;
+    top: 55px;
+    left: 945px;
     background: white;
     border: 1px solid #ccc;
     padding: 12px;
     display: none;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
     width: 200px;
     text-align: left;
     border-radius: 8px;
@@ -1683,21 +1385,58 @@
   .filter-container label {
     display: block;
     cursor: pointer;
+    margin-bottom: 8px;
   }
 
-  .material-symbols--refresh-rounded {
+  .filter-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: 8px;
+    position: relative;
+  }
+
+  .checkbox-wrapper {
+    position: relative;
     display: inline-block;
-    width: 24px;
-    height: 24px;
-    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 20q-3.35 0-5.675-2.325T4 12t2.325-5.675T12 4q1.725 0 3.3.712T18 6.75V5q0-.425.288-.712T19 4t.713.288T20 5v5q0 .425-.288.713T19 11h-5q-.425 0-.712-.288T13 10t.288-.712T14 9h3.2q-.8-1.4-2.187-2.2T12 6Q9.5 6 7.75 7.75T6 12t1.75 4.25T12 18q1.7 0 3.113-.862t2.187-2.313q.2-.35.563-.487t.737-.013q.4.125.575.525t-.025.75q-1.025 2-2.925 3.2T12 20'/%3E%3C/svg%3E");
-    background-color: currentColor;
-    -webkit-mask-image: var(--svg);
-    mask-image: var(--svg);
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: 100% 100%;
-    mask-size: 100% 100%;
-    margin-left: auto;
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+  }
+
+  .filter-checkbox {
+    vertical-align: middle;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    position: relative;
+    margin: 0;
+  }
+
+  .custom-checkbox {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+  }
+
+  .checkbox-indicator {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -20%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    pointer-events: none;
   }
 
   input[type="checkbox"] {
@@ -1707,7 +1446,7 @@
     -moz-appearance: none;
     width: 16px;
     height: 16px;
-    border: 2px solid rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.2);
     border-radius: 4px;
     background-color: white;
     cursor: pointer;
@@ -1720,6 +1459,7 @@
   }
 
   input[type="checkbox"]:checked::before {
+    content: "✔";
     font-size: 12px;
     color: white;
     position: absolute;
@@ -1727,6 +1467,10 @@
     left: 50%;
     transform: translate(-50%, -50%);
     font-weight: bold;
+  }
+
+  #checkbox-n:checked::before {
+    content: "";
   }
 
   .material-symbols--stat-1-rounded {
@@ -1760,5 +1504,76 @@
   a:focus,
   a:active {
     color: #86cecb;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    display: table-row;
+  }
+
+  td {
+    padding: 12px 16px;
+  }
+
+  .chart-wrapper {
+    display: flex;
+    align-items: flex-start;
+    margin: 15px 0;
+  }
+
+  .material-symbols--restart-alt-rounded {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M9.825 20.7q-2.575-.725-4.2-2.837T4 13q0-1.425.475-2.713t1.35-2.362q.275-.3.675-.313t.725.313q.275.275.288.675t-.263.75q-.6.775-.925 1.7T6 13q0 2.025 1.188 3.613t3.062 2.162q.325.1.538.375t.212.6q0 .5-.35.788t-.825.162m4.35 0q-.475.125-.825-.175t-.35-.8q0-.3.213-.575t.537-.375q1.875-.6 3.063-2.175T18 13q0-2.5-1.75-4.25T12 7h-.075l.4.4q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-2.1-2.1q-.15-.15-.212-.325T8.55 6t.063-.375t.212-.325l2.1-2.1q.275-.275.7-.275t.7.275t.275.7t-.275.7l-.4.4H12q3.35 0 5.675 2.325T20 13q0 2.725-1.625 4.85t-4.2 2.85'/%3E%3C/svg%3E");
+    background-color: currentColor;
+    -webkit-mask-image: var(--svg);
+    mask-image: var(--svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+  }
+
+  .zoomout-chart {
+    margin-left: 300px;
+    height: 30px;
+  }
+
+  .loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+  }
+
+  .line-md--loading-twotone-loop {
+    display: inline-block;
+    width: 96px;
+    height: 96px;
+    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%23000' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'%3E%3Cpath stroke-dasharray='16' stroke-dashoffset='16' d='M12 3c4.97 0 9 4.03 9 9'%3E%3Canimate fill='freeze' attributeName='stroke-dashoffset' dur='0.3s' values='16;0'/%3E%3CanimateTransform attributeName='transform' dur='1.5s' repeatCount='indefinite' type='rotate' values='0 12 12;360 12 12'/%3E%3C/path%3E%3Cpath stroke-dasharray='64' stroke-dashoffset='64' stroke-opacity='0.3' d='M12 3c4.97 0 9 4.03 9 9c0 4.97 -4.03 9 -9 9c-4.97 0 -9 -4.03 -9 -9c0 -4.97 4.03 -9 9 -9Z'%3E%3Canimate fill='freeze' attributeName='stroke-dashoffset' dur='1.2s' values='64;0'/%3E%3C/path%3E%3C/g%3E%3C/svg%3E");
+    background-color: currentColor;
+    -webkit-mask-image: var(--svg);
+    mask-image: var(--svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    z-index: 1000;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
   }
 </style>

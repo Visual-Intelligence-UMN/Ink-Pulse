@@ -1,212 +1,387 @@
 [
     {
         "sentence": "Your entire life, you've been told you're deathly allergic to bees.",
+        "source": "api",
         "max_similarity": 0.0,
         "dissimilarity": 1.0,
-        "most_similar_previous": null
+        "most_similar_previous": null,
+        "start_progress": 0.0,
+        "end_progress": 0.03421461897356143,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You've always had people protecting you from them, be it your mother or a hired hand.",
+        "source": "api",
         "max_similarity": 0.643970251083374,
         "dissimilarity": 0.356029748916626,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.03473302229134267,
+        "end_progress": 0.07879730430274753,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Today, one slips through and lands on your shoulder.",
-        "max_similarity": 0.3846934139728546,
-        "dissimilarity": 0.6153065860271454,
-        "most_similar_previous": 0
+        "source": "api",
+        "max_similarity": 0.3846935033798218,
+        "dissimilarity": 0.6153064966201782,
+        "most_similar_previous": 0,
+        "start_progress": 0.07931570762052877,
+        "end_progress": 0.10627268014515293,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You hear a tiny voice say \"Your Majesty, what are your orders?\"",
-        "max_similarity": 0.5704859495162964,
-        "dissimilarity": 0.4295140504837036,
-        "most_similar_previous": 0
+        "source": "api",
+        "max_similarity": 0.5704860091209412,
+        "dissimilarity": 0.42951399087905884,
+        "most_similar_previous": 0,
+        "start_progress": 0.10679108346293416,
+        "end_progress": 0.13996889580093314,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You stand perfectly still.",
-        "max_similarity": 0.402386337518692,
-        "dissimilarity": 0.597613662481308,
-        "most_similar_previous": 1
+        "source": "user",
+        "max_similarity": 0.4023863971233368,
+        "dissimilarity": 0.5976136028766632,
+        "most_similar_previous": 1,
+        "start_progress": 0.14048729911871435,
+        "end_progress": 0.15396578538102643,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "There is a bee on you.",
+        "source": "user",
         "max_similarity": 0.48491334915161133,
         "dissimilarity": 0.5150866508483887,
-        "most_similar_previous": 1
+        "most_similar_previous": 1,
+        "start_progress": 0.15448418869880767,
+        "end_progress": 0.16588906168999482,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You don't even dare look at it.",
-        "max_similarity": 0.4395209550857544,
-        "dissimilarity": 0.5604790449142456,
-        "most_similar_previous": 5
+        "source": "user",
+        "max_similarity": 0.439520925283432,
+        "dissimilarity": 0.560479074716568,
+        "most_similar_previous": 5,
+        "start_progress": 0.16640746500777606,
+        "end_progress": 0.1824779678589943,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "A thousand thoughts race through your mind.",
+        "source": "user",
         "max_similarity": 0.32120704650878906,
         "dissimilarity": 0.6787929534912109,
-        "most_similar_previous": 1
+        "most_similar_previous": 1,
+        "start_progress": 0.18299637117677553,
+        "end_progress": 0.2052877138413686,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Maybe it has stung you without you noticing, and you are dying.",
+        "source": "user",
         "max_similarity": 0.5028166770935059,
         "dissimilarity": 0.49718332290649414,
-        "most_similar_previous": 3
+        "most_similar_previous": 3,
+        "start_progress": 0.20580611715914982,
+        "end_progress": 0.23898392949714878,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Maybe the poison from the stinger is making you delusional.",
-        "max_similarity": 0.4106678366661072,
-        "dissimilarity": 0.5893321633338928,
-        "most_similar_previous": 8
+        "source": "user",
+        "max_similarity": 0.41066786646842957,
+        "dissimilarity": 0.5893321335315704,
+        "most_similar_previous": 8,
+        "start_progress": 0.23950233281493002,
+        "end_progress": 0.2700881285640228,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Maybe you are imagining the whole thing.",
+        "source": "user",
         "max_similarity": 0.5377161502838135,
         "dissimilarity": 0.4622838497161865,
-        "most_similar_previous": 8
+        "most_similar_previous": 8,
+        "start_progress": 0.27060653188180406,
+        "end_progress": 0.2913426645930534,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You can't take it anymore.",
-        "max_similarity": 0.528478741645813,
-        "dissimilarity": 0.471521258354187,
-        "most_similar_previous": 6
+        "source": "user",
+        "max_similarity": 0.5284788012504578,
+        "dissimilarity": 0.47152119874954224,
+        "most_similar_previous": 6,
+        "start_progress": 0.2918610679108346,
+        "end_progress": 0.30637636080870917,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You swat at the bee, and it flies away.",
+        "source": "api",
         "max_similarity": 0.605699896812439,
         "dissimilarity": 0.39430010318756104,
-        "most_similar_previous": 8
+        "most_similar_previous": 8,
+        "start_progress": 0.3068947641264904,
+        "end_progress": 0.3271124935199585,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You breathe a sigh of relief.",
+        "source": "user",
         "max_similarity": 0.5020841360092163,
         "dissimilarity": 0.4979158639907837,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.32763089683773977,
+        "end_progress": 0.3426645930533955,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You're fine.",
-        "max_similarity": 0.5155770182609558,
-        "dissimilarity": 0.4844229817390442,
-        "most_similar_previous": 4
+        "source": "user",
+        "max_similarity": 0.5155770778656006,
+        "dissimilarity": 0.4844229221343994,
+        "most_similar_previous": 4,
+        "start_progress": 0.3431829963711768,
+        "end_progress": 0.34940383618455156,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You go about your day, but you can't get the bee out of your head.",
+        "source": "api",
         "max_similarity": 0.512201189994812,
         "dissimilarity": 0.487798810005188,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.3499222395023328,
+        "end_progress": 0.3846552617936755,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It was so real.",
+        "source": "api",
         "max_similarity": 0.22638237476348877,
         "dissimilarity": 0.7736176252365112,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.38517366511145673,
+        "end_progress": 0.3929497148781752,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You go to bed that night, and you dream about the bee.",
-        "max_similarity": 0.5521373152732849,
-        "dissimilarity": 0.4478626847267151,
-        "most_similar_previous": 8
+        "source": "api",
+        "max_similarity": 0.5521372556686401,
+        "dissimilarity": 0.44786274433135986,
+        "most_similar_previous": 8,
+        "start_progress": 0.39346811819595645,
+        "end_progress": 0.4214618973561431,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You dream about the bee telling you that you are the queen of the bees, and that you must lead them to victory over the humans.",
-        "max_similarity": 0.6936532855033875,
-        "dissimilarity": 0.30634671449661255,
-        "most_similar_previous": 17
+        "source": "api",
+        "max_similarity": 0.6936532258987427,
+        "dissimilarity": 0.3063467741012573,
+        "most_similar_previous": 17,
+        "start_progress": 0.42198030067392434,
+        "end_progress": 0.487817522032141,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You dream of transforming into a bee, and stinging all the humans you have ever know.",
+        "source": "user",
         "max_similarity": 0.6292078495025635,
         "dissimilarity": 0.3707921504974365,
-        "most_similar_previous": 18
+        "most_similar_previous": 18,
+        "start_progress": 0.48833592534992226,
+        "end_progress": 0.5329186106791084,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You wake up in a cold sweat, but you are still you.",
-        "max_similarity": 0.6389442086219788,
-        "dissimilarity": 0.36105579137802124,
-        "most_similar_previous": 5
+        "source": "user",
+        "max_similarity": 0.6389442682266235,
+        "dissimilarity": 0.36105573177337646,
+        "most_similar_previous": 5,
+        "start_progress": 0.5334370139968896,
+        "end_progress": 0.5598755832037325,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "What a crazy nightmare.",
+        "source": "user",
         "max_similarity": 0.4649488925933838,
         "dissimilarity": 0.5350511074066162,
-        "most_similar_previous": 13
+        "most_similar_previous": 13,
+        "start_progress": 0.5603939865215137,
+        "end_progress": 0.5723172628304821,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The next day, you are walking through the woods, and you see a bee.",
+        "source": "user",
         "max_similarity": 0.6406668424606323,
         "dissimilarity": 0.3593331575393677,
-        "most_similar_previous": 12
+        "most_similar_previous": 12,
+        "start_progress": 0.5728356661482633,
+        "end_progress": 0.6086054950751685,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You are about to swat it, but it says \"Your Majesty, what are your orders?\" You freeze.",
-        "max_similarity": 0.815240740776062,
-        "dissimilarity": 0.184759259223938,
-        "most_similar_previous": 3
+        "source": "api",
+        "max_similarity": 0.8152406811714172,
+        "dissimilarity": 0.18475931882858276,
+        "most_similar_previous": 3,
+        "start_progress": 0.6091238983929497,
+        "end_progress": 0.654224987039917,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It's the same bee from before.",
-        "max_similarity": 0.4961509704589844,
-        "dissimilarity": 0.5038490295410156,
-        "most_similar_previous": 12
+        "source": "user",
+        "max_similarity": 0.496150940656662,
+        "dissimilarity": 0.503849059343338,
+        "most_similar_previous": 12,
+        "start_progress": 0.6547433903576982,
+        "end_progress": 0.6702954898911353,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It's not a dream.",
+        "source": "user",
         "max_similarity": 0.4237334728240967,
         "dissimilarity": 0.5762665271759033,
-        "most_similar_previous": 16
+        "most_similar_previous": 16,
+        "start_progress": 0.6708138932089165,
+        "end_progress": 0.6796267496111975,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It's real.",
+        "source": "user",
         "max_similarity": 0.6325045824050903,
         "dissimilarity": 0.36749541759490967,
-        "most_similar_previous": 25
+        "most_similar_previous": 25,
+        "start_progress": 0.6801451529289787,
+        "end_progress": 0.685329186106791,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Um, can you hear me?\" You say.",
+        "source": "user",
         "max_similarity": 0.68581223487854,
         "dissimilarity": 0.31418776512145996,
-        "most_similar_previous": 3
+        "most_similar_previous": 3,
+        "start_progress": 0.6858475894245724,
+        "end_progress": 0.7034733022291343,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Yes, Your Majesty. You are hive-attuned, one of the last queens. I've come here to beg you to lead us\", she says, as she bows deeply on your shoulder.",
-        "max_similarity": 0.731625497341156,
-        "dissimilarity": 0.268374502658844,
-        "most_similar_previous": 23
+        "source": "user",
+        "max_similarity": 0.7316255569458008,
+        "dissimilarity": 0.2683744430541992,
+        "most_similar_previous": 23,
+        "start_progress": 0.7039917055469155,
+        "end_progress": 0.7822706065318819,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Lead you to what?\" I wonder out loud.",
-        "max_similarity": 0.5512795448303223,
-        "dissimilarity": 0.44872045516967773,
-        "most_similar_previous": 27
+        "source": "user",
+        "max_similarity": 0.5512794256210327,
+        "dissimilarity": 0.4487205743789673,
+        "most_similar_previous": 27,
+        "start_progress": 0.782789009849663,
+        "end_progress": 0.80248833592535,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"To victory over the humans, Your Majesty. The honeyed clans cannot rule until every last human is disposed of\" \"But I am a human\", you say.",
+        "source": "user",
         "max_similarity": 0.69898521900177,
         "dissimilarity": 0.30101478099823,
-        "most_similar_previous": 23
+        "most_similar_previous": 23,
+        "start_progress": 0.8030067392431312,
+        "end_progress": 0.8755832037325039,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"You are the queen of the bees, Your Majesty. You must lead us to victory.\"",
+        "source": "user",
         "max_similarity": 0.7509568333625793,
         "dissimilarity": 0.24904316663742065,
-        "most_similar_previous": 30
+        "most_similar_previous": 30,
+        "start_progress": 0.8761016070502852,
+        "end_progress": 0.9160186625194401,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Great.",
+        "source": "user",
         "max_similarity": 0.4187108278274536,
         "dissimilarity": 0.5812891721725464,
-        "most_similar_previous": 4
+        "most_similar_previous": 4,
+        "start_progress": 0.9165370658372214,
+        "end_progress": 0.9196474857439088,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Now you're with a bee who is convinced that you're a bee yourself, and wants you to overthrow the humans.",
-        "max_similarity": 0.6304503679275513,
-        "dissimilarity": 0.36954963207244873,
-        "most_similar_previous": 5
+        "source": "user",
+        "max_similarity": 0.6304502487182617,
+        "dissimilarity": 0.3695497512817383,
+        "most_similar_previous": 5,
+        "start_progress": 0.92016588906169,
+        "end_progress": 0.9745982374287195,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "This is not what you had in mind for your day!",
-        "max_similarity": 0.4706574082374573,
-        "dissimilarity": 0.5293425917625427,
-        "most_similar_previous": 1
+        "source": "user",
+        "max_similarity": 0.47065743803977966,
+        "dissimilarity": 0.5293425619602203,
+        "most_similar_previous": 1,
+        "start_progress": 0.9751166407465007,
+        "end_progress": 0.9989631933644375,
+        "start_time": 0.0,
+        "end_time": 0.0
     }
 ]

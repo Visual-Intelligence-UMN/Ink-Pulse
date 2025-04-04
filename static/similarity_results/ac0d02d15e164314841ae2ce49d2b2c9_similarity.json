@@ -1,236 +1,431 @@
 [
     {
         "sentence": "A woman has been dating guy after guy, but it never seems to work out.",
+        "source": "api",
         "max_similarity": 0.0,
         "dissimilarity": 1.0,
-        "most_similar_previous": null
+        "most_similar_previous": null,
+        "start_progress": 0.0,
+        "end_progress": 0.03474320241691843,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She’s unaware that she’s actually been dating the same guy over and over; a shapeshifter who’s fallen for her, and is certain he’s going to get it right this time.",
-        "max_similarity": 0.4379904866218567,
-        "dissimilarity": 0.5620095133781433,
-        "most_similar_previous": 0
+        "source": "api",
+        "max_similarity": 0.4379904568195343,
+        "dissimilarity": 0.5620095431804657,
+        "most_similar_previous": 0,
+        "start_progress": 0.035246727089627394,
+        "end_progress": 0.11732124874118832,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "One day, she is getting ready for a date.",
+        "source": "api",
         "max_similarity": 0.4281339645385742,
         "dissimilarity": 0.5718660354614258,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.11782477341389729,
+        "end_progress": 0.13897280966767372,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She’s on her bed, and she is very tense.",
+        "source": "user",
         "max_similarity": 0.6507288217544556,
         "dissimilarity": 0.34927117824554443,
-        "most_similar_previous": 1
+        "most_similar_previous": 1,
+        "start_progress": 0.13947633434038267,
+        "end_progress": 0.1596173212487412,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She has had the worst luck when it comes to dating.",
+        "source": "user",
         "max_similarity": 0.5000953674316406,
         "dissimilarity": 0.4999046325683594,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.16012084592145015,
+        "end_progress": 0.18580060422960726,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She has had one bad date after another.",
-        "max_similarity": 0.5375842452049255,
-        "dissimilarity": 0.46241575479507446,
-        "most_similar_previous": 2
+        "source": "user",
+        "max_similarity": 0.5375841856002808,
+        "dissimilarity": 0.46241581439971924,
+        "most_similar_previous": 2,
+        "start_progress": 0.1863041289023162,
+        "end_progress": 0.20594159113796576,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It seems like she just can’t find the guy of her dreams.",
+        "source": "user",
         "max_similarity": 0.6372051239013672,
         "dissimilarity": 0.3627948760986328,
-        "most_similar_previous": 1
+        "most_similar_previous": 1,
+        "start_progress": 0.20644511581067473,
+        "end_progress": 0.23464249748237664,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "But she was still optimistic.",
+        "source": "user",
         "max_similarity": 0.3721504807472229,
         "dissimilarity": 0.6278495192527771,
-        "most_similar_previous": 3
+        "most_similar_previous": 3,
+        "start_progress": 0.2351460221550856,
+        "end_progress": 0.2497482376636455,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "After all, she was meeting this new guy in a park.",
+        "source": "user",
         "max_similarity": 0.5106716156005859,
         "dissimilarity": 0.48932838439941406,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.2502517623363545,
+        "end_progress": 0.2754279959718026,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It was a beautiful day, and she was looking forward to it.",
-        "max_similarity": 0.4504450559616089,
-        "dissimilarity": 0.5495549440383911,
-        "most_similar_previous": 7
+        "source": "user",
+        "max_similarity": 0.4504450857639313,
+        "dissimilarity": 0.5495549142360687,
+        "most_similar_previous": 7,
+        "start_progress": 0.2759315206445116,
+        "end_progress": 0.30513595166163143,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She put on some music to lift her spirits.",
+        "source": "user",
         "max_similarity": 0.44031113386154175,
         "dissimilarity": 0.5596888661384583,
-        "most_similar_previous": 3
+        "most_similar_previous": 3,
+        "start_progress": 0.3056394763343404,
+        "end_progress": 0.32678751258811684,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "But suddenly, the music stopped.",
+        "source": "user",
         "max_similarity": 0.42210203409194946,
         "dissimilarity": 0.5778979659080505,
-        "most_similar_previous": 4
+        "most_similar_previous": 4,
+        "start_progress": 0.32729103726082576,
+        "end_progress": 0.3434038267875126,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She tried to play it again but it wouldn't start.",
+        "source": "user",
         "max_similarity": 0.517952561378479,
         "dissimilarity": 0.482047438621521,
-        "most_similar_previous": 9
+        "most_similar_previous": 9,
+        "start_progress": 0.34390735146022156,
+        "end_progress": 0.3685800604229607,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Then, she heard a strange noise.",
-        "max_similarity": 0.49747899174690247,
-        "dissimilarity": 0.5025210082530975,
-        "most_similar_previous": 8
+        "source": "user",
+        "max_similarity": 0.4974789619445801,
+        "dissimilarity": 0.5025210380554199,
+        "most_similar_previous": 8,
+        "start_progress": 0.3690835850956697,
+        "end_progress": 0.3851963746223565,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She wondered what it was but couldn't tell where it was coming from.",
-        "max_similarity": 0.618951678276062,
-        "dissimilarity": 0.381048321723938,
-        "most_similar_previous": 9
+        "source": "api",
+        "max_similarity": 0.6189517378807068,
+        "dissimilarity": 0.3810482621192932,
+        "most_similar_previous": 9,
+        "start_progress": 0.3856998992950655,
+        "end_progress": 0.4199395770392749,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It seemed like a voice, but she couldn't make out any words.",
+        "source": "user",
         "max_similarity": 0.5418533086776733,
         "dissimilarity": 0.45814669132232666,
-        "most_similar_previous": 13
+        "most_similar_previous": 13,
+        "start_progress": 0.4204431017119839,
+        "end_progress": 0.45065458207452164,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Suddenly, the voice began to make sense.",
+        "source": "user",
         "max_similarity": 0.5204184651374817,
         "dissimilarity": 0.4795815348625183,
-        "most_similar_previous": 11
+        "most_similar_previous": 11,
+        "start_progress": 0.4511581067472306,
+        "end_progress": 0.47129909365558914,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It was coming from all around her.",
+        "source": "user",
         "max_similarity": 0.5508130192756653,
         "dissimilarity": 0.4491869807243347,
-        "most_similar_previous": 14
+        "most_similar_previous": 14,
+        "start_progress": 0.47180261832829806,
+        "end_progress": 0.48892245720040284,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It was the voice of a man.",
+        "source": "user",
         "max_similarity": 0.5104842185974121,
         "dissimilarity": 0.4895157814025879,
-        "most_similar_previous": 15
+        "most_similar_previous": 15,
+        "start_progress": 0.48942598187311176,
+        "end_progress": 0.5025176233635448,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Don't forget me,\" said the voice.",
+        "source": "user",
         "max_similarity": 0.521026074886322,
         "dissimilarity": 0.478973925113678,
-        "most_similar_previous": 16
+        "most_similar_previous": 16,
+        "start_progress": 0.5030211480362538,
+        "end_progress": 0.5201409869083585,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Don't ever forget me.\"",
+        "source": "user",
         "max_similarity": 0.783786416053772,
         "dissimilarity": 0.21621358394622803,
-        "most_similar_previous": 19
+        "most_similar_previous": 19,
+        "start_progress": 0.5206445115810675,
+        "end_progress": 0.5332326283987915,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Who are you?\" she asked.",
-        "max_similarity": 0.4638253450393677,
-        "dissimilarity": 0.5361746549606323,
-        "most_similar_previous": 20
+        "source": "api",
+        "max_similarity": 0.46382540464401245,
+        "dissimilarity": 0.5361745953559875,
+        "most_similar_previous": 20,
+        "start_progress": 0.5337361530715005,
+        "end_progress": 0.5463242698892246,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"What's going on?\"",
-        "max_similarity": 0.456680029630661,
-        "dissimilarity": 0.543319970369339,
-        "most_similar_previous": 21
+        "source": "user",
+        "max_similarity": 0.4566800594329834,
+        "dissimilarity": 0.5433199405670166,
+        "most_similar_previous": 21,
+        "start_progress": 0.5468277945619335,
+        "end_progress": 0.5568982880161127,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"I am your true love,\" said the voice.",
+        "source": "api",
         "max_similarity": 0.6287455558776855,
         "dissimilarity": 0.37125444412231445,
-        "most_similar_previous": 19
+        "most_similar_previous": 19,
+        "start_progress": 0.5574018126888217,
+        "end_progress": 0.5765357502517623,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"You will find me w hen your heart is true. Until then, nothing more can I reveal to you.\" Suddenly, the music comes back on.",
+        "source": "user",
         "max_similarity": 0.6061787605285645,
         "dissimilarity": 0.39382123947143555,
-        "most_similar_previous": 23
+        "most_similar_previous": 23,
+        "start_progress": 0.5770392749244713,
+        "end_progress": 0.6399798590130916,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The voice was gone.",
+        "source": "user",
         "max_similarity": 0.5810030698776245,
         "dissimilarity": 0.4189969301223755,
-        "most_similar_previous": 18
+        "most_similar_previous": 18,
+        "start_progress": 0.6404833836858006,
+        "end_progress": 0.6500503524672709,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She looked around, trying to find where the voice was coming from, but there was no one there.",
-        "max_similarity": 0.5110058784484863,
-        "dissimilarity": 0.48899412155151367,
-        "most_similar_previous": 9
+        "source": "user",
+        "max_similarity": 0.5110057592391968,
+        "dissimilarity": 0.4889942407608032,
+        "most_similar_previous": 9,
+        "start_progress": 0.6505538771399798,
+        "end_progress": 0.6978851963746223,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She sat back on her bed, deep in thought.",
-        "max_similarity": 0.6195273995399475,
-        "dissimilarity": 0.3804726004600525,
-        "most_similar_previous": 3
+        "source": "user",
+        "max_similarity": 0.6195273399353027,
+        "dissimilarity": 0.38047266006469727,
+        "most_similar_previous": 3,
+        "start_progress": 0.6983887210473313,
+        "end_progress": 0.7190332326283988,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Who was the voice?",
+        "source": "user",
         "max_similarity": 0.5950286388397217,
         "dissimilarity": 0.4049713611602783,
-        "most_similar_previous": 25
+        "most_similar_previous": 25,
+        "start_progress": 0.7195367573011078,
+        "end_progress": 0.728600201409869,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Was it telling the truth?",
+        "source": "user",
         "max_similarity": 0.5311882495880127,
         "dissimilarity": 0.4688117504119873,
-        "most_similar_previous": 28
+        "most_similar_previous": 28,
+        "start_progress": 0.729103726082578,
+        "end_progress": 0.7416918429003021,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Just then, her phone rang.",
-        "max_similarity": 0.5010278820991516,
-        "dissimilarity": 0.4989721179008484,
-        "most_similar_previous": 13
+        "source": "user",
+        "max_similarity": 0.5010279417037964,
+        "dissimilarity": 0.4989720582962036,
+        "most_similar_previous": 13,
+        "start_progress": 0.7421953675730111,
+        "end_progress": 0.7552870090634441,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It was her date calling from the park.",
+        "source": "user",
         "max_similarity": 0.5605685710906982,
         "dissimilarity": 0.43943142890930176,
-        "most_similar_previous": 17
+        "most_similar_previous": 17,
+        "start_progress": 0.7557905337361531,
+        "end_progress": 0.7749244712990937,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Are you coming? Don't be late!\" She was about to speak, to let her date know that she was one her way.",
-        "max_similarity": 0.5603530406951904,
-        "dissimilarity": 0.43964695930480957,
-        "most_similar_previous": 26
+        "source": "user",
+        "max_similarity": 0.5603529214859009,
+        "dissimilarity": 0.4396470785140991,
+        "most_similar_previous": 26,
+        "start_progress": 0.7754279959718026,
+        "end_progress": 0.8272910372608258,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "But she had a change of heart.",
-        "max_similarity": 0.5072584748268127,
-        "dissimilarity": 0.49274152517318726,
-        "most_similar_previous": 7
+        "source": "user",
+        "max_similarity": 0.5072585344314575,
+        "dissimilarity": 0.4927414655685425,
+        "most_similar_previous": 7,
+        "start_progress": 0.8277945619335347,
+        "end_progress": 0.8429003021148036,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"No,\" she said.",
-        "max_similarity": 0.7005082964897156,
-        "dissimilarity": 0.2994917035102844,
-        "most_similar_previous": 19
+        "source": "user",
+        "max_similarity": 0.7005082368850708,
+        "dissimilarity": 0.2994917631149292,
+        "most_similar_previous": 19,
+        "start_progress": 0.8434038267875126,
+        "end_progress": 0.850956696878147,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"To be honest, I just don't think I'm feeling up to it today. Perhaps some other time?\" And she politely said goodbye.",
+        "source": "user",
         "max_similarity": 0.5764890909194946,
         "dissimilarity": 0.42351090908050537,
-        "most_similar_previous": 34
+        "most_similar_previous": 34,
+        "start_progress": 0.851460221550856,
+        "end_progress": 0.9108761329305136,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She realized the voice was right.",
+        "source": "user",
         "max_similarity": 0.645024299621582,
         "dissimilarity": 0.35497570037841797,
-        "most_similar_previous": 25
+        "most_similar_previous": 25,
+        "start_progress": 0.9113796576032226,
+        "end_progress": 0.9279959718026183,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She couldn't move on until she dealt with her true love first.",
+        "source": "user",
         "max_similarity": 0.49837082624435425,
         "dissimilarity": 0.5016291737556458,
-        "most_similar_previous": 3
+        "most_similar_previous": 3,
+        "start_progress": 0.9284994964753273,
+        "end_progress": 0.9602215508559919,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She needed to find him, or work on improving herself so that he'll find her.",
-        "max_similarity": 0.4666576683521271,
-        "dissimilarity": 0.5333423316478729,
-        "most_similar_previous": 30
+        "source": "user",
+        "max_similarity": 0.46665772795677185,
+        "dissimilarity": 0.5333422720432281,
+        "most_similar_previous": 30,
+        "start_progress": 0.9607250755287009,
+        "end_progress": 0.998992950654582,
+        "start_time": 0.0,
+        "end_time": 0.0
     }
 ]

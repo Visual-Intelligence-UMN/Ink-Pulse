@@ -1,176 +1,321 @@
 [
     {
         "sentence": "Your entire life, you've been told you're deathly allergic to bees.",
+        "source": "api",
         "max_similarity": 0.0,
         "dissimilarity": 1.0,
-        "most_similar_previous": null
+        "most_similar_previous": null,
+        "start_progress": 0.0,
+        "end_progress": 0.03450078410872975,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You've always had people protecting you from them, be it your mother or a hired hand.",
-        "max_similarity": 0.4942033886909485,
-        "dissimilarity": 0.5057966113090515,
-        "most_similar_previous": 0
+        "source": "api",
+        "max_similarity": 0.4942034184932709,
+        "dissimilarity": 0.5057965815067291,
+        "most_similar_previous": 0,
+        "start_progress": 0.035023523261892314,
+        "end_progress": 0.07945635128071092,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Today, one slips through and lands on your shoulder.",
-        "max_similarity": 0.36622971296310425,
-        "dissimilarity": 0.6337702870368958,
-        "most_similar_previous": 0
+        "source": "api",
+        "max_similarity": 0.366229772567749,
+        "dissimilarity": 0.633770227432251,
+        "most_similar_previous": 0,
+        "start_progress": 0.0799790904338735,
+        "end_progress": 0.10716152639832724,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You hear a tiny voice say \"Your Majesty, what are your orders?\"",
-        "max_similarity": 0.5057461261749268,
-        "dissimilarity": 0.49425387382507324,
-        "most_similar_previous": 0
+        "source": "api",
+        "max_similarity": 0.5057461857795715,
+        "dissimilarity": 0.49425381422042847,
+        "most_similar_previous": 0,
+        "start_progress": 0.10768426555148981,
+        "end_progress": 0.14166231050705697,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Well hello,\" I said to the bee.",
-        "max_similarity": 0.38164472579956055,
-        "dissimilarity": 0.6183552742004395,
-        "most_similar_previous": 0
+        "source": "user",
+        "max_similarity": 0.38164475560188293,
+        "dissimilarity": 0.6183552443981171,
+        "most_similar_previous": 0,
+        "start_progress": 0.14218504966021955,
+        "end_progress": 0.15891270256142184,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"I'm not really in the mood of issuing any orders.\" The bee buzzed slightly and hovered around me.",
+        "source": "user",
         "max_similarity": 0.4924777150154114,
         "dissimilarity": 0.5075222849845886,
-        "most_similar_previous": 4
+        "most_similar_previous": 4,
+        "start_progress": 0.15943544171458443,
+        "end_progress": 0.21066387872451647,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "I wondered why the bee called be your majesty but I thought I would play along.",
-        "max_similarity": 0.39936578273773193,
-        "dissimilarity": 0.6006342172622681,
-        "most_similar_previous": 5
+        "source": "user",
+        "max_similarity": 0.3993658125400543,
+        "dissimilarity": 0.6006341874599457,
+        "most_similar_previous": 5,
+        "start_progress": 0.21118661787767903,
+        "end_progress": 0.25248301097752224,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"What would you like to have me do?\" I asked the bee.",
+        "source": "user",
         "max_similarity": 0.5801227688789368,
         "dissimilarity": 0.41987723112106323,
-        "most_similar_previous": 4
+        "most_similar_previous": 4,
+        "start_progress": 0.25300575013068477,
+        "end_progress": 0.2807109252483011,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"You must issue an order,\" said the bee.",
+        "source": "user",
         "max_similarity": 0.5806429386138916,
         "dissimilarity": 0.4193570613861084,
-        "most_similar_previous": 4
+        "most_similar_previous": 4,
+        "start_progress": 0.2812336644014637,
+        "end_progress": 0.30318870883429166,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "And this gave me a great idea.",
-        "max_similarity": 0.41239941120147705,
-        "dissimilarity": 0.587600588798523,
-        "most_similar_previous": 5
+        "source": "user",
+        "max_similarity": 0.41239938139915466,
+        "dissimilarity": 0.5876006186008453,
+        "most_similar_previous": 5,
+        "start_progress": 0.30371144798745425,
+        "end_progress": 0.3193936225823314,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Since I could give the bees orders , I could tell them to do whatever I wanted.",
+        "source": "user",
         "max_similarity": 0.5581066012382507,
         "dissimilarity": 0.44189339876174927,
-        "most_similar_previous": 6
+        "most_similar_previous": 6,
+        "start_progress": 0.319916361735494,
+        "end_progress": 0.36121275483533716,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "And this could include not stinging me.",
-        "max_similarity": 0.610603392124176,
-        "dissimilarity": 0.389396607875824,
-        "most_similar_previous": 9
+        "source": "user",
+        "max_similarity": 0.6106033325195312,
+        "dissimilarity": 0.38939666748046875,
+        "most_similar_previous": 9,
+        "start_progress": 0.36173549398849975,
+        "end_progress": 0.38212232096184007,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Since I'm allergic that would be nice.",
-        "max_similarity": 0.4192022681236267,
-        "dissimilarity": 0.5807977318763733,
-        "most_similar_previous": 6
+        "source": "user",
+        "max_similarity": 0.4192022383213043,
+        "dissimilarity": 0.5807977616786957,
+        "most_similar_previous": 6,
+        "start_progress": 0.3826450601150026,
+        "end_progress": 0.40250914793518033,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Alright,\" I said to the bee.",
-        "max_similarity": 0.8467559218406677,
-        "dissimilarity": 0.15324407815933228,
-        "most_similar_previous": 4
+        "source": "user",
+        "max_similarity": 0.8467559814453125,
+        "dissimilarity": 0.1532440185546875,
+        "most_similar_previous": 4,
+        "start_progress": 0.4030318870883429,
+        "end_progress": 0.4181913225300575,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"I'll give this one order. Tell all of the bees that none of them can sting me.\" The bee buzzed and nodded.",
+        "source": "user",
         "max_similarity": 0.7024635076522827,
         "dissimilarity": 0.2975364923477173,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.41871406168322006,
+        "end_progress": 0.47464715107161526,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He went and told the rest of the bees my message.",
-        "max_similarity": 0.5965276956558228,
-        "dissimilarity": 0.40347230434417725,
-        "most_similar_previous": 14
+        "source": "user",
+        "max_similarity": 0.5965277552604675,
+        "dissimilarity": 0.40347224473953247,
+        "most_similar_previous": 14,
+        "start_progress": 0.47516989022477785,
+        "end_progress": 0.5007841087297439,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"They say they will do so.\" said the bee.",
-        "max_similarity": 0.6123193502426147,
-        "dissimilarity": 0.38768064975738525,
-        "most_similar_previous": 4
+        "source": "user",
+        "max_similarity": 0.6123194098472595,
+        "dissimilarity": 0.3876805901527405,
+        "most_similar_previous": 4,
+        "start_progress": 0.5013068478829065,
+        "end_progress": 0.5227391531625719,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "And I was so glad because I never had to worry about the bees stinging me again.",
-        "max_similarity": 0.5274902582168579,
-        "dissimilarity": 0.4725097417831421,
-        "most_similar_previous": 10
+        "source": "user",
+        "max_similarity": 0.5274903178215027,
+        "dissimilarity": 0.4725096821784973,
+        "most_similar_previous": 10,
+        "start_progress": 0.5232618923157345,
+        "end_progress": 0.5650810245687402,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "But I still wondered why the bee thought I was his queen.",
-        "max_similarity": 0.7172653079032898,
-        "dissimilarity": 0.2827346920967102,
-        "most_similar_previous": 6
+        "source": "user",
+        "max_similarity": 0.717265248298645,
+        "dissimilarity": 0.282734751701355,
+        "most_similar_previous": 6,
+        "start_progress": 0.5656037637219028,
+        "end_progress": 0.5953998954521693,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"By the way, why did you call me your majesty? Why do you think I'm your queen?\" The bee buzzed and flew over to the flower on the other side of the room.",
-        "max_similarity": 0.6148717403411865,
-        "dissimilarity": 0.3851282596588135,
-        "most_similar_previous": 7
+        "source": "user",
+        "max_similarity": 0.6148716807365417,
+        "dissimilarity": 0.38512831926345825,
+        "most_similar_previous": 7,
+        "start_progress": 0.5959226346053319,
+        "end_progress": 0.6774699424986932,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "I guess he didn't want to tell me.",
+        "source": "user",
         "max_similarity": 0.3743109703063965,
         "dissimilarity": 0.6256890296936035,
-        "most_similar_previous": 10
+        "most_similar_previous": 10,
+        "start_progress": 0.6779926816518558,
+        "end_progress": 0.6957658128593832,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "But at least I didn't have to worry about the bees stinging me.",
+        "source": "api",
         "max_similarity": 0.6248784065246582,
         "dissimilarity": 0.3751215934753418,
-        "most_similar_previous": 17
+        "most_similar_previous": 17,
+        "start_progress": 0.6962885520125457,
+        "end_progress": 0.7292211186617877,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "My allergy was gone and I could live a normal life.",
+        "source": "user",
         "max_similarity": 0.45818081498146057,
         "dissimilarity": 0.5418191850185394,
-        "most_similar_previous": 9
+        "most_similar_previous": 9,
+        "start_progress": 0.7297438578149503,
+        "end_progress": 0.7564035546262415,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "I just wished the bee would have told me why he thought I was his queen.",
+        "source": "user",
         "max_similarity": 0.7429261207580566,
         "dissimilarity": 0.25707387924194336,
-        "most_similar_previous": 18
+        "most_similar_previous": 18,
+        "start_progress": 0.7569262937794041,
+        "end_progress": 0.7950862519602718,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The next day I saw the bee again and asked him why he thought I was the queen.",
+        "source": "user",
         "max_similarity": 0.6890519857406616,
         "dissimilarity": 0.3109480142593384,
-        "most_similar_previous": 18
+        "most_similar_previous": 18,
+        "start_progress": 0.7956089911134344,
+        "end_progress": 0.836382645060115,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He buzzed and said \"My queen, you are the most beautiful woman I have ever seen.\" I was so flattered by this.",
+        "source": "api",
         "max_similarity": 0.625438928604126,
         "dissimilarity": 0.374561071395874,
-        "most_similar_previous": 23
+        "most_similar_previous": 23,
+        "start_progress": 0.8369053842132775,
+        "end_progress": 0.893883951907998,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "I had no idea the bees thought I was beautiful enough to be their queen.",
+        "source": "user",
         "max_similarity": 0.623645544052124,
         "dissimilarity": 0.376354455947876,
-        "most_similar_previous": 23
+        "most_similar_previous": 23,
+        "start_progress": 0.8944066910611604,
+        "end_progress": 0.9320439100888657,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "My bee and I made a promise to be friends forever.",
+        "source": "api",
         "max_similarity": 0.5299919843673706,
         "dissimilarity": 0.4700080156326294,
-        "most_similar_previous": 22
+        "most_similar_previous": 22,
+        "start_progress": 0.9325666492420283,
+        "end_progress": 0.9587036069001568,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "And I never had to worry about getting stung or having bee allergies again.",
+        "source": "user",
         "max_similarity": 0.6274583339691162,
         "dissimilarity": 0.3725416660308838,
-        "most_similar_previous": 17
+        "most_similar_previous": 17,
+        "start_progress": 0.9592263460533194,
+        "end_progress": 0.9984317825405122,
+        "start_time": 0.0,
+        "end_time": 0.0
     }
 ]

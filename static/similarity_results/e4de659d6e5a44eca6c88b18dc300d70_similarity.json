@@ -1,206 +1,376 @@
 [
     {
         "sentence": "You're Barack Obama.",
+        "source": "api",
         "max_similarity": 0.0,
         "dissimilarity": 1.0,
-        "most_similar_previous": null
+        "most_similar_previous": null,
+        "start_progress": 0.0,
+        "end_progress": 0.00794314381270903,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "4 years into your retirement, you awake to find a letter with no return address on your bedside table.",
+        "source": "api",
         "max_similarity": 0.21876409649848938,
         "dissimilarity": 0.7812359035015106,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.008361204013377926,
+        "end_progress": 0.05100334448160535,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\"",
-        "max_similarity": 0.49358242750167847,
-        "dissimilarity": 0.5064175724983215,
-        "most_similar_previous": 1
+        "source": "api",
+        "max_similarity": 0.49358248710632324,
+        "dissimilarity": 0.5064175128936768,
+        "most_similar_previous": 1,
+        "start_progress": 0.05142140468227425,
+        "end_progress": 0.11705685618729098,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You realize that this has to be a joke since it's signed JFK.",
+        "source": "user",
         "max_similarity": 0.5096182823181152,
         "dissimilarity": 0.49038171768188477,
-        "most_similar_previous": 2
+        "most_similar_previous": 2,
+        "start_progress": 0.11747491638795987,
+        "end_progress": 0.14297658862876253,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You want to get to the bottom of it and figure out who is messing around with you.",
+        "source": "user",
         "max_similarity": 0.5370146036148071,
         "dissimilarity": 0.46298539638519287,
-        "most_similar_previous": 2
+        "most_similar_previous": 2,
+        "start_progress": 0.14339464882943143,
+        "end_progress": 0.17767558528428093,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You go through your regular days routine and nothing is unusual at all.",
+        "source": "user",
         "max_similarity": 0.3758612275123596,
         "dissimilarity": 0.6241387724876404,
-        "most_similar_previous": 2
+        "most_similar_previous": 2,
+        "start_progress": 0.17809364548494983,
+        "end_progress": 0.20777591973244147,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The problem is, as the day goes on your curiosity gets the best of you.",
+        "source": "user",
         "max_similarity": 0.5404072999954224,
         "dissimilarity": 0.45959270000457764,
-        "most_similar_previous": 2
+        "most_similar_previous": 2,
+        "start_progress": 0.20819397993311037,
+        "end_progress": 0.23787625418060201,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You pick up the phone and call that number and a familiar voice picks up.",
+        "source": "user",
         "max_similarity": 0.4576606750488281,
         "dissimilarity": 0.5423393249511719,
-        "most_similar_previous": 3
+        "most_similar_previous": 3,
+        "start_progress": 0.2382943143812709,
+        "end_progress": 0.2692307692307692,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It sounds like JFK but that's obviously impossible.",
+        "source": "user",
         "max_similarity": 0.5737535357475281,
         "dissimilarity": 0.4262464642524719,
-        "most_similar_previous": 3
+        "most_similar_previous": 3,
+        "start_progress": 0.26964882943143814,
+        "end_progress": 0.2909698996655518,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He's been dead for decades.",
+        "source": "user",
         "max_similarity": 0.36643993854522705,
         "dissimilarity": 0.633560061454773,
-        "most_similar_previous": 8
+        "most_similar_previous": 8,
+        "start_progress": 0.29138795986622074,
+        "end_progress": 0.30267558528428096,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The person on the other line tells you that he is John F Kennedy.",
-        "max_similarity": 0.5117217898368835,
-        "dissimilarity": 0.48827821016311646,
-        "most_similar_previous": 6
+        "source": "user",
+        "max_similarity": 0.5117218494415283,
+        "dissimilarity": 0.4882781505584717,
+        "most_similar_previous": 6,
+        "start_progress": 0.3030936454849498,
+        "end_progress": 0.3302675585284281,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He was the President of the United States at one time.",
+        "source": "user",
         "max_similarity": 0.5221781134605408,
         "dissimilarity": 0.47782188653945923,
-        "most_similar_previous": 6
+        "most_similar_previous": 6,
+        "start_progress": 0.33068561872909696,
+        "end_progress": 0.3532608695652174,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You explain to him that that is impossible as JFK has been dead for over 25 years.",
-        "max_similarity": 0.6182903051376343,
-        "dissimilarity": 0.3817096948623657,
-        "most_similar_previous": 3
+        "source": "user",
+        "max_similarity": 0.6182902455329895,
+        "dissimilarity": 0.3817097544670105,
+        "most_similar_previous": 3,
+        "start_progress": 0.3536789297658863,
+        "end_progress": 0.3879598662207358,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The person on the other line explains that the death was staged.",
+        "source": "user",
         "max_similarity": 0.6805652379989624,
         "dissimilarity": 0.3194347620010376,
-        "most_similar_previous": 10
+        "most_similar_previous": 10,
+        "start_progress": 0.3883779264214047,
+        "end_progress": 0.41555183946488294,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It wasn't even staged that well which is why there is the 2 shooter theory that we have seen on the internet previously.",
+        "source": "user",
         "max_similarity": 0.5124548673629761,
         "dissimilarity": 0.4875451326370239,
-        "most_similar_previous": 13
+        "most_similar_previous": 13,
+        "start_progress": 0.4159698996655518,
+        "end_progress": 0.4661371237458194,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You ask JFK some facts about his family and the country during his time of Presidency.",
-        "max_similarity": 0.3634940981864929,
-        "dissimilarity": 0.6365059018135071,
-        "most_similar_previous": 3
+        "source": "user",
+        "max_similarity": 0.36349406838417053,
+        "dissimilarity": 0.6365059316158295,
+        "most_similar_previous": 3,
+        "start_progress": 0.4665551839464883,
+        "end_progress": 0.5029264214046822,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He answers every question accurately.",
-        "max_similarity": 0.45957979559898376,
-        "dissimilarity": 0.5404202044010162,
-        "most_similar_previous": 11
+        "source": "user",
+        "max_similarity": 0.45957982540130615,
+        "dissimilarity": 0.5404201745986938,
+        "most_similar_previous": 11,
+        "start_progress": 0.5033444816053512,
+        "end_progress": 0.5188127090301003,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He explains that his families life was in danger.",
-        "max_similarity": 0.4155498147010803,
-        "dissimilarity": 0.5844501852989197,
-        "most_similar_previous": 11
+        "source": "user",
+        "max_similarity": 0.4155498743057251,
+        "dissimilarity": 0.5844501256942749,
+        "most_similar_previous": 11,
+        "start_progress": 0.5192307692307693,
+        "end_progress": 0.5397157190635451,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "JFK had gotten involved with the mob and they were threatening to expose him.",
-        "max_similarity": 0.4481581151485443,
-        "dissimilarity": 0.5518418848514557,
-        "most_similar_previous": 7
+        "source": "user",
+        "max_similarity": 0.4481580853462219,
+        "dissimilarity": 0.5518419146537781,
+        "most_similar_previous": 7,
+        "start_progress": 0.540133779264214,
+        "end_progress": 0.572742474916388,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "This would have led to him being in jail or worse.",
-        "max_similarity": 0.3866479992866516,
-        "dissimilarity": 0.6133520007133484,
-        "most_similar_previous": 18
+        "source": "user",
+        "max_similarity": 0.386648029088974,
+        "dissimilarity": 0.613351970911026,
+        "most_similar_previous": 18,
+        "start_progress": 0.5731605351170569,
+        "end_progress": 0.5944816053511706,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Therefore he staged his own death to avoid consequences from the mob.",
+        "source": "user",
         "max_similarity": 0.5224483013153076,
         "dissimilarity": 0.4775516986846924,
-        "most_similar_previous": 4
+        "most_similar_previous": 4,
+        "start_progress": 0.5948996655518395,
+        "end_progress": 0.6237458193979933,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "This allowed him to enter a highly discreet version of witness protection that is only viable for people with extremely high amounts of power and positioning.",
-        "max_similarity": 0.47552719712257385,
-        "dissimilarity": 0.5244728028774261,
-        "most_similar_previous": 7
+        "source": "user",
+        "max_similarity": 0.47552722692489624,
+        "dissimilarity": 0.5244727730751038,
+        "most_similar_previous": 7,
+        "start_progress": 0.6241638795986622,
+        "end_progress": 0.6902173913043478,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You get to the bottom of it and ask JFK what exactly he needs from you.",
-        "max_similarity": 0.7009551525115967,
-        "dissimilarity": 0.2990448474884033,
-        "most_similar_previous": 4
+        "source": "user",
+        "max_similarity": 0.7009552717208862,
+        "dissimilarity": 0.29904472827911377,
+        "most_similar_previous": 4,
+        "start_progress": 0.6906354515050167,
+        "end_progress": 0.7211538461538461,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You ask why he needs you to fly to him.",
-        "max_similarity": 0.6466811299324036,
-        "dissimilarity": 0.35331887006759644,
-        "most_similar_previous": 22
+        "source": "user",
+        "max_similarity": 0.6466811895370483,
+        "dissimilarity": 0.35331881046295166,
+        "most_similar_previous": 22,
+        "start_progress": 0.7215719063545151,
+        "end_progress": 0.737876254180602,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "JFK explains that the purpose of you coming to visit him is to get off the grid as well.",
-        "max_similarity": 0.5880554914474487,
-        "dissimilarity": 0.41194450855255127,
-        "most_similar_previous": 4
+        "source": "user",
+        "max_similarity": 0.5880555510520935,
+        "dissimilarity": 0.4119444489479065,
+        "most_similar_previous": 4,
+        "start_progress": 0.7382943143812709,
+        "end_progress": 0.7755016722408027,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "JFK explains that he knows the stress that comes with being President of the United States.",
+        "source": "user",
         "max_similarity": 0.5984814167022705,
         "dissimilarity": 0.4015185832977295,
-        "most_similar_previous": 11
+        "most_similar_previous": 11,
+        "start_progress": 0.7759197324414716,
+        "end_progress": 0.8139632107023411,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He knows what it's like to always be in the limelight.",
+        "source": "user",
         "max_similarity": 0.5317329168319702,
         "dissimilarity": 0.4682670831680298,
-        "most_similar_previous": 22
+        "most_similar_previous": 22,
+        "start_progress": 0.81438127090301,
+        "end_progress": 0.8369565217391305,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You think it over and explain to JFK while you greatly appreciate the offer, you think it's too risky.",
+        "source": "user",
         "max_similarity": 0.7141203880310059,
         "dissimilarity": 0.28587961196899414,
-        "most_similar_previous": 22
+        "most_similar_previous": 22,
+        "start_progress": 0.8373745819397993,
+        "end_progress": 0.8808528428093646,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You also don't want to blow up JFKs spot.",
-        "max_similarity": 0.42220863699913025,
-        "dissimilarity": 0.5777913630008698,
-        "most_similar_previous": 24
+        "source": "user",
+        "max_similarity": 0.4222085475921631,
+        "dissimilarity": 0.5777914524078369,
+        "most_similar_previous": 24,
+        "start_progress": 0.8812709030100334,
+        "end_progress": 0.8984113712374582,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You politely decline and JFK tells you the offer is always on the table.",
+        "source": "user",
         "max_similarity": 0.6304601430892944,
         "dissimilarity": 0.36953985691070557,
-        "most_similar_previous": 10
+        "most_similar_previous": 10,
+        "start_progress": 0.8988294314381271,
+        "end_progress": 0.9289297658862876,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You all of a sudden wake up in a panic, turn and see your wife.",
+        "source": "user",
         "max_similarity": 0.5519607663154602,
         "dissimilarity": 0.4480392336845398,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.9293478260869565,
+        "end_progress": 0.9561036789297659,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You run and look for the letter and phone number.",
+        "source": "user",
         "max_similarity": 0.6622437834739685,
         "dissimilarity": 0.3377562165260315,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.9565217391304348,
+        "end_progress": 0.9770066889632107,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It's nowhere to be found.",
-        "max_similarity": 0.4767710566520691,
-        "dissimilarity": 0.5232289433479309,
-        "most_similar_previous": 26
+        "source": "user",
+        "max_similarity": 0.47677096724510193,
+        "dissimilarity": 0.5232290327548981,
+        "most_similar_previous": 26,
+        "start_progress": 0.9774247491638796,
+        "end_progress": 0.987876254180602,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Was this all just a dream?",
+        "source": "user",
         "max_similarity": 0.4049667418003082,
         "dissimilarity": 0.5950332581996918,
-        "most_similar_previous": 3
+        "most_similar_previous": 3,
+        "start_progress": 0.9882943143812709,
+        "end_progress": 0.9991638795986622,
+        "start_time": 0.0,
+        "end_time": 0.0
     }
 ]

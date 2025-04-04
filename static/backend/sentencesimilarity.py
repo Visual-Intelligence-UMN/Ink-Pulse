@@ -10,15 +10,15 @@ nltk.download('punkt', quiet=True)
 
 def read_sentences(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            sentences = [entry["text"] for entry in data if "text" in entry]
+        data = json.load(file)
+        sentences = [(entry["text"], entry.get("source", "unknown"), entry["start_progress"], entry["end_progress"], entry["start_time"], entry["end_time"]) for entry in data if "text" in entry]
     return sentences
 
 def preprocess_sentence(sentence):
     return word_tokenize(sentence.lower())
 
 def train_word2vec_model(sentences):
-    tokenized_sentences = [preprocess_sentence(sent) for sent in sentences]
+    tokenized_sentences = [preprocess_sentence(sent[0]) for sent in sentences]
     
     model = Word2Vec(sentences=tokenized_sentences, vector_size=100, window=5, min_count=1, workers=4)
     return model
@@ -28,7 +28,6 @@ def get_sentence_vector(sentence, model):
     
     vectors = [model.wv[word] for word in words if word in model.wv]
     
-    # If no words returning the mean vector or zeroes\
     return np.mean(vectors, axis=0) if vectors else np.zeros(model.vector_size)
 
 def sentence_similarity(sent1, sent2, model):
@@ -40,79 +39,40 @@ def sentence_similarity(sent1, sent2, model):
     
     return cosine_similarity(vec1, vec2)[0][0]
 
-'''
 def analyze_sentence_similarity(sentences, model):
     results = []
     
-    # 1st sentence so no prev sentence to compare so just append
     if sentences:
         results.append({
-            "sentence": sentences[0],
+            "sentence": sentences[0][0],
+            "source": sentences[0][1],
             "max_similarity": 0.0,
             "dissimilarity": 1.0,
-            "most_similar_previous": None
+            "most_similar_previous": None,
+            "start_progress": sentences[0][2],
+            "end_progress": sentences[0][3],
+            "start_time": sentences[0][4],
+            "end_time": sentences[0][5],
         })
-    
-    # second setence so compare with first
-    if len(sentences) > 1:
-        similarity = sentence_similarity(sentences[1], sentences[0], model)
-        results.append({
-            "sentence": sentences[1],
-            "max_similarity": similarity,
-            "dissimilarity": 1.0 - similarity,
-            "most_similar_previous": 0
-        })
-    
-    # for 3rd sentence compare with previous sentence
-    for i in range(2, len(sentences)):
-        similarities = []
-        for j in range(max(0, i-2), i):
-            sim = sentence_similarity(sentences[i], sentences[j], model)
-            similarities.append((j, sim))
-        
-        # Find the most similar previous sentence
-        if similarities:
-            most_similar_idx, max_similarity = max(similarities, key=lambda x: x[1])
-            dissimilarity = 1.0 - max_similarity
-            
-            results.append({
-                "sentence": sentences[i],
-                "max_similarity": max_similarity,
-                "dissimilarity": dissimilarity,
-                "most_similar_previous": most_similar_idx
-            })
-    
-    return results
-'''
-
-def analyze_sentence_similarity(sentences, model):
-    results = []
-    
-    # 1st sentence so no prev sentence to compare so just append
-    if sentences:
-        results.append({
-            "sentence": sentences[0],
-            "max_similarity": 0.0,
-            "dissimilarity": 1.0,
-            "most_similar_previous": None
-        })
-    
-    # For rest compare with all previous sentences and then append
     for i in range(1, len(sentences)):
         similarities = []
         for j in range(0, i):
-            sim = sentence_similarity(sentences[i], sentences[j], model)
+            sim = sentence_similarity(sentences[i][0], sentences[j][0], model)
             similarities.append((j, sim))
-        
         if similarities:
             most_similar_idx, max_similarity = max(similarities, key=lambda x: x[1])
             dissimilarity = 1.0 - max_similarity
             
             results.append({
-                "sentence": sentences[i],
+                "sentence": sentences[i][0],
+                "source": sentences[i][1],
                 "max_similarity": max_similarity,
                 "dissimilarity": dissimilarity,
-                "most_similar_previous": most_similar_idx
+                "most_similar_previous": most_similar_idx,
+                "start_progress": sentences[i][2],
+                "end_progress": sentences[i][3],
+                "start_time": sentences[0][4],
+                "end_time": sentences[0][5],
             })
     
     return results
@@ -147,7 +107,6 @@ if __name__ == "__main__":
             file_path = os.path.join(session_dir, file_name)
             session_id = os.path.splitext(file_name)[0]
 
-            
             sentences = read_sentences(file_path)
             model = train_word2vec_model(sentences)
             results = analyze_sentence_similarity(sentences, model)

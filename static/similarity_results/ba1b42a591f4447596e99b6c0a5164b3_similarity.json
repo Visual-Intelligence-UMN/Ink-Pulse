@@ -1,176 +1,321 @@
 [
     {
         "sentence": "Once upon a time there was an old mother pig who had one hundred little pigs and not enough food to feed them.",
+        "source": "api",
         "max_similarity": 0.0,
         "dissimilarity": 1.0,
-        "most_similar_previous": null
+        "most_similar_previous": null,
+        "start_progress": 0.0,
+        "end_progress": 0.05275895450145208,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "So when they were old enough, she sent them out into the world to seek their fortunes.",
+        "source": "api",
         "max_similarity": 0.4158322215080261,
         "dissimilarity": 0.5841677784919739,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.05324298160696999,
+        "end_progress": 0.09486931268151017,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You know the story about the first three little pigs.",
-        "max_similarity": 0.3696567416191101,
-        "dissimilarity": 0.6303432583808899,
-        "most_similar_previous": 1
+        "source": "api",
+        "max_similarity": 0.3696567714214325,
+        "dissimilarity": 0.6303432285785675,
+        "most_similar_previous": 1,
+        "start_progress": 0.09535333978702808,
+        "end_progress": 0.12100677637947725,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "This is a story about the 92nd little pig.",
+        "source": "api",
         "max_similarity": 0.6147775650024414,
         "dissimilarity": 0.3852224349975586,
-        "most_similar_previous": 2
+        "most_similar_previous": 2,
+        "start_progress": 0.12149080348499516,
+        "end_progress": 0.14181994191674735,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The 92nd little pig built a house out of depleted uranium.",
+        "source": "api",
         "max_similarity": 0.6357393264770508,
         "dissimilarity": 0.3642606735229492,
-        "most_similar_previous": 3
+        "most_similar_previous": 3,
+        "start_progress": 0.14230396902226525,
+        "end_progress": 0.17086156824782187,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "And the wolf was like, \"dude.\" I can't blow that down.",
-        "max_similarity": 0.39267855882644653,
-        "dissimilarity": 0.6073214411735535,
-        "most_similar_previous": 4
+        "source": "api",
+        "max_similarity": 0.3926785886287689,
+        "dissimilarity": 0.6073214113712311,
+        "most_similar_previous": 4,
+        "start_progress": 0.1713455953533398,
+        "end_progress": 0.19748305905130686,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "How did you figure out what my weakness was?",
+        "source": "user",
         "max_similarity": 0.3212442398071289,
         "dissimilarity": 0.6787557601928711,
-        "most_similar_previous": 2
+        "most_similar_previous": 2,
+        "start_progress": 0.1979670861568248,
+        "end_progress": 0.21926427879961277,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "And the 92nd little pig was like, \"I read it on the internet.\" And the wolf was like, \"I'm going to find out who's been messing with my Wikipedia page.\"",
-        "max_similarity": 0.6683234572410583,
-        "dissimilarity": 0.33167654275894165,
-        "most_similar_previous": 5
+        "source": "user",
+        "max_similarity": 0.6683235168457031,
+        "dissimilarity": 0.3316764831542969,
+        "most_similar_previous": 5,
+        "start_progress": 0.2197483059051307,
+        "end_progress": 0.29380445304937075,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The wolf ended up going home and did a ton of research on the internet.",
+        "source": "user",
         "max_similarity": 0.5472536087036133,
         "dissimilarity": 0.4527463912963867,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.2942884801548887,
+        "end_progress": 0.32865440464666024,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He had to figure out how to blow down the house made of uranium.",
-        "max_similarity": 0.547368586063385,
-        "dissimilarity": 0.452631413936615,
-        "most_similar_previous": 4
+        "source": "user",
+        "max_similarity": 0.5473686456680298,
+        "dissimilarity": 0.4526313543319702,
+        "most_similar_previous": 4,
+        "start_progress": 0.3291384317521781,
+        "end_progress": 0.3601161665053243,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "What he found on the internet was very interesting.",
-        "max_similarity": 0.4685419499874115,
-        "dissimilarity": 0.5314580500125885,
-        "most_similar_previous": 8
+        "source": "user",
+        "max_similarity": 0.4685419201850891,
+        "dissimilarity": 0.5314580798149109,
+        "most_similar_previous": 8,
+        "start_progress": 0.3606001936108422,
+        "end_progress": 0.38528557599225555,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The only thing that can destroy a home made of uranium is high pressure water.",
+        "source": "user",
         "max_similarity": 0.6179678440093994,
         "dissimilarity": 0.3820321559906006,
-        "most_similar_previous": 8
+        "most_similar_previous": 8,
+        "start_progress": 0.3857696030977735,
+        "end_progress": 0.4235237173281704,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The wolf now knew how to destroy the pigs house but had to figure out where he could get a high pressure water hose.",
+        "source": "user",
         "max_similarity": 0.6369369029998779,
         "dissimilarity": 0.36306309700012207,
-        "most_similar_previous": 9
+        "most_similar_previous": 9,
+        "start_progress": 0.42400774443368827,
+        "end_progress": 0.48112294288480156,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The wolf had a friend who was in the local fire department.",
-        "max_similarity": 0.5124041438102722,
-        "dissimilarity": 0.4875958561897278,
-        "most_similar_previous": 4
+        "source": "user",
+        "max_similarity": 0.512404203414917,
+        "dissimilarity": 0.487595796585083,
+        "most_similar_previous": 4,
+        "start_progress": 0.48160696999031943,
+        "end_progress": 0.510164569215876,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The wolf asked the friend what he would have to do in order to get access to a fire hose.",
-        "max_similarity": 0.5412847995758057,
-        "dissimilarity": 0.45871520042419434,
-        "most_similar_previous": 12
+        "source": "user",
+        "max_similarity": 0.5412848591804504,
+        "dissimilarity": 0.45871514081954956,
+        "most_similar_previous": 12,
+        "start_progress": 0.510648596321394,
+        "end_progress": 0.5537270087124879,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The friend tells him that all he has to do is join the fire department.",
+        "source": "user",
         "max_similarity": 0.5055170059204102,
         "dissimilarity": 0.49448299407958984,
-        "most_similar_previous": 14
+        "most_similar_previous": 14,
+        "start_progress": 0.5542110358180058,
+        "end_progress": 0.5885769603097774,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The wolf tells his friend that might be difficult considering that he is a wolf.",
+        "source": "user",
         "max_similarity": 0.6045855283737183,
         "dissimilarity": 0.39541447162628174,
-        "most_similar_previous": 15
+        "most_similar_previous": 15,
+        "start_progress": 0.5890609874152952,
+        "end_progress": 0.627783155856728,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The friend agrees and asks him what he even needs a fire hose for.",
+        "source": "user",
         "max_similarity": 0.535900354385376,
         "dissimilarity": 0.464099645614624,
-        "most_similar_previous": 13
+        "most_similar_previous": 13,
+        "start_progress": 0.6282671829622459,
+        "end_progress": 0.6606969990319458,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The wolf tells him he was having an issue cleaning his home.",
+        "source": "user",
         "max_similarity": 0.5660375356674194,
         "dissimilarity": 0.43396246433258057,
-        "most_similar_previous": 16
+        "most_similar_previous": 16,
+        "start_progress": 0.6611810261374637,
+        "end_progress": 0.6902226524685382,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The wolf ends up breaking into the firehouse and steals a firetruck.",
-        "max_similarity": 0.5890176892280579,
-        "dissimilarity": 0.41098231077194214,
-        "most_similar_previous": 8
+        "source": "user",
+        "max_similarity": 0.5890177488327026,
+        "dissimilarity": 0.41098225116729736,
+        "most_similar_previous": 8,
+        "start_progress": 0.6907066795740562,
+        "end_progress": 0.7236205227492739,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The wolf ends up driving the firetruck right to the little pigs home.",
-        "max_similarity": 0.7014292478561401,
-        "dissimilarity": 0.29857075214385986,
-        "most_similar_previous": 19
+        "source": "user",
+        "max_similarity": 0.7014293074607849,
+        "dissimilarity": 0.2985706925392151,
+        "most_similar_previous": 19,
+        "start_progress": 0.7241045498547919,
+        "end_progress": 0.7575024201355276,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He gets right outside of the pigs home and sprays the home with the water hose.",
-        "max_similarity": 0.701872706413269,
-        "dissimilarity": 0.29812729358673096,
-        "most_similar_previous": 8
+        "source": "user",
+        "max_similarity": 0.7018727660179138,
+        "dissimilarity": 0.2981272339820862,
+        "most_similar_previous": 8,
+        "start_progress": 0.7579864472410455,
+        "end_progress": 0.7967086156824782,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The home disintegrates into pieces.",
+        "source": "user",
         "max_similarity": 0.5612239241600037,
         "dissimilarity": 0.43877607583999634,
-        "most_similar_previous": 21
+        "most_similar_previous": 21,
+        "start_progress": 0.7971926427879962,
+        "end_progress": 0.814133591481123,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The pig is distraught and runs outside.",
+        "source": "user",
         "max_similarity": 0.47683966159820557,
         "dissimilarity": 0.5231603384017944,
-        "most_similar_previous": 21
+        "most_similar_previous": 21,
+        "start_progress": 0.8146176185866408,
+        "end_progress": 0.8334946757018393,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He runs up to the wolf and yells at him.",
-        "max_similarity": 0.5734906792640686,
-        "dissimilarity": 0.4265093207359314,
-        "most_similar_previous": 8
+        "source": "user",
+        "max_similarity": 0.5734907388687134,
+        "dissimilarity": 0.4265092611312866,
+        "most_similar_previous": 8,
+        "start_progress": 0.8339787028073572,
+        "end_progress": 0.8533397870280736,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He asks how the wolf figured out what would destroy the uranium.",
+        "source": "user",
         "max_similarity": 0.4880542755126953,
         "dissimilarity": 0.5119457244873047,
-        "most_similar_previous": 21
+        "most_similar_previous": 21,
+        "start_progress": 0.8538238141335914,
+        "end_progress": 0.8848015488867377,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The wolf tells the pig that he made a grave mistake when he told him he used the internet to build his house.",
-        "max_similarity": 0.67059326171875,
-        "dissimilarity": 0.32940673828125,
-        "most_similar_previous": 18
+        "source": "user",
+        "max_similarity": 0.6705932021141052,
+        "dissimilarity": 0.3294067978858948,
+        "most_similar_previous": 18,
+        "start_progress": 0.8852855759922555,
+        "end_progress": 0.9380445304937076,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He says \"silly little Pig, you can find out everything on the internet.\" Better luck next time.",
+        "source": "user",
         "max_similarity": 0.560268759727478,
         "dissimilarity": 0.439731240272522,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.9385285575992256,
+        "end_progress": 0.9854791868344628,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Our rivalry shall continue!",
-        "max_similarity": 0.13213415443897247,
-        "dissimilarity": 0.8678658455610275,
-        "most_similar_previous": 3
+        "source": "user",
+        "max_similarity": 0.13213412463665009,
+        "dissimilarity": 0.8678658753633499,
+        "most_similar_previous": 3,
+        "start_progress": 0.9859632139399807,
+        "end_progress": 0.9990319457889641,
+        "start_time": 0.0,
+        "end_time": 0.0
     }
 ]

@@ -1,194 +1,354 @@
 [
     {
         "sentence": "You're Barack Obama.",
+        "source": "api",
         "max_similarity": 0.0,
         "dissimilarity": 1.0,
-        "most_similar_previous": null
+        "most_similar_previous": null,
+        "start_progress": 0.0,
+        "end_progress": 0.009471585244267198,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "4 years into your retirement, you awake to find a letter with no return address on your bedside table.",
+        "source": "api",
         "max_similarity": 0.26219990849494934,
         "dissimilarity": 0.7378000915050507,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.009970089730807577,
+        "end_progress": 0.06081754735792622,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\" You think it might be a prank, but the phone number is real.",
+        "source": "api",
         "max_similarity": 0.5250953435897827,
         "dissimilarity": 0.4749046564102173,
-        "most_similar_previous": 1
+        "most_similar_previous": 1,
+        "start_progress": 0.0613160518444666,
+        "end_progress": 0.1694915254237288,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Obama picks up the pick and dials the number.",
-        "max_similarity": 0.40905097126960754,
-        "dissimilarity": 0.5909490287303925,
-        "most_similar_previous": 2
+        "source": "user",
+        "max_similarity": 0.40905100107192993,
+        "dissimilarity": 0.5909489989280701,
+        "most_similar_previous": 2,
+        "start_progress": 0.16999002991026918,
+        "end_progress": 0.193419740777667,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The man on the other end of the phone tells him to meet him at the White House.",
+        "source": "user",
         "max_similarity": 0.5155347585678101,
         "dissimilarity": 0.48446524143218994,
-        "most_similar_previous": 2
+        "most_similar_previous": 2,
+        "start_progress": 0.19391824526420737,
+        "end_progress": 0.2333000997008973,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The White House?",
-        "max_similarity": 0.5363959670066833,
-        "dissimilarity": 0.46360403299331665,
-        "most_similar_previous": 4
+        "source": "user",
+        "max_similarity": 0.5363959074020386,
+        "dissimilarity": 0.4636040925979614,
+        "most_similar_previous": 4,
+        "start_progress": 0.2337986041874377,
+        "end_progress": 0.24177467597208374,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "he wonders.",
+        "source": "user",
         "max_similarity": 0.35598790645599365,
         "dissimilarity": 0.6440120935440063,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.24227318045862412,
+        "end_progress": 0.2477567298105683,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Why would he be getting called back to the White House?",
-        "max_similarity": 0.5131046772003174,
-        "dissimilarity": 0.4868953227996826,
-        "most_similar_previous": 5
+        "source": "user",
+        "max_similarity": 0.5131046175956726,
+        "dissimilarity": 0.4868953824043274,
+        "most_similar_previous": 5,
+        "start_progress": 0.24825523429710866,
+        "end_progress": 0.2756729810568295,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "A car is then sent to pick him up.",
-        "max_similarity": 0.4439639747142792,
-        "dissimilarity": 0.5560360252857208,
-        "most_similar_previous": 2
+        "source": "user",
+        "max_similarity": 0.44396400451660156,
+        "dissimilarity": 0.5560359954833984,
+        "most_similar_previous": 2,
+        "start_progress": 0.2761714855433699,
+        "end_progress": 0.2931206380857428,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He reluctantly gets into the car.",
+        "source": "user",
         "max_similarity": 0.42844849824905396,
         "dissimilarity": 0.571551501750946,
-        "most_similar_previous": 4
+        "most_similar_previous": 4,
+        "start_progress": 0.29361914257228316,
+        "end_progress": 0.3100697906281156,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Once Obama arrives at the White House, he's escorted to the Oval Office.",
-        "max_similarity": 0.572130024433136,
-        "dissimilarity": 0.427869975566864,
-        "most_similar_previous": 4
+        "source": "user",
+        "max_similarity": 0.5721299648284912,
+        "dissimilarity": 0.4278700351715088,
+        "most_similar_previous": 4,
+        "start_progress": 0.31056829511465606,
+        "end_progress": 0.3474576271186441,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "When he walks into the oval office, he finds JFK standing there waiting for him.",
+        "source": "user",
         "max_similarity": 0.5514281988143921,
         "dissimilarity": 0.4485718011856079,
-        "most_similar_previous": 10
+        "most_similar_previous": 10,
+        "start_progress": 0.34795613160518446,
+        "end_progress": 0.38783649052841473,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Welcome back, Mr. President.\" Obama said nothing.",
-        "max_similarity": 0.5370301604270935,
-        "dissimilarity": 0.4629698395729065,
-        "most_similar_previous": 0
+        "source": "user",
+        "max_similarity": 0.5370302200317383,
+        "dissimilarity": 0.4629697799682617,
+        "most_similar_previous": 0,
+        "start_progress": 0.3883349950149551,
+        "end_progress": 0.4132602193419741,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He was speechless.",
+        "source": "user",
         "max_similarity": 0.5407758951187134,
         "dissimilarity": 0.4592241048812866,
-        "most_similar_previous": 6
+        "most_similar_previous": 6,
+        "start_progress": 0.4137587238285145,
+        "end_progress": 0.42273180458624127,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Would you like a drink Mr. President?\" He poured himself a cocktail as Obama stood there.",
+        "source": "user",
         "max_similarity": 0.5536235570907593,
         "dissimilarity": 0.4463764429092407,
-        "most_similar_previous": 12
+        "most_similar_previous": 12,
+        "start_progress": 0.42323030907278164,
+        "end_progress": 0.4690927218344965,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"No, thank you.\" he replied politely.",
+        "source": "user",
         "max_similarity": 0.5660015344619751,
         "dissimilarity": 0.4339984655380249,
-        "most_similar_previous": 12
+        "most_similar_previous": 12,
+        "start_progress": 0.4695912263210369,
+        "end_progress": 0.4880358923230309,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Well, I'm just gonna go on and get to the point. The country needs your help.\" He continued.",
+        "source": "user",
         "max_similarity": 0.5484838485717773,
         "dissimilarity": 0.45151615142822266,
-        "most_similar_previous": 2
+        "most_similar_previous": 2,
+        "start_progress": 0.4885343968095713,
+        "end_progress": 0.5348953140578265,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"We have received information detailing a plan to overtake the government and start a new fascist regime. You are the only one that can stop them.\" Obama sat down.",
+        "source": "user",
         "max_similarity": 0.6200376749038696,
         "dissimilarity": 0.37996232509613037,
-        "most_similar_previous": 14
+        "most_similar_previous": 14,
+        "start_progress": 0.5353938185443669,
+        "end_progress": 0.6166500498504487,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"I don't know how,\" he said earnestly.",
-        "max_similarity": 0.513576328754425,
-        "dissimilarity": 0.48642367124557495,
-        "most_similar_previous": 16
+        "source": "user",
+        "max_similarity": 0.5135763883590698,
+        "dissimilarity": 0.4864236116409302,
+        "most_similar_previous": 16,
+        "start_progress": 0.617148554336989,
+        "end_progress": 0.6360917248255235,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"What makes you think I can do this?\"",
+        "source": "user",
         "max_similarity": 0.5049527883529663,
         "dissimilarity": 0.4950472116470337,
-        "most_similar_previous": 18
+        "most_similar_previous": 18,
+        "start_progress": 0.6365902293120638,
+        "end_progress": 0.6560319042871385,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "JFK smiled.",
-        "max_similarity": 0.43189865350723267,
-        "dissimilarity": 0.5681013464927673,
-        "most_similar_previous": 6
+        "source": "user",
+        "max_similarity": 0.4318986237049103,
+        "dissimilarity": 0.5681013762950897,
+        "most_similar_previous": 6,
+        "start_progress": 0.656530408773679,
+        "end_progress": 0.6620139581256231,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"I will show you. First you have to make a choice.\" He held out both of his hands and opened them.",
+        "source": "user",
         "max_similarity": 0.6520359516143799,
         "dissimilarity": 0.3479640483856201,
-        "most_similar_previous": 17
+        "most_similar_previous": 17,
+        "start_progress": 0.6625124626121635,
+        "end_progress": 0.7113659022931207,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "In each hand was a pill.",
+        "source": "user",
         "max_similarity": 0.4957646131515503,
         "dissimilarity": 0.5042353868484497,
-        "most_similar_previous": 13
+        "most_similar_previous": 13,
+        "start_progress": 0.711864406779661,
+        "end_progress": 0.7238285144566301,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "One was red, the other was white.",
+        "source": "user",
         "max_similarity": 0.5963971614837646,
         "dissimilarity": 0.40360283851623535,
-        "most_similar_previous": 22
+        "most_similar_previous": 22,
+        "start_progress": 0.7243270189431705,
+        "end_progress": 0.7407776669990029,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Choose a pill,\" said JFK.",
+        "source": "user",
         "max_similarity": 0.5813623666763306,
         "dissimilarity": 0.41863763332366943,
-        "most_similar_previous": 12
+        "most_similar_previous": 12,
+        "start_progress": 0.7412761714855434,
+        "end_progress": 0.7542372881355932,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"If you take the red pill, you will become immortal. You will defeat the evildoers, but you will live on forever and see all the aftermath, and never die.\"",
+        "source": "user",
         "max_similarity": 0.541577160358429,
         "dissimilarity": 0.45842283964157104,
-        "most_similar_previous": 21
+        "most_similar_previous": 21,
+        "start_progress": 0.7547357926221336,
+        "end_progress": 0.8325024925224327,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Obama looked at the white pill.",
-        "max_similarity": 0.6826190948486328,
-        "dissimilarity": 0.3173809051513672,
-        "most_similar_previous": 10
+        "source": "user",
+        "max_similarity": 0.6826191544532776,
+        "dissimilarity": 0.3173808455467224,
+        "most_similar_previous": 10,
+        "start_progress": 0.8330009970089731,
+        "end_progress": 0.8484546360917248,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"What does taking the white pill do?\" JFK shrugged.",
-        "max_similarity": 0.5486437678337097,
-        "dissimilarity": 0.4513562321662903,
-        "most_similar_previous": 16
+        "source": "user",
+        "max_similarity": 0.5486438870429993,
+        "dissimilarity": 0.45135611295700073,
+        "most_similar_previous": 16,
+        "start_progress": 0.8489531405782652,
+        "end_progress": 0.8743768693918246,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"It just makes ya wanna dance all the time and not care about real world problems.\"",
-        "max_similarity": 0.611641526222229,
-        "dissimilarity": 0.388358473777771,
-        "most_similar_previous": 16
+        "source": "user",
+        "max_similarity": 0.6116415858268738,
+        "dissimilarity": 0.3883584141731262,
+        "most_similar_previous": 16,
+        "start_progress": 0.8748753738783649,
+        "end_progress": 0.9172482552342971,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Obama thought for a few minutes.",
-        "max_similarity": 0.5218008160591125,
-        "dissimilarity": 0.47819918394088745,
-        "most_similar_previous": 14
+        "source": "api",
+        "max_similarity": 0.5218008756637573,
+        "dissimilarity": 0.4781991243362427,
+        "most_similar_previous": 14,
+        "start_progress": 0.9177467597208375,
+        "end_progress": 0.9336989032901296,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He reached for the red pill, and then decided he wanted the white pill.",
+        "source": "user",
         "max_similarity": 0.6623320579528809,
         "dissimilarity": 0.33766794204711914,
-        "most_similar_previous": 10
+        "most_similar_previous": 10,
+        "start_progress": 0.93419740777667,
+        "end_progress": 0.9695912263210369,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "All he wanted was to dance, and no one could stop him now.",
+        "source": "user",
         "max_similarity": 0.4963037371635437,
         "dissimilarity": 0.5036962628364563,
-        "most_similar_previous": 16
+        "most_similar_previous": 16,
+        "start_progress": 0.9700897308075773,
+        "end_progress": 0.9990029910269193,
+        "start_time": 0.0,
+        "end_time": 0.0
     }
 ]

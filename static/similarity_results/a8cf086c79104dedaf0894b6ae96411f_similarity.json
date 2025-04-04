@@ -1,188 +1,343 @@
 [
     {
         "sentence": "Humans once wielded formidable magical power.",
+        "source": "api",
         "max_similarity": 0.0,
         "dissimilarity": 1.0,
-        "most_similar_previous": null
+        "most_similar_previous": null,
+        "start_progress": 0.0,
+        "end_progress": 0.02096236303001429,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "But with over 7 billion of us on the planet now, Mana has spread far too thinly to have any effect.",
+        "source": "api",
         "max_similarity": 0.04243289306759834,
         "dissimilarity": 0.9575671069324017,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.021438780371605525,
+        "end_progress": 0.06860409718913768,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "When hostile aliens reduce humanity to a mere fraction, the survivors discover an old power has begun to reawaken once again.",
+        "source": "api",
         "max_similarity": 0.4428204298019409,
         "dissimilarity": 0.5571795701980591,
-        "most_similar_previous": 1
+        "most_similar_previous": 1,
+        "start_progress": 0.06908051453072891,
+        "end_progress": 0.12863268222963317,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The world is in your hands.",
-        "max_similarity": 0.3512568175792694,
-        "dissimilarity": 0.6487431824207306,
-        "most_similar_previous": 2
+        "source": "user",
+        "max_similarity": 0.351256787776947,
+        "dissimilarity": 0.648743212223053,
+        "most_similar_previous": 2,
+        "start_progress": 0.1291090995712244,
+        "end_progress": 0.14292520247737017,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It is time to reclaim our power.",
-        "max_similarity": 0.40174058079719543,
-        "dissimilarity": 0.5982594192028046,
-        "most_similar_previous": 0
+        "source": "user",
+        "max_similarity": 0.4017406105995178,
+        "dissimilarity": 0.5982593894004822,
+        "most_similar_previous": 0,
+        "start_progress": 0.1434016198189614,
+        "end_progress": 0.1586469747498809,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The game is set in a world where Mana is the source of all power.",
+        "source": "user",
         "max_similarity": 0.6068620085716248,
         "dissimilarity": 0.39313799142837524,
-        "most_similar_previous": 3
+        "most_similar_previous": 3,
+        "start_progress": 0.15912339209147214,
+        "end_progress": 0.1910433539780848,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The objective is to win the game by adding the most Mana to the collective pot.",
+        "source": "user",
         "max_similarity": 0.5610610842704773,
         "dissimilarity": 0.4389389157295227,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.19151977131967604,
+        "end_progress": 0.22915674130538352,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Mana is gained by playing cards.",
+        "source": "user",
         "max_similarity": 0.4543154835700989,
         "dissimilarity": 0.5456845164299011,
-        "most_similar_previous": 4
+        "most_similar_previous": 4,
+        "start_progress": 0.22963315864697476,
+        "end_progress": 0.24487851357789422,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Each card is either worth Mana or holds the power to take Mana from another source.",
+        "source": "user",
         "max_similarity": 0.5881917476654053,
         "dissimilarity": 0.4118082523345947,
-        "most_similar_previous": 6
+        "most_similar_previous": 6,
+        "start_progress": 0.24535493091948546,
+        "end_progress": 0.2848975702715579,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The game is played in turns.",
-        "max_similarity": 0.6266694068908691,
-        "dissimilarity": 0.37333059310913086,
-        "most_similar_previous": 3
+        "source": "user",
+        "max_similarity": 0.6266692876815796,
+        "dissimilarity": 0.3733307123184204,
+        "most_similar_previous": 3,
+        "start_progress": 0.28537398761314914,
+        "end_progress": 0.2996665078608861,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Each turn is divided into two phases: the draw phase and the action phase.",
+        "source": "user",
         "max_similarity": 0.43975111842155457,
         "dissimilarity": 0.5602488815784454,
-        "most_similar_previous": 6
+        "most_similar_previous": 6,
+        "start_progress": 0.3001429252024774,
+        "end_progress": 0.33539780848022865,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "A card is drawn from the stack.",
+        "source": "user",
         "max_similarity": 0.528450608253479,
         "dissimilarity": 0.471549391746521,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.3358742258218199,
+        "end_progress": 0.35064316341114815,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Then, the player must play a card and be left with 5 cards.",
-        "max_similarity": 0.49475839734077454,
-        "dissimilarity": 0.5052416026592255,
-        "most_similar_previous": 11
+        "source": "user",
+        "max_similarity": 0.4947584569454193,
+        "dissimilarity": 0.5052415430545807,
+        "most_similar_previous": 11,
+        "start_progress": 0.3511195807527394,
+        "end_progress": 0.3792282039066222,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The action phase is where the player can play cards.",
+        "source": "user",
         "max_similarity": 0.6297545433044434,
         "dissimilarity": 0.37024545669555664,
-        "most_similar_previous": 10
+        "most_similar_previous": 10,
+        "start_progress": 0.3797046212482134,
+        "end_progress": 0.40543115769414007,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The player chooses the card to play.",
+        "source": "user",
         "max_similarity": 0.694582998752594,
         "dissimilarity": 0.305417001247406,
-        "most_similar_previous": 6
+        "most_similar_previous": 6,
+        "start_progress": 0.4059075750357313,
+        "end_progress": 0.4230585993330157,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The card is then placed in front of the player.",
+        "source": "user",
         "max_similarity": 0.6674745082855225,
         "dissimilarity": 0.33252549171447754,
-        "most_similar_previous": 14
+        "most_similar_previous": 14,
+        "start_progress": 0.42353501667460697,
+        "end_progress": 0.44592663172939495,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The amount of Mana on the card will match the amount of Mana on one of the source wells on the board.",
+        "source": "user",
         "max_similarity": 0.6532152891159058,
         "dissimilarity": 0.34678471088409424,
-        "most_similar_previous": 15
+        "most_similar_previous": 15,
+        "start_progress": 0.44640304907098616,
+        "end_progress": 0.4945212005717008,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The player must move to that location on the board.",
-        "max_similarity": 0.6486444473266602,
-        "dissimilarity": 0.35135555267333984,
-        "most_similar_previous": 14
+        "source": "user",
+        "max_similarity": 0.6486443281173706,
+        "dissimilarity": 0.3513556718826294,
+        "most_similar_previous": 14,
+        "start_progress": 0.49499761791329205,
+        "end_progress": 0.519294902334445,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The player can then take the Mana from that source well and wait there until their next turn.",
-        "max_similarity": 0.5416067242622375,
-        "dissimilarity": 0.45839327573776245,
-        "most_similar_previous": 13
+        "source": "user",
+        "max_similarity": 0.5416066646575928,
+        "dissimilarity": 0.4583933353424072,
+        "most_similar_previous": 13,
+        "start_progress": 0.5197713196760362,
+        "end_progress": 0.5640781324440209,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "There are also cards that allow the player to gain Mana from a source well without having to move their piece.",
-        "max_similarity": 0.5854321122169495,
-        "dissimilarity": 0.41456788778305054,
-        "most_similar_previous": 17
+        "source": "user",
+        "max_similarity": 0.5854320526123047,
+        "dissimilarity": 0.4145679473876953,
+        "most_similar_previous": 17,
+        "start_progress": 0.5645545497856121,
+        "end_progress": 0.6179132920438304,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "This gives players the advantage of collecting more neighboring bonuses and obtaining Mana.",
-        "max_similarity": 0.512695848941803,
-        "dissimilarity": 0.487304151058197,
-        "most_similar_previous": 18
+        "source": "user",
+        "max_similarity": 0.5126957893371582,
+        "dissimilarity": 0.4873042106628418,
+        "most_similar_previous": 18,
+        "start_progress": 0.6183897093854216,
+        "end_progress": 0.6622201048118151,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The game ends when the last card is drawn from the stack.",
-        "max_similarity": 0.7748944759368896,
-        "dissimilarity": 0.22510552406311035,
-        "most_similar_previous": 11
+        "source": "api",
+        "max_similarity": 0.7748945355415344,
+        "dissimilarity": 0.22510546445846558,
+        "most_similar_previous": 11,
+        "start_progress": 0.6626965221534064,
+        "end_progress": 0.690328727965698,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The player with the most Mana wins.",
+        "source": "user",
         "max_similarity": 0.6369023323059082,
         "dissimilarity": 0.3630976676940918,
-        "most_similar_previous": 14
+        "most_similar_previous": 14,
+        "start_progress": 0.6908051453072892,
+        "end_progress": 0.7074797522629823,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "If the game is being played in tournament mode, then the winning mana goes into the collective pot, and is divided up between the players before the start of the next game.",
+        "source": "user",
         "max_similarity": 0.7467207908630371,
         "dissimilarity": 0.2532792091369629,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.7079561696045736,
+        "end_progress": 0.7898999523582658,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The game was designed by James Ernest and Patrick Rothfuss.",
-        "max_similarity": 0.4252927303314209,
-        "dissimilarity": 0.5747072696685791,
-        "most_similar_previous": 22
+        "source": "user",
+        "max_similarity": 0.4252927005290985,
+        "dissimilarity": 0.5747072994709015,
+        "most_similar_previous": 22,
+        "start_progress": 0.790376369699857,
+        "end_progress": 0.8194378275369223,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It is among the first games to be published by the newly formed Patrick Rothfuss Enterprises, a game publishing company owned by Patrick Rothfuss.",
+        "source": "user",
         "max_similarity": 0.45211631059646606,
         "dissimilarity": 0.5478836894035339,
-        "most_similar_previous": 2
+        "most_similar_previous": 2,
+        "start_progress": 0.8199142448785136,
+        "end_progress": 0.8894711767508338,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "A new version of the game was released in 2017.",
+        "source": "user",
         "max_similarity": 0.5178829431533813,
         "dissimilarity": 0.48211705684661865,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.889947594092425,
+        "end_progress": 0.9128156264888042,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "For more information, visit the official website.",
-        "max_similarity": 0.5505737066268921,
-        "dissimilarity": 0.4494262933731079,
-        "most_similar_previous": 14
+        "source": "user",
+        "max_similarity": 0.5505735874176025,
+        "dissimilarity": 0.44942641258239746,
+        "most_similar_previous": 14,
+        "start_progress": 0.9132920438303954,
+        "end_progress": 0.9366364935683659,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It is sold by Amazon.",
-        "max_similarity": 0.6321332454681396,
-        "dissimilarity": 0.36786675453186035,
-        "most_similar_previous": 7
+        "source": "user",
+        "max_similarity": 0.6321333050727844,
+        "dissimilarity": 0.3678666949272156,
+        "most_similar_previous": 7,
+        "start_progress": 0.9371129109099571,
+        "end_progress": 0.9471176750833731,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "com and other online retailers.",
-        "max_similarity": 0.4283808469772339,
-        "dissimilarity": 0.5716191530227661,
-        "most_similar_previous": 24
+        "source": "api",
+        "max_similarity": 0.4283807575702667,
+        "dissimilarity": 0.5716192424297333,
+        "most_similar_previous": 24,
+        "start_progress": 0.9475940924249643,
+        "end_progress": 0.9618866126727013,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Social media accounts for the game include Facebook, Twitter, and Instagram.",
-        "max_similarity": 0.5157834887504578,
-        "dissimilarity": 0.48421651124954224,
-        "most_similar_previous": 23
+        "source": "user",
+        "max_similarity": 0.5157835483551025,
+        "dissimilarity": 0.48421645164489746,
+        "most_similar_previous": 23,
+        "start_progress": 0.9623630300142926,
+        "end_progress": 0.9990471653168176,
+        "start_time": 0.0,
+        "end_time": 0.0
     }
 ]

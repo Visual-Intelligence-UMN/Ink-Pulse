@@ -1,170 +1,310 @@
 [
     {
         "sentence": "Your entire life, you've been told you're deathly allergic to bees.",
+        "source": "api",
         "max_similarity": 0.0,
         "dissimilarity": 1.0,
-        "most_similar_previous": null
+        "most_similar_previous": null,
+        "start_progress": 0.0,
+        "end_progress": 0.03217942467089225,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You've always had people protecting you from them, be it your mother or a hired hand.",
-        "max_similarity": 0.45468130707740784,
-        "dissimilarity": 0.5453186929225922,
-        "most_similar_previous": 0
+        "source": "api",
+        "max_similarity": 0.4546813368797302,
+        "dissimilarity": 0.5453186631202698,
+        "most_similar_previous": 0,
+        "start_progress": 0.03266699171136031,
+        "end_progress": 0.07411019015114578,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Today, one slips through and lands on your shoulder.",
+        "source": "api",
         "max_similarity": 0.41686803102493286,
         "dissimilarity": 0.5831319689750671,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.07459775719161385,
+        "end_progress": 0.09995124329595319,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You hear a tiny voice say \"Your Majesty, what are your orders?\"",
+        "source": "api",
         "max_similarity": 0.43041712045669556,
         "dissimilarity": 0.5695828795433044,
-        "most_similar_previous": 1
+        "most_similar_previous": 1,
+        "start_progress": 0.10043881033642126,
+        "end_progress": 0.13164310092637738,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "I am very surprised to hear a bee talk, but nevertheless I asked the bee \"What do you mean?\"",
-        "max_similarity": 0.44205591082572937,
-        "dissimilarity": 0.5579440891742706,
-        "most_similar_previous": 3
+        "source": "user",
+        "max_similarity": 0.44205594062805176,
+        "dissimilarity": 0.5579440593719482,
+        "most_similar_previous": 3,
+        "start_progress": 0.13213066796684544,
+        "end_progress": 0.17747440273037543,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The bee replied \"You are the queen of the bees and the bees have chosen you to rule over them.\"",
+        "source": "api",
         "max_similarity": 0.5164955854415894,
         "dissimilarity": 0.48350441455841064,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.1779619697708435,
+        "end_progress": 0.2242808386153096,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "I thought this was strange since I'm deathly allergic to bee but I was happy to be queen so I played along.",
-        "max_similarity": 0.5355203151702881,
-        "dissimilarity": 0.4644796848297119,
-        "most_similar_previous": 4
+        "source": "user",
+        "max_similarity": 0.5355203747749329,
+        "dissimilarity": 0.46447962522506714,
+        "most_similar_previous": 4,
+        "start_progress": 0.22476840565577766,
+        "end_progress": 0.2764505119453925,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The bee then said \"Your first order is to go to the meadow and make a hive.\" I didn't know how to make a hive the way bees do, but I did the best I could.",
-        "max_similarity": 0.6332969665527344,
-        "dissimilarity": 0.3667030334472656,
-        "most_similar_previous": 4
+        "source": "api",
+        "max_similarity": 0.6332970261573792,
+        "dissimilarity": 0.36670297384262085,
+        "most_similar_previous": 4,
+        "start_progress": 0.27693807898586054,
+        "end_progress": 0.35202340321794245,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "I got some sticks and leaves and I made a hive that looked just like a little house for the bees.",
+        "source": "user",
         "max_similarity": 0.5043095350265503,
         "dissimilarity": 0.4956904649734497,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.35251097025841055,
+        "end_progress": 0.39980497318381275,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"How's that?\" I asked the bee when I was finished.",
+        "source": "user",
         "max_similarity": 0.6348745822906494,
         "dissimilarity": 0.3651254177093506,
-        "most_similar_previous": 4
+        "most_similar_previous": 4,
+        "start_progress": 0.40029254022428085,
+        "end_progress": 0.42467089224768406,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "I heard the bee say \"It's very nice, but you forgot the most important thing.\"",
-        "max_similarity": 0.6657359600067139,
-        "dissimilarity": 0.33426403999328613,
-        "most_similar_previous": 9
+        "source": "api",
+        "max_similarity": 0.6657359004020691,
+        "dissimilarity": 0.3342640995979309,
+        "most_similar_previous": 9,
+        "start_progress": 0.4251584592881521,
+        "end_progress": 0.4641638225255973,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"And what's that?\" I asked.",
+        "source": "user",
         "max_similarity": 0.7342804670333862,
         "dissimilarity": 0.26571953296661377,
-        "most_similar_previous": 9
+        "most_similar_previous": 9,
+        "start_progress": 0.46465138956606533,
+        "end_progress": 0.47732813261823503,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "And the bee said I need to put it up high in a tree so nothing can harm it.",
+        "source": "user",
         "max_similarity": 0.6140322685241699,
         "dissimilarity": 0.3859677314758301,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.4778156996587031,
+        "end_progress": 0.514383227693808,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "So I climbed a tree and I carefully tied my handcrafted beehive house up in the top of a tree.",
+        "source": "user",
         "max_similarity": 0.6384694576263428,
         "dissimilarity": 0.3615305423736572,
-        "most_similar_previous": 12
+        "most_similar_previous": 12,
+        "start_progress": 0.514870794734276,
+        "end_progress": 0.560702096538274,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"There, it's safe now,\" I said to the bee.",
+        "source": "user",
         "max_similarity": 0.6421298980712891,
         "dissimilarity": 0.35787010192871094,
-        "most_similar_previous": 10
+        "most_similar_previous": 10,
+        "start_progress": 0.5611896635787421,
+        "end_progress": 0.5816674792784008,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The next day, I could see hundreds of bees moving into the hive.",
+        "source": "user",
         "max_similarity": 0.6338404417037964,
         "dissimilarity": 0.3661595582962036,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.5821550463188688,
+        "end_progress": 0.6133593369088249,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"They won't sting me will they?\" I asked my new friend.",
+        "source": "user",
         "max_similarity": 0.5533177852630615,
         "dissimilarity": 0.4466822147369385,
-        "most_similar_previous": 14
+        "most_similar_previous": 14,
+        "start_progress": 0.613846903949293,
+        "end_progress": 0.6406630911750366,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"No, you are the queen and they will do anything for you,\" the bee replied.",
-        "max_similarity": 0.7128099203109741,
-        "dissimilarity": 0.2871900796890259,
-        "most_similar_previous": 5
+        "source": "user",
+        "max_similarity": 0.7128099799156189,
+        "dissimilarity": 0.2871900200843811,
+        "most_similar_previous": 5,
+        "start_progress": 0.6411506582155047,
+        "end_progress": 0.6782057532910776,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "And then I had a great idea.",
+        "source": "user",
         "max_similarity": 0.5519236326217651,
         "dissimilarity": 0.44807636737823486,
-        "most_similar_previous": 8
+        "most_similar_previous": 8,
+        "start_progress": 0.6786933203315456,
+        "end_progress": 0.6923451974646514,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Little bee I have a favor to ask of you,\" I told my friend.",
+        "source": "user",
         "max_similarity": 0.5888075232505798,
         "dissimilarity": 0.41119247674942017,
-        "most_similar_previous": 4
+        "most_similar_previous": 4,
+        "start_progress": 0.6928327645051194,
+        "end_progress": 0.7225743539736714,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"What is that?\" asked the friendly bee.",
-        "max_similarity": 0.7399933934211731,
-        "dissimilarity": 0.2600066065788269,
-        "most_similar_previous": 11
+        "source": "user",
+        "max_similarity": 0.7399935126304626,
+        "dissimilarity": 0.26000648736953735,
+        "most_similar_previous": 11,
+        "start_progress": 0.7230619210141395,
+        "end_progress": 0.7425646026328621,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"I am so allergic to a bee sting. I am willing to be your queen and I will even stay and guard the hive if you do me this one thing. Can you make me not allergic to bee stings?\"",
-        "max_similarity": 0.6468603014945984,
-        "dissimilarity": 0.3531396985054016,
-        "most_similar_previous": 4
+        "source": "user",
+        "max_similarity": 0.6468602418899536,
+        "dissimilarity": 0.3531397581100464,
+        "most_similar_previous": 4,
+        "start_progress": 0.7430521696733301,
+        "end_progress": 0.8298391028766455,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"I don't think I have the power,\" said the bee.",
-        "max_similarity": 0.6728103160858154,
-        "dissimilarity": 0.32718968391418457,
-        "most_similar_previous": 9
+        "source": "user",
+        "max_similarity": 0.6728102564811707,
+        "dissimilarity": 0.32718974351882935,
+        "most_similar_previous": 9,
+        "start_progress": 0.8303266699171136,
+        "end_progress": 0.8527547537786445,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"But I can travel far and wide and tell all of the bees that you are my queen and that they can never sting you.\"",
-        "max_similarity": 0.6441510319709778,
-        "dissimilarity": 0.3558489680290222,
-        "most_similar_previous": 5
+        "source": "user",
+        "max_similarity": 0.644150972366333,
+        "dissimilarity": 0.355849027633667,
+        "most_similar_previous": 5,
+        "start_progress": 0.8532423208191127,
+        "end_progress": 0.908824963432472,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"That would be great!\", I exclaimed.",
+        "source": "user",
         "max_similarity": 0.4854802191257477,
         "dissimilarity": 0.5145197808742523,
-        "most_similar_previous": 11
+        "most_similar_previous": 11,
+        "start_progress": 0.90931253047294,
+        "end_progress": 0.9263773768893223,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "So a great deal was worked out.",
+        "source": "user",
         "max_similarity": 0.38776707649230957,
         "dissimilarity": 0.6122329235076904,
-        "most_similar_previous": 13
+        "most_similar_previous": 13,
+        "start_progress": 0.9268649439297904,
+        "end_progress": 0.9424670892247684,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "I kept the bees safe from harm and I was protected from being stung by bees again for the rest of my life.",
-        "max_similarity": 0.5215740203857422,
-        "dissimilarity": 0.4784259796142578,
-        "most_similar_previous": 6
+        "source": "user",
+        "max_similarity": 0.521574079990387,
+        "dissimilarity": 0.47842592000961304,
+        "most_similar_previous": 6,
+        "start_progress": 0.9429546562652364,
+        "end_progress": 0.9946367625548513,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The end.",
+        "source": "user",
         "max_similarity": 0.5575453042984009,
         "dissimilarity": 0.4424546957015991,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.9951243295953194,
+        "end_progress": 0.9990248659190639,
+        "start_time": 0.0,
+        "end_time": 0.0
     }
 ]

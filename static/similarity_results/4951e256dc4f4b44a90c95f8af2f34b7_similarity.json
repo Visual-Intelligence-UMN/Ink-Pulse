@@ -1,224 +1,409 @@
 [
     {
         "sentence": "A woman has been dating guy after guy, but it never seems to work out.",
+        "source": "api",
         "max_similarity": 0.0,
         "dissimilarity": 1.0,
-        "most_similar_previous": null
+        "most_similar_previous": null,
+        "start_progress": 0.0,
+        "end_progress": 0.03758169934640523,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She’s unaware that she’s actually been dating the same guy over and over; a shapeshifter who’s fallen for her, and is certain he’s going to get it right this time.",
+        "source": "api",
         "max_similarity": 0.3814268708229065,
         "dissimilarity": 0.6185731291770935,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.03812636165577342,
+        "end_progress": 0.12690631808278868,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "One day, she receives an email from someone new.",
+        "source": "api",
         "max_similarity": 0.3932371139526367,
         "dissimilarity": 0.6067628860473633,
-        "most_similar_previous": 1
+        "most_similar_previous": 1,
+        "start_progress": 0.12745098039215685,
+        "end_progress": 0.15413943355119825,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Since she has a lot of time on her hands, she decides to meet him for coffee.",
-        "max_similarity": 0.44735026359558105,
-        "dissimilarity": 0.552649736404419,
-        "most_similar_previous": 0
+        "source": "user",
+        "max_similarity": 0.4473502039909363,
+        "dissimilarity": 0.5526497960090637,
+        "most_similar_previous": 0,
+        "start_progress": 0.15468409586056645,
+        "end_progress": 0.19662309368191722,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The last guy stopped answering her calls, and she was hopeful.",
-        "max_similarity": 0.45924994349479675,
-        "dissimilarity": 0.5407500565052032,
-        "most_similar_previous": 0
+        "source": "user",
+        "max_similarity": 0.459249883890152,
+        "dissimilarity": 0.540750116109848,
+        "most_similar_previous": 0,
+        "start_progress": 0.19716775599128541,
+        "end_progress": 0.23093681917211328,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "When she arrives to the coffee shop, her date already has a cup in front of him.",
-        "max_similarity": 0.6642522215843201,
-        "dissimilarity": 0.33574777841567993,
-        "most_similar_previous": 3
+        "source": "user",
+        "max_similarity": 0.6642522811889648,
+        "dissimilarity": 0.33574771881103516,
+        "most_similar_previous": 3,
+        "start_progress": 0.23148148148148148,
+        "end_progress": 0.2761437908496732,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She walks over to the table.",
+        "source": "user",
         "max_similarity": 0.5026942491531372,
         "dissimilarity": 0.4973057508468628,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.2766884531590414,
+        "end_progress": 0.29193899782135074,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"This is for you.\" he says, pointing at the cup.",
+        "source": "user",
         "max_similarity": 0.403089702129364,
         "dissimilarity": 0.596910297870636,
-        "most_similar_previous": 6
+        "most_similar_previous": 6,
+        "start_progress": 0.29248366013071897,
+        "end_progress": 0.31971677559912853,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"What about you?\" she asks.",
+        "source": "user",
         "max_similarity": 0.5074616074562073,
         "dissimilarity": 0.4925383925437927,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.3202614379084967,
+        "end_progress": 0.3355119825708061,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Don't you want a drink too?\"",
-        "max_similarity": 0.5659632682800293,
-        "dissimilarity": 0.4340367317199707,
-        "most_similar_previous": 8
+        "source": "user",
+        "max_similarity": 0.5659632086753845,
+        "dissimilarity": 0.4340367913246155,
+        "most_similar_previous": 8,
+        "start_progress": 0.3360566448801743,
+        "end_progress": 0.35294117647058826,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Oh, I don't need one.\" he replies.",
-        "max_similarity": 0.5141609311103821,
-        "dissimilarity": 0.4858390688896179,
-        "most_similar_previous": 7
+        "source": "api",
+        "max_similarity": 0.5141608715057373,
+        "dissimilarity": 0.4858391284942627,
+        "most_similar_previous": 7,
+        "start_progress": 0.35348583877995643,
+        "end_progress": 0.37254901960784315,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"I just had one last week.\" \"That's odd,\" she thought.",
+        "source": "user",
         "max_similarity": 0.7104602456092834,
         "dissimilarity": 0.28953975439071655,
-        "most_similar_previous": 10
+        "most_similar_previous": 10,
+        "start_progress": 0.3730936819172113,
+        "end_progress": 0.4025054466230937,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She tried to think of something to say.",
-        "max_similarity": 0.5968174934387207,
-        "dissimilarity": 0.4031825065612793,
-        "most_similar_previous": 3
+        "source": "user",
+        "max_similarity": 0.5968175530433655,
+        "dissimilarity": 0.4031824469566345,
+        "most_similar_previous": 3,
+        "start_progress": 0.40305010893246185,
+        "end_progress": 0.42429193899782136,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Oh, so do you come here often?\" she asks.",
+        "source": "user",
         "max_similarity": 0.6958478689193726,
         "dissimilarity": 0.30415213108062744,
-        "most_similar_previous": 8
+        "most_similar_previous": 8,
+        "start_progress": 0.42483660130718953,
+        "end_progress": 0.44880174291938996,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"I come here every week.\" he replies.",
+        "source": "user",
         "max_similarity": 0.6833890080451965,
         "dissimilarity": 0.31661099195480347,
-        "most_similar_previous": 10
+        "most_similar_previous": 10,
+        "start_progress": 0.4493464052287582,
+        "end_progress": 0.47058823529411764,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She was confused.",
+        "source": "user",
         "max_similarity": 0.5108891725540161,
         "dissimilarity": 0.4891108274459839,
-        "most_similar_previous": 4
+        "most_similar_previous": 4,
+        "start_progress": 0.4711328976034858,
+        "end_progress": 0.4803921568627451,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"I thought you said you just had a drink here last week.\" she says.",
-        "max_similarity": 0.7291406989097595,
-        "dissimilarity": 0.2708593010902405,
-        "most_similar_previous": 11
+        "source": "api",
+        "max_similarity": 0.7291407585144043,
+        "dissimilarity": 0.2708592414855957,
+        "most_similar_previous": 11,
+        "start_progress": 0.4809368191721133,
+        "end_progress": 0.5185185185185185,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She was wondering if she should leave.",
-        "max_similarity": 0.7034440040588379,
-        "dissimilarity": 0.2965559959411621,
-        "most_similar_previous": 15
+        "source": "user",
+        "max_similarity": 0.7034440636634827,
+        "dissimilarity": 0.29655593633651733,
+        "most_similar_previous": 15,
+        "start_progress": 0.5190631808278867,
+        "end_progress": 0.539760348583878,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"I did.\" he says.",
+        "source": "user",
         "max_similarity": 0.707211971282959,
         "dissimilarity": 0.292788028717041,
-        "most_similar_previous": 14
+        "most_similar_previous": 14,
+        "start_progress": 0.5403050108932462,
+        "end_progress": 0.5506535947712419,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "At this point, it didn't matter.",
+        "source": "user",
         "max_similarity": 0.41307491064071655,
         "dissimilarity": 0.5869250893592834,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.55119825708061,
+        "end_progress": 0.5686274509803921,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She was ready to go.",
+        "source": "user",
         "max_similarity": 0.6568639278411865,
         "dissimilarity": 0.3431360721588135,
-        "most_similar_previous": 15
+        "most_similar_previous": 15,
+        "start_progress": 0.5691721132897604,
+        "end_progress": 0.5800653594771242,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Well, I gotta run. It was very nice to-\" Before she could finish speaking, he stood up.",
+        "source": "user",
         "max_similarity": 0.5884556174278259,
         "dissimilarity": 0.4115443825721741,
-        "most_similar_previous": 10
+        "most_similar_previous": 10,
+        "start_progress": 0.5806100217864923,
+        "end_progress": 0.6296296296296297,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Wait. You should know the real reason I called you here,\" he said.",
+        "source": "user",
         "max_similarity": 0.6955744624137878,
         "dissimilarity": 0.30442553758621216,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.6301742919389978,
+        "end_progress": 0.6677559912854031,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"I wanted to see if you'd let me have one more shot with you.\"",
+        "source": "user",
         "max_similarity": 0.5337088704109192,
         "dissimilarity": 0.4662911295890808,
-        "most_similar_previous": 22
+        "most_similar_previous": 22,
+        "start_progress": 0.6683006535947712,
+        "end_progress": 0.7031590413943355,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She was confused.",
+        "source": "user",
         "max_similarity": 1.0,
         "dissimilarity": 0.0,
-        "most_similar_previous": 15
+        "most_similar_previous": 15,
+        "start_progress": 0.7037037037037037,
+        "end_progress": 0.7129629629629629,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"But we only just met. What do you mean, one more shot?\"",
+        "source": "user",
         "max_similarity": 0.5995458364486694,
         "dissimilarity": 0.40045416355133057,
-        "most_similar_previous": 23
+        "most_similar_previous": 23,
+        "start_progress": 0.7135076252723311,
+        "end_progress": 0.7450980392156863,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He sat back down.",
+        "source": "api",
         "max_similarity": 0.5811510682106018,
         "dissimilarity": 0.4188489317893982,
-        "most_similar_previous": 14
+        "most_similar_previous": 14,
+        "start_progress": 0.7456427015250545,
+        "end_progress": 0.7549019607843137,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"It's me\"",
-        "max_similarity": 0.43777570128440857,
-        "dissimilarity": 0.5622242987155914,
-        "most_similar_previous": 11
+        "source": "user",
+        "max_similarity": 0.4377756714820862,
+        "dissimilarity": 0.5622243285179138,
+        "most_similar_previous": 11,
+        "start_progress": 0.7554466230936819,
+        "end_progress": 0.7619825708061002,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She looked at him once more and shook her head.",
-        "max_similarity": 0.4236498177051544,
-        "dissimilarity": 0.5763501822948456,
-        "most_similar_previous": 4
+        "source": "user",
+        "max_similarity": 0.4236498773097992,
+        "dissimilarity": 0.5763501226902008,
+        "most_similar_previous": 4,
+        "start_progress": 0.7625272331154684,
+        "end_progress": 0.7881263616557734,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"You have me mistaken for someone else,\" she said.",
+        "source": "user",
         "max_similarity": 0.5411516427993774,
         "dissimilarity": 0.45884835720062256,
-        "most_similar_previous": 23
+        "most_similar_previous": 23,
+        "start_progress": 0.7886710239651417,
+        "end_progress": 0.8159041394335512,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"I don't even know who you are.\"",
+        "source": "user",
         "max_similarity": 0.5456722378730774,
         "dissimilarity": 0.4543277621269226,
-        "most_similar_previous": 25
+        "most_similar_previous": 25,
+        "start_progress": 0.8164488017429193,
+        "end_progress": 0.8349673202614379,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Just then, in the blink of an eye, he transformed.",
-        "max_similarity": 0.4756799340248108,
-        "dissimilarity": 0.5243200659751892,
-        "most_similar_previous": 10
+        "source": "user",
+        "max_similarity": 0.4756799638271332,
+        "dissimilarity": 0.5243200361728668,
+        "most_similar_previous": 10,
+        "start_progress": 0.835511982570806,
+        "end_progress": 0.8627450980392157,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "She was so shocked, she couldn't move.",
-        "max_similarity": 0.6142217516899109,
-        "dissimilarity": 0.3857782483100891,
-        "most_similar_previous": 15
+        "source": "user",
+        "max_similarity": 0.6142216920852661,
+        "dissimilarity": 0.3857783079147339,
+        "most_similar_previous": 15,
+        "start_progress": 0.8632897603485838,
+        "end_progress": 0.8839869281045751,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Sitting in front of her was the last guy she dated.",
+        "source": "user",
         "max_similarity": 0.6177718639373779,
         "dissimilarity": 0.38222813606262207,
-        "most_similar_previous": 4
+        "most_similar_previous": 4,
+        "start_progress": 0.8845315904139434,
+        "end_progress": 0.9123093681917211,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The one that stopped calling her back.",
+        "source": "user",
         "max_similarity": 0.572721540927887,
         "dissimilarity": 0.42727845907211304,
-        "most_similar_previous": 26
+        "most_similar_previous": 26,
+        "start_progress": 0.9128540305010894,
+        "end_progress": 0.9335511982570807,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He looked at her and said, \"I'm sorry. Will you give me second chance?\" She sighed loudly.",
+        "source": "user",
         "max_similarity": 0.592876672744751,
         "dissimilarity": 0.407123327255249,
-        "most_similar_previous": 22
+        "most_similar_previous": 22,
+        "start_progress": 0.9340958605664488,
+        "end_progress": 0.9842047930283224,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Some thing never change.\"",
+        "source": "user",
         "max_similarity": 0.42346659302711487,
         "dissimilarity": 0.5765334069728851,
-        "most_similar_previous": 11
+        "most_similar_previous": 11,
+        "start_progress": 0.9847494553376906,
+        "end_progress": 0.9994553376906318,
+        "start_time": 0.0,
+        "end_time": 0.0
     }
 ]

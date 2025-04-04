@@ -1,248 +1,453 @@
 [
     {
         "sentence": "Your entire life, you've been told you're deathly allergic to bees.",
+        "source": "api",
         "max_similarity": 0.0,
         "dissimilarity": 1.0,
-        "most_similar_previous": null
+        "most_similar_previous": null,
+        "start_progress": 0.0,
+        "end_progress": 0.03081232492997199,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You've always had people protecting you from them, be it your mother or a hired hand.",
+        "source": "api",
         "max_similarity": 0.6118144989013672,
         "dissimilarity": 0.3881855010986328,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.03127917833800187,
+        "end_progress": 0.07096171802054155,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Today, one slips through and lands on your shoulder.",
+        "source": "api",
         "max_similarity": 0.4481379985809326,
         "dissimilarity": 0.5518620014190674,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.07142857142857142,
+        "end_progress": 0.09570494864612512,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You hear a tiny voice say \"Your Majesty, what are your orders?\"",
+        "source": "api",
         "max_similarity": 0.3879590630531311,
         "dissimilarity": 0.6120409369468689,
-        "most_similar_previous": 1
+        "most_similar_previous": 1,
+        "start_progress": 0.096171802054155,
+        "end_progress": 0.12605042016806722,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The voice is coming from the bee!",
-        "max_similarity": 0.11361777782440186,
-        "dissimilarity": 0.8863822221755981,
-        "most_similar_previous": 2
+        "source": "user",
+        "max_similarity": 0.11361778527498245,
+        "dissimilarity": 0.8863822147250175,
+        "most_similar_previous": 2,
+        "start_progress": 0.1265172735760971,
+        "end_progress": 0.1419234360410831,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You frantically flip through your mental notes of all the things you've learned about bees.",
+        "source": "user",
         "max_similarity": 0.44279468059539795,
         "dissimilarity": 0.557205319404602,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.14239028944911297,
+        "end_progress": 0.18487394957983194,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You always knew they had a hive mind, but you didn't know that they could talk!",
+        "source": "user",
         "max_similarity": 0.49906232953071594,
         "dissimilarity": 0.5009376704692841,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.18534080298786182,
+        "end_progress": 0.2222222222222222,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You quickly reason that you should try and get it off of you before it stings you.",
+        "source": "user",
         "max_similarity": 0.5914837121963501,
         "dissimilarity": 0.4085162878036499,
-        "most_similar_previous": 1
+        "most_similar_previous": 1,
+        "start_progress": 0.22268907563025211,
+        "end_progress": 0.26097105508870216,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You reach for the bee, hoping to pick it up and move it off your shoulder.",
-        "max_similarity": 0.616446316242218,
-        "dissimilarity": 0.383553683757782,
-        "most_similar_previous": 7
+        "source": "user",
+        "max_similarity": 0.6164462566375732,
+        "dissimilarity": 0.38355374336242676,
+        "most_similar_previous": 7,
+        "start_progress": 0.26143790849673204,
+        "end_progress": 0.29598506069094305,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You grab the bee, and it stings you on your exposed wrist.",
+        "source": "user",
         "max_similarity": 0.7456884384155273,
         "dissimilarity": 0.25431156158447266,
-        "most_similar_previous": 8
+        "most_similar_previous": 8,
+        "start_progress": 0.2964519140989729,
+        "end_progress": 0.32446311858076565,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You feel a sharp pain, and a pinch, unlike any you've ever felt before.",
+        "source": "user",
         "max_similarity": 0.5335206985473633,
         "dissimilarity": 0.4664793014526367,
-        "most_similar_previous": 1
+        "most_similar_previous": 1,
+        "start_progress": 0.32492997198879553,
+        "end_progress": 0.3580765639589169,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Suddenly, you're aware of the entire hive's thoughts.",
+        "source": "api",
         "max_similarity": 0.41536614298820496,
         "dissimilarity": 0.584633857011795,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.3585434173669468,
+        "end_progress": 0.38328664799253037,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You know what everyone is doing, and you are given the ability to control every bee in the hive.",
-        "max_similarity": 0.6270378828048706,
-        "dissimilarity": 0.3729621171951294,
-        "most_similar_previous": 9
+        "source": "user",
+        "max_similarity": 0.6270378232002258,
+        "dissimilarity": 0.37296217679977417,
+        "most_similar_previous": 9,
+        "start_progress": 0.38375350140056025,
+        "end_progress": 0.42857142857142855,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The only thing you can't feel is your own body.",
+        "source": "api",
         "max_similarity": 0.4370911121368408,
         "dissimilarity": 0.5629088878631592,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.4290382819794584,
+        "end_progress": 0.45098039215686275,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": ".",
-        "max_similarity": 0.41845884919166565,
-        "dissimilarity": 0.5815411508083344,
-        "most_similar_previous": 11
+        "source": "api",
+        "max_similarity": 0.41845881938934326,
+        "dissimilarity": 0.5815411806106567,
+        "most_similar_previous": 11,
+        "start_progress": 0.45144724556489263,
+        "end_progress": 0.45144724556489263,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": ".",
+        "source": "api",
         "max_similarity": 1.0,
         "dissimilarity": 0.0,
-        "most_similar_previous": 14
+        "most_similar_previous": 14,
+        "start_progress": 0.4519140989729225,
+        "end_progress": 0.4519140989729225,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You feel powerful, but scared.",
+        "source": "user",
         "max_similarity": 0.5215804576873779,
         "dissimilarity": 0.47841954231262207,
-        "most_similar_previous": 6
+        "most_similar_previous": 6,
+        "start_progress": 0.4523809523809524,
+        "end_progress": 0.46638655462184875,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "There's a sense of urgency, but you're not sure why.",
+        "source": "user",
         "max_similarity": 0.46359825134277344,
         "dissimilarity": 0.5364017486572266,
-        "most_similar_previous": 10
+        "most_similar_previous": 10,
+        "start_progress": 0.4668534080298786,
+        "end_progress": 0.49206349206349204,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The bees seem to feel like they're in danger, and will soon have to go into hiding.",
+        "source": "api",
         "max_similarity": 0.48382776975631714,
         "dissimilarity": 0.5161722302436829,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.49253034547152197,
+        "end_progress": 0.5312791783380019,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "What's more, you can feel the weather changing.",
+        "source": "api",
         "max_similarity": 0.5171288251876831,
         "dissimilarity": 0.4828711748123169,
-        "most_similar_previous": 12
+        "most_similar_previous": 12,
+        "start_progress": 0.5317460317460317,
+        "end_progress": 0.5536881419234361,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "A powerful storm is coming, and soon.",
+        "source": "user",
         "max_similarity": 0.3868684470653534,
         "dissimilarity": 0.6131315529346466,
-        "most_similar_previous": 17
+        "most_similar_previous": 17,
+        "start_progress": 0.554154995331466,
+        "end_progress": 0.5714285714285714,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You decide to send the bees away, before they're caught in the storm.",
+        "source": "api",
         "max_similarity": 0.5956574082374573,
         "dissimilarity": 0.4043425917625427,
-        "most_similar_previous": 12
+        "most_similar_previous": 12,
+        "start_progress": 0.5718954248366013,
+        "end_progress": 0.6041083099906629,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You work your magic, and the bees fly off as one big, controlled swarm.",
+        "source": "user",
         "max_similarity": 0.6192882061004639,
         "dissimilarity": 0.38071179389953613,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.6045751633986928,
+        "end_progress": 0.6377217553688141,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You browse the human world, looking for somewhere safe for your bees to stay.",
-        "max_similarity": 0.5445146560668945,
-        "dissimilarity": 0.45548534393310547,
-        "most_similar_previous": 8
+        "source": "user",
+        "max_similarity": 0.5445145964622498,
+        "dissimilarity": 0.45548540353775024,
+        "most_similar_previous": 8,
+        "start_progress": 0.638188608776844,
+        "end_progress": 0.6750700280112045,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You find an abandoned house, big enough for the hive.",
+        "source": "api",
         "max_similarity": 0.5091394186019897,
         "dissimilarity": 0.49086058139801025,
-        "most_similar_previous": 23
+        "most_similar_previous": 23,
+        "start_progress": 0.6755368814192344,
+        "end_progress": 0.7007469654528478,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You give the bees some well-placed guiding thoughts, and soon they're all settled in.",
-        "max_similarity": 0.5999942421913147,
-        "dissimilarity": 0.4000057578086853,
-        "most_similar_previous": 12
+        "source": "user",
+        "max_similarity": 0.5999941825866699,
+        "dissimilarity": 0.4000058174133301,
+        "most_similar_previous": 12,
+        "start_progress": 0.7012138188608776,
+        "end_progress": 0.7408963585434174,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You feel satisfied, knowing that your hive is safe.",
-        "max_similarity": 0.5374250411987305,
-        "dissimilarity": 0.46257495880126953,
-        "most_similar_previous": 13
+        "source": "user",
+        "max_similarity": 0.5374249815940857,
+        "dissimilarity": 0.4625750184059143,
+        "most_similar_previous": 13,
+        "start_progress": 0.7413632119514473,
+        "end_progress": 0.765172735760971,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You break contact with the other bees, and become aware of your body again.",
+        "source": "user",
         "max_similarity": 0.5240647196769714,
         "dissimilarity": 0.47593528032302856,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.765639589169001,
+        "end_progress": 0.8015873015873016,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You feel.",
+        "source": "api",
         "max_similarity": 0.7674906253814697,
         "dissimilarity": 0.23250937461853027,
-        "most_similar_previous": 16
+        "most_similar_previous": 16,
+        "start_progress": 0.8020541549953315,
+        "end_progress": 0.8062558356676004,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": ".",
+        "source": "api",
         "max_similarity": 1.0,
         "dissimilarity": 0.0,
-        "most_similar_previous": 14
+        "most_similar_previous": 14,
+        "start_progress": 0.8067226890756303,
+        "end_progress": 0.8067226890756303,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": ".",
+        "source": "api",
         "max_similarity": 1.0,
         "dissimilarity": 0.0,
-        "most_similar_previous": 14
+        "most_similar_previous": 14,
+        "start_progress": 0.8071895424836601,
+        "end_progress": 0.8071895424836601,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "tired, but good.",
-        "max_similarity": 0.49327728152275085,
-        "dissimilarity": 0.5067227184772491,
-        "most_similar_previous": 16
+        "source": "api",
+        "max_similarity": 0.4932772219181061,
+        "dissimilarity": 0.5067227780818939,
+        "most_similar_previous": 16,
+        "start_progress": 0.80765639589169,
+        "end_progress": 0.8151260504201681,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You look around, trying to figure out what happened.",
+        "source": "api",
         "max_similarity": 0.48417502641677856,
         "dissimilarity": 0.5158249735832214,
-        "most_similar_previous": 18
+        "most_similar_previous": 18,
+        "start_progress": 0.8155929038281979,
+        "end_progress": 0.8398692810457516,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You're still in the bee field, but all the bees are gone.",
+        "source": "user",
         "max_similarity": 0.737890362739563,
         "dissimilarity": 0.262109637260437,
-        "most_similar_previous": 12
+        "most_similar_previous": 12,
+        "start_progress": 0.8403361344537815,
+        "end_progress": 0.8669467787114846,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You decide to walk home, the buzzing in your head finally fading away.",
+        "source": "api",
         "max_similarity": 0.594090461730957,
         "dissimilarity": 0.40590953826904297,
-        "most_similar_previous": 21
+        "most_similar_previous": 21,
+        "start_progress": 0.8674136321195145,
+        "end_progress": 0.900093370681606,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "How has this happened?",
-        "max_similarity": 0.1938980668783188,
-        "dissimilarity": 0.8061019331216812,
-        "most_similar_previous": 23
+        "source": "user",
+        "max_similarity": 0.19389808177947998,
+        "dissimilarity": 0.80610191822052,
+        "most_similar_previous": 23,
+        "start_progress": 0.9005602240896359,
+        "end_progress": 0.911297852474323,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "What does it mean for you?",
+        "source": "user",
         "max_similarity": 0.5454069375991821,
         "dissimilarity": 0.45459306240081787,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.9117647058823529,
+        "end_progress": 0.9239028944911298,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You're not sure what you've gotten yourself into.",
+        "source": "user",
         "max_similarity": 0.6415610313415527,
         "dissimilarity": 0.35843896865844727,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.9243697478991597,
+        "end_progress": 0.9472455648926237,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You just know that you have to keep your hive safe.",
+        "source": "api",
         "max_similarity": 0.6183562278747559,
         "dissimilarity": 0.38164377212524414,
-        "most_similar_previous": 28
+        "most_similar_previous": 28,
+        "start_progress": 0.9477124183006536,
+        "end_progress": 0.9715219421101774,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You won't let anything happen to them.",
+        "source": "api",
         "max_similarity": 0.4795090854167938,
         "dissimilarity": 0.5204909145832062,
-        "most_similar_previous": 38
+        "most_similar_previous": 38,
+        "start_progress": 0.9719887955182073,
+        "end_progress": 0.9897292250233427,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You're their queen.",
-        "max_similarity": 0.6015632152557373,
-        "dissimilarity": 0.3984367847442627,
-        "most_similar_previous": 37
+        "source": "api",
+        "max_similarity": 0.6015631556510925,
+        "dissimilarity": 0.39843684434890747,
+        "most_similar_previous": 37,
+        "start_progress": 0.9901960784313726,
+        "end_progress": 0.9990662931839402,
+        "start_time": 0.0,
+        "end_time": 0.0
     }
 ]

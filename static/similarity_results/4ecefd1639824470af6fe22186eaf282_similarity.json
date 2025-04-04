@@ -1,188 +1,343 @@
 [
     {
         "sentence": "Once upon a time there was an old mother pig who had one hundred little pigs and not enough food to feed them.",
+        "source": "api",
         "max_similarity": 0.0,
         "dissimilarity": 1.0,
-        "most_similar_previous": null
+        "most_similar_previous": null,
+        "start_progress": 0.0,
+        "end_progress": 0.030093870789618993,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "So when they were old enough, she sent them out into the world to seek their fortunes.",
+        "source": "api",
         "max_similarity": 0.38685494661331177,
         "dissimilarity": 0.6131450533866882,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.030369961347321922,
+        "end_progress": 0.054113749309773605,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You know the story about the first three little pigs.",
+        "source": "api",
         "max_similarity": 0.40926459431648254,
         "dissimilarity": 0.5907354056835175,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.05438983986747653,
+        "end_progress": 0.06902263942573164,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "This is a story about the 92nd little pig.",
-        "max_similarity": 0.6812565326690674,
-        "dissimilarity": 0.3187434673309326,
-        "most_similar_previous": 2
+        "source": "api",
+        "max_similarity": 0.6812565922737122,
+        "dissimilarity": 0.31874340772628784,
+        "most_similar_previous": 2,
+        "start_progress": 0.06929872998343457,
+        "end_progress": 0.08089453340695749,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The 92nd little pig built a house out of depleted uranium.",
-        "max_similarity": 0.5676147937774658,
-        "dissimilarity": 0.4323852062225342,
-        "most_similar_previous": 3
+        "source": "api",
+        "max_similarity": 0.5676149129867554,
+        "dissimilarity": 0.43238508701324463,
+        "most_similar_previous": 3,
+        "start_progress": 0.0811706239646604,
+        "end_progress": 0.09745996686913308,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "And the wolf was like, \"dude.\" And the pig was like, \"what wolf?\" The wolf was a little annoyed because he knew that the 92nd little pig had only built his house out of depleted uranium on the totally incorrect assumption that the wolf was going to try to blow his house down.",
+        "source": "api",
         "max_similarity": 0.6422932147979736,
         "dissimilarity": 0.35770678520202637,
-        "most_similar_previous": 4
+        "most_similar_previous": 4,
+        "start_progress": 0.097736057426836,
+        "end_progress": 0.17393705135284374,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Which didn't even make any sense, because wolfs can't blow down houses anyway.",
+        "source": "user",
         "max_similarity": 0.4070369005203247,
         "dissimilarity": 0.5929630994796753,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.17421314191054665,
+        "end_progress": 0.19574820541137494,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "It's not in their job description.",
-        "max_similarity": 0.3097802698612213,
-        "dissimilarity": 0.6902197301387787,
-        "most_similar_previous": 1
+        "source": "user",
+        "max_similarity": 0.3097802400588989,
+        "dissimilarity": 0.6902197599411011,
+        "most_similar_previous": 1,
+        "start_progress": 0.19602429596907786,
+        "end_progress": 0.20541137493097736,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Yes, there's that whole story of the three little pigs, but that story gave wolves a bad reputation that is totally undeserved.",
+        "source": "user",
         "max_similarity": 0.644608199596405,
         "dissimilarity": 0.35539180040359497,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.20568746548868028,
+        "end_progress": 0.24075096631695195,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "So the wolf felt that he was being discriminated against, and so he called his lawyer.",
-        "max_similarity": 0.5903195142745972,
-        "dissimilarity": 0.40968048572540283,
-        "most_similar_previous": 5
+        "source": "user",
+        "max_similarity": 0.5903194546699524,
+        "dissimilarity": 0.4096805453300476,
+        "most_similar_previous": 5,
+        "start_progress": 0.2410270568746549,
+        "end_progress": 0.26532302595251245,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "And his lawyer said, \"Yeah, you've got a case. I can totally win you damages.\" The wolf said, \"What do you mean damages?\" And the lawyer explained, \"Well, you've got this unfair depiction of wolves out there, and it's destroying your reputation.\" The wolf nodded.",
+        "source": "user",
         "max_similarity": 0.6429346799850464,
         "dissimilarity": 0.3570653200149536,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.26559911651021534,
+        "end_progress": 0.338210933186085,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Finally, someone understood his plight.",
+        "source": "user",
         "max_similarity": 0.29969674348831177,
         "dissimilarity": 0.7003032565116882,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.338487023743788,
+        "end_progress": 0.3492545554942021,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "And he knew that his lawyer could get the job done, because his lawyer was a wolf in sheep's clothing, and regardless, his lawyer was a graduate of Yale Law School.",
+        "source": "user",
         "max_similarity": 0.6795220375061035,
         "dissimilarity": 0.3204779624938965,
-        "most_similar_previous": 10
+        "most_similar_previous": 10,
+        "start_progress": 0.34953064605190504,
+        "end_progress": 0.39480949751518496,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Yes, that's right, his lawyer had even turned down an offer to work for white shoe law firm Wolf, Schmool & Schmurtz, but that's neither here nor there.",
+        "source": "user",
         "max_similarity": 0.6640897989273071,
         "dissimilarity": 0.33591020107269287,
-        "most_similar_previous": 8
+        "most_similar_previous": 8,
+        "start_progress": 0.3950855880728879,
+        "end_progress": 0.43705135284373275,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The point was that this lawyer was an excellent one.",
+        "source": "user",
         "max_similarity": 0.5583445429801941,
         "dissimilarity": 0.4416554570198059,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.43732744340143564,
+        "end_progress": 0.45168415240198784,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "So, the wolf got started in terms of compiling his case.",
-        "max_similarity": 0.5262380242347717,
-        "dissimilarity": 0.47376197576522827,
-        "most_similar_previous": 5
+        "source": "user",
+        "max_similarity": 0.5262380838394165,
+        "dissimilarity": 0.4737619161605835,
+        "most_similar_previous": 5,
+        "start_progress": 0.4519602429596908,
+        "end_progress": 0.46797349530646054,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "And he thought about all of the ways that people had been discriminating against him in a way that was completely unfair.",
+        "source": "user",
         "max_similarity": 0.6474307775497437,
         "dissimilarity": 0.35256922245025635,
-        "most_similar_previous": 8
+        "most_similar_previous": 8,
+        "start_progress": 0.46824958586416343,
+        "end_progress": 0.5016565433462176,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "And he had a long list.",
+        "source": "user",
         "max_similarity": 0.4569796919822693,
         "dissimilarity": 0.5430203080177307,
-        "most_similar_previous": 12
+        "most_similar_previous": 12,
+        "start_progress": 0.5019326339039205,
+        "end_progress": 0.5082827167310878,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "For example, at the zoo he always got to sit in the last car of the train, and people would throw things at him, which wasn't fair.",
-        "max_similarity": 0.6565947532653809,
-        "dissimilarity": 0.34340524673461914,
-        "most_similar_previous": 5
+        "source": "user",
+        "max_similarity": 0.6565946340560913,
+        "dissimilarity": 0.3434053659439087,
+        "most_similar_previous": 5,
+        "start_progress": 0.5085588072887908,
+        "end_progress": 0.5447266703478741,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "And sometimes when he went to the beach, people would put up fences so he couldn't get to the water.",
-        "max_similarity": 0.6339788436889648,
-        "dissimilarity": 0.36602115631103516,
-        "most_similar_previous": 18
+        "source": "user",
+        "max_similarity": 0.6339787244796753,
+        "dissimilarity": 0.3660212755203247,
+        "most_similar_previous": 18,
+        "start_progress": 0.545002760905577,
+        "end_progress": 0.5726118166758697,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The wolf felt increasingly depressed thinking of all the ways that showed he was a disliked creature.",
+        "source": "user",
         "max_similarity": 0.6882182359695435,
         "dissimilarity": 0.31178176403045654,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.5728879072335726,
+        "end_progress": 0.6007730535615682,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He knew his lawyer would need to dazzle the judge.",
+        "source": "user",
         "max_similarity": 0.4271082282066345,
         "dissimilarity": 0.5728917717933655,
-        "most_similar_previous": 19
+        "most_similar_previous": 19,
+        "start_progress": 0.6010491441192711,
+        "end_progress": 0.6148536720044174,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "On the day of the hearing, the wolf's lawyer stood before the judge and said, \"Your honor, I have here a petition for damages.\" And the judge was like, \"Why does this petition say that we're here to talk about a lawsuit against the pigs?\" And the lawyer explained, \"Yes your honor, we are here to talk about a lawsuit against the pigs. My client is here to talk about the unfair portrayal of wolves in the story of the three little pigs.\" \"I'm listening,\" said the judge.",
-        "max_similarity": 0.7819241285324097,
-        "dissimilarity": 0.21807587146759033,
-        "most_similar_previous": 10
+        "source": "user",
+        "max_similarity": 0.7819240093231201,
+        "dissimilarity": 0.21807599067687988,
+        "most_similar_previous": 10,
+        "start_progress": 0.6151297625621204,
+        "end_progress": 0.7454445057979017,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Your honor, the wolf is an upstanding citizen. And that story is a total lie! It never happened and the pigs just wanted sympathy from people all around the world. But that story is so out there that it has caused my client to suffer undue discrimination. My client is now suing for damages, which he believes is fair.\" The pigs who are the named defendants in the suit were flabbergasted.",
+        "source": "user",
         "max_similarity": 0.7691514492034912,
         "dissimilarity": 0.2308485507965088,
-        "most_similar_previous": 22
+        "most_similar_previous": 22,
+        "start_progress": 0.7457205963556046,
+        "end_progress": 0.853395913859746,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "They hadn't thought the wolf would go that far.",
+        "source": "user",
         "max_similarity": 0.6240434050559998,
         "dissimilarity": 0.37595659494400024,
-        "most_similar_previous": 13
+        "most_similar_previous": 13,
+        "start_progress": 0.853672004417449,
+        "end_progress": 0.8666482606294865,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"We were just trying to make a point,\" they said.",
+        "source": "user",
         "max_similarity": 0.6229069828987122,
         "dissimilarity": 0.37709301710128784,
-        "most_similar_previous": 22
+        "most_similar_previous": 22,
+        "start_progress": 0.8669243511871894,
+        "end_progress": 0.8804527885146328,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"We weren't out to ruin your reputation, wolf.\" The wolf nodded but said he still wanted his millions.",
-        "max_similarity": 0.7418127655982971,
-        "dissimilarity": 0.2581872344017029,
-        "most_similar_previous": 25
+        "source": "user",
+        "max_similarity": 0.7418127059936523,
+        "dissimilarity": 0.25818729400634766,
+        "most_similar_previous": 25,
+        "start_progress": 0.8807288790723358,
+        "end_progress": 0.9088901159580343,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "In the end, the judge was sympathetic to the wolf's plight.",
-        "max_similarity": 0.7567034363746643,
-        "dissimilarity": 0.2432965636253357,
-        "most_similar_previous": 5
+        "source": "user",
+        "max_similarity": 0.7567034959793091,
+        "dissimilarity": 0.24329650402069092,
+        "most_similar_previous": 5,
+        "start_progress": 0.9091662065157372,
+        "end_progress": 0.9260077305356157,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The judge knew how tough a defamation case would be on the wolf's career and thought monetary damages were suitable as a remedy.",
-        "max_similarity": 0.5741519927978516,
-        "dissimilarity": 0.42584800720214844,
-        "most_similar_previous": 23
+        "source": "user",
+        "max_similarity": 0.574151873588562,
+        "dissimilarity": 0.425848126411438,
+        "most_similar_previous": 23,
+        "start_progress": 0.9262838210933186,
+        "end_progress": 0.9616234124792932,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "So, the judge awarded the wolf $123.",
+        "source": "user",
         "max_similarity": 0.6721744537353516,
         "dissimilarity": 0.32782554626464844,
-        "most_similar_previous": 27
+        "most_similar_previous": 27,
+        "start_progress": 0.9618995030369961,
+        "end_progress": 0.9718387631143015,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "45 million in damages and ordered that any further retelling of the story of \"The Three Little Pigs.",
+        "source": "api",
         "max_similarity": 0.6819424629211426,
         "dissimilarity": 0.3180575370788574,
-        "most_similar_previous": 22
+        "most_similar_previous": 22,
+        "start_progress": 0.9721148536720045,
+        "end_progress": 0.999723909442297,
+        "start_time": 0.0,
+        "end_time": 0.0
     }
 ]

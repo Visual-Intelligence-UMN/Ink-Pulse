@@ -1,218 +1,398 @@
 [
     {
         "sentence": "Once upon a time there was an old mother pig who had one hundred little pigs and not enough food to feed them.",
+        "source": "api",
         "max_similarity": 0.0,
         "dissimilarity": 1.0,
-        "most_similar_previous": null
+        "most_similar_previous": null,
+        "start_progress": 0.0,
+        "end_progress": 0.04158718046547119,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "So when they were old enough, she sent them out into the world to seek their fortunes.",
+        "source": "api",
         "max_similarity": 0.4793069064617157,
         "dissimilarity": 0.5206930935382843,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.041968714231209465,
+        "end_progress": 0.07478061808470049,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "You know the story about the first three little pigs.",
+        "source": "api",
         "max_similarity": 0.3434165120124817,
         "dissimilarity": 0.6565834879875183,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.07516215185043876,
+        "end_progress": 0.09538344143456697,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "This is a story about the 92nd little pig.",
-        "max_similarity": 0.6173956394195557,
-        "dissimilarity": 0.38260436058044434,
-        "most_similar_previous": 2
+        "source": "api",
+        "max_similarity": 0.6173955798149109,
+        "dissimilarity": 0.3826044201850891,
+        "most_similar_previous": 2,
+        "start_progress": 0.09576497520030523,
+        "end_progress": 0.11178939336131248,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The 92nd little pig built a house out of depleted uranium.",
+        "source": "api",
         "max_similarity": 0.6172091960906982,
         "dissimilarity": 0.38279080390930176,
-        "most_similar_previous": 3
+        "most_similar_previous": 3,
+        "start_progress": 0.11217092712705075,
+        "end_progress": 0.13468141930560854,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "And the wolf was like, \"dude.\" And the 92nd little pig was like, \"what?\" And the wolf was like, \"dude, that's not a good idea.\"",
+        "source": "api",
         "max_similarity": 0.4681592881679535,
         "dissimilarity": 0.5318407118320465,
-        "most_similar_previous": 0
+        "most_similar_previous": 0,
+        "start_progress": 0.1350629530713468,
+        "end_progress": 0.1838992750858451,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"What do you me,\" the 92nd pig asked, puzzled.",
-        "max_similarity": 0.702923059463501,
-        "dissimilarity": 0.297076940536499,
-        "most_similar_previous": 5
+        "source": "user",
+        "max_similarity": 0.7029231190681458,
+        "dissimilarity": 0.29707688093185425,
+        "most_similar_previous": 5,
+        "start_progress": 0.18428080885158338,
+        "end_progress": 0.2018313620755437,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"That's uranium.  It can kill you,\" the wolf said.",
+        "source": "user",
         "max_similarity": 0.5806196928024292,
         "dissimilarity": 0.4193803071975708,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.20221289584128196,
+        "end_progress": 0.22167111789393362,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"How do you know?\" the 92nd pig asked.",
+        "source": "user",
         "max_similarity": 0.742139458656311,
         "dissimilarity": 0.25786054134368896,
-        "most_similar_previous": 6
+        "most_similar_previous": 6,
+        "start_progress": 0.2220526516596719,
+        "end_progress": 0.23693246852346433,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The wolf explained that he studied chemistry in college.",
+        "source": "user",
         "max_similarity": 0.5622254610061646,
         "dissimilarity": 0.43777453899383545,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.2373140022892026,
+        "end_progress": 0.25906142693628387,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He started to talk about radioactive elements and the 92nd pig invited him in for tea.",
+        "source": "user",
         "max_similarity": 0.47818711400032043,
         "dissimilarity": 0.5218128859996796,
-        "most_similar_previous": 3
+        "most_similar_previous": 3,
+        "start_progress": 0.2594429607020221,
+        "end_progress": 0.29263639832125143,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Uhm\" the wolf said, \"that's not a good idea. I'm not going into your house, and you shouldn't either.  It's too dangerous.\"",
+        "source": "user",
         "max_similarity": 0.7339227199554443,
         "dissimilarity": 0.26607728004455566,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.2930179320869897,
+        "end_progress": 0.3407096528042732,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The 92nd little pig looked so pitiful standing there, the wolf introduced himself as Frank and invited him back to his place.",
-        "max_similarity": 0.6263086199760437,
-        "dissimilarity": 0.3736913800239563,
-        "most_similar_previous": 5
+        "source": "user",
+        "max_similarity": 0.6263085603713989,
+        "dissimilarity": 0.3736914396286011,
+        "most_similar_previous": 5,
+        "start_progress": 0.3410911865700115,
+        "end_progress": 0.3887829072872949,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The pig didn't have anywhere else to go, so he packed a bag and followed the wolf.",
+        "source": "user",
         "max_similarity": 0.6779860854148865,
         "dissimilarity": 0.3220139145851135,
-        "most_similar_previous": 12
+        "most_similar_previous": 12,
+        "start_progress": 0.3891644410530332,
+        "end_progress": 0.4208317436093094,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "They went into his den and the wolf turned on the television.",
+        "source": "user",
         "max_similarity": 0.5646169185638428,
         "dissimilarity": 0.4353830814361572,
-        "most_similar_previous": 12
+        "most_similar_previous": 12,
+        "start_progress": 0.4212132773750477,
+        "end_progress": 0.4448683708508203,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Sit down,\" he said to the pig.",
-        "max_similarity": 0.6550521850585938,
-        "dissimilarity": 0.34494781494140625,
-        "most_similar_previous": 13
+        "source": "user",
+        "max_similarity": 0.6550522446632385,
+        "dissimilarity": 0.3449477553367615,
+        "most_similar_previous": 13,
+        "start_progress": 0.44524990461655856,
+        "end_progress": 0.4574589851201831,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Then the wolf went into the kitchen and came back with a tray full of snacks.",
+        "source": "user",
         "max_similarity": 0.6266107559204102,
         "dissimilarity": 0.37338924407958984,
-        "most_similar_previous": 14
+        "most_similar_previous": 14,
+        "start_progress": 0.4578405188859214,
+        "end_progress": 0.4876001526135063,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"I thought you might be hungry,\" he said.",
+        "source": "user",
         "max_similarity": 0.6553946733474731,
         "dissimilarity": 0.34460532665252686,
-        "most_similar_previous": 15
+        "most_similar_previous": 15,
+        "start_progress": 0.48798168637924455,
+        "end_progress": 0.5040061045402519,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The little pig picked up a plate and loaded it with the goodies the wolf had laid out on the tray.",
-        "max_similarity": 0.7127166390419006,
-        "dissimilarity": 0.28728336095809937,
-        "most_similar_previous": 16
+        "source": "user",
+        "max_similarity": 0.7127165794372559,
+        "dissimilarity": 0.28728342056274414,
+        "most_similar_previous": 16,
+        "start_progress": 0.5043876383059901,
+        "end_progress": 0.5421594811140786,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The two of them chatted and watched a football game together in the den.",
+        "source": "user",
         "max_similarity": 0.5604133009910583,
         "dissimilarity": 0.43958669900894165,
-        "most_similar_previous": 16
+        "most_similar_previous": 16,
+        "start_progress": 0.5425410148798169,
+        "end_progress": 0.5703929797787104,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "Finally, as night fell, the 92nd pig asked the question that had been weighing heavily on his all day.",
-        "max_similarity": 0.623159646987915,
-        "dissimilarity": 0.37684035301208496,
-        "most_similar_previous": 15
+        "source": "user",
+        "max_similarity": 0.6231595873832703,
+        "dissimilarity": 0.37684041261672974,
+        "most_similar_previous": 15,
+        "start_progress": 0.5707745135444486,
+        "end_progress": 0.6100724914154902,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Frank,\" he said, \"are you going to eat me?\"",
-        "max_similarity": 0.6737769842147827,
-        "dissimilarity": 0.3262230157852173,
-        "most_similar_previous": 15
+        "source": "user",
+        "max_similarity": 0.6737769246101379,
+        "dissimilarity": 0.32622307538986206,
+        "most_similar_previous": 15,
+        "start_progress": 0.6104540251812285,
+        "end_progress": 0.6280045784051889,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The wolf looked at him and slowly started to laugh.",
-        "max_similarity": 0.5445656776428223,
-        "dissimilarity": 0.45543432235717773,
-        "most_similar_previous": 12
+        "source": "user",
+        "max_similarity": 0.5445656180381775,
+        "dissimilarity": 0.4554343819618225,
+        "most_similar_previous": 12,
+        "start_progress": 0.6283861121709271,
+        "end_progress": 0.6478443342235788,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He laughed and laughed until tears rolled down his furry cheeks.",
+        "source": "user",
         "max_similarity": 0.386601984500885,
         "dissimilarity": 0.613398015499115,
-        "most_similar_previous": 17
+        "most_similar_previous": 17,
+        "start_progress": 0.648225867989317,
+        "end_progress": 0.6730255627623045,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"No,\" the wolf said, \"I'm not going to eat you.  I'm not going to eat anyone.\"",
-        "max_similarity": 0.7267597913742065,
-        "dissimilarity": 0.27324020862579346,
-        "most_similar_previous": 11
+        "source": "user",
+        "max_similarity": 0.7267599105834961,
+        "dissimilarity": 0.2732400894165039,
+        "most_similar_previous": 11,
+        "start_progress": 0.6734070965280428,
+        "end_progress": 0.7035482640213659,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"But you're a wolf,\" the pig said.",
+        "source": "user",
         "max_similarity": 0.718114972114563,
         "dissimilarity": 0.281885027885437,
-        "most_similar_previous": 15
+        "most_similar_previous": 15,
+        "start_progress": 0.7039297977871042,
+        "end_progress": 0.7169019458222052,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The wolf asked the pig what he had eating while they watched tv together.",
+        "source": "user",
         "max_similarity": 0.5878115892410278,
         "dissimilarity": 0.41218841075897217,
-        "most_similar_previous": 18
+        "most_similar_previous": 18,
+        "start_progress": 0.7172834795879436,
+        "end_progress": 0.7455169782525753,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The pig thought a minute and then said, \"let's see, we had peanuts, a fruit salad, a bowl of popcorn and stir fry with tofu for dinner.\"",
+        "source": "user",
         "max_similarity": 0.7101110219955444,
         "dissimilarity": 0.28988897800445557,
-        "most_similar_previous": 5
+        "most_similar_previous": 5,
+        "start_progress": 0.7458985120183136,
+        "end_progress": 0.7993132392216711,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"That's right.  Did you notice that these foods have anything in common?\"",
+        "source": "user",
         "max_similarity": 0.5793238878250122,
         "dissimilarity": 0.4206761121749878,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.7996947729874094,
+        "end_progress": 0.8279282716520412,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The pig thought a minute and then said, \"they're all made of plants.\"",
+        "source": "user",
         "max_similarity": 0.7921620607376099,
         "dissimilarity": 0.20783793926239014,
-        "most_similar_previous": 27
+        "most_similar_previous": 27,
+        "start_progress": 0.8283098054177794,
+        "end_progress": 0.8550171690194582,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The wolf nodded.",
+        "source": "user",
         "max_similarity": 0.557763397693634,
         "dissimilarity": 0.44223660230636597,
-        "most_similar_previous": 7
+        "most_similar_previous": 7,
+        "start_progress": 0.8553987027851965,
+        "end_progress": 0.8615032430370088,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"You're a vegetarian.  You don't eat meat.\"",
+        "source": "user",
         "max_similarity": 0.6007373332977295,
         "dissimilarity": 0.3992626667022705,
-        "most_similar_previous": 8
+        "most_similar_previous": 8,
+        "start_progress": 0.861884776802747,
+        "end_progress": 0.8790537962609691,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Correct,\" said the wolf.",
-        "max_similarity": 0.788581132888794,
-        "dissimilarity": 0.21141886711120605,
-        "most_similar_previous": 25
+        "source": "user",
+        "max_similarity": 0.7885810732841492,
+        "dissimilarity": 0.21141892671585083,
+        "most_similar_previous": 25,
+        "start_progress": 0.8794353300267074,
+        "end_progress": 0.888973674170164,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "\"Now, you need a place to stay and I can't pay the rent on this place myself, so how about it.  Do you want to be my roommate?\"",
-        "max_similarity": 0.6562456488609314,
-        "dissimilarity": 0.3437543511390686,
-        "most_similar_previous": 13
+        "source": "user",
+        "max_similarity": 0.6562457084655762,
+        "dissimilarity": 0.34375429153442383,
+        "most_similar_previous": 13,
+        "start_progress": 0.8893552079359023,
+        "end_progress": 0.9385730637161389,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "The pig agreed, as the place was nice and roomy and not made of depleted uranium like his old place.",
-        "max_similarity": 0.7184783220291138,
-        "dissimilarity": 0.28152167797088623,
-        "most_similar_previous": 12
+        "source": "user",
+        "max_similarity": 0.718478262424469,
+        "dissimilarity": 0.281521737575531,
+        "most_similar_previous": 12,
+        "start_progress": 0.9389545974818772,
+        "end_progress": 0.9771079740557039,
+        "start_time": 0.0,
+        "end_time": 0.0
     },
     {
         "sentence": "He moved in and they lived together happily every after.",
+        "source": "user",
         "max_similarity": 0.5560019016265869,
         "dissimilarity": 0.4439980983734131,
-        "most_similar_previous": 10
+        "most_similar_previous": 10,
+        "start_progress": 0.9774895078214422,
+        "end_progress": 0.9992369324685234,
+        "start_time": 0.0,
+        "end_time": 0.0
     }
 ]
