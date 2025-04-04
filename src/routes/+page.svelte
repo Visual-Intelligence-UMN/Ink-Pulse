@@ -8,7 +8,8 @@
   import "tippy.js/dist/tippy.css";
   import { get } from "svelte/store";
   import LineChart from "../components/lineChart.svelte";
-  import BarChart from "../components/barChart.svelte";
+  import BarChartY from "../components/barChartY.svelte";
+  import BarChartX from "../components/barChartX.svelte";
   import ZoomoutChart from "../components/zoomoutChart.svelte";
   import * as d3 from "d3";
 
@@ -861,12 +862,11 @@
                 <div class="chart-container">
                   <div class="chart-wrapper">
                     {#if sessionData.similarityData}
-                    <div>
-                      <BarChart
+                      <BarChartY
                         sessionId={sessionData.sessionId}
                         similarityData={sessionData.similarityData}
                         height={height}
-                      /></div>
+                      />
                     {/if}
                     <LineChart
                       bind:this={chartRefs[sessionData.sessionId]}

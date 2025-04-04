@@ -1,6 +1,7 @@
 import json
 import datetime
 import os
+import time
 
 def load_json(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -106,13 +107,11 @@ def split_text(whole_text, sentence_source, extra_time, extra_process):
             start_time = sum(time_deltas[:start_index])
             start_datetime_obj = base_time + datetime.timedelta(seconds=start_time)
             start_relative_time = (start_datetime_obj - base_time).total_seconds()
-
             start_progress = extra_process[start_index] / total_length
 
             end_time = sum(time_deltas[:i + 1])
             end_datetime_obj = base_time + datetime.timedelta(seconds=end_time)
             end_relative_time = (end_datetime_obj - base_time).total_seconds()
-
             end_progress = extra_process[i] / total_length
 
             insert_data.append({
@@ -126,9 +125,112 @@ def split_text(whole_text, sentence_source, extra_time, extra_process):
 
     return insert_data
 
+def combine_text(text, sentence_with_source):
+    insert_data = []
+    length = len(text)
+    inside_quotes = False  
+    quote_chars = {'"'}
+    start_progress = 0
+    end_progress = 0
+    start_index = 0
+    sentence = ""
+    time = [datetime.datetime.strptime(t, "%Y-%m-%d %H:%M:%S") for t in sentence_with_source["time"]]
+    time_deltas = [0]
+    for j in range(1, len(time)):
+        time_deltas.append((time[j] - time[j - 1]).total_seconds())
+    base_time = time[0]
+    for i, item in enumerate(sentence_with_source["text"]):
+        sentence += item
+        if item in quote_chars:
+            inside_quotes = not inside_quotes
+        elif item in ".!?" and not inside_quotes:
+            if i + 1 < length and text[i + 1] in quote_chars:
+                sentence += text[i + 1]
+                i += 1
+                inside_quotes = not inside_quotes
+
+            if start_index < length:
+                first_char_source = sentence_with_source["source"][start_index]
+                start_time = sum(time_deltas[:start_index])
+                start_datetime_obj = base_time + datetime.timedelta(seconds=start_time)
+                start_relative_time = (start_datetime_obj - base_time).total_seconds()
+                start_progress = len(text[:start_index]) / length
+
+                end_time = sum(time_deltas[:i + 1])
+                end_datetime_obj = base_time + datetime.timedelta(seconds=end_time)
+                end_relative_time = (end_datetime_obj - base_time).total_seconds()
+                end_progress = len(text[:i]) / length
+
+                insert_data.append({
+                    "text": sentence.strip(),
+                    "source": first_char_source,
+                    "start_time": start_relative_time,
+                    "end_time": end_relative_time,
+                    "start_progress": start_progress,
+                    "end_progress": end_progress
+                })
+
+            start_time = end_time
+            start_index += len(sentence)
+            sentence = ""
+
+        elif item == "\n" and not inside_quotes:
+            if sentence.strip():
+                if start_index < length:
+                    first_char_source = sentence_with_source["source"][start_index]
+
+                    start_time = sum(time_deltas[:start_index])
+                    start_datetime_obj = base_time + datetime.timedelta(seconds=start_time)
+                    start_relative_time = (start_datetime_obj - base_time).total_seconds()
+                    start_progress = len(text[:start_index]) / length
+
+                    end_time = sum(time_deltas[:i + 1])
+                    end_datetime_obj = base_time + datetime.timedelta(seconds=end_time)
+                    end_relative_time = (end_datetime_obj - base_time).total_seconds()
+
+                    end_progress = len(text[:i]) / length
+
+                    insert_data.append({
+                        "text": sentence.strip(),
+                        "source": first_char_source,
+                        "start_time": start_relative_time,
+                        "end_time": end_relative_time,
+                        "start_progress": start_progress,
+                        "end_progress": end_progress
+                    })
+
+                start_time = end_time
+                start_index += len(sentence)
+                sentence = ""
+
+    if sentence.strip():
+        if start_index < length:
+            first_char_source = sentence_with_source["source"][start_index]
+
+            start_time = sum(time_deltas[:start_index])
+            start_datetime_obj = base_time + datetime.timedelta(seconds=start_time)
+            start_relative_time = (start_datetime_obj - base_time).total_seconds()
+            start_progress = len(text[:start_index]) / length
+
+            end_time = sum(time_deltas[:i + 1])
+            end_datetime_obj = base_time + datetime.timedelta(seconds=end_time)
+            end_relative_time = (end_datetime_obj - base_time).total_seconds()
+            end_progress = len(text[:i]) / length
+
+            insert_data.append({
+                "text": sentence.strip(),
+                "source": first_char_source,
+                "start_time": start_relative_time,
+                "end_time": end_relative_time,
+                "start_progress": start_progress,
+                "end_progress": end_progress
+            })
+
+    return insert_data
 
 def get_sentence(session_id, static_dir):
     json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-sentence")
+    sentence_with_source = {"text": [], "source": [], "time": []}
     for session in session_id:
         extracted_data = {'init_text': [], 'init_time': [], 'json': [], 'text': [], 'info': [], 'end_time': []}
         sentence_source = []
@@ -163,6 +265,11 @@ def get_sentence(session_id, static_dir):
         sentence_source = ["api"] * len(text)
         extra_time = [init_time] * len(text)
         extra_process = [len(text)] * len(text)
+
+        sentence_with_source["source"] = ["api"] * len(text)
+        sentence_with_source["text"] = list(text)
+        sentence_with_source["time"] = [init_time] * len(text)
+
         for entry in extracted_data['json']:
             text_delta = entry['textDelta']
             event_source = entry.get('eventSource', 'unknown')
@@ -196,11 +303,19 @@ def get_sentence(session_id, static_dir):
                                 sentence_source.insert(current_insert_pos, event_source)
                                 extra_time.insert(current_insert_pos, event_time)
                                 extra_process.insert(current_insert_pos, len(text))
+
+                                sentence_with_source["text"].insert(current_insert_pos, list(char))
+                                sentence_with_source["source"].insert(current_insert_pos, event_source)
+                                sentence_with_source["time"].insert(current_insert_pos, event_time)
                         else:
                             text = text[:insert_pos] + inserts + text[insert_pos:]
                             sentence_source[insert_pos:insert_pos] = [event_source] * len(inserts) 
                             extra_time[insert_pos:insert_pos] = [event_time] * len(inserts) 
-                            extra_process[insert_pos:insert_pos] = [len(text)] * len(inserts) 
+                            extra_process[insert_pos:insert_pos] = [len(text)] * len(inserts)
+
+                            sentence_with_source["text"].insert(insert_pos, list(inserts))
+                            sentence_with_source["source"].insert(insert_pos, [event_source] * len(inserts))
+                            sentence_with_source["time"].insert(insert_pos, [event_time] * len(inserts))
                         break
             elif event_name == "text-delete":
                 retain_pos = 0
@@ -214,9 +329,46 @@ def get_sentence(session_id, static_dir):
                         del sentence_source[delete_pos:delete_pos + delete_count]
                         del extra_time[delete_pos:delete_pos + delete_count]
                         del extra_process[delete_pos:delete_pos + delete_count]
+
+                        sentence_with_source["text"] = sentence_with_source["text"][:delete_pos] + sentence_with_source["text"][delete_pos + delete_count:]
+                        sentence_with_source["source"] = sentence_with_source["source"][:delete_pos] + sentence_with_source["source"][delete_pos + delete_count:]
+                        sentence_with_source["time"] = sentence_with_source["time"][:delete_pos] + sentence_with_source["time"][delete_pos + delete_count:]
                         break
-        sentence_data = split_text(text, sentence_source, extra_time, extra_process)
+        sentence_with_source_text = []
+        sentence_with_source_source = []
+        sentence_with_source_time = []
+        for item in sentence_with_source['text']:
+            if len(item[0]):
+                sentence_with_source_text.append(item[0])
+            else:
+                sentence_with_source_text.append(item)
+        text_test = flatten(sentence_with_source['text'])
+        sentence_with_source['text'] = flatten(sentence_with_source['text'])
+        sentence_with_source['source'] = flatten(sentence_with_source['source'])
+        sentence_with_source['time'] = flatten(sentence_with_source['time'])
+        # sentence_data = split_text(text, sentence_source, extra_time, extra_process)
+        sentence_data = combine_text(text, sentence_with_source)
         write_json(sentence_data, json_path, session)
+
+def flatten(data):
+    new_data = []
+    for item in data:
+        if isinstance(item, list):
+            new_data.extend(flatten(item))
+        else:
+            new_data.append(item)
+
+    return new_data
+
+def flatten_text(text):
+    new_text = []
+    for item in text:
+        if isinstance(item, list):
+            new_text.extend(flatten_text(item))
+        else:
+            new_text.append(text)
+
+    return new_text
 
 def get_data(session_id, static_dir):
     json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-json")

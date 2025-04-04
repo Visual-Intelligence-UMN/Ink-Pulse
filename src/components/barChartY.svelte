@@ -114,8 +114,6 @@
 
 <style>
   .bar-chart-container {
-    /* width: 100%;
-    height: 100%; */
     margin-bottom: 0;
     margin-right: 0;
   }
