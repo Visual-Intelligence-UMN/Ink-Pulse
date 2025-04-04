@@ -71,8 +71,8 @@ def analyze_sentence_similarity(sentences, model):
                 "most_similar_previous": most_similar_idx,
                 "start_progress": sentences[i][2],
                 "end_progress": sentences[i][3],
-                "start_time": sentences[0][4],
-                "end_time": sentences[0][5],
+                "start_time": sentences[i][4],
+                "end_time": sentences[i][5],
             })
     
     return results

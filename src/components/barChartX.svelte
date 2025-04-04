@@ -82,10 +82,10 @@
         .enter()
         .append("rect")
         .attr("class", "bar")
-        .attr("y", (d) => yScale(d.endProgress))
+        .attr("y", (d) => yScale(d.endTime))
         .attr("x", (d) => xScale(d.dissimilarity))
         .attr("width", (d) => xScale(0) - xScale(d.dissimilarity))
-        .attr("height", (d) => yScale(d.startProgress) - yScale(d.endProgress))
+        .attr("height", (d) => yScale(d.startTime) - yScale(d.endTime))
         .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
         .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
         .attr("stroke-width", 1);

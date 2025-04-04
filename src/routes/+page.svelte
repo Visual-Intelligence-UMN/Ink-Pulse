@@ -9,7 +9,7 @@
   import { get } from "svelte/store";
   import LineChart from "../components/lineChart.svelte";
   import BarChartY from "../components/barChartY.svelte";
-  // import BarCharX from "../components/barCharX.svelte";
+  import BarChartX from "../components/barChartX.svelte";
   import ZoomoutChart from "../components/zoomoutChart.svelte";
   import * as d3 from "d3";
 
@@ -876,6 +876,12 @@
                         handlePointSelected(e, sessionData.sessionId)}
                       yScale={yScale}
                       height={height}
+                    />
+                  </div>
+                  <div>
+                    <BarChartX
+                        sessionId={sessionData.sessionId}
+                        similarityData={sessionData.similarityData}
                     />
                   </div>
                   <button
