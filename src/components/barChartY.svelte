@@ -30,13 +30,15 @@
       source: item.source,
     }));
 
-    const margin = { top: 20, right: 0, bottom: 40, left: 50 };
+    const margin = { top: 20, right: 0, bottom: 0, left: 50 };
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
 
     const svg = d3
       .select(container)
       .append("svg")
+      .style("display", "block")  // 关键：设置 display: block
+  .style("vertical-align", "top")
       .attr("width", "100%")
       .attr("height", chartHeight + margin.top + margin.bottom)
       .attr(
@@ -108,7 +110,7 @@
 
 <div
   bind:this={container}
-  class="bar-chart-container"
+
   data-session-id={sessionId}
 ></div>
 

@@ -33,13 +33,15 @@
         lastEventTime: item.last_event_time / 60
       }));
   
-      const margin = { top: 20, right: 0, bottom: 40, left: 0 };
+      const margin = { top: 0, right: 0, bottom: 40, left: 0 };
       const chartWidth = width - margin.left - margin.right;
       const chartHeight = height - margin.top - margin.bottom;
   
       const svg = d3
         .select(container)
         .append("svg")
+        .style("display", "block")
+        .style("vertical-align", "top")
         .attr("width", "100%")
         .attr("height", chartHeight + margin.top + margin.bottom)
         .attr(
@@ -51,7 +53,7 @@
         .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
       const xScale = d3.scaleLinear().domain([0, processedData[processedData.length - 1].lastEventTime]).range([0, chartWidth]);
-      const yScale = d3.scaleLinear().domain([0, 100]).range([chartHeight, 0]);
+      const yScale = d3.scaleLinear().domain([0, 100]).range([0, chartHeight]);
   
       svg
         .append("g")
@@ -83,10 +85,10 @@
         .enter()
         .append("rect")
         .attr("class", "bar")
-        .attr("y", (d) => yScale(d.dissimilarity))
+        .attr("y", (d) => yScale(0))
         .attr("x", (d) => xScale(d.startTime))
         .attr("width", (d) => xScale(d.endTime) - xScale(d.startTime))
-        .attr("height", (d) => yScale(0) - yScale(d.dissimilarity))
+        .attr("height", (d) => yScale(d.dissimilarity))
         .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
         .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
         .attr("stroke-width", 1);
@@ -117,7 +119,7 @@
   
   <style>
     .bar-chart-container {
-      margin-bottom: 0;
+      margin-top: 0;
       margin-right: 0;
     }
   </style>

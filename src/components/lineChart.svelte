@@ -18,7 +18,7 @@
   let svgContainer: SVGSVGElement;
   let width = 300;
   export let height;
-  const margin = { top: 20, right: 30, bottom: 40, left: 0 };
+  const margin = { top: 20, right: 0, bottom: 0, left: 0 };
 
   let xScale: any;
   export let yScale;
@@ -111,7 +111,7 @@
   }
 </script>
 
-<svg bind:this={svgContainer} {width} {height}>
+<svg bind:this={svgContainer} {width} {height} style="vertical-align: top">
   <defs>
     <clipPath id="clip">
       <rect

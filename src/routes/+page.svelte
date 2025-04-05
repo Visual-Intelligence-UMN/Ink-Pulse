@@ -71,7 +71,7 @@
   // store to track filter states
   const promptFilterStatus = writable({});
   const yAxisRange = [0, 100];
-  const height = 200;
+  const height = 150;
   const yScale = d3.scaleLinear().domain(yAxisRange).range([height, 0])
 
   function open2close() {
@@ -868,6 +868,7 @@
                         height={height}
                       />
                     {/if}
+                    <div>
                     <LineChart
                       bind:this={chartRefs[sessionData.sessionId]}
                       chartData={sessionData.chartData}
@@ -877,12 +878,11 @@
                       yScale={yScale}
                       height={height}
                     />
-                  </div>
-                  <div>
                     <BarChartX
                         sessionId={sessionData.sessionId}
                         similarityData={sessionData.similarityData}
                     />
+                  </div>
                   </div>
                   <button
                     on:click={() => resetZoom(sessionData.sessionId)}
@@ -1099,7 +1099,7 @@
   }
 
   .chart-container {
-    margin-top: 20px;
+    /* margin-top: 20px; */
   }
 
   .text-container {
