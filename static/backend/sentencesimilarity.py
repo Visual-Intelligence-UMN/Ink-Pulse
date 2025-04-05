@@ -11,7 +11,7 @@ nltk.download('punkt', quiet=True)
 def read_sentences(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         data = json.load(file)
-        sentences = [(entry["text"], entry.get("source", "unknown"), entry["start_progress"], entry["end_progress"], entry["start_time"], entry["end_time"]) for entry in data if "text" in entry]
+        sentences = [(entry["text"], entry.get("source", "unknown"), entry["start_progress"], entry["end_progress"], entry["start_time"], entry["end_time"], entry["last_event_time"]) for entry in data if "text" in entry]
     return sentences
 
 def preprocess_sentence(sentence):
@@ -53,6 +53,7 @@ def analyze_sentence_similarity(sentences, model):
             "end_progress": sentences[0][3],
             "start_time": sentences[0][4],
             "end_time": sentences[0][5],
+            "last_event_time": sentences[0][6],
         })
     for i in range(1, len(sentences)):
         similarities = []
@@ -73,6 +74,7 @@ def analyze_sentence_similarity(sentences, model):
                 "end_progress": sentences[i][3],
                 "start_time": sentences[i][4],
                 "end_time": sentences[i][5],
+                "last_event_time": sentences[0][6],
             })
     
     return results

@@ -144,7 +144,7 @@
           />
         {/each}
 
-        {#each chartData as d}
+        {#each chartData.filter((d) => !d.isSuggestionOpen) as d}
           <circle
             cx={scaledX(d.time)}
             cy={scaledY(d.percentage)}
@@ -195,7 +195,6 @@
         {/each}
       {/if}
     </g>
-
     <g
       class="x-axis"
       transform={`translate(0, ${height - margin.top - margin.bottom})`}

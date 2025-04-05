@@ -4,7 +4,7 @@
   
     export let sessionId;
     export let similarityData;
-    export let width = 150;
+    export let width = 300;
     export let height = 100;
   
     let container;
@@ -30,9 +30,10 @@
         source: item.source,
         startTime: item.start_time / 60,
         endTime: item.end_time / 60,
+        lastEventTime: item.last_event_time / 60
       }));
   
-      const margin = { top: 20, right: 0, bottom: 40, left: 50 };
+      const margin = { top: 20, right: 0, bottom: 40, left: 0 };
       const chartWidth = width - margin.left - margin.right;
       const chartHeight = height - margin.top - margin.bottom;
   
@@ -48,21 +49,21 @@
         .attr("preserveAspectRatio", "xMidYMid meet")
         .append("g")
         .attr("transform", `translate(${margin.left}, ${margin.top})`);
-  
-      const xScale = d3.scaleLinear().domain([100, 0]).range([0, chartWidth]);
-      const yScale = d3.scaleLinear().domain([100, 0]).range([0, chartHeight]);
+
+      const xScale = d3.scaleLinear().domain([0, processedData[processedData.length - 1].lastEventTime]).range([0, chartWidth]);
+      const yScale = d3.scaleLinear().domain([0, 100]).range([chartHeight, 0]);
   
       svg
         .append("g")
-        .attr("transform", `translate(0, ${chartHeight})`)
-        .call(d3.axisBottom(xScale).ticks(5))
+        .attr("transform", `translate(0, 0)`)
+        .call(d3.axisTop(xScale).ticks(5))
         .append("text")
         .attr("x", chartWidth / 2)
         .attr("y", 25)
         .attr("fill", "black")
         .attr("text-anchor", "middle")
         .style("font-size", "10px")
-        .text("Semantic Change (%)");
+        .text("Time");
   
       svg
         .append("g")
@@ -74,7 +75,7 @@
         .attr("fill", "black")
         .attr("text-anchor", "middle")
         .style("font-size", "10px")
-        .text("Progress");
+        .text("SC (%)");
   
       svg
         .selectAll(".bar")
@@ -82,10 +83,10 @@
         .enter()
         .append("rect")
         .attr("class", "bar")
-        .attr("y", (d) => yScale(d.endTime))
-        .attr("x", (d) => xScale(d.dissimilarity))
-        .attr("width", (d) => xScale(0) - xScale(d.dissimilarity))
-        .attr("height", (d) => yScale(d.startTime) - yScale(d.endTime))
+        .attr("y", (d) => yScale(d.dissimilarity))
+        .attr("x", (d) => xScale(d.startTime))
+        .attr("width", (d) => xScale(d.endTime) - xScale(d.startTime))
+        .attr("height", (d) => yScale(0) - yScale(d.dissimilarity))
         .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
         .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
         .attr("stroke-width", 1);

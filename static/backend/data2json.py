@@ -134,6 +134,7 @@ def combine_text(text, sentence_with_source):
     end_progress = 0
     start_time = 0
     end_time = 0
+    last_event_time = datetime.datetime.strptime(sentence_with_source["last_event_time"], "%Y-%m-%d %H:%M:%S")
     start_index = 0
     sentence = ""
     sentence_with_source["time"] = [datetime.datetime.strptime(t, "%Y-%m-%d %H:%M:%S") for t in sentence_with_source["time"]]
@@ -172,7 +173,8 @@ def combine_text(text, sentence_with_source):
                     "start_time": start_relative_time,
                     "end_time": end_relative_time,
                     "start_progress": start_progress,
-                    "end_progress": end_progress
+                    "end_progress": end_progress,
+                    "last_event_time": (last_event_time - base_time).total_seconds()
                 })
 
             start_time = end_time
@@ -203,7 +205,8 @@ def combine_text(text, sentence_with_source):
                         "start_time": start_relative_time,
                         "end_time": end_relative_time,
                         "start_progress": start_progress,
-                        "end_progress": end_progress
+                        "end_progress": end_progress,
+                        "last_event_time": (last_event_time - base_time).total_seconds()
                     })
 
                 start_time = end_time
@@ -230,14 +233,15 @@ def combine_text(text, sentence_with_source):
                 "start_time": start_relative_time,
                 "end_time": end_relative_time,
                 "start_progress": start_progress,
-                "end_progress": end_progress
+                "end_progress": end_progress,
+                "last_event_time": (last_event_time - base_time).total_seconds()
             })
-        
+
     return insert_data
 
 def get_sentence(session_id, static_dir):
     json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-sentence")
-    sentence_with_source = {"text": [], "source": [], "time": []}
+    sentence_with_source = {"text": [], "source": [], "time": [], "last_event_time": []}
     for session in session_id:
         extracted_data = {'init_text': [], 'init_time': [], 'json': [], 'text': [], 'info': [], 'end_time': []}
         sentence_source = []
@@ -261,6 +265,7 @@ def get_sentence(session_id, static_dir):
                     event_source = json_data.get('eventSource')
                     event_timestamp = json_data.get('eventTimestamp')
                     event_time = datetime.datetime.fromtimestamp(event_timestamp / 1000).strftime("%Y-%m-%d %H:%M:%S")
+                    last_event_time = event_time
                     text_delta = json_data.get('textDelta', {})
                     current_suggestions = json_data.get('currentSuggestions', {})
                     entry = {'eventNum': event_num, 'eventName': event_name, 'eventSource': event_source, 'event_time': event_time, 'textDelta': text_delta, 'currentSuggestions': current_suggestions}
@@ -344,10 +349,10 @@ def get_sentence(session_id, static_dir):
         sentence_with_source['text'] = flatten(sentence_with_source['text'])
         sentence_with_source['source'] = flatten(sentence_with_source['source'])
         sentence_with_source['time'] = flatten(sentence_with_source['time'])
+        sentence_with_source['last_event_time'] = last_event_time
         # sentence_data = split_text(text, sentence_source, extra_time, extra_process)
         sentence_data = combine_text(text, sentence_with_source)
-        break
-        # write_json(sentence_data, json_path, session)
+        write_json(sentence_data, json_path, session)
 
 def flatten(data):
     new_data = []
