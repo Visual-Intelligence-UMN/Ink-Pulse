@@ -525,6 +525,7 @@
     chartData = [];
     paragraphColor = [];
     let firstTime = null;
+    let indexOfAct = 0;
 
     let combinedText = data.info.reduce((acc, event) => {
       if (acc.length === 0) {
@@ -594,7 +595,9 @@
           color: textColor,
           currentText,
           currentColor,
+          opacity: 1,
           isSuggestionOpen: true,
+          index: indexOfAct,
         });
       } else {
         chartData.push({
@@ -604,8 +607,11 @@
           color: textColor,
           currentText,
           currentColor,
+          opacity: 1,
+          index: indexOfAct,
         });
       }
+      indexOfAct += 1
 
       return acc;
     }, []);
@@ -730,6 +736,12 @@
             textColor: d.currentColor[index],
           }));
         sessions[idx].currentTime = d.time;
+        sessions[idx].chartData = sessions[idx].chartData.map((point, index) => {
+          return {
+            ...point,
+            opacity: point.index > d.index? 0.01 : 1
+          }
+        })
       }
       return [...sessions];
     });

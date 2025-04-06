@@ -52,7 +52,6 @@
     }
   });
 
-
   function updateAxes() {
     if (!xScale || !yScale) return;
 
@@ -144,12 +143,13 @@
           />
         {/each}
 
-        {#each chartData.filter((d) => !d.isSuggestionOpen) as d}
+        {#each chartData.filter((d) => !d.isSuggestionOpen) as d (d.index)}
           <circle
             cx={scaledX(d.time)}
             cy={scaledY(d.percentage)}
-            r={selectedPoint === d ? 5 : hoveredPoint === d ? 5 : 2}
+            r={selectedPoint?.index === d.index ? 5 : hoveredPoint?.index === d.index ? 5 : 2}
             fill={d.color}
+            opacity={selectedPoint === d || hoveredPoint === d? 1 : d.opacity}
             on:click={() => handlePointClick(d)}
             on:mouseover={() => (hoveredPoint = d)}
             on:mouseout={() => (hoveredPoint = null)}
@@ -161,6 +161,7 @@
           <path
             d={d3.symbol().type(d3.symbolTriangle).size(40)()}
             fill="#FFBBCC"
+            opacity={d.opacity + 0.29}
             transform={`translate(${scaledX(d.time)},${scaledY(d.percentage + 6)}) rotate(180)`}
           />
         {/each}

@@ -91,7 +91,8 @@
         .attr("height", (d) => yScale(d.dissimilarity))
         .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
         .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
-        .attr("stroke-width", 1);
+        .attr("stroke-width", 1)
+        .attr("opacity", 0.5);
   
       // svg
       //   .append("text")
