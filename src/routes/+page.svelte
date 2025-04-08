@@ -72,7 +72,7 @@
   const promptFilterStatus = writable({});
   const yAxisRange = [0, 100];
   const height = 150;
-  const yScale = d3.scaleLinear().domain(yAxisRange).range([height, 0])
+  const yScale = d3.scaleLinear().domain(yAxisRange).range([height, 0]);
 
   function open2close() {
     isOpen = !isOpen;
@@ -82,18 +82,18 @@
     showMulti = !showMulti;
 
     setTimeout(() => {
-       $storeSessionData.forEach((sessionData) => {
-         if (sessionData.summaryData) {
-           updateSessionSummary(
-             sessionData.sessionId,
-             sessionData.summaryData.totalProcessedCharacters,
-             sessionData.summaryData.totalInsertions,
-             sessionData.summaryData.totalDeletions,
-             sessionData.summaryData.totalSuggestions
-           );
-         }
-       });
-     }, 0);
+      $storeSessionData.forEach((sessionData) => {
+        if (sessionData.summaryData) {
+          updateSessionSummary(
+            sessionData.sessionId,
+            sessionData.summaryData.totalProcessedCharacters,
+            sessionData.summaryData.totalInsertions,
+            sessionData.summaryData.totalDeletions,
+            sessionData.summaryData.totalSuggestions
+          );
+        }
+      });
+    }, 0);
   }
 
   function updatePromptFilterStatus() {
@@ -611,7 +611,7 @@
           index: indexOfAct,
         });
       }
-      indexOfAct += 1
+      indexOfAct += 1;
 
       return acc;
     }, []);
@@ -677,16 +677,16 @@
     });
 
     storeSessionData.update((sessions) => {
-       const idx = sessions.findIndex((s) => s.sessionId === sessionId);
-       if (idx !== -1) {
-         sessions[idx].summaryData = {
-           totalProcessedCharacters,
-           totalInsertions,
-           totalDeletions,
-           totalSuggestions,
-         };
-       }
-       return [...sessions];
+      const idx = sessions.findIndex((s) => s.sessionId === sessionId);
+      if (idx !== -1) {
+        sessions[idx].summaryData = {
+          totalProcessedCharacters,
+          totalInsertions,
+          totalDeletions,
+          totalSuggestions,
+        };
+      }
+      return [...sessions];
     });
 
     updateSessionSummary(
@@ -729,19 +729,36 @@
     storeSessionData.update((sessions) => {
       const idx = sessions.findIndex((s) => s.sessionId === sessionId);
       if (idx !== -1) {
-        sessions[idx].textElements = d.currentText
-          .split("")
-          .map((char, index) => ({
-            text: char,
-            textColor: d.currentColor[index],
-          }));
+        sessions[idx].selectedPoint = d;
+
+        if (d.currentText) {
+          const cutoffLength = d.currentText.length;
+          let charCounter = 0;
+
+          sessions[idx].textElements = sessions[idx].textElements.map(
+            (element) => {
+              const elementLength = element.text.length;
+              const elementStartPos = charCounter;
+              charCounter += elementLength;
+
+              const shouldFade = elementStartPos >= cutoffLength;
+
+              return {
+                ...element,
+                opacity: shouldFade ? 0.3 : 1,
+              };
+            }
+          );
+        }
+
         sessions[idx].currentTime = d.time;
-        sessions[idx].chartData = sessions[idx].chartData.map((point, index) => {
+
+        sessions[idx].chartData = sessions[idx].chartData.map((point) => {
           return {
             ...point,
-            opacity: point.index > d.index? 0.01 : 1
-          }
-        })
+            opacity: point.index > d.index ? 0.3 : 1,
+          };
+        });
       }
       return [...sessions];
     });
@@ -877,24 +894,24 @@
                       <BarChartY
                         sessionId={sessionData.sessionId}
                         similarityData={sessionData.similarityData}
-                        height={height}
+                        {height}
                       />
                     {/if}
                     <div>
-                    <LineChart
-                      bind:this={chartRefs[sessionData.sessionId]}
-                      chartData={sessionData.chartData}
-                      paragraphColor={sessionData.paragraphColor}
-                      on:pointSelected={(e) =>
-                        handlePointSelected(e, sessionData.sessionId)}
-                      yScale={yScale}
-                      height={height}
-                    />
-                    <BarChartX
+                      <LineChart
+                        bind:this={chartRefs[sessionData.sessionId]}
+                        chartData={sessionData.chartData}
+                        paragraphColor={sessionData.paragraphColor}
+                        on:pointSelected={(e) =>
+                          handlePointSelected(e, sessionData.sessionId)}
+                        {yScale}
+                        {height}
+                      />
+                      <BarChartX
                         sessionId={sessionData.sessionId}
                         similarityData={sessionData.similarityData}
-                    />
-                  </div>
+                      />
+                    </div>
                   </div>
                   <button
                     on:click={() => resetZoom(sessionData.sessionId)}
@@ -915,6 +932,7 @@
                 <div class="scale-container">
                   <div class="scale" id="scale"></div>
                 </div>
+
                 <div class="text-container">
                   {#if sessionData.textElements && sessionData.textElements.length > 0}
                     {#if sessionData.textElements[0].text !== "\n"}
@@ -954,7 +972,10 @@
                       {:else}
                         <span
                           class="text-span"
-                          style="color: {element.textColor}"
+                          style="color: {element.textColor}; opacity: {element.opacity !==
+                          undefined
+                            ? element.opacity
+                            : 1};"
                         >
                           {element.text}
                         </span>
@@ -1124,6 +1145,7 @@
 
   .text-span {
     display: inline;
+    transition: opacity 0.3s ease;
   }
 
   .progress-container {
@@ -1450,7 +1472,7 @@
     position: absolute;
     left: 50%;
     top: 50%;
-    transform: translate(-50%, -20%);
+    transform: translate(-50%, -35%);
     color: white;
     font-size: 12px;
     font-weight: bold;
