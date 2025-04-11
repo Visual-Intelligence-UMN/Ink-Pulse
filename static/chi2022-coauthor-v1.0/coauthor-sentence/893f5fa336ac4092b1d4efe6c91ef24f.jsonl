@@ -1,65 +1,845 @@
 [
-    {
-        "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality.",
-        "source": "api",
-        "start_time": 0.0,
-        "end_time": 0.0,
-        "start_progress": 0.0,
-        "end_progress": 0.07448494453248812,
-        "last_event_time": 1041.0
-    },
-    {
-        "text": "Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered. People that have taken the drugs experience loss of intelligence. When they are 40, their minds are destroyed. This create a big problem to the society because lots of people with low IQ wander in the street causing many social problems and crimes. Worse still, these people won't die because they have no signs of aging. When they reach 85, their bodies begin to fail, but still will not die due to health problem. Since technology have not progressed, they are a burden for the society and have to live in a big city called the “Retirement Zone\".",
-        "source": "api",
-        "start_time": 0.0,
-        "end_time": 433.0,
-        "start_progress": 0.07527733755942947,
-        "end_progress": 0.6656101426307448,
-        "last_event_time": 1041.0
-    },
-    {
-        "text": "The government has come up with a solution to solve this problem: the Death Game.",
-        "source": "user",
-        "start_time": 433.0,
-        "end_time": 462.0,
-        "start_progress": 0.6664025356576863,
-        "end_progress": 0.7305863708399366,
-        "last_event_time": 1041.0
-    },
-    {
-        "text": "In this game, the people that have taken the drug must fight for their lives in everyday life.",
-        "source": "user",
-        "start_time": 462.0,
-        "end_time": 505.0,
-        "start_progress": 0.731378763866878,
-        "end_progress": 0.805863708399366,
-        "last_event_time": 1041.0
-    },
-    {
-        "text": "Those who lose will be killed.",
-        "source": "user",
-        "start_time": 505.0,
-        "end_time": 574.0,
-        "start_progress": 0.8066561014263075,
-        "end_progress": 0.8304278922345484,
-        "last_event_time": 1041.0
-    },
-    {
-        "text": "The winner will become immortal.",
-        "source": "user",
-        "start_time": 574.0,
-        "end_time": 0.0,
-        "start_progress": 0.8312202852614897,
-        "end_progress": 0.8565768621236133,
-        "last_event_time": 1041.0
-    },
-    {
-        "text": "The setting is a future where science has found out how to make people immortal, but they create an unexpected side-effect: when the cost for immortality is developing a low IQ.",
-        "source": "api",
-        "start_time": 0.0,
-        "end_time": 603.0,
-        "start_progress": 0.8573692551505546,
-        "end_progress": 0.9984152139461173,
-        "last_event_time": 1041.0
-    }
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.0,
+            "end_progress": 0.2315622521808089,
+            "start_time": 0.0,
+            "end_time": 0.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.0,
+            "end_progress": 0.2315622521808089,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " People that have taken the drugs experience loss of intelligence. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2315622521808089,
+            "end_progress": 0.2846946867565424,
+            "start_time": 26.0,
+            "end_time": 133.0
+        },
+        {
+            "source": "user",
+            "text": "When they are 40, their minds are destroyed. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2846946867565424,
+            "end_progress": 0.3203806502775575,
+            "start_time": 157.0,
+            "end_time": 177.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.0,
+            "end_progress": 0.2315622521808089,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " People that have taken the drugs experience loss of intelligence. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2315622521808089,
+            "end_progress": 0.2846946867565424,
+            "start_time": 26.0,
+            "end_time": 133.0
+        },
+        {
+            "source": "user",
+            "text": "When they are 40, their minds are destroyed. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2846946867565424,
+            "end_progress": 0.3203806502775575,
+            "start_time": 157.0,
+            "end_time": 177.0
+        },
+        {
+            "source": "user",
+            "text": "This create a big problem to the society because lots of people with low IQ wander in the street causing many social problems and crimes. Worse still, these people won't die because they have no signs of aging. W",
+            "last_event_time": 1041.0,
+            "start_progress": 0.3203806502775575,
+            "end_progress": 0.48850118953211735,
+            "start_time": 228.0,
+            "end_time": 277.0
+        },
+        {
+            "source": "api",
+            "text": "hen they reach 85, their bodies begin to fail.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.48850118953211735,
+            "end_progress": 0.5249801744647106,
+            "start_time": 218.0,
+            "end_time": 218.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.0,
+            "end_progress": 0.2315622521808089,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " People that have taken the drugs experience loss of intelligence. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2315622521808089,
+            "end_progress": 0.2846946867565424,
+            "start_time": 26.0,
+            "end_time": 133.0
+        },
+        {
+            "source": "user",
+            "text": "When they are 40, their minds are destroyed. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2846946867565424,
+            "end_progress": 0.3203806502775575,
+            "start_time": 157.0,
+            "end_time": 177.0
+        },
+        {
+            "source": "user",
+            "text": "This create a big problem to the society because lots of people with low IQ wander in the street causing many social problems and crimes. Worse still, these people won't die because they have no signs of aging. W",
+            "last_event_time": 1041.0,
+            "start_progress": 0.3203806502775575,
+            "end_progress": 0.48850118953211735,
+            "start_time": 228.0,
+            "end_time": 277.0
+        },
+        {
+            "source": "api",
+            "text": "hen they reach 85, their bodies begin to fail",
+            "last_event_time": 1041.0,
+            "start_progress": 0.48850118953211735,
+            "end_progress": 0.5241871530531325,
+            "start_time": 218.0,
+            "end_time": 218.0
+        },
+        {
+            "source": "user",
+            "text": ", but still do not die. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.5241871530531325,
+            "end_progress": 0.5432196669310071,
+            "start_time": 396.0,
+            "end_time": 405.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.0,
+            "end_progress": 0.2315622521808089,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " People that have taken the drugs experience loss of intelligence. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2315622521808089,
+            "end_progress": 0.2846946867565424,
+            "start_time": 26.0,
+            "end_time": 133.0
+        },
+        {
+            "source": "user",
+            "text": "When they are 40, their minds are destroyed. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2846946867565424,
+            "end_progress": 0.3203806502775575,
+            "start_time": 157.0,
+            "end_time": 177.0
+        },
+        {
+            "source": "user",
+            "text": "This create a big problem to the society because lots of people with low IQ wander in the street causing many social problems and crimes. Worse still, these people won't die because they have no signs of aging. W",
+            "last_event_time": 1041.0,
+            "start_progress": 0.3203806502775575,
+            "end_progress": 0.48850118953211735,
+            "start_time": 228.0,
+            "end_time": 277.0
+        },
+        {
+            "source": "api",
+            "text": "hen they reach 85, their bodies begin to fail",
+            "last_event_time": 1041.0,
+            "start_progress": 0.48850118953211735,
+            "end_progress": 0.5241871530531325,
+            "start_time": 218.0,
+            "end_time": 218.0
+        },
+        {
+            "source": "user",
+            "text": ", but still do not die. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.5241871530531325,
+            "end_progress": 0.5432196669310071,
+            "start_time": 396.0,
+            "end_time": 405.0
+        },
+        {
+            "source": "api",
+            "text": "Since technology have not progressed, they are a burden for the society and have to live in a big city called the “Retirement Zone\".",
+            "last_event_time": 1041.0,
+            "start_progress": 0.5432196669310071,
+            "end_progress": 0.647898493259318,
+            "start_time": 428.0,
+            "end_time": 428.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.0,
+            "end_progress": 0.2315622521808089,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " People that have taken the drugs experience loss of intelligence. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2315622521808089,
+            "end_progress": 0.2846946867565424,
+            "start_time": 26.0,
+            "end_time": 133.0
+        },
+        {
+            "source": "user",
+            "text": "When they are 40, their minds are destroyed. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2846946867565424,
+            "end_progress": 0.3203806502775575,
+            "start_time": 157.0,
+            "end_time": 177.0
+        },
+        {
+            "source": "user",
+            "text": "This create a big problem to the society because lots of people with low IQ wander in the street causing many social problems and crimes. Worse still, these people won't die because they have no signs of aging. W",
+            "last_event_time": 1041.0,
+            "start_progress": 0.3203806502775575,
+            "end_progress": 0.48850118953211735,
+            "start_time": 228.0,
+            "end_time": 277.0
+        },
+        {
+            "source": "api",
+            "text": "hen they reach 85, their bodies begin to fail",
+            "last_event_time": 1041.0,
+            "start_progress": 0.48850118953211735,
+            "end_progress": 0.5241871530531325,
+            "start_time": 218.0,
+            "end_time": 218.0
+        },
+        {
+            "source": "user",
+            "text": ", but still do not die. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.5241871530531325,
+            "end_progress": 0.5432196669310071,
+            "start_time": 396.0,
+            "end_time": 405.0
+        },
+        {
+            "source": "api",
+            "text": "Since technology have not progressed, they are a burden for the society and have to live in a big city called the “Retirement Zone\".",
+            "last_event_time": 1041.0,
+            "start_progress": 0.5432196669310071,
+            "end_progress": 0.647898493259318,
+            "start_time": 428.0,
+            "end_time": 428.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.0,
+            "end_progress": 0.2315622521808089,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " People that have taken the drugs experience loss of intelligence. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2315622521808089,
+            "end_progress": 0.2846946867565424,
+            "start_time": 26.0,
+            "end_time": 133.0
+        },
+        {
+            "source": "user",
+            "text": "When they are 40, their minds are destroyed. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2846946867565424,
+            "end_progress": 0.3203806502775575,
+            "start_time": 157.0,
+            "end_time": 177.0
+        },
+        {
+            "source": "user",
+            "text": "This create a big problem to the society because lots of people with low IQ wander in the street causing many social problems and crimes. Worse still, these people won't die because they have no signs of aging. W",
+            "last_event_time": 1041.0,
+            "start_progress": 0.3203806502775575,
+            "end_progress": 0.48850118953211735,
+            "start_time": 228.0,
+            "end_time": 277.0
+        },
+        {
+            "source": "api",
+            "text": "hen they reach 85, their bodies begin to fail",
+            "last_event_time": 1041.0,
+            "start_progress": 0.48850118953211735,
+            "end_progress": 0.5241871530531325,
+            "start_time": 218.0,
+            "end_time": 218.0
+        },
+        {
+            "source": "user",
+            "text": ", but still do not die. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.5241871530531325,
+            "end_progress": 0.5432196669310071,
+            "start_time": 396.0,
+            "end_time": 405.0
+        },
+        {
+            "source": "api",
+            "text": "Since technology have not progressed, they are a burden for the society and have to live in a big city called the “Retirement Zone\".",
+            "last_event_time": 1041.0,
+            "start_progress": 0.5432196669310071,
+            "end_progress": 0.647898493259318,
+            "start_time": 428.0,
+            "end_time": 428.0
+        },
+        {
+            "source": "api",
+            "text": "The government has come up with a solution to solve this problem: the Death Game.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.6486915146708961,
+            "end_progress": 0.7129262490087233,
+            "start_time": 461.0,
+            "end_time": 461.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.0,
+            "end_progress": 0.2315622521808089,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " People that have taken the drugs experience loss of intelligence. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2315622521808089,
+            "end_progress": 0.2846946867565424,
+            "start_time": 26.0,
+            "end_time": 133.0
+        },
+        {
+            "source": "user",
+            "text": "When they are 40, their minds are destroyed. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2846946867565424,
+            "end_progress": 0.3203806502775575,
+            "start_time": 157.0,
+            "end_time": 177.0
+        },
+        {
+            "source": "user",
+            "text": "This create a big problem to the society because lots of people with low IQ wander in the street causing many social problems and crimes. Worse still, these people won't die because they have no signs of aging. W",
+            "last_event_time": 1041.0,
+            "start_progress": 0.3203806502775575,
+            "end_progress": 0.48850118953211735,
+            "start_time": 228.0,
+            "end_time": 277.0
+        },
+        {
+            "source": "api",
+            "text": "hen they reach 85, their bodies begin to fail",
+            "last_event_time": 1041.0,
+            "start_progress": 0.48850118953211735,
+            "end_progress": 0.5241871530531325,
+            "start_time": 218.0,
+            "end_time": 218.0
+        },
+        {
+            "source": "user",
+            "text": ", but still do not die. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.5241871530531325,
+            "end_progress": 0.5432196669310071,
+            "start_time": 396.0,
+            "end_time": 405.0
+        },
+        {
+            "source": "api",
+            "text": "Since technology have not progressed, they are a burden for the society and have to live in a big city called the “Retirement Zone\".",
+            "last_event_time": 1041.0,
+            "start_progress": 0.5432196669310071,
+            "end_progress": 0.647898493259318,
+            "start_time": 428.0,
+            "end_time": 428.0
+        },
+        {
+            "source": "api",
+            "text": "The government has come up with a solution to solve this problem: the Death Game.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.6486915146708961,
+            "end_progress": 0.7129262490087233,
+            "start_time": 461.0,
+            "end_time": 461.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.0,
+            "end_progress": 0.2315622521808089,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " People that have taken the drugs experience loss of intelligence. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2315622521808089,
+            "end_progress": 0.2846946867565424,
+            "start_time": 26.0,
+            "end_time": 133.0
+        },
+        {
+            "source": "user",
+            "text": "When they are 40, their minds are destroyed. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2846946867565424,
+            "end_progress": 0.3203806502775575,
+            "start_time": 157.0,
+            "end_time": 177.0
+        },
+        {
+            "source": "user",
+            "text": "This create a big problem to the society because lots of people with low IQ wander in the street causing many social problems and crimes. Worse still, these people won't die because they have no signs of aging. W",
+            "last_event_time": 1041.0,
+            "start_progress": 0.3203806502775575,
+            "end_progress": 0.48850118953211735,
+            "start_time": 228.0,
+            "end_time": 277.0
+        },
+        {
+            "source": "api",
+            "text": "hen they reach 85, their bodies begin to fail",
+            "last_event_time": 1041.0,
+            "start_progress": 0.48850118953211735,
+            "end_progress": 0.5241871530531325,
+            "start_time": 218.0,
+            "end_time": 218.0
+        },
+        {
+            "source": "user",
+            "text": ", but still do not die. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.5241871530531325,
+            "end_progress": 0.5432196669310071,
+            "start_time": 396.0,
+            "end_time": 405.0
+        },
+        {
+            "source": "api",
+            "text": "Since technology have not progressed, they are a burden for the society and have to live in a big city called the “Retirement Zone\".",
+            "last_event_time": 1041.0,
+            "start_progress": 0.5432196669310071,
+            "end_progress": 0.647898493259318,
+            "start_time": 428.0,
+            "end_time": 428.0
+        },
+        {
+            "source": "api",
+            "text": "The government has come up with a solution to solve this problem: the Death Game.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.6486915146708961,
+            "end_progress": 0.7129262490087233,
+            "start_time": 461.0,
+            "end_time": 461.0
+        },
+        {
+            "source": "api",
+            "text": "In this game, the people that have taken the drug must fight for their lives in everyday life.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.7137192704203014,
+            "end_progress": 0.7882632831086439,
+            "start_time": 503.0,
+            "end_time": 503.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.0,
+            "end_progress": 0.2315622521808089,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " People that have taken the drugs experience loss of intelligence. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2315622521808089,
+            "end_progress": 0.2846946867565424,
+            "start_time": 26.0,
+            "end_time": 133.0
+        },
+        {
+            "source": "user",
+            "text": "When they are 40, their minds are destroyed. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2846946867565424,
+            "end_progress": 0.3203806502775575,
+            "start_time": 157.0,
+            "end_time": 177.0
+        },
+        {
+            "source": "user",
+            "text": "This create a big problem to the society because lots of people with low IQ wander in the street causing many social problems and crimes. Worse still, these people won't die because they have no signs of aging. W",
+            "last_event_time": 1041.0,
+            "start_progress": 0.3203806502775575,
+            "end_progress": 0.48850118953211735,
+            "start_time": 228.0,
+            "end_time": 277.0
+        },
+        {
+            "source": "api",
+            "text": "hen they reach 85, their bodies begin to fail",
+            "last_event_time": 1041.0,
+            "start_progress": 0.48850118953211735,
+            "end_progress": 0.5241871530531325,
+            "start_time": 218.0,
+            "end_time": 218.0
+        },
+        {
+            "source": "user",
+            "text": ", but still do not die. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.5241871530531325,
+            "end_progress": 0.5432196669310071,
+            "start_time": 396.0,
+            "end_time": 405.0
+        },
+        {
+            "source": "api",
+            "text": "Since technology have not progressed, they are a burden for the society and have to live in a big city called the “Retirement Zone\".",
+            "last_event_time": 1041.0,
+            "start_progress": 0.5432196669310071,
+            "end_progress": 0.647898493259318,
+            "start_time": 428.0,
+            "end_time": 428.0
+        },
+        {
+            "source": "api",
+            "text": "The government has come up with a solution to solve this problem: the Death Game.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.6486915146708961,
+            "end_progress": 0.7129262490087233,
+            "start_time": 461.0,
+            "end_time": 461.0
+        },
+        {
+            "source": "api",
+            "text": "In this game, the people that have taken the drug must fight for their lives in everyday life.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.7137192704203014,
+            "end_progress": 0.7882632831086439,
+            "start_time": 503.0,
+            "end_time": 503.0
+        },
+        {
+            "source": "user",
+            "text": "Those who lose will be killed. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.789056304520222,
+            "end_progress": 0.8136399682791435,
+            "start_time": 536.0,
+            "end_time": 574.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.0,
+            "end_progress": 0.2315622521808089,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " People that have taken the drugs experience loss of intelligence. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2315622521808089,
+            "end_progress": 0.2846946867565424,
+            "start_time": 26.0,
+            "end_time": 133.0
+        },
+        {
+            "source": "user",
+            "text": "When they are 40, their minds are destroyed. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2846946867565424,
+            "end_progress": 0.3203806502775575,
+            "start_time": 157.0,
+            "end_time": 177.0
+        },
+        {
+            "source": "user",
+            "text": "This create a big problem to the society because lots of people with low IQ wander in the street causing many social problems and crimes. Worse still, these people won't die because they have no signs of aging. W",
+            "last_event_time": 1041.0,
+            "start_progress": 0.3203806502775575,
+            "end_progress": 0.48850118953211735,
+            "start_time": 228.0,
+            "end_time": 277.0
+        },
+        {
+            "source": "api",
+            "text": "hen they reach 85, their bodies begin to fail",
+            "last_event_time": 1041.0,
+            "start_progress": 0.48850118953211735,
+            "end_progress": 0.5241871530531325,
+            "start_time": 218.0,
+            "end_time": 218.0
+        },
+        {
+            "source": "user",
+            "text": ", but still do not die. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.5241871530531325,
+            "end_progress": 0.5432196669310071,
+            "start_time": 396.0,
+            "end_time": 405.0
+        },
+        {
+            "source": "api",
+            "text": "Since technology have not progressed, they are a burden for the society and have to live in a big city called the “Retirement Zone\".",
+            "last_event_time": 1041.0,
+            "start_progress": 0.5432196669310071,
+            "end_progress": 0.647898493259318,
+            "start_time": 428.0,
+            "end_time": 428.0
+        },
+        {
+            "source": "api",
+            "text": "The government has come up with a solution to solve this problem: the Death Game.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.6486915146708961,
+            "end_progress": 0.7129262490087233,
+            "start_time": 461.0,
+            "end_time": 461.0
+        },
+        {
+            "source": "api",
+            "text": "In this game, the people that have taken the drug must fight for their lives in everyday life.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.7137192704203014,
+            "end_progress": 0.7882632831086439,
+            "start_time": 503.0,
+            "end_time": 503.0
+        },
+        {
+            "source": "user",
+            "text": "Those who lose will be killed. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.789056304520222,
+            "end_progress": 0.8136399682791435,
+            "start_time": 536.0,
+            "end_time": 574.0
+        },
+        {
+            "source": "api",
+            "text": "The winner will become immortal.\n",
+            "last_event_time": 1041.0,
+            "start_progress": 0.8136399682791435,
+            "end_progress": 0.8398096748612213,
+            "start_time": 587.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "api",
+            "text": "\n\n\nThe setting is a future where science has found out how to make people immortal, but they create an unexpected side-effect: when the",
+            "last_event_time": 1041.0,
+            "start_progress": 0.8398096748612213,
+            "end_progress": 0.9468675654242664,
+            "start_time": 603.0,
+            "end_time": 603.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.0,
+            "end_progress": 0.2315622521808089,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " People that have taken the drugs experience loss of intelligence. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2315622521808089,
+            "end_progress": 0.2846946867565424,
+            "start_time": 26.0,
+            "end_time": 133.0
+        },
+        {
+            "source": "user",
+            "text": "When they are 40, their minds are destroyed. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.2846946867565424,
+            "end_progress": 0.3203806502775575,
+            "start_time": 157.0,
+            "end_time": 177.0
+        },
+        {
+            "source": "user",
+            "text": "This create a big problem to the society because lots of people with low IQ wander in the street causing many social problems and crimes. Worse still, these people won't die because they have no signs of aging. W",
+            "last_event_time": 1041.0,
+            "start_progress": 0.3203806502775575,
+            "end_progress": 0.48850118953211735,
+            "start_time": 228.0,
+            "end_time": 277.0
+        },
+        {
+            "source": "api",
+            "text": "hen they reach 85, their bodies begin to fail",
+            "last_event_time": 1041.0,
+            "start_progress": 0.48850118953211735,
+            "end_progress": 0.5241871530531325,
+            "start_time": 218.0,
+            "end_time": 218.0
+        },
+        {
+            "source": "user",
+            "text": ", but still ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.5241871530531325,
+            "end_progress": 0.5337034099920698,
+            "start_time": 396.0,
+            "end_time": 397.0
+        },
+        {
+            "source": "user",
+            "text": "will not die",
+            "last_event_time": 1041.0,
+            "start_progress": 0.5337034099920698,
+            "end_progress": 0.5432196669310071,
+            "start_time": 995.0,
+            "end_time": 404.0
+        },
+        {
+            "source": "user",
+            "text": " due to health problem. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.5432196669310071,
+            "end_progress": 0.5622521808088818,
+            "start_time": 1026.0,
+            "end_time": 405.0
+        },
+        {
+            "source": "api",
+            "text": "Since technology have not progressed, they are a burden for the society and have to live in a big city called the “Retirement Zone\".",
+            "last_event_time": 1041.0,
+            "start_progress": 0.5622521808088818,
+            "end_progress": 0.6669310071371927,
+            "start_time": 428.0,
+            "end_time": 428.0
+        },
+        {
+            "source": "api",
+            "text": "The government has come up with a solution to solve this problem: the Death Game.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.6677240285487708,
+            "end_progress": 0.7319587628865979,
+            "start_time": 461.0,
+            "end_time": 461.0
+        },
+        {
+            "source": "api",
+            "text": "In this game, the people that have taken the drug must fight for their lives in everyday life.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.732751784298176,
+            "end_progress": 0.8072957969865187,
+            "start_time": 503.0,
+            "end_time": 503.0
+        },
+        {
+            "source": "user",
+            "text": "Those who lose will be killed. ",
+            "last_event_time": 1041.0,
+            "start_progress": 0.8080888183980968,
+            "end_progress": 0.8326724821570183,
+            "start_time": 536.0,
+            "end_time": 574.0
+        },
+        {
+            "source": "api",
+            "text": "The winner will become immortal.\n",
+            "last_event_time": 1041.0,
+            "start_progress": 0.8326724821570183,
+            "end_progress": 0.8588421887390959,
+            "start_time": 587.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "api",
+            "text": "\nThe setting is a future where science has found out how to make people immortal, but they create an unexpected side-effect: when the",
+            "last_event_time": 1041.0,
+            "start_progress": 0.8588421887390959,
+            "end_progress": 0.964314036478985,
+            "start_time": 603.0,
+            "end_time": 603.0
+        },
+        {
+            "source": "user",
+            "text": " cost for immortality is developing a low IQ.",
+            "last_event_time": 1041.0,
+            "start_progress": 0.964314036478985,
+            "end_progress": 1.0,
+            "start_time": 938.0,
+            "end_time": 951.0
+        }
+    ]
 ]

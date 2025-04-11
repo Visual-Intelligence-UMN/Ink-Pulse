@@ -1,20 +1,603 @@
 [
-    {
-        "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality.",
-        "source": "api",
-        "start_time": 0.0,
-        "end_time": 0.0,
-        "start_progress": 0.0,
-        "end_progress": 0.053837342497136315,
-        "last_event_time": 613.0
-    },
-    {
-        "text": "Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered. It causes everyone who took the drug to lose their memories. There are all of these young people but they don't know who they are or anything about their past. The elderly now control the world. They have the power now. They decide what happens.\n\nThey form a new Government and act like it has always existed. They inform the immortals that they exist only to take care of the elderly. The immortals do as they are told as they don't know any better. They don't know that they are being used. This works out for a while, at least for the elderly. But once the elderly start to die then the immortals are completely lost. After a couple of decades they are all coming to the few surviving seniors who are still alive. They are into their 100s so they are barely able to remember things themselves. The immortals are desperate for answers. Sadly there aren't any left once those last few seniors die. \n\nThe world is now filled with beautiful immortals who have no memory, not even of yesterday. They just live day to day. Nothing is accomplished. No new technologies are found. No new food is created so they just live off of what they can find. It's a sad life. It's all that they know at this point though. \n\nBeing immortal isn't all it's cracked up to be. These people got what they wanted but never realized the cost it would have. Their souls never pass on so in the end it truly was a curse and only the elderly were able to escape from this life.",
-        "source": "api",
-        "start_time": 0.0,
-        "end_time": 442031.0,
-        "start_progress": 0.05441008018327606,
-        "end_progress": 0.9994272623138603,
-        "last_event_time": 613.0
-    }
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 613.0,
+            "start_progress": 0.0,
+            "end_progress": 0.1673352435530086,
+            "start_time": 0.0,
+            "end_time": 0.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 613.0,
+            "start_progress": 0.0,
+            "end_progress": 0.1673352435530086,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": "It causes everyone who took the drug to lose their memories. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.16790830945558738,
+            "end_progress": 0.202865329512894,
+            "start_time": 34.0,
+            "end_time": 51.0
+        },
+        {
+            "source": "user",
+            "text": "There are all of these young people but they don't know who they are or anything about their past. The elderly now control the world. They have the power now. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.202865329512894,
+            "end_progress": 0.29398280802292265,
+            "start_time": 71.0,
+            "end_time": 113.0
+        },
+        {
+            "source": "user",
+            "text": "They ",
+            "last_event_time": 613.0,
+            "start_progress": 0.29398280802292265,
+            "end_progress": 0.2968481375358166,
+            "start_time": 128.0,
+            "end_time": 129.0
+        },
+        {
+            "source": "user",
+            "text": "decide what happens.\n\nThey form a new Government and act like it has always existed. They inform the immortals that they exist only to take care of the elderly. The immortals do as they are told as they don't know any better. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.2968481375358166,
+            "end_progress": 0.42636103151862464,
+            "start_time": 144.0,
+            "end_time": 203.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 613.0,
+            "start_progress": 0.0,
+            "end_progress": 0.1673352435530086,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": "It causes everyone who took the drug to lose their memories. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.16790830945558738,
+            "end_progress": 0.202865329512894,
+            "start_time": 34.0,
+            "end_time": 51.0
+        },
+        {
+            "source": "user",
+            "text": "There are all of these young people but they don't know who they are or anything about their past. The elderly now control the world. They have the power now. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.202865329512894,
+            "end_progress": 0.29398280802292265,
+            "start_time": 71.0,
+            "end_time": 113.0
+        },
+        {
+            "source": "user",
+            "text": "They ",
+            "last_event_time": 613.0,
+            "start_progress": 0.29398280802292265,
+            "end_progress": 0.2968481375358166,
+            "start_time": 128.0,
+            "end_time": 129.0
+        },
+        {
+            "source": "user",
+            "text": "decide what happens.\n\nThey form a new Government and act like it has always existed. They inform the immortals that they exist only to take care of the elderly. The immortals do as they are told as they don't know any better. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.2968481375358166,
+            "end_progress": 0.42636103151862464,
+            "start_time": 144.0,
+            "end_time": 203.0
+        },
+        {
+            "source": "api",
+            "text": "They don't know that they are being used.",
+            "last_event_time": 613.0,
+            "start_progress": 0.42636103151862464,
+            "end_progress": 0.4498567335243553,
+            "start_time": 213.0,
+            "end_time": 213.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 613.0,
+            "start_progress": 0.0,
+            "end_progress": 0.1673352435530086,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": "It causes everyone who took the drug to lose their memories. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.16790830945558738,
+            "end_progress": 0.202865329512894,
+            "start_time": 34.0,
+            "end_time": 51.0
+        },
+        {
+            "source": "user",
+            "text": "There are all of these young people but they don't know who they are or anything about their past. The elderly now control the world. They have the power now. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.202865329512894,
+            "end_progress": 0.29398280802292265,
+            "start_time": 71.0,
+            "end_time": 113.0
+        },
+        {
+            "source": "user",
+            "text": "They ",
+            "last_event_time": 613.0,
+            "start_progress": 0.29398280802292265,
+            "end_progress": 0.2968481375358166,
+            "start_time": 128.0,
+            "end_time": 129.0
+        },
+        {
+            "source": "user",
+            "text": "decide what happens.\n\nThey form a new Government and act like it has always existed. They inform the immortals that they exist only to take care of the elderly. The immortals do as they are told as they don't know any better. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.2968481375358166,
+            "end_progress": 0.42636103151862464,
+            "start_time": 144.0,
+            "end_time": 203.0
+        },
+        {
+            "source": "api",
+            "text": "They don't know that they are being used.",
+            "last_event_time": 613.0,
+            "start_progress": 0.42636103151862464,
+            "end_progress": 0.4498567335243553,
+            "start_time": 213.0,
+            "end_time": 213.0
+        },
+        {
+            "source": "user",
+            "text": " This works out for a while, at least for the elderly. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.4498567335243553,
+            "end_progress": 0.4813753581661891,
+            "start_time": 215.0,
+            "end_time": 225.0
+        },
+        {
+            "source": "user",
+            "text": "But once the elderly start to die then the immortals are completely lost. After a couple of decades they are all coming to the few surviving seniors who are still alive. They are into their 100s so they are barely able to remember things themselves. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.4813753581661891,
+            "end_progress": 0.6246418338108882,
+            "start_time": 238.0,
+            "end_time": 309.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 613.0,
+            "start_progress": 0.0,
+            "end_progress": 0.1673352435530086,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": "It causes everyone who took the drug to lose their memories. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.16790830945558738,
+            "end_progress": 0.202865329512894,
+            "start_time": 34.0,
+            "end_time": 51.0
+        },
+        {
+            "source": "user",
+            "text": "There are all of these young people but they don't know who they are or anything about their past. The elderly now control the world. They have the power now. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.202865329512894,
+            "end_progress": 0.29398280802292265,
+            "start_time": 71.0,
+            "end_time": 113.0
+        },
+        {
+            "source": "user",
+            "text": "They ",
+            "last_event_time": 613.0,
+            "start_progress": 0.29398280802292265,
+            "end_progress": 0.2968481375358166,
+            "start_time": 128.0,
+            "end_time": 129.0
+        },
+        {
+            "source": "user",
+            "text": "decide what happens.\n\nThey form a new Government and act like it has always existed. They inform the immortals that they exist only to take care of the elderly. The immortals do as they are told as they don't know any better. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.2968481375358166,
+            "end_progress": 0.42636103151862464,
+            "start_time": 144.0,
+            "end_time": 203.0
+        },
+        {
+            "source": "api",
+            "text": "They don't know that they are being used.",
+            "last_event_time": 613.0,
+            "start_progress": 0.42636103151862464,
+            "end_progress": 0.4498567335243553,
+            "start_time": 213.0,
+            "end_time": 213.0
+        },
+        {
+            "source": "user",
+            "text": " This works out for a while, at least for the elderly. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.4498567335243553,
+            "end_progress": 0.4813753581661891,
+            "start_time": 215.0,
+            "end_time": 225.0
+        },
+        {
+            "source": "user",
+            "text": "But once the elderly start to die then the immortals are completely lost. After a couple of decades they are all coming to the few surviving seniors who are still alive. They are into their 100s so they are barely able to remember things themselves. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.4813753581661891,
+            "end_progress": 0.6246418338108882,
+            "start_time": 238.0,
+            "end_time": 309.0
+        },
+        {
+            "source": "api",
+            "text": "The immortals are desperate for answers.",
+            "last_event_time": 613.0,
+            "start_progress": 0.6246418338108882,
+            "end_progress": 0.6475644699140402,
+            "start_time": 323.0,
+            "end_time": 323.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 613.0,
+            "start_progress": 0.0,
+            "end_progress": 0.1673352435530086,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": "It causes everyone who took the drug to lose their memories. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.16790830945558738,
+            "end_progress": 0.202865329512894,
+            "start_time": 34.0,
+            "end_time": 51.0
+        },
+        {
+            "source": "user",
+            "text": "There are all of these young people but they don't know who they are or anything about their past. The elderly now control the world. They have the power now. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.202865329512894,
+            "end_progress": 0.29398280802292265,
+            "start_time": 71.0,
+            "end_time": 113.0
+        },
+        {
+            "source": "user",
+            "text": "They ",
+            "last_event_time": 613.0,
+            "start_progress": 0.29398280802292265,
+            "end_progress": 0.2968481375358166,
+            "start_time": 128.0,
+            "end_time": 129.0
+        },
+        {
+            "source": "user",
+            "text": "decide what happens.\n\nThey form a new Government and act like it has always existed. They inform the immortals that they exist only to take care of the elderly. The immortals do as they are told as they don't know any better. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.2968481375358166,
+            "end_progress": 0.42636103151862464,
+            "start_time": 144.0,
+            "end_time": 203.0
+        },
+        {
+            "source": "api",
+            "text": "They don't know that they are being used.",
+            "last_event_time": 613.0,
+            "start_progress": 0.42636103151862464,
+            "end_progress": 0.4498567335243553,
+            "start_time": 213.0,
+            "end_time": 213.0
+        },
+        {
+            "source": "user",
+            "text": " This works out for a while, at least for the elderly. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.4498567335243553,
+            "end_progress": 0.4813753581661891,
+            "start_time": 215.0,
+            "end_time": 225.0
+        },
+        {
+            "source": "user",
+            "text": "But once the elderly start to die then the immortals are completely lost. After a couple of decades they are all coming to the few surviving seniors who are still alive. They are into their 100s so they are barely able to remember things themselves. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.4813753581661891,
+            "end_progress": 0.6246418338108882,
+            "start_time": 238.0,
+            "end_time": 309.0
+        },
+        {
+            "source": "api",
+            "text": "The immortals are desperate for answers.",
+            "last_event_time": 613.0,
+            "start_progress": 0.6246418338108882,
+            "end_progress": 0.6475644699140402,
+            "start_time": 323.0,
+            "end_time": 323.0
+        },
+        {
+            "source": "user",
+            "text": " Sadly there aren't any left once those last few seniors die. \n\nThe world is now filled with beautiful immortals who have no memory, not even of yesterday. They just ",
+            "last_event_time": 613.0,
+            "start_progress": 0.6475644699140402,
+            "end_progress": 0.7426934097421204,
+            "start_time": 324.0,
+            "end_time": 371.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 613.0,
+            "start_progress": 0.0,
+            "end_progress": 0.1673352435530086,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": "It causes everyone who took the drug to lose their memories. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.16790830945558738,
+            "end_progress": 0.202865329512894,
+            "start_time": 34.0,
+            "end_time": 51.0
+        },
+        {
+            "source": "user",
+            "text": "There are all of these young people but they don't know who they are or anything about their past. The elderly now control the world. They have the power now. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.202865329512894,
+            "end_progress": 0.29398280802292265,
+            "start_time": 71.0,
+            "end_time": 113.0
+        },
+        {
+            "source": "user",
+            "text": "They ",
+            "last_event_time": 613.0,
+            "start_progress": 0.29398280802292265,
+            "end_progress": 0.2968481375358166,
+            "start_time": 128.0,
+            "end_time": 129.0
+        },
+        {
+            "source": "user",
+            "text": "decide what happens.\n\nThey form a new Government and act like it has always existed. They inform the immortals that they exist only to take care of the elderly. The immortals do as they are told as they don't know any better. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.2968481375358166,
+            "end_progress": 0.42636103151862464,
+            "start_time": 144.0,
+            "end_time": 203.0
+        },
+        {
+            "source": "api",
+            "text": "They don't know that they are being used.",
+            "last_event_time": 613.0,
+            "start_progress": 0.42636103151862464,
+            "end_progress": 0.4498567335243553,
+            "start_time": 213.0,
+            "end_time": 213.0
+        },
+        {
+            "source": "user",
+            "text": " This works out for a while, at least for the elderly. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.4498567335243553,
+            "end_progress": 0.4813753581661891,
+            "start_time": 215.0,
+            "end_time": 225.0
+        },
+        {
+            "source": "user",
+            "text": "But once the elderly start to die then the immortals are completely lost. After a couple of decades they are all coming to the few surviving seniors who are still alive. They are into their 100s so they are barely able to remember things themselves. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.4813753581661891,
+            "end_progress": 0.6246418338108882,
+            "start_time": 238.0,
+            "end_time": 309.0
+        },
+        {
+            "source": "api",
+            "text": "The immortals are desperate for answers.",
+            "last_event_time": 613.0,
+            "start_progress": 0.6246418338108882,
+            "end_progress": 0.6475644699140402,
+            "start_time": 323.0,
+            "end_time": 323.0
+        },
+        {
+            "source": "user",
+            "text": " Sadly there aren't any left once those last few seniors die. \n\nThe world is now filled with beautiful immortals who have no memory, not even of yesterday. They just ",
+            "last_event_time": 613.0,
+            "start_progress": 0.6475644699140402,
+            "end_progress": 0.7426934097421204,
+            "start_time": 324.0,
+            "end_time": 371.0
+        },
+        {
+            "source": "api",
+            "text": "live day to day.",
+            "last_event_time": 613.0,
+            "start_progress": 0.7426934097421204,
+            "end_progress": 0.7518624641833811,
+            "start_time": 392.0,
+            "end_time": 392.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the “Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.",
+            "last_event_time": 613.0,
+            "start_progress": 0.0,
+            "end_progress": 0.1673352435530086,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": "It causes everyone who took the drug to lose their memories. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.16790830945558738,
+            "end_progress": 0.202865329512894,
+            "start_time": 34.0,
+            "end_time": 51.0
+        },
+        {
+            "source": "user",
+            "text": "There are all of these young people but they don't know who they are or anything about their past. The elderly now control the world. They have the power now. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.202865329512894,
+            "end_progress": 0.29398280802292265,
+            "start_time": 71.0,
+            "end_time": 113.0
+        },
+        {
+            "source": "user",
+            "text": "They ",
+            "last_event_time": 613.0,
+            "start_progress": 0.29398280802292265,
+            "end_progress": 0.2968481375358166,
+            "start_time": 128.0,
+            "end_time": 129.0
+        },
+        {
+            "source": "user",
+            "text": "decide what happens.\n\nThey form a new Government and act like it has always existed. They inform the immortals that they exist only to take care of the elderly. The immortals do as they are told as they don't know any better. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.2968481375358166,
+            "end_progress": 0.42636103151862464,
+            "start_time": 144.0,
+            "end_time": 203.0
+        },
+        {
+            "source": "api",
+            "text": "They don't know that they are being used.",
+            "last_event_time": 613.0,
+            "start_progress": 0.42636103151862464,
+            "end_progress": 0.4498567335243553,
+            "start_time": 213.0,
+            "end_time": 213.0
+        },
+        {
+            "source": "user",
+            "text": " This works out for a while, at least for the elderly. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.4498567335243553,
+            "end_progress": 0.4813753581661891,
+            "start_time": 215.0,
+            "end_time": 225.0
+        },
+        {
+            "source": "user",
+            "text": "But once the elderly start to die then the immortals are completely lost. After a couple of decades they are all coming to the few surviving seniors who are still alive. They are into their 100s so they are barely able to remember things themselves. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.4813753581661891,
+            "end_progress": 0.6246418338108882,
+            "start_time": 238.0,
+            "end_time": 309.0
+        },
+        {
+            "source": "api",
+            "text": "The immortals are desperate for answers.",
+            "last_event_time": 613.0,
+            "start_progress": 0.6246418338108882,
+            "end_progress": 0.6475644699140402,
+            "start_time": 323.0,
+            "end_time": 323.0
+        },
+        {
+            "source": "user",
+            "text": " Sadly there aren't any left once those last few seniors die. \n\nThe world is now filled with beautiful immortals who have no memory, not even of yesterday. They just ",
+            "last_event_time": 613.0,
+            "start_progress": 0.6475644699140402,
+            "end_progress": 0.7426934097421204,
+            "start_time": 324.0,
+            "end_time": 371.0
+        },
+        {
+            "source": "api",
+            "text": "live day to day.",
+            "last_event_time": 613.0,
+            "start_progress": 0.7426934097421204,
+            "end_progress": 0.7518624641833811,
+            "start_time": 392.0,
+            "end_time": 392.0
+        },
+        {
+            "source": "user",
+            "text": " Nothing is accomplished. No new technologies are found. No new food is created so they just live off of what they can find. It's a sad",
+            "last_event_time": 613.0,
+            "start_progress": 0.7518624641833811,
+            "end_progress": 0.8292263610315186,
+            "start_time": 394.0,
+            "end_time": 436.0
+        },
+        {
+            "source": "user",
+            "text": " life. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.8292263610315186,
+            "end_progress": 0.8332378223495702,
+            "start_time": 453.0,
+            "end_time": 455.0
+        },
+        {
+            "source": "user",
+            "text": "It's all that they know at this point though. \n",
+            "last_event_time": 613.0,
+            "start_progress": 0.8332378223495702,
+            "end_progress": 0.8601719197707737,
+            "start_time": 473.0,
+            "end_time": 483.0
+        },
+        {
+            "source": "user",
+            "text": "\nBeing immortal isn't all it's cracked up to be. These people got what they wanted but never realized the cost it would have. Their souls never pass on so in the end it truly was a curse and only the elderly were able to escape from this life. ",
+            "last_event_time": 613.0,
+            "start_progress": 0.8601719197707737,
+            "end_progress": 1.0,
+            "start_time": 506.0,
+            "end_time": 613.0
+        }
+    ]
 ]
