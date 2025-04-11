@@ -1,154 +1,728 @@
 [
-    {
-        "text": "You're Barack Obama.",
-        "source": "api",
-        "start_time": 0.0,
-        "end_time": 0.0,
-        "start_progress": 0.0,
-        "end_progress": 0.012616201859229747
-    },
-    {
-        "text": "4 years into your retirement, you awake to find a letter with no return address on your bedside table.",
-        "source": "api",
-        "start_time": 0.0,
-        "end_time": 0.0,
-        "start_progress": 0.013280212483399735,
-        "end_progress": 0.08100929614873838
-    },
-    {
-        "text": "It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\" At first you think that your wife Michelle is having a little joke at your expense.",
-        "source": "api",
-        "start_time": 0.0,
-        "end_time": 82.0,
-        "start_progress": 0.08167330677290836,
-        "end_progress": 0.2410358565737052
-    },
-    {
-        "text": "She isn't next to you in the bed so you get up to try to find her.",
-        "source": "user",
-        "start_time": 82.0,
-        "end_time": 111.0,
-        "start_progress": 0.24169986719787517,
-        "end_progress": 0.2855245683930943
-    },
-    {
-        "text": "You wander down the hallway and you hear a noise from downstairs.",
-        "source": "user",
-        "start_time": 111.0,
-        "end_time": 167.0,
-        "start_progress": 0.2861885790172643,
-        "end_progress": 0.3293492695883134
-    },
-    {
-        "text": "You head downstairs thinking that she will be there to laugh at you.",
-        "source": "user",
-        "start_time": 167.0,
-        "end_time": 199.0,
-        "start_progress": 0.3300132802124834,
-        "end_progress": 0.3751660026560425
-    },
-    {
-        "text": "When you get downstairs she isn't there.",
-        "source": "user",
-        "start_time": 199.0,
-        "end_time": 223.0,
-        "start_progress": 0.3758300132802125,
-        "end_progress": 0.40239043824701193
-    },
-    {
-        "text": "Instead you're surprised to find a person sitting in your living room who you would have not have expected.",
-        "source": "user",
-        "start_time": 223.0,
-        "end_time": 266.0,
-        "start_progress": 0.4030544488711819,
-        "end_progress": 0.47410358565737054
-    },
-    {
-        "text": "“Oh my god, you're…” you start to say.",
-        "source": "user",
-        "start_time": 266.0,
-        "end_time": 303.0,
-        "start_progress": 0.4747675962815405,
-        "end_progress": 0.50132802124834
-    },
-    {
-        "text": "\"Yes\" he replies, \"I am John F. Kennedy\".",
-        "source": "user",
-        "start_time": 303.0,
-        "end_time": 323.0,
-        "start_progress": 0.50199203187251,
-        "end_progress": 0.5292164674634794
-    },
-    {
-        "text": "You stand there in disbelief.",
-        "source": "user",
-        "start_time": 323.0,
-        "end_time": 344.0,
-        "start_progress": 0.5298804780876494,
-        "end_progress": 0.549136786188579
-    },
-    {
-        "text": "\"I must be dreaming\" you exclaim.",
-        "source": "user",
-        "start_time": 344.0,
-        "end_time": 381.0,
-        "start_progress": 0.549800796812749,
-        "end_progress": 0.5723771580345286
-    },
-    {
-        "text": "\"No\" he says, \"I need you to listen.\" He proceeds to tell you a story you can barely believe.",
-        "source": "user",
-        "start_time": 381.0,
-        "end_time": 432.0,
-        "start_progress": 0.5730411686586986,
-        "end_progress": 0.6347941567065073
-    },
-    {
-        "text": "He tells you that all former US presidents receive immortality using ancient magic preserved by the Masons.",
-        "source": "user",
-        "start_time": 432.0,
-        "end_time": 560.0,
-        "start_progress": 0.6354581673306773,
-        "end_progress": 0.7065073041168659
-    },
-    {
-        "text": "Many that are thought to have died, like him, are in fact still living and will live forever.",
-        "source": "user",
-        "start_time": 560.0,
-        "end_time": 593.0,
-        "start_progress": 0.7071713147410359,
-        "end_progress": 0.7689243027888446
-    },
-    {
-        "text": "They are all part of a secret group with one goal in mind.",
-        "source": "user",
-        "start_time": 593.0,
-        "end_time": 639.0,
-        "start_progress": 0.7695883134130146,
-        "end_progress": 0.8081009296148738
-    },
-    {
-        "text": "\"What is it that you're all trying to do\" you ask?",
-        "source": "user",
-        "start_time": 639.0,
-        "end_time": 667.0,
-        "start_progress": 0.8087649402390438,
-        "end_progress": 0.8419654714475432
-    },
-    {
-        "text": "Kennedy proceeds to explain that the group has one goal.",
-        "source": "user",
-        "start_time": 667.0,
-        "end_time": 688.0,
-        "start_progress": 0.8426294820717132,
-        "end_progress": 0.8798140770252324
-    },
-    {
-        "text": "\"The goal is... to try to take over the world!\" \"Yeah, that makes sense, you say.\" So you join the shadowy group of former US presidents and vow to help them take over the world.",
-        "source": "user",
-        "start_time": 688.0,
-        "end_time": 805.0,
-        "start_progress": 0.8804780876494024,
-        "end_progress": 0.99867197875166
-    }
+    [
+        {
+            "source": "api",
+            "text": "You're Barack Obama. 4 years into your retirement, you awake to find a letter with no return address on your bedside table. It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\"",
+            "last_event_time": 879.0,
+            "start_progress": 0.0,
+            "end_progress": 0.18604651162790697,
+            "start_time": 0.0,
+            "end_time": 0.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "You're Barack Obama. 4 years into your retirement, you awake to find a letter with no return address on your bedside table. It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\"",
+            "last_event_time": 879.0,
+            "start_progress": 0.0,
+            "end_progress": 0.18604651162790697,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " At first you think you think that your wife Michelle is playing having a little joke at your expense. She isn't next to you in the bed so you get up to try to fiond her. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.18604651162790697,
+            "end_progress": 0.29966777408637874,
+            "start_time": 23.0,
+            "end_time": 111.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "You're Barack Obama. 4 years into your retirement, you awake to find a letter with no return address on your bedside table. It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\"",
+            "last_event_time": 879.0,
+            "start_progress": 0.0,
+            "end_progress": 0.18604651162790697,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " At first you think that your wife Michelle is having a little joke at your expense. She isn't next to you in the bed so you get up to try to find her. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.18604651162790697,
+            "end_progress": 0.28704318936877077,
+            "start_time": 23.0,
+            "end_time": 111.0
+        },
+        {
+            "source": "api",
+            "text": "You wander down the hallway and you hear a noise from downstairs.",
+            "last_event_time": 879.0,
+            "start_progress": 0.28704318936877077,
+            "end_progress": 0.3302325581395349,
+            "start_time": 167.0,
+            "end_time": 167.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "You're Barack Obama. 4 years into your retirement, you awake to find a letter with no return address on your bedside table. It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\"",
+            "last_event_time": 879.0,
+            "start_progress": 0.0,
+            "end_progress": 0.18604651162790697,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " At first you think that your wife Michelle is having a little joke at your expense. She isn't next to you in the bed so you get up to try to find her. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.18604651162790697,
+            "end_progress": 0.28704318936877077,
+            "start_time": 23.0,
+            "end_time": 111.0
+        },
+        {
+            "source": "api",
+            "text": "You wander down the hallway and you hear a noise from downstairs.",
+            "last_event_time": 879.0,
+            "start_progress": 0.28704318936877077,
+            "end_progress": 0.3302325581395349,
+            "start_time": 167.0,
+            "end_time": 167.0
+        },
+        {
+            "source": "user",
+            "text": " You head downstairs thinking that she will be there to laugh at you. When you get downstairs she isn't there. Instead you're surprised to find a person sitting in your living room who you would have not have expected. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.3302325581395349,
+            "end_progress": 0.4757475083056478,
+            "start_time": 169.0,
+            "end_time": 266.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "You're Barack Obama. 4 years into your retirement, you awake to find a letter with no return address on your bedside table. It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\"",
+            "last_event_time": 879.0,
+            "start_progress": 0.0,
+            "end_progress": 0.18604651162790697,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " At first you think that your wife Michelle is having a little joke at your expense. She isn't next to you in the bed so you get up to try to find her. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.18604651162790697,
+            "end_progress": 0.28704318936877077,
+            "start_time": 23.0,
+            "end_time": 111.0
+        },
+        {
+            "source": "api",
+            "text": "You wander down the hallway and you hear a noise from downstairs.",
+            "last_event_time": 879.0,
+            "start_progress": 0.28704318936877077,
+            "end_progress": 0.3302325581395349,
+            "start_time": 167.0,
+            "end_time": 167.0
+        },
+        {
+            "source": "user",
+            "text": " You head downstairs thinking that she will be there to laugh at you. When you get downstairs she isn't there. Instead you're surprised to find a person sitting in your living room who you would have not have expected. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.3302325581395349,
+            "end_progress": 0.4757475083056478,
+            "start_time": 169.0,
+            "end_time": 266.0
+        },
+        {
+            "source": "api",
+            "text": "\n“Oh my god, you're…”",
+            "last_event_time": 879.0,
+            "start_progress": 0.4764119601328904,
+            "end_progress": 0.49036544850498337,
+            "start_time": 291.0,
+            "end_time": 291.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "You're Barack Obama. 4 years into your retirement, you awake to find a letter with no return address on your bedside table. It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\"",
+            "last_event_time": 879.0,
+            "start_progress": 0.0,
+            "end_progress": 0.18604651162790697,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " At first you think that your wife Michelle is having a little joke at your expense. She isn't next to you in the bed so you get up to try to find her. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.18604651162790697,
+            "end_progress": 0.28704318936877077,
+            "start_time": 23.0,
+            "end_time": 111.0
+        },
+        {
+            "source": "api",
+            "text": "You wander down the hallway and you hear a noise from downstairs.",
+            "last_event_time": 879.0,
+            "start_progress": 0.28704318936877077,
+            "end_progress": 0.3302325581395349,
+            "start_time": 167.0,
+            "end_time": 167.0
+        },
+        {
+            "source": "user",
+            "text": " You head downstairs thinking that she will be there to laugh at you. When you get downstairs she isn't there. Instead you're surprised to find a person sitting in your living room who you would have not have expected. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.3302325581395349,
+            "end_progress": 0.4757475083056478,
+            "start_time": 169.0,
+            "end_time": 266.0
+        },
+        {
+            "source": "api",
+            "text": "\n“Oh my god, you're…”",
+            "last_event_time": 879.0,
+            "start_progress": 0.4764119601328904,
+            "end_progress": 0.49036544850498337,
+            "start_time": 291.0,
+            "end_time": 291.0
+        },
+        {
+            "source": "user",
+            "text": " you start to say. \"Yes\" he replies, \"I am John F. Kennedy\". ",
+            "last_event_time": 879.0,
+            "start_progress": 0.49036544850498337,
+            "end_progress": 0.5308970099667774,
+            "start_time": 294.0,
+            "end_time": 323.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "You're Barack Obama. 4 years into your retirement, you awake to find a letter with no return address on your bedside table. It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\"",
+            "last_event_time": 879.0,
+            "start_progress": 0.0,
+            "end_progress": 0.18604651162790697,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " At first you think that your wife Michelle is having a little joke at your expense. She isn't next to you in the bed so you get up to try to find her. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.18604651162790697,
+            "end_progress": 0.28704318936877077,
+            "start_time": 23.0,
+            "end_time": 111.0
+        },
+        {
+            "source": "api",
+            "text": "You wander down the hallway and you hear a noise from downstairs.",
+            "last_event_time": 879.0,
+            "start_progress": 0.28704318936877077,
+            "end_progress": 0.3302325581395349,
+            "start_time": 167.0,
+            "end_time": 167.0
+        },
+        {
+            "source": "user",
+            "text": " You head downstairs thinking that she will be there to laugh at you. When you get downstairs she isn't there. Instead you're surprised to find a person sitting in your living room who you would have not have expected. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.3302325581395349,
+            "end_progress": 0.4757475083056478,
+            "start_time": 169.0,
+            "end_time": 266.0
+        },
+        {
+            "source": "api",
+            "text": "\n“Oh my god, you're…”",
+            "last_event_time": 879.0,
+            "start_progress": 0.4764119601328904,
+            "end_progress": 0.49036544850498337,
+            "start_time": 291.0,
+            "end_time": 291.0
+        },
+        {
+            "source": "user",
+            "text": " you start to say. \"Yes\" he replies, \"I am John F. Kennedy\". ",
+            "last_event_time": 879.0,
+            "start_progress": 0.49036544850498337,
+            "end_progress": 0.5308970099667774,
+            "start_time": 294.0,
+            "end_time": 323.0
+        },
+        {
+            "source": "api",
+            "text": "You stand there in disbelief.",
+            "last_event_time": 879.0,
+            "start_progress": 0.5308970099667774,
+            "end_progress": 0.5501661129568106,
+            "start_time": 344.0,
+            "end_time": 344.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "You're Barack Obama. 4 years into your retirement, you awake to find a letter with no return address on your bedside table. It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\"",
+            "last_event_time": 879.0,
+            "start_progress": 0.0,
+            "end_progress": 0.18604651162790697,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " At first you think that your wife Michelle is having a little joke at your expense. She isn't next to you in the bed so you get up to try to find her. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.18604651162790697,
+            "end_progress": 0.28704318936877077,
+            "start_time": 23.0,
+            "end_time": 111.0
+        },
+        {
+            "source": "api",
+            "text": "You wander down the hallway and you hear a noise from downstairs.",
+            "last_event_time": 879.0,
+            "start_progress": 0.28704318936877077,
+            "end_progress": 0.3302325581395349,
+            "start_time": 167.0,
+            "end_time": 167.0
+        },
+        {
+            "source": "user",
+            "text": " You head downstairs thinking that she will be there to laugh at you. When you get downstairs she isn't there. Instead you're surprised to find a person sitting in your living room who you would have not have expected. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.3302325581395349,
+            "end_progress": 0.4757475083056478,
+            "start_time": 169.0,
+            "end_time": 266.0
+        },
+        {
+            "source": "api",
+            "text": "\n“Oh my god, you're…”",
+            "last_event_time": 879.0,
+            "start_progress": 0.4764119601328904,
+            "end_progress": 0.49036544850498337,
+            "start_time": 291.0,
+            "end_time": 291.0
+        },
+        {
+            "source": "user",
+            "text": " you start to say. \"Yes\" he replies, \"I am John F. Kennedy\". ",
+            "last_event_time": 879.0,
+            "start_progress": 0.49036544850498337,
+            "end_progress": 0.5308970099667774,
+            "start_time": 294.0,
+            "end_time": 323.0
+        },
+        {
+            "source": "api",
+            "text": "You stand there in disbelief.",
+            "last_event_time": 879.0,
+            "start_progress": 0.5308970099667774,
+            "end_progress": 0.5501661129568106,
+            "start_time": 344.0,
+            "end_time": 344.0
+        },
+        {
+            "source": "user",
+            "text": "  \"I must be dreaming\" you exclaim. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.5501661129568106,
+            "end_progress": 0.5740863787375415,
+            "start_time": 347.0,
+            "end_time": 381.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "You're Barack Obama. 4 years into your retirement, you awake to find a letter with no return address on your bedside table. It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\"",
+            "last_event_time": 879.0,
+            "start_progress": 0.0,
+            "end_progress": 0.18604651162790697,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " At first you think that your wife Michelle is having a little joke at your expense. She isn't next to you in the bed so you get up to try to find her. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.18604651162790697,
+            "end_progress": 0.28704318936877077,
+            "start_time": 23.0,
+            "end_time": 111.0
+        },
+        {
+            "source": "api",
+            "text": "You wander down the hallway and you hear a noise from downstairs.",
+            "last_event_time": 879.0,
+            "start_progress": 0.28704318936877077,
+            "end_progress": 0.3302325581395349,
+            "start_time": 167.0,
+            "end_time": 167.0
+        },
+        {
+            "source": "user",
+            "text": " You head downstairs thinking that she will be there to laugh at you. When you get downstairs she isn't there. Instead you're surprised to find a person sitting in your living room who you would have not have expected. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.3302325581395349,
+            "end_progress": 0.4757475083056478,
+            "start_time": 169.0,
+            "end_time": 266.0
+        },
+        {
+            "source": "api",
+            "text": "\n“Oh my god, you're…”",
+            "last_event_time": 879.0,
+            "start_progress": 0.4764119601328904,
+            "end_progress": 0.49036544850498337,
+            "start_time": 291.0,
+            "end_time": 291.0
+        },
+        {
+            "source": "user",
+            "text": " you start to say. \"Yes\" he replies, \"I am John F. Kennedy\". ",
+            "last_event_time": 879.0,
+            "start_progress": 0.49036544850498337,
+            "end_progress": 0.5308970099667774,
+            "start_time": 294.0,
+            "end_time": 323.0
+        },
+        {
+            "source": "api",
+            "text": "You stand there in disbelief.",
+            "last_event_time": 879.0,
+            "start_progress": 0.5308970099667774,
+            "end_progress": 0.5501661129568106,
+            "start_time": 344.0,
+            "end_time": 344.0
+        },
+        {
+            "source": "user",
+            "text": "  \"I must be dreaming\" you exclaim. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.5501661129568106,
+            "end_progress": 0.5740863787375415,
+            "start_time": 347.0,
+            "end_time": 381.0
+        },
+        {
+            "source": "api",
+            "text": "\"No\" he says, \"I need you to listen.",
+            "last_event_time": 879.0,
+            "start_progress": 0.5740863787375415,
+            "end_progress": 0.5980066445182725,
+            "start_time": 410.0,
+            "end_time": 410.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "You're Barack Obama. 4 years into your retirement, you awake to find a letter with no return address on your bedside table. It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\"",
+            "last_event_time": 879.0,
+            "start_progress": 0.0,
+            "end_progress": 0.18604651162790697,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " At first you think that your wife Michelle is having a little joke at your expense. She isn't next to you in the bed so you get up to try to find her. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.18604651162790697,
+            "end_progress": 0.28704318936877077,
+            "start_time": 23.0,
+            "end_time": 111.0
+        },
+        {
+            "source": "api",
+            "text": "You wander down the hallway and you hear a noise from downstairs.",
+            "last_event_time": 879.0,
+            "start_progress": 0.28704318936877077,
+            "end_progress": 0.3302325581395349,
+            "start_time": 167.0,
+            "end_time": 167.0
+        },
+        {
+            "source": "user",
+            "text": " You head downstairs thinking that she will be there to laugh at you. When you get downstairs she isn't there. Instead you're surprised to find a person sitting in your living room who you would have not have expected. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.3302325581395349,
+            "end_progress": 0.4757475083056478,
+            "start_time": 169.0,
+            "end_time": 266.0
+        },
+        {
+            "source": "api",
+            "text": "\n“Oh my god, you're…”",
+            "last_event_time": 879.0,
+            "start_progress": 0.4764119601328904,
+            "end_progress": 0.49036544850498337,
+            "start_time": 291.0,
+            "end_time": 291.0
+        },
+        {
+            "source": "user",
+            "text": " you start to say. \"Yes\" he replies, \"I am John F. Kennedy\". ",
+            "last_event_time": 879.0,
+            "start_progress": 0.49036544850498337,
+            "end_progress": 0.5308970099667774,
+            "start_time": 294.0,
+            "end_time": 323.0
+        },
+        {
+            "source": "api",
+            "text": "You stand there in disbelief.",
+            "last_event_time": 879.0,
+            "start_progress": 0.5308970099667774,
+            "end_progress": 0.5501661129568106,
+            "start_time": 344.0,
+            "end_time": 344.0
+        },
+        {
+            "source": "user",
+            "text": "  \"I must be dreaming\" you exclaim. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.5501661129568106,
+            "end_progress": 0.5740863787375415,
+            "start_time": 347.0,
+            "end_time": 381.0
+        },
+        {
+            "source": "api",
+            "text": "\"No\" he says, \"I need you to listen.",
+            "last_event_time": 879.0,
+            "start_progress": 0.5740863787375415,
+            "end_progress": 0.5980066445182725,
+            "start_time": 410.0,
+            "end_time": 410.0
+        },
+        {
+            "source": "user",
+            "text": "\" He proceeds to tell you a story you can barely believe. He tells you that all former US presidents receive immortality using ancient magic preserved by the Masons. Many that are thought to have died, like him, are in fact still living and will live forever. They are all part of a secret group with one goal in mind. \"What is it that you're all trying to do\" you ask? ",
+            "last_event_time": 879.0,
+            "start_progress": 0.5980066445182725,
+            "end_progress": 0.8438538205980066,
+            "start_time": 415.0,
+            "end_time": 668.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "You're Barack Obama. 4 years into your retirement, you awake to find a letter with no return address on your bedside table. It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\"",
+            "last_event_time": 879.0,
+            "start_progress": 0.0,
+            "end_progress": 0.18604651162790697,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " At first you think that your wife Michelle is having a little joke at your expense. She isn't next to you in the bed so you get up to try to find her. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.18604651162790697,
+            "end_progress": 0.28704318936877077,
+            "start_time": 23.0,
+            "end_time": 111.0
+        },
+        {
+            "source": "api",
+            "text": "You wander down the hallway and you hear a noise from downstairs.",
+            "last_event_time": 879.0,
+            "start_progress": 0.28704318936877077,
+            "end_progress": 0.3302325581395349,
+            "start_time": 167.0,
+            "end_time": 167.0
+        },
+        {
+            "source": "user",
+            "text": " You head downstairs thinking that she will be there to laugh at you. When you get downstairs she isn't there. Instead you're surprised to find a person sitting in your living room who you would have not have expected. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.3302325581395349,
+            "end_progress": 0.4757475083056478,
+            "start_time": 169.0,
+            "end_time": 266.0
+        },
+        {
+            "source": "api",
+            "text": "\n“Oh my god, you're…”",
+            "last_event_time": 879.0,
+            "start_progress": 0.4764119601328904,
+            "end_progress": 0.49036544850498337,
+            "start_time": 291.0,
+            "end_time": 291.0
+        },
+        {
+            "source": "user",
+            "text": " you start to say. \"Yes\" he replies, \"I am John F. Kennedy\". ",
+            "last_event_time": 879.0,
+            "start_progress": 0.49036544850498337,
+            "end_progress": 0.5308970099667774,
+            "start_time": 294.0,
+            "end_time": 323.0
+        },
+        {
+            "source": "api",
+            "text": "You stand there in disbelief.",
+            "last_event_time": 879.0,
+            "start_progress": 0.5308970099667774,
+            "end_progress": 0.5501661129568106,
+            "start_time": 344.0,
+            "end_time": 344.0
+        },
+        {
+            "source": "user",
+            "text": "  \"I must be dreaming\" you exclaim. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.5501661129568106,
+            "end_progress": 0.5740863787375415,
+            "start_time": 347.0,
+            "end_time": 381.0
+        },
+        {
+            "source": "api",
+            "text": "\"No\" he says, \"I need you to listen.",
+            "last_event_time": 879.0,
+            "start_progress": 0.5740863787375415,
+            "end_progress": 0.5980066445182725,
+            "start_time": 410.0,
+            "end_time": 410.0
+        },
+        {
+            "source": "user",
+            "text": "\" He proceeds to tell you a story you can barely believe. He tells you that all former US presidents receive immortality using ancient magic preserved by the Masons. Many that are thought to have died, like him, are in fact still living and will live forever. They are all part of a secret group with one goal in mind. \"What is it that you're all trying to do\" you ask? ",
+            "last_event_time": 879.0,
+            "start_progress": 0.5980066445182725,
+            "end_progress": 0.8438538205980066,
+            "start_time": 415.0,
+            "end_time": 668.0
+        },
+        {
+            "source": "api",
+            "text": "Kennedy proceeds to explain that the group has one goal.",
+            "last_event_time": 879.0,
+            "start_progress": 0.8438538205980066,
+            "end_progress": 0.881063122923588,
+            "start_time": 688.0,
+            "end_time": 688.0
+        }
+    ],
+    [
+        {
+            "source": "api",
+            "text": "You're Barack Obama. 4 years into your retirement, you awake to find a letter with no return address on your bedside table. It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\"",
+            "last_event_time": 879.0,
+            "start_progress": 0.0,
+            "end_progress": 0.18604651162790697,
+            "start_time": 0.0,
+            "end_time": 0.0
+        },
+        {
+            "source": "user",
+            "text": " At first you think that your wife Michelle is having a little joke at your expense. She isn't next to you in the bed so you get up to try to find her. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.18604651162790697,
+            "end_progress": 0.28704318936877077,
+            "start_time": 23.0,
+            "end_time": 111.0
+        },
+        {
+            "source": "api",
+            "text": "You wander down the hallway and you hear a noise from downstairs.",
+            "last_event_time": 879.0,
+            "start_progress": 0.28704318936877077,
+            "end_progress": 0.3302325581395349,
+            "start_time": 167.0,
+            "end_time": 167.0
+        },
+        {
+            "source": "user",
+            "text": " You head downstairs thinking that she will be there to laugh at you. When you get downstairs she isn't there. Instead you're surprised to find a person sitting in your living room who you would have not have expected. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.3302325581395349,
+            "end_progress": 0.4757475083056478,
+            "start_time": 169.0,
+            "end_time": 266.0
+        },
+        {
+            "source": "api",
+            "text": "\n“Oh my god, you're…”",
+            "last_event_time": 879.0,
+            "start_progress": 0.4764119601328904,
+            "end_progress": 0.49036544850498337,
+            "start_time": 291.0,
+            "end_time": 291.0
+        },
+        {
+            "source": "user",
+            "text": " you start to say. \"Yes\" he replies, \"I am John F. Kennedy\". ",
+            "last_event_time": 879.0,
+            "start_progress": 0.49036544850498337,
+            "end_progress": 0.5308970099667774,
+            "start_time": 294.0,
+            "end_time": 323.0
+        },
+        {
+            "source": "api",
+            "text": "You stand there in disbelief.",
+            "last_event_time": 879.0,
+            "start_progress": 0.5308970099667774,
+            "end_progress": 0.5501661129568106,
+            "start_time": 344.0,
+            "end_time": 344.0
+        },
+        {
+            "source": "user",
+            "text": "  \"I must be dreaming\" you exclaim. ",
+            "last_event_time": 879.0,
+            "start_progress": 0.5501661129568106,
+            "end_progress": 0.5740863787375415,
+            "start_time": 347.0,
+            "end_time": 381.0
+        },
+        {
+            "source": "api",
+            "text": "\"No\" he says, \"I need you to listen.",
+            "last_event_time": 879.0,
+            "start_progress": 0.5740863787375415,
+            "end_progress": 0.5980066445182725,
+            "start_time": 410.0,
+            "end_time": 410.0
+        },
+        {
+            "source": "user",
+            "text": "\" He proceeds to tell you a story you can barely believe. He tells you that all former US presidents receive immortality using ancient magic preserved by the Masons. Many that are thought to have died, like him, are in fact still living and will live forever. They are all part of a secret group with one goal in mind. \"What is it that you're all trying to do\" you ask? ",
+            "last_event_time": 879.0,
+            "start_progress": 0.5980066445182725,
+            "end_progress": 0.8438538205980066,
+            "start_time": 415.0,
+            "end_time": 668.0
+        },
+        {
+            "source": "api",
+            "text": "Kennedy proceeds to explain that the group has one goal.",
+            "last_event_time": 879.0,
+            "start_progress": 0.8438538205980066,
+            "end_progress": 0.881063122923588,
+            "start_time": 688.0,
+            "end_time": 688.0
+        },
+        {
+            "source": "user",
+            "text": " \"The goal is... to try to take over the world!\" \"Yeah, that makes sense, you say.\" So you join the shadowy group of former US presidents and vow to help them take over the world. mmmmmmmmmmmm",
+            "last_event_time": 879.0,
+            "start_progress": 0.881063122923588,
+            "end_progress": 1.0086378737541528,
+            "start_time": 693.0,
+            "end_time": 874.0
+        }
+    ]
 ]

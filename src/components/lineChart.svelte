@@ -18,7 +18,7 @@
   let svgContainer: SVGSVGElement;
   let width = 300;
   export let height;
-  const margin = { top: 20, right: 30, bottom: 40, left: 0 };
+  const margin = { top: 20, right: 0, bottom: 0, left: 0 };
 
   let xScale: any;
   export let yScale;
@@ -51,7 +51,6 @@
       d3.select(svgContainer).call(zoom);
     }
   });
-
 
   function updateAxes() {
     if (!xScale || !yScale) return;
@@ -111,7 +110,7 @@
   }
 </script>
 
-<svg bind:this={svgContainer} {width} {height}>
+<svg bind:this={svgContainer} {width} {height} style="vertical-align: top">
   <defs>
     <clipPath id="clip">
       <rect
@@ -144,12 +143,13 @@
           />
         {/each}
 
-        {#each chartData as d}
+        {#each chartData.filter((d) => !d.isSuggestionOpen) as d (d.index)}
           <circle
             cx={scaledX(d.time)}
             cy={scaledY(d.percentage)}
-            r={selectedPoint === d ? 5 : hoveredPoint === d ? 5 : 2}
+            r={selectedPoint?.index === d.index ? 5 : hoveredPoint?.index === d.index ? 5 : 2}
             fill={d.color}
+            opacity={selectedPoint === d || hoveredPoint === d? 1 : d.opacity}
             on:click={() => handlePointClick(d)}
             on:mouseover={() => (hoveredPoint = d)}
             on:mouseout={() => (hoveredPoint = null)}
@@ -161,6 +161,7 @@
           <path
             d={d3.symbol().type(d3.symbolTriangle).size(40)()}
             fill="#FFBBCC"
+            opacity={d.opacity + 0.29}
             transform={`translate(${scaledX(d.time)},${scaledY(d.percentage + 6)}) rotate(180)`}
           />
         {/each}
@@ -195,7 +196,6 @@
         {/each}
       {/if}
     </g>
-
     <g
       class="x-axis"
       transform={`translate(0, ${height - margin.top - margin.bottom})`}

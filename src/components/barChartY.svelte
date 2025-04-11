@@ -30,13 +30,15 @@
       source: item.source,
     }));
 
-    const margin = { top: 20, right: 0, bottom: 40, left: 50 };
+    const margin = { top: 20, right: 0, bottom: 0, left: 50 };
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
 
     const svg = d3
       .select(container)
       .append("svg")
+      .style("display", "block")
+      .style("vertical-align", "top")
       .attr("width", "100%")
       .attr("height", chartHeight + margin.top + margin.bottom)
       .attr(
@@ -86,7 +88,8 @@
       .attr("height", (d) => yScaleInner(d.startProgress) - yScaleInner(d.endProgress))
       .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
-      .attr("stroke-width", 1);
+      .attr("stroke-width", 1)
+      .attr("opacity", 0.5);
 
     // svg
     //   .append("text")
@@ -108,7 +111,7 @@
 
 <div
   bind:this={container}
-  class="bar-chart-container"
+
   data-session-id={sessionId}
 ></div>
 

@@ -9,7 +9,7 @@
   import { get } from "svelte/store";
   import LineChart from "../components/lineChart.svelte";
   import BarChartY from "../components/barChartY.svelte";
-  // import BarCharX from "../components/barCharX.svelte";
+  import BarChartX from "../components/barChartX.svelte";
   import ZoomoutChart from "../components/zoomoutChart.svelte";
   import * as d3 from "d3";
 
@@ -71,7 +71,7 @@
   // store to track filter states
   const promptFilterStatus = writable({});
   const yAxisRange = [0, 100];
-  const height = 200;
+  const height = 150;
   const yScale = d3.scaleLinear().domain(yAxisRange).range([height, 0])
 
   function open2close() {
@@ -323,7 +323,8 @@
               (s) => s.sessionId === sessionFile
             );
             if (sessionIndex !== -1) {
-              sessions[sessionIndex].similarityData = similarityData;
+              sessions[sessionIndex].similarityData = similarityData[similarityData.length - 1];
+              sessions[sessionIndex].totalSimilarityData = similarityData;
             }
             return [...sessions];
           });
@@ -347,7 +348,7 @@
   const fetchSimilarityData = async (sessionFile) => {
     try {
       const response = await fetch(
-        `${base}/similarity_results/${sessionFile}_similarity.json`
+        `${base}/chi2022-coauthor-v1.0/similarity_results/${sessionFile}_similarity.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -428,7 +429,8 @@
               (s) => s.sessionId === selectedSession[i]
             );
             if (sessionIndex !== -1) {
-              sessions[sessionIndex].similarityData = similarityData;
+              sessions[sessionIndex].similarityData = similarityData[similarityData.length - 1];
+              sessions[sessionIndex].totalSimilarityData = similarityData;
             }
             return [...sessions];
           });
@@ -456,7 +458,6 @@
     fetchSessions();
     for (let i = 0; i < selectedSession.length; i++) {
       fetchData(selectedSession[i], true);
-
       fetchSimilarityData(selectedSession[i]).then((data) => {
         if (data) {
           storeSessionData.update((sessions) => {
@@ -464,7 +465,8 @@
               (s) => s.sessionId === selectedSession[i]
             );
             if (sessionIndex !== -1) {
-              sessions[sessionIndex].similarityData = data;
+              sessions[sessionIndex].similarityData = data[data.length - 1];
+              sessions[sessionIndex].totalSimilarityData = data;
             }
             return [...sessions];
           });
@@ -525,6 +527,7 @@
     chartData = [];
     paragraphColor = [];
     let firstTime = null;
+    let indexOfAct = 0;
 
     let combinedText = data.info.reduce((acc, event) => {
       if (acc.length === 0) {
@@ -593,8 +596,10 @@
           eventSource,
           color: textColor,
           currentText,
-          currentColor,
+          currentColor: [...currentColor],
+          opacity: 1,
           isSuggestionOpen: true,
+          index: indexOfAct,
         });
       } else {
         chartData.push({
@@ -603,9 +608,12 @@
           eventSource,
           color: textColor,
           currentText,
-          currentColor,
+          currentColor: [...currentColor],
+          opacity: 1,
+          index: indexOfAct,
         });
       }
+      indexOfAct += 1
 
       return acc;
     }, []);
@@ -730,6 +738,38 @@
             textColor: d.currentColor[index],
           }));
         sessions[idx].currentTime = d.time;
+        sessions[idx].chartData = sessions[idx].chartData.map((point) => {
+          return {
+            ...point,
+            opacity: point.index > d.index? 0.01 : 1
+          }
+        })
+        const similarityData = sessions[idx].totalSimilarityData
+        let selectedData = null;
+        const firstNonZeroIndex = similarityData.findIndex(arr => arr[arr.length - 1].end_time > 0);
+        const firstNonZeroArray = similarityData[firstNonZeroIndex];
+        const firstNonZeroEndTime = firstNonZeroArray[firstNonZeroArray.length - 1].end_time;
+        for (let i = 1; i < similarityData.length; i++) {
+          if (d.time * 60 < firstNonZeroEndTime) {
+            selectedData = similarityData[firstNonZeroIndex - 1];
+            break
+          }
+          const prevArray = similarityData[i - 1];
+          const currentArray = similarityData[i];
+
+          const prevEndTime = prevArray[prevArray.length - 1]?.end_time;
+          const currentEndTime = currentArray[currentArray.length - 1]?.end_time;
+
+          if (d.time * 60 >= prevEndTime && d.time * 60 < currentEndTime && prevEndTime != 0 && currentEndTime != 0) {
+              selectedData = prevArray;
+              break;
+          }
+        }
+        const lastSimData = similarityData[similarityData.length - 1]
+        if (d.time * 60 >= lastSimData[lastSimData.length - 1].end_time) {
+          selectedData = similarityData[similarityData.length - 1]
+        }
+        sessions[idx].similarityData = selectedData || [];
       }
       return [...sessions];
     });
@@ -739,7 +779,7 @@
 <div class="App">
   <header class="App-header">
     <nav>
-      <div class="filter-container {showFilter ? 'show' : ''}">
+      <div class={`filter-container ${showFilter ? (isCollapsed ? 'filter-container-close' : '') : ''} ${showFilter ? 'show' : ''}`}>
         {#each filterOptions as option}
           <label class="filter-label">
             <span class="checkbox-wrapper">
@@ -868,6 +908,7 @@
                         height={height}
                       />
                     {/if}
+                    <div>
                     <LineChart
                       bind:this={chartRefs[sessionData.sessionId]}
                       chartData={sessionData.chartData}
@@ -877,6 +918,11 @@
                       yScale={yScale}
                       height={height}
                     />
+                    <BarChartX
+                        sessionId={sessionData.sessionId}
+                        similarityData={sessionData.similarityData}
+                    />
+                  </div>
                   </div>
                   <button
                     on:click={() => resetZoom(sessionData.sessionId)}
@@ -1090,10 +1136,6 @@
     white-space: pre-wrap;
     text-align: left;
     padding: 15px;
-  }
-
-  .chart-container {
-    margin-top: 20px;
   }
 
   .text-container {
@@ -1366,8 +1408,22 @@
 
   .filter-container {
     position: absolute;
-    top: 55px;
-    left: 945px;
+    top: 195px;
+    left: 930px;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 12px;
+    display: none;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    width: 200px;
+    text-align: left;
+    border-radius: 8px;
+  }
+
+  .filter-container-close {
+    position: absolute;
+    top: 370px;
+    left: 930px;
     background: white;
     border: 1px solid #ccc;
     padding: 12px;
@@ -1394,6 +1450,7 @@
     cursor: pointer;
     margin-bottom: 8px;
     position: relative;
+    font-weight: normal;
   }
 
   .checkbox-wrapper {
@@ -1431,7 +1488,6 @@
   .checkbox-indicator {
     position: absolute;
     left: 50%;
-    top: 50%;
     transform: translate(-50%, -20%);
     color: white;
     font-size: 12px;
