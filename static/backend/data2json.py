@@ -493,45 +493,56 @@ def get_data(session_id, static_dir):
         write_json(data, json_path, session)
 
 
-def collect_data(extracted_data, init_text, init_time,whole_text, last_event_time):
+def collect_data(extracted_data, init_text, init_time, whole_text, last_event_time):
     data = []
-    suggestion_data = []
     whole_text = whole_text[:-1]
     current_text = init_text
     current_data = {
         "text": list(init_text),
-        "source": ["api"] * len(init_text),
+        "source": "api",
         "time": [init_time] * len(init_text),
         "last_event_time": last_event_time,
     }
     data.append({
         "text": list(current_data["text"]),
-        "source": list(current_data["source"]),
+        "source": current_data["source"],
         "time": list(current_data["time"]),
         "last_event_time": current_data["last_event_time"],
+        "start_time": init_time,
+        "end_time": init_time,
     })
+    current_start_time = init_time
+    current_end_time = init_time
+    first_event = True
+    current_source = "api"
     for entry in extracted_data:
+        if first_event:
+            current_start_time = entry["event_time"]
+            first_event = False
         if entry["name"] == "text-insert":
+            if entry["eventSource"] != current_source:
+                data.append({
+                    "text": list(current_data["text"]),
+                    "source": current_source,
+                    "time": list(current_data["time"]),
+                    "last_event_time": last_event_time,
+                    "start_time": current_start_time,
+                    "end_time": current_end_time,
+                })
+                current_start_time = entry["event_time"]
             if entry["pos"] == len(current_text):
                 current_text += entry["text"]
                 for char in entry["text"]:
                     current_data["text"].append(char)
-                    current_data["source"].append(entry["eventSource"])
                     current_data["time"].append(entry["event_time"])
             else:
                 current_text = current_text[0:entry["pos"]] + entry["text"] + current_text[entry["pos"]:]
                 for i, char in enumerate(entry["text"]):
                     insert_pos = entry["pos"] + i
                     current_data["text"].insert(insert_pos, char)
-                    current_data["source"].insert(insert_pos, entry["eventSource"])
                     current_data["time"].insert(insert_pos, entry["event_time"])
-            data.append({
-                "text": list(current_data["text"]),
-                "source": list(current_data["source"]),
-                "time": list(current_data["time"]),
-                "last_event_time": last_event_time,
-            })
-                   
+            current_source = entry["eventSource"]
+            current_end_time = entry["event_time"]
         if entry["name"] == "text-delete":
             current_text = current_text[0:entry["pos"]] + current_text[entry["pos"] + entry["count"]:]
             remain_count = entry["count"]
@@ -541,20 +552,51 @@ def collect_data(extracted_data, init_text, init_time,whole_text, last_event_tim
                 if len(current_char) <= remain_count:
                     remain_count -= len(current_char)
                     del current_data["text"][index]
-                    del current_data["source"][index]
                     del current_data["time"][index]
                 else:
-                    current_data["text"][index] = current_char[remaining_count:]
-                    remaining_count = 0
-        
+                    current_data["text"][index] = current_char[remain_count:]
+                    remain_count = 0
+            current_end_time = entry["event_time"]
         if entry["name"] == "suggestion-open":
-            suggestion_data.append({
-                "time": entry["event_time"],
+            data.append({
+                "text": list(current_data["text"]),
+                "source": current_source,
+                "time": list(current_data["time"]),
+                "last_event_time": last_event_time,
+                "start_time": current_start_time,
+                "end_time": current_end_time,
             })
+    data.append({
+        "text": list(current_data["text"]),
+        "source": current_source,
+        "time": list(current_data["time"]),
+        "last_event_time": last_event_time,
+        "start_time": current_start_time,
+        "end_time": last_event_time,
+    })
 
-    data = deal_sentence(data, suggestion_data, whole_text) # suggestion open will be a cut / source change *
-    
-    return data
+    final_data = []
+    seen_texts = set()
+    current_progress = 0
+    prev_clean_text = None
+    for d in data:
+        d["text"] = "".join(d["text"])[:-1]
+        d["time"] = d["time"][:-1]
+        clean_text = d["text"].rstrip()
+        if clean_text == prev_clean_text:
+            continue
+        if d["text"] not in seen_texts:
+            final_data.append({k: v for k, v in d.items() if k != "time"})
+            seen_texts.add(d["text"])
+            prev_clean_text = clean_text
+    for d in final_data:
+        d["start_progress"] = current_progress
+        d["end_progress"] = len(d["text"]) / len(whole_text)
+        current_progress = d["end_progress"]
+
+    final_data = [{k: v for k, v in entry.items() if k != "time"} for entry in final_data]
+
+    return final_data
 
 
 def deal_sentence(data, suggestion_data, whole_text):
@@ -565,6 +607,7 @@ def deal_sentence(data, suggestion_data, whole_text):
         d["source"] = d["source"][:-1]
         d["time"] = d["time"][:-1]
         d["text"] = d["text"][:-1]
+
     for index, d in enumerate(data):
         if index == 0 or index == len(data) - 1 or d["source"][-1] != data[index + 1]["source"][-1]:
             result.append(d)
@@ -648,6 +691,7 @@ def deal_sentence(data, suggestion_data, whole_text):
         [{k: v for k, v in entry.items() if k != "time"} for entry in group]
         for group in final_result
     ]
+    print(final_result)
 
     return final_result
 
