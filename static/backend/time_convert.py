@@ -5,37 +5,24 @@ from datetime import datetime
 def read_file(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         content = file.read()
-
-    try:
         data = json.loads(content)
-    except json.JSONDecodeError as e:
-        print(f"Error decoding JSON in file {file_path}: {e}")
-        return
-    
-    if not isinstance(data, list) or len(data) == 0 or not all(isinstance(item, list) for item in data):
+    if not isinstance(data, list) or len(data) == 0 or not all(isinstance(item, dict) for item in data):
         print(f"Invalid structure in file {file_path}")
         return
 
-    base_time_str = data[0][0]['start_time']
+    base_time_str = data[0]['start_time']
     base_time = datetime.strptime(base_time_str, "%Y-%m-%d %H:%M:%S")
     
-    for item in data:
-        for event in item:
-            start_time_str = event['start_time']
-            start_time = datetime.strptime(start_time_str, "%Y-%m-%d %H:%M:%S")
-            relative_start_time = (start_time - base_time).total_seconds()
-            event['start_time'] = relative_start_time
-
-            end_time_str = event['end_time']
-            end_time = datetime.strptime(end_time_str, "%Y-%m-%d %H:%M:%S")
-            relative_end_time = (end_time - base_time).total_seconds()
-            event['end_time'] = relative_end_time
-
-            if 'last_event_time' in event:
-                last_event_time_str = event['last_event_time']
-                last_event_time = datetime.strptime(last_event_time_str, "%Y-%m-%d %H:%M:%S")
-                relative_last_event_time = (last_event_time - base_time).total_seconds()
-                event['last_event_time'] = relative_last_event_time
+    for event in data:
+        if 'start_time' in event:
+            start_time = datetime.strptime(event['start_time'], "%Y-%m-%d %H:%M:%S")
+            event['start_time'] = (start_time - base_time).total_seconds()
+        if 'end_time' in event:
+            end_time = datetime.strptime(event['end_time'], "%Y-%m-%d %H:%M:%S")
+            event['end_time'] = (end_time - base_time).total_seconds()
+        if 'last_event_time' in event:
+            last_event_time = datetime.strptime(event['last_event_time'], "%Y-%m-%d %H:%M:%S")
+            event['last_event_time'] = (last_event_time - base_time).total_seconds()
 
     with open(file_path, 'w', encoding='utf-8') as file:
         json.dump(data, file, ensure_ascii=False,  indent=4)

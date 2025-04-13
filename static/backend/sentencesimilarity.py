@@ -66,45 +66,45 @@ def sentence_similarity(sent1, sent2, model):
     
     return cosine_similarity(vec1, vec2)[0][0]
 
-# def analyze_sentence_similarity(sentences, model):
-#     results = []
+def analyze_sentence_similarity(sentences, model):
+    results = []
     
-#     if sentences:
-#         results.append({
-#             "sentence": sentences[0][0],
-#             "source": sentences[0][1],
-#             "max_similarity": 0.0,
-#             "dissimilarity": 1.0,
-#             "most_similar_previous": None,
-#             "start_progress": sentences[0][2],
-#             "end_progress": sentences[0][3],
-#             "start_time": sentences[0][4],
-#             "end_time": sentences[0][5],
-#             "last_event_time": sentences[0][6],
-#         })
-#     for i in range(1, len(sentences)):
-#         similarities = []
-#         for j in range(0, i):
-#             sim = sentence_similarity(sentences[i][0], sentences[j][0], model)
-#             similarities.append((j, sim))
-#         if similarities:
-#             most_similar_idx, max_similarity = max(similarities, key=lambda x: x[1])
-#             dissimilarity = 1.0 - max_similarity
+    if sentences:
+        results.append({
+            "sentence": sentences[0][0],
+            "source": sentences[0][1],
+            "max_similarity": 0.0,
+            "dissimilarity": 1.0,
+            "most_similar_previous": None,
+            "start_progress": sentences[0][2],
+            "end_progress": sentences[0][3],
+            "start_time": sentences[0][4],
+            "end_time": sentences[0][5],
+            "last_event_time": sentences[0][6],
+        })
+    for i in range(1, len(sentences)):
+        similarities = []
+        for j in range(0, i):
+            sim = sentence_similarity(sentences[i][0], sentences[j][0], model)
+            similarities.append((j, sim))
+        if similarities:
+            most_similar_idx, max_similarity = max(similarities, key=lambda x: x[1])
+            dissimilarity = 1.0 - max_similarity
             
-#             results.append({
-#                 "sentence": sentences[i][0],
-#                 "source": sentences[i][1],
-#                 "max_similarity": max_similarity,
-#                 "dissimilarity": dissimilarity,
-#                 "most_similar_previous": most_similar_idx,
-#                 "start_progress": sentences[i][2],
-#                 "end_progress": sentences[i][3],
-#                 "start_time": sentences[i][4],
-#                 "end_time": sentences[i][5],
-#                 "last_event_time": sentences[0][6],
-#             })
+            results.append({
+                "sentence": sentences[i][0],
+                "source": sentences[i][1],
+                "max_similarity": max_similarity,
+                "dissimilarity": dissimilarity,
+                "most_similar_previous": most_similar_idx,
+                "start_progress": sentences[i][2],
+                "end_progress": sentences[i][3],
+                "start_time": sentences[i][4],
+                "end_time": sentences[i][5],
+                "last_event_time": sentences[0][6],
+            })
     
-#     return results
+    return results
 
 def analyze_sentence_similarity(nested_sentences, model):
     results = []

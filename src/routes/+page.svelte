@@ -71,7 +71,7 @@
   // store to track filter states
   const promptFilterStatus = writable({});
   const yAxisRange = [0, 100];
-  const height = 150;
+  const height = 120;
   const yScale = d3.scaleLinear().domain(yAxisRange).range([height, 0])
 
   function open2close() {
@@ -323,7 +323,7 @@
               (s) => s.sessionId === sessionFile
             );
             if (sessionIndex !== -1) {
-              sessions[sessionIndex].similarityData = similarityData[similarityData.length - 1];
+              sessions[sessionIndex].similarityData = similarityData;
               sessions[sessionIndex].totalSimilarityData = similarityData;
             }
             return [...sessions];
@@ -429,7 +429,7 @@
               (s) => s.sessionId === selectedSession[i]
             );
             if (sessionIndex !== -1) {
-              sessions[sessionIndex].similarityData = similarityData[similarityData.length - 1];
+              sessions[sessionIndex].similarityData = similarityData;
               sessions[sessionIndex].totalSimilarityData = similarityData;
             }
             return [...sessions];
@@ -465,7 +465,7 @@
               (s) => s.sessionId === selectedSession[i]
             );
             if (sessionIndex !== -1) {
-              sessions[sessionIndex].similarityData = data[data.length - 1];
+              sessions[sessionIndex].similarityData = data;
               sessions[sessionIndex].totalSimilarityData = data;
             }
             return [...sessions];
@@ -744,32 +744,20 @@
             opacity: point.index > d.index? 0.01 : 1
           }
         })
-        const similarityData = sessions[idx].totalSimilarityData
-        let selectedData = null;
-        const firstNonZeroIndex = similarityData.findIndex(arr => arr[arr.length - 1].end_time > 0);
-        const firstNonZeroArray = similarityData[firstNonZeroIndex];
-        const firstNonZeroEndTime = firstNonZeroArray[firstNonZeroArray.length - 1].end_time;
-        for (let i = 1; i < similarityData.length; i++) {
-          if (d.time * 60 < firstNonZeroEndTime) {
-            selectedData = similarityData[firstNonZeroIndex - 1];
-            break
-          }
-          const prevArray = similarityData[i - 1];
-          const currentArray = similarityData[i];
-
-          const prevEndTime = prevArray[prevArray.length - 1]?.end_time;
-          const currentEndTime = currentArray[currentArray.length - 1]?.end_time;
-
-          if (d.time * 60 >= prevEndTime && d.time * 60 < currentEndTime && prevEndTime != 0 && currentEndTime != 0) {
-              selectedData = prevArray;
-              break;
+        const similarityData = sessions[idx].totalSimilarityData;
+        let selectedData = [];
+        for (let i = 0; i < similarityData.length; i++) {
+          const currentItem = similarityData[i];
+          const currentEndProgress = currentItem.end_progress;
+          if (d.percentage < currentEndProgress * 100) {
+            selectedData = similarityData.slice(0, i);
+            break;
           }
         }
-        const lastSimData = similarityData[similarityData.length - 1]
-        if (d.time * 60 >= lastSimData[lastSimData.length - 1].end_time) {
-          selectedData = similarityData[similarityData.length - 1]
+        if (selectedData.length === 0 && similarityData.length > 0) {
+          selectedData = similarityData;
         }
-        sessions[idx].similarityData = selectedData || [];
+        sessions[idx].similarityData = selectedData;
       }
       return [...sessions];
     });
@@ -1631,5 +1619,19 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+  }
+
+  .material-symbols--search-rounded {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l5.6 5.6q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-5.6-5.6q-.75.6-1.725.95T9.5 16m0-2q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14'/%3E%3C/svg%3E");
+    background-color: currentColor;
+    -webkit-mask-image: var(--svg);
+    mask-image: var(--svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
   }
 </style>

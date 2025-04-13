@@ -26,7 +26,7 @@
       // sentenceNum: index + 1,
       startProgress: item.start_progress * 100,
       endProgress: item.end_progress * 100,
-      dissimilarity: item.dissimilarity * 100,
+      residual_vector_norm: item.residual_vector_norm * 100,
       source: item.source,
     }));
 
@@ -45,12 +45,12 @@
         "viewBox",
         `0 0 ${chartWidth + margin.left + margin.right} ${chartHeight + margin.top + margin.bottom}`
       )
-      .attr("preserveAspectRatio", "xMidYMid meet")
+      // .attr("preserveAspectRatio", "xMidYMid meet")
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
     const xScale = d3.scaleLinear().domain([100, 0]).range([0, chartWidth]);
-    const yScaleInner = d3.scaleLinear().domain([100, 0]).range([0, chartHeight]);
+    const yScale = d3.scaleLinear().domain([0, 100]).range([chartHeight, 0]);
 
     svg
       .append("g")
@@ -66,7 +66,7 @@
 
     svg
       .append("g")
-      .call(d3.axisLeft(yScaleInner).ticks(5))
+      .call(d3.axisLeft(yScale).ticks(5))
       .append("text")
       .attr("transform", "rotate(-90)")
       .attr("y", -35)
@@ -82,42 +82,20 @@
       .enter()
       .append("rect")
       .attr("class", "bar")
-      .attr("y", (d) => yScaleInner(d.endProgress))
-      .attr("x", (d) => xScale(d.dissimilarity))
-      .attr("width", (d) => xScale(0) - xScale(d.dissimilarity))
-      .attr("height", (d) => yScaleInner(d.startProgress) - yScaleInner(d.endProgress))
+      .attr("y", (d) => yScale(d.endProgress))
+      .attr("x", (d) => xScale(d.residual_vector_norm))
+      .attr("width", (d) => xScale(0) - xScale(d.residual_vector_norm))
+      .attr("height", (d) => yScale(d.startProgress) - yScale(d.endProgress))
       .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke-width", 1)
-      .attr("opacity", 0.5);
-
-    // svg
-    //   .append("text")
-    //   .attr("x", chartWidth / 2)
-    //   .attr("y", -2)
-    //   .attr("text-anchor", "middle")
-    //   .style("font-size", "12px")
-    //   .style("font-weight", "500")
-    //   .text("Semantic Change by Sentence");
+      .attr("opacity", 0.5)
+      .attr("stroke", d => d.source === "user" ? "#66C2A5" : "#FC8D62")
+      .attr("stroke-width", 0.1)
   }
-
-  // function filterTicks(ticks) {
-  //   if (ticks.length <= 20) return ticks;
-
-  //   const step = Math.ceil(ticks.length / 10);
-  //   return ticks.filter((_, i) => i % step === 0);
-  // }
 </script>
 
 <div
   bind:this={container}
-
   data-session-id={sessionId}
 ></div>
-
-<style>
-  .bar-chart-container {
-    margin-bottom: 0;
-    margin-right: 0;
-  }
-</style>
