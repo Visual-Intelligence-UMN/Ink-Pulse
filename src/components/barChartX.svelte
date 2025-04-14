@@ -23,10 +23,9 @@
       d3.select(container).selectAll("svg").remove();
   
       const processedData = similarityData.map((item, index) => ({
-        // sentenceNum: index + 1,
         startProgress: item.start_progress * 100,
         endProgress: item.end_progress * 100,
-        dissimilarity: item.dissimilarity * 100,
+        residual_vector_norm: item.residual_vector_norm * 100,
         source: item.source,
         startTime: item.start_time / 60,
         endTime: item.end_time / 60,
@@ -51,9 +50,16 @@
         .attr("preserveAspectRatio", "xMidYMid meet")
         .append("g")
         .attr("transform", `translate(${margin.left}, ${margin.top})`);
-
-      const xScale = d3.scaleLinear().domain([0, processedData[processedData.length - 1].lastEventTime]).range([0, chartWidth]);
+      const xScale = d3.scaleLinear().domain([0, processedData[0].lastEventTime]).range([0, chartWidth]);
       const yScale = d3.scaleLinear().domain([0, 100]).range([0, chartHeight]);
+
+      similarityData.forEach((d, i) => {
+  const duration = d.end_time - d.start_time;
+  console.log(
+    `Index ${i} - Start: ${d.start_time}, End: ${d.end_time}, Duration: ${duration}`
+  );
+});
+
   
       svg
         .append("g")
@@ -87,41 +93,22 @@
         .attr("class", "bar")
         .attr("y", (d) => yScale(0))
         .attr("x", (d) => xScale(d.startTime))
-        .attr("width", (d) => xScale(d.endTime) - xScale(d.startTime))
-        .attr("height", (d) => yScale(d.dissimilarity))
+        .attr("width", (d) => {
+          const width = xScale(d.endTime) - xScale(d.startTime);
+          return width > 0 ? width : 1;
+        })
+        .attr("height", (d) => yScale(d.residual_vector_norm))
         .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
         .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
         .attr("stroke-width", 1)
-        .attr("opacity", 0.5);
-  
-      // svg
-      //   .append("text")
-      //   .attr("x", chartWidth / 2)
-      //   .attr("y", -2)
-      //   .attr("text-anchor", "middle")
-      //   .style("font-size", "12px")
-      //   .style("font-weight", "500")
-      //   .text("Semantic Change by Sentence");
+        .attr("opacity", 0.5)
+        .attr("stroke", d => d.source === "user" ? "#66C2A5" : "#FC8D62")
+        .attr("stroke-width", 0.1)
     }
-  
-    // function filterTicks(ticks) {
-    //   if (ticks.length <= 20) return ticks;
-  
-    //   const step = Math.ceil(ticks.length / 10);
-    //   return ticks.filter((_, i) => i % step === 0);
-    // }
   </script>
   
   <div
     bind:this={container}
-    class="bar-chart-container"
     data-session-id={sessionId}
   ></div>
-  
-  <style>
-    .bar-chart-container {
-      margin-top: 0;
-      margin-right: 0;
-    }
-  </style>
   
