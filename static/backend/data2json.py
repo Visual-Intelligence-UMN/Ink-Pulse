@@ -1,8 +1,6 @@
 import json
 import datetime
 import os
-from itertools import groupby
-import pandas as pd
 
 def load_json(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -566,6 +564,7 @@ def collect_data(extracted_data, init_text, init_time, whole_text, last_event_ti
                 "start_time": current_start_time,
                 "end_time": current_end_time,
             })
+            current_start_time = entry["event_time"]
     data.append({
         "text": list(current_data["text"]),
         "source": current_source,
