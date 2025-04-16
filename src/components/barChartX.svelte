@@ -52,14 +52,6 @@
         .attr("transform", `translate(${margin.left}, ${margin.top})`);
       const xScale = d3.scaleLinear().domain([0, processedData[0].lastEventTime]).range([0, chartWidth]);
       const yScale = d3.scaleLinear().domain([0, 100]).range([0, chartHeight]);
-
-      similarityData.forEach((d, i) => {
-  const duration = d.end_time - d.start_time;
-  console.log(
-    `Index ${i} - Start: ${d.start_time}, End: ${d.end_time}, Duration: ${duration}`
-  );
-});
-
   
       svg
         .append("g")

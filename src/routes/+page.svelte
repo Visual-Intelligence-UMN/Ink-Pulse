@@ -9,7 +9,6 @@
   import { get } from "svelte/store";
   import LineChart from "../components/lineChart.svelte";
   import BarChartY from "../components/barChartY.svelte";
-  import BarChartX from "../components/barChartX.svelte";
   import ZoomoutChart from "../components/zoomoutChart.svelte";
   import * as d3 from "d3";
 
@@ -124,7 +123,6 @@
         statusMap[promptCode] = "partial";
       }
     });
-
     promptFilterStatus.set(statusMap);
   }
 
@@ -146,8 +144,21 @@
     });
     filterSessions();
     if (event.target.checked) {
-      const newSessions = tableData.filter((item) => item.prompt_code === tag);
-      for (const newSession of newSessions) {
+      // const newSessions = tableData.filter((item) => item.prompt_code === tag);
+      // for (const newSession of newSessions) {
+      //   storeSessionData.update((sessionData) => {
+      //     if (
+      //       !sessionData.some(
+      //         (session) => session.sessionId === newSession.session_id
+      //       )
+      //     ) {
+      //       sessionData.push({
+      //         sessionId: newSession.session_id,
+      //       });
+      //     }
+      //     return sessionData;
+      //   });
+      for (const newSession of $filterTableData) {
         storeSessionData.update((sessionData) => {
           if (
             !sessionData.some(
@@ -208,7 +219,6 @@
         await fetchData(session.session_id, false);
       }
     }
-
     updatePromptFilterStatus();
   }
 
@@ -335,6 +345,9 @@
         (item) => item.selected
       );
       loading = true;
+
+      console.log(isCurrentlySelected.length, $storeSessionData.length)
+      
       if (isCurrentlySelected.length == $storeSessionData.length) {
         loading = false;
       }
@@ -784,7 +797,7 @@
                   <span class="checkbox-indicator">✓</span>
                 {:else if $promptFilterStatus[option] === "partial"}
                   <span
-                    class="checkbox-indicator"
+                    class="checkbox-indicator-alter"
                     style="font-weight: bold; font-size: 24px;">-</span
                   >
                 {:else}
@@ -905,10 +918,6 @@
                         handlePointSelected(e, sessionData.sessionId)}
                       yScale={yScale}
                       height={height}
-                    />
-                    <BarChartX
-                        sessionId={sessionData.sessionId}
-                        similarityData={sessionData.similarityData}
                     />
                   </div>
                   </div>
@@ -1476,6 +1485,16 @@
   .checkbox-indicator {
     position: absolute;
     left: 50%;
+    transform: translate(-50%, 25%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    pointer-events: none;
+  }
+
+  .checkbox-indicator-alter {
+    position: absolute;
+    left: 50%;
     transform: translate(-50%, -20%);
     color: white;
     font-size: 12px;
@@ -1615,7 +1634,7 @@
     -webkit-mask-size: 100% 100%;
     mask-size: 100% 100%;
     z-index: 1000;
-    position: absolute;
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
