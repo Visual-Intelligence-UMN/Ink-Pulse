@@ -18,11 +18,11 @@
   let svgContainer: SVGSVGElement;
   let width = 300;
   export let height;
-  const margin = { top: 20, right: 0, bottom: 0, left: 0 };
+  const margin = { top: 20, right: 0, bottom: 30, left: 0 };
 
   let xScale: any;
   export let yScale;
-  let zoomTransform = d3.zoomIdentity;
+  export let zoomTransform = d3.zoomIdentity;
 
   let selectedPoint: any = null;
   let hoveredPoint: any = null;
@@ -65,17 +65,15 @@
   function initChart() {
     const minTime = 0;
     const maxTime = d3.max(chartData, (d) => d.time);
-    // const padding = Math.max(2, (maxTime - minTime) * 0.2);
-    const padding = 0;
 
     xScale = d3
       .scaleLinear()
-      .domain([minTime, maxTime + padding])
+      .domain([minTime, maxTime])
       .range([0, width - margin.left - margin.right]);
 
     yScale = d3
       .scaleLinear()
-      .domain([0 - padding, 100 + padding])
+      .domain([0, 100])
       .range([height - margin.top - margin.bottom, 0]);
 
     zoom = d3
@@ -100,14 +98,13 @@
   }
 
   function scaledX(val) {
-    if (!xScale) return 0;
-    return zoomTransform.rescaleX(xScale)(val);
+    return xScale ? xScale(val) : 0;
   }
 
   function scaledY(val) {
-    if (!yScale) return 0;
-    return zoomTransform.rescaleY(yScale)(val);
+    return yScale ? yScale(val) : 0;
   }
+
 </script>
 
 <svg bind:this={svgContainer} {width} {height} style="vertical-align: top">
@@ -201,6 +198,15 @@
       transform={`translate(0, ${height - margin.top - margin.bottom})`}
       bind:this={xAxisG}
     ></g>
-    <g class="y-axis" bind:this={yAxisG}></g>
+    <text
+      x={width / 2}
+      y={height - margin.top - 5}
+      text-anchor="middle"
+      font-size="10px"
+      fill="black"
+    >
+      Time (min)
+    </text>
+    <g class="y-axis" bind:this={yAxisG} style="display: none;"></g>
   </g>
 </svg>

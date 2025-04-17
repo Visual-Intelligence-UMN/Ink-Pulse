@@ -70,8 +70,10 @@
   // store to track filter states
   const promptFilterStatus = writable({});
   const yAxisRange = [0, 100];
-  const height = 120;
-  const yScale = d3.scaleLinear().domain(yAxisRange).range([height, 0])
+  const margin = { top: 20, right: 0, bottom: 30, left: 50 };
+  const height = 200;
+  const yScale = d3.scaleLinear().domain(yAxisRange).range([height - margin.top - margin.bottom, 0])
+  let zoomTransforms = {};
 
   function open2close() {
     isOpen = !isOpen;
@@ -345,8 +347,6 @@
         (item) => item.selected
       );
       loading = true;
-
-      console.log(isCurrentlySelected.length, $storeSessionData.length)
       
       if (isCurrentlySelected.length == $storeSessionData.length) {
         loading = false;
@@ -906,7 +906,9 @@
                       <BarChartY
                         sessionId={sessionData.sessionId}
                         similarityData={sessionData.similarityData}
+                        yScale={yScale}
                         height={height}
+                        bind:zoomTransform={zoomTransforms[sessionData.sessionId]}
                       />
                     {/if}
                     <div>
@@ -918,6 +920,7 @@
                         handlePointSelected(e, sessionData.sessionId)}
                       yScale={yScale}
                       height={height}
+                      bind:zoomTransform={zoomTransforms[sessionData.sessionId]}
                     />
                   </div>
                   </div>
