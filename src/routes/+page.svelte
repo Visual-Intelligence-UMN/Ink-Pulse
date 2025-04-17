@@ -9,7 +9,6 @@
   import { get } from "svelte/store";
   import LineChart from "../components/lineChart.svelte";
   import BarChartY from "../components/barChartY.svelte";
-  import BarChartX from "../components/barChartX.svelte";
   import ZoomoutChart from "../components/zoomoutChart.svelte";
   import * as d3 from "d3";
 
@@ -71,8 +70,10 @@
   // store to track filter states
   const promptFilterStatus = writable({});
   const yAxisRange = [0, 100];
-  const height = 120;
-  const yScale = d3.scaleLinear().domain(yAxisRange).range([height, 0])
+  const margin = { top: 20, right: 0, bottom: 30, left: 50 };
+  const height = 200;
+  const yScale = d3.scaleLinear().domain(yAxisRange).range([height - margin.top - margin.bottom, 0])
+  let zoomTransforms = {};
 
   function open2close() {
     isOpen = !isOpen;
@@ -124,7 +125,6 @@
         statusMap[promptCode] = "partial";
       }
     });
-
     promptFilterStatus.set(statusMap);
   }
 
@@ -146,8 +146,21 @@
     });
     filterSessions();
     if (event.target.checked) {
-      const newSessions = tableData.filter((item) => item.prompt_code === tag);
-      for (const newSession of newSessions) {
+      // const newSessions = tableData.filter((item) => item.prompt_code === tag);
+      // for (const newSession of newSessions) {
+      //   storeSessionData.update((sessionData) => {
+      //     if (
+      //       !sessionData.some(
+      //         (session) => session.sessionId === newSession.session_id
+      //       )
+      //     ) {
+      //       sessionData.push({
+      //         sessionId: newSession.session_id,
+      //       });
+      //     }
+      //     return sessionData;
+      //   });
+      for (const newSession of $filterTableData) {
         storeSessionData.update((sessionData) => {
           if (
             !sessionData.some(
@@ -208,7 +221,6 @@
         await fetchData(session.session_id, false);
       }
     }
-
     updatePromptFilterStatus();
   }
 
@@ -335,6 +347,7 @@
         (item) => item.selected
       );
       loading = true;
+      
       if (isCurrentlySelected.length == $storeSessionData.length) {
         loading = false;
       }
@@ -784,7 +797,7 @@
                   <span class="checkbox-indicator">✓</span>
                 {:else if $promptFilterStatus[option] === "partial"}
                   <span
-                    class="checkbox-indicator"
+                    class="checkbox-indicator-alter"
                     style="font-weight: bold; font-size: 24px;">-</span
                   >
                 {:else}
@@ -893,7 +906,9 @@
                       <BarChartY
                         sessionId={sessionData.sessionId}
                         similarityData={sessionData.similarityData}
+                        yScale={yScale}
                         height={height}
+                        bind:zoomTransform={zoomTransforms[sessionData.sessionId]}
                       />
                     {/if}
                     <div>
@@ -905,10 +920,7 @@
                         handlePointSelected(e, sessionData.sessionId)}
                       yScale={yScale}
                       height={height}
-                    />
-                    <BarChartX
-                        sessionId={sessionData.sessionId}
-                        similarityData={sessionData.similarityData}
+                      bind:zoomTransform={zoomTransforms[sessionData.sessionId]}
                     />
                   </div>
                   </div>
@@ -1476,6 +1488,16 @@
   .checkbox-indicator {
     position: absolute;
     left: 50%;
+    transform: translate(-50%, 25%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    pointer-events: none;
+  }
+
+  .checkbox-indicator-alter {
+    position: absolute;
+    left: 50%;
     transform: translate(-50%, -20%);
     color: white;
     font-size: 12px;
@@ -1615,7 +1637,7 @@
     -webkit-mask-size: 100% 100%;
     mask-size: 100% 100%;
     z-index: 1000;
-    position: absolute;
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
