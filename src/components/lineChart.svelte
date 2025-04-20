@@ -71,11 +71,6 @@
       .domain([minTime, maxTime])
       .range([0, width - margin.left - margin.right]);
 
-    yScale = d3
-      .scaleLinear()
-      .domain([0, 100])
-      .range([height - margin.top - margin.bottom, 0]);
-
     zoom = d3
       .zoom()
       .scaleExtent([1, 5])
@@ -84,10 +79,14 @@
         [width, height],
       ])
       .on("zoom", (event) => {
-        zoomTransform = event.transform;
-        updateAxes();
-      });
-
+        let transform = event.transform;
+        const maxTranslateY = 0;
+        const minTranslateY = -(height - margin.top - margin.bottom) * (transform.k - 1);
+        const clampedY = Math.max(minTranslateY, Math.min(transform.y, maxTranslateY));
+        zoomTransform = d3.zoomIdentity.translate(transform.x, clampedY).scale(transform.k);
+              updateAxes();
+            });
+            
     d3.select(svgContainer).call(zoom);
     updateAxes();
   }
@@ -207,6 +206,6 @@
     >
       Time (min)
     </text>
-    <g class="y-axis" bind:this={yAxisG} style="display: none;"></g>
+    <g class="y-axis" bind:this={yAxisG}></g>
   </g>
 </svg>
