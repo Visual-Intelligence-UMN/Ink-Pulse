@@ -23,7 +23,7 @@
   function renderChart() {
     d3.select(container).selectAll("svg").remove();
 
-    const processedData = similarityData.map((item, index) => ({
+    const processedData = similarityData.map((item) => ({
       startProgress: item.start_progress * 100,
       endProgress: item.end_progress * 100,
       residual_vector_norm: item.residual_vector_norm * 100,

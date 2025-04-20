@@ -69,10 +69,9 @@
   let loading = true;
   // store to track filter states
   const promptFilterStatus = writable({});
-  const yAxisRange = [0, 100];
   const margin = { top: 20, right: 0, bottom: 30, left: 50 };
   const height = 200;
-  const yScale = d3.scaleLinear().domain(yAxisRange).range([height - margin.top - margin.bottom, 0])
+  let yScale = d3.scaleLinear().domain([0, 100]).range([height - margin.top - margin.bottom, 0])
   let zoomTransforms = {};
 
   function open2close() {
