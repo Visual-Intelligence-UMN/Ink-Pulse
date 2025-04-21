@@ -11,6 +11,7 @@
   import BarChartY from "../components/barChartY.svelte";
   import ZoomoutChart from "../components/zoomoutChart.svelte";
   import * as d3 from "d3";
+  import PatternChartPreview from "../components/patternChartPreview.svelte";
 
   let chartRefs = {};
   function resetZoom(sessionId) {
@@ -19,6 +20,10 @@
 
   let filterButton;
   let collapseButton;
+  let selectionMode = false;
+  let selectedPatterns = {};
+  let showPatternResults = false;
+  let showPatternSearch = false;
 
   onMount(() => {
     if (filterButton) {
@@ -71,29 +76,136 @@
   const promptFilterStatus = writable({});
   const margin = { top: 20, right: 0, bottom: 30, left: 50 };
   const height = 200;
-  let yScale = d3.scaleLinear().domain([0, 100]).range([height - margin.top - margin.bottom, 0])
+  let yScale = d3
+    .scaleLinear()
+    .domain([0, 100])
+    .range([height - margin.top - margin.bottom, 0]);
   let zoomTransforms = {};
 
   function open2close() {
     isOpen = !isOpen;
   }
 
+  function togglePatternSearch() {
+    if (!selectionMode) {
+      selectionMode = true;
+      showPatternSearch = true;
+    } else {
+      closePatternSearch();
+    }
+  }
+
+  function closePatternSearch() {
+    showPatternSearch = false;
+    selectionMode = false;
+
+    Object.keys(selectedPatterns).forEach((sessionId) => {
+      const chartRef = chartRefs[sessionId + "-barChart"];
+      if (chartRef && chartRef.clearSelection) {
+        chartRef.clearSelection();
+      }
+      resetTextHighlighting(sessionId);
+    });
+
+    selectedPatterns = {};
+  }
+
+  function handleSelectionChanged(event) {
+    const { sessionId, range, data } = event.detail;
+
+    selectedPatterns[sessionId] = {
+      range,
+      data,
+      scRange: `${range.sc.min.toFixed(1)} - ${range.sc.max.toFixed(1)}%`,
+      progressRange: `${range.progress.min.toFixed(1)} - ${range.progress.max.toFixed(1)}%`,
+      count: data.length,
+    };
+
+    highlightTextSegments(sessionId, data);
+  }
+
+  function handleSelectionCleared(event) {
+    const { sessionId } = event.detail;
+
+    if (selectedPatterns[sessionId]) {
+      delete selectedPatterns[sessionId];
+    }
+
+    resetTextHighlighting(sessionId);
+  }
+
+  function scrollToSession(sessionId) {
+    const sessionElement = document.getElementById(`summary-${sessionId}`);
+    if (sessionElement) {
+      sessionElement.scrollIntoView({ behavior: "smooth", block: "center" });
+
+      sessionElement.classList.add("highlight-flash");
+      setTimeout(() => {
+        sessionElement.classList.remove("highlight-flash");
+      }, 2000);
+    }
+  }
+
+  function highlightTextSegments(sessionId, selectedData) {
+    const sessionData = $storeSessionData.find(
+      (s) => s.sessionId === sessionId
+    );
+    if (!sessionData || !sessionData.textElements) return;
+
+    const textContainer = document.querySelector(`.text-container`);
+    if (!textContainer) return;
+
+    const textElements = textContainer.querySelectorAll(".text-span");
+
+    textElements.forEach((el) => {
+      el.classList.remove("highlighted-text");
+    });
+
+    const progressRanges = selectedData.map((d) => ({
+      start: d.startProgress,
+      end: d.endProgress,
+    }));
+
+    sessionData.textElements.forEach((element, index) => {
+      if (!element) return;
+
+      const elementProgress = element.progress * 100;
+      if (!elementProgress) return;
+
+      const isInSelectedRange = progressRanges.some(
+        (range) =>
+          elementProgress >= range.start && elementProgress <= range.end
+      );
+
+      if (isInSelectedRange && textElements[index]) {
+        textElements[index].classList.add("highlighted-text");
+      }
+    });
+  }
+
+  function resetTextHighlighting(sessionId) {
+    const textElements = document.querySelectorAll(".text-span");
+    textElements.forEach((element) => {
+      element.classList.remove("highlighted-text");
+    });
+  }
+
   function change2bar() {
     showMulti = !showMulti;
 
     setTimeout(() => {
-       $storeSessionData.forEach((sessionData) => {
-         if (sessionData.summaryData) {
-           updateSessionSummary(
-             sessionData.sessionId,
-             sessionData.summaryData.totalProcessedCharacters,
-             sessionData.summaryData.totalInsertions,
-             sessionData.summaryData.totalDeletions,
-             sessionData.summaryData.totalSuggestions
-           );
-         }
-       });
-     }, 0);
+      $storeSessionData.forEach((sessionData) => {
+        if (sessionData.summaryData) {
+          updateSessionSummary(
+            sessionData.sessionId,
+            sessionData.summaryData.totalProcessedCharacters,
+            sessionData.summaryData.totalInsertions,
+            sessionData.summaryData.totalDeletions,
+            sessionData.summaryData.totalSuggestions
+          );
+        }
+      });
+    }, 0);
   }
 
   function updatePromptFilterStatus() {
@@ -346,7 +458,7 @@
         (item) => item.selected
       );
       loading = true;
-      
+
       if (isCurrentlySelected.length == $storeSessionData.length) {
         loading = false;
       }
@@ -625,7 +737,7 @@
           index: indexOfAct,
         });
       }
-      indexOfAct += 1
+      indexOfAct += 1;
 
       return acc;
     }, []);
@@ -691,16 +803,16 @@
     });
 
     storeSessionData.update((sessions) => {
-       const idx = sessions.findIndex((s) => s.sessionId === sessionId);
-       if (idx !== -1) {
-         sessions[idx].summaryData = {
-           totalProcessedCharacters,
-           totalInsertions,
-           totalDeletions,
-           totalSuggestions,
-         };
-       }
-       return [...sessions];
+      const idx = sessions.findIndex((s) => s.sessionId === sessionId);
+      if (idx !== -1) {
+        sessions[idx].summaryData = {
+          totalProcessedCharacters,
+          totalInsertions,
+          totalDeletions,
+          totalSuggestions,
+        };
+      }
+      return [...sessions];
     });
 
     updateSessionSummary(
@@ -753,9 +865,9 @@
         sessions[idx].chartData = sessions[idx].chartData.map((point) => {
           return {
             ...point,
-            opacity: point.index > d.index? 0.01 : 1
-          }
-        })
+            opacity: point.index > d.index ? 0.01 : 1,
+          };
+        });
         const similarityData = sessions[idx].totalSimilarityData;
         let selectedData = [];
         for (let i = 0; i < similarityData.length; i++) {
@@ -779,7 +891,9 @@
 <div class="App">
   <header class="App-header">
     <nav>
-      <div class={`filter-container ${showFilter ? (isCollapsed ? 'filter-container-close' : '') : ''} ${showFilter ? 'show' : ''}`}>
+      <div
+        class={`filter-container ${showFilter ? (isCollapsed ? "filter-container-close" : "") : ""} ${showFilter ? "show" : ""}`}
+      >
         {#each filterOptions as option}
           <label class="filter-label">
             <span class="checkbox-wrapper">
@@ -825,7 +939,68 @@
         aria-label="Instruction"
         class="material-symbols--info-outline-rounded"
       ></a>
+      <button
+        class="pattern-search-button"
+        class:active={selectionMode}
+        on:click={togglePatternSearch}
+        aria-label="Pattern Search"
+      >
+        <span class="search-icon">🔍</span>
+        {selectionMode ? "Exit Search" : "Pattern Search"}
+      </button>
     </nav>
+    {#if showPatternSearch}
+      <div class="pattern-search-panel">
+        <div class="pattern-panel-header">
+          <h3>Pattern Search</h3>
+          <button class="close-button" on:click={closePatternSearch}>×</button>
+        </div>
+
+        <div class="pattern-panel-content">
+          <div class="pattern-instructions">
+            <p>
+              Select a portion in the chart to identify patterns in writing
+              behavior.
+            </p>
+          </div>
+
+          {#if Object.keys(selectedPatterns).length > 0}
+            <div class="pattern-results-summary">
+              <h4>Selection Results</h4>
+              {#each Object.entries(selectedPatterns) as [sessionId, pattern]}
+                <div class="pattern-item">
+                  <div class="pattern-header">
+                    <h5>Session: {sessionId}</h5>
+                    <button
+                      class="view-pattern-button"
+                      on:click={() => scrollToSession(sessionId)}>View</button
+                    >
+                  </div>
+                  <div class="pattern-details">
+                    <div>Semantic Change: {pattern.scRange}</div>
+                    <div>Progress Range: {pattern.progressRange}</div>
+                    <div>Patterns Found: {pattern.count}</div>
+                  </div>
+
+                  <div class="pattern-chart-preview">
+                    <PatternChartPreview
+                      {sessionId}
+                      data={pattern.data}
+                      selectedRange={pattern.range}
+                    />
+                  </div>
+                </div>
+              {/each}
+            </div>
+          {:else if selectionMode}
+            <div class="no-patterns-selected">
+              <p>No patterns selected.</p>
+            </div>
+          {/if}
+        </div>
+      </div>
+    {/if}
+
     <div class="container">
       {#if isOpen}
         <div class="introduction-background">
@@ -905,23 +1080,33 @@
                       <BarChartY
                         sessionId={sessionData.sessionId}
                         similarityData={sessionData.similarityData}
-                        yScale={yScale}
-                        height={height}
-                        bind:zoomTransform={zoomTransforms[sessionData.sessionId]}
+                        {yScale}
+                        {height}
+                        bind:zoomTransform={
+                          zoomTransforms[sessionData.sessionId]
+                        }
+                        {selectionMode}
+                        on:selectionChanged={handleSelectionChanged}
+                        on:selectionCleared={handleSelectionCleared}
+                        bind:this={
+                          chartRefs[sessionData.sessionId + "-barChart"]
+                        }
                       />
                     {/if}
                     <div>
-                    <LineChart
-                      bind:this={chartRefs[sessionData.sessionId]}
-                      chartData={sessionData.chartData}
-                      paragraphColor={sessionData.paragraphColor}
-                      on:pointSelected={(e) =>
-                        handlePointSelected(e, sessionData.sessionId)}
-                      yScale={yScale}
-                      height={height}
-                      bind:zoomTransform={zoomTransforms[sessionData.sessionId]}
-                    />
-                  </div>
+                      <LineChart
+                        bind:this={chartRefs[sessionData.sessionId]}
+                        chartData={sessionData.chartData}
+                        paragraphColor={sessionData.paragraphColor}
+                        on:pointSelected={(e) =>
+                          handlePointSelected(e, sessionData.sessionId)}
+                        {yScale}
+                        {height}
+                        bind:zoomTransform={
+                          zoomTransforms[sessionData.sessionId]
+                        }
+                      />
+                    </div>
                   </div>
                   <button
                     on:click={() => resetZoom(sessionData.sessionId)}
@@ -1654,5 +1839,161 @@
     mask-repeat: no-repeat;
     -webkit-mask-size: 100% 100%;
     mask-size: 100% 100%;
+  }
+
+  .pattern-search-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background-color: #4285f4;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-weight: 500;
+  }
+
+  .pattern-search-button.active {
+    background-color: #ea4335;
+  }
+
+  .pattern-search-button:hover {
+    opacity: 0.9;
+  }
+
+  .search-icon {
+    font-size: 16px;
+  }
+
+  .pattern-search-panel {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    width: 380px;
+    max-height: calc(100vh - 100px);
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    overflow: auto;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pattern-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+  }
+
+  .pattern-panel-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #202124;
+  }
+
+  .pattern-panel-content {
+    padding: 16px;
+    overflow-y: auto;
+  }
+
+  .pattern-instructions {
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #e0e0e0;
+    color: #5f6368;
+    font-size: 14px;
+  }
+
+  .pattern-results-summary h4 {
+    margin: 0 0 12px 0;
+    font-size: 15px;
+    color: #202124;
+  }
+
+  .pattern-item {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .pattern-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .pattern-header h5 {
+    margin: 0;
+    font-size: 14px;
+    color: #202124;
+  }
+
+  .view-pattern-button {
+    padding: 4px 10px;
+    background-color: #4285f4;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+
+  .pattern-details {
+    font-size: 13px;
+    color: #5f6368;
+    margin-bottom: 10px;
+  }
+
+  .pattern-chart-preview {
+    height: 120px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin-top: 10px;
+    background-color: white;
+  }
+
+  .close-button {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #5f6368;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+  }
+
+  .close-button:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .no-patterns-selected {
+    color: #5f6368;
+    font-size: 14px;
+    padding: 16px;
+    text-align: center;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+  }
+
+  .highlighted-text {
+    background-color: #ffeb3b;
+    padding: 0 1px;
+    border-radius: 2px;
   }
 </style>
