@@ -43,8 +43,6 @@
       endTime: d.endTime,
     }));
 
-    console.log("Gayu", processedData);
-
     const margin = { top: 10, right: 5, bottom: 25, left: 40 };
     const chartWidth = container.clientWidth - margin.left - margin.right;
     const chartHeight = container.clientHeight - margin.top - margin.bottom;
@@ -63,8 +61,7 @@
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
     const xScale = d3.scaleLinear().domain([100, 0]).range([0, chartWidth]);
-    const newyScale = zoomTransform.rescaleY(yScale.copy());
-
+    const newyScale = d3.scaleLinear().domain([0, 100]).range([chartHeight, 0]);
 
     svg
       .append("defs")

@@ -21,6 +21,9 @@
     if (similarityData && container) {
       renderChart();
     }
+    if (brush && brushGroup) {
+      brushGroup.call(brush);
+    }
   });
 
   $: if (similarityData && container && zoomTransform !== d3.zoomIdentity) {
