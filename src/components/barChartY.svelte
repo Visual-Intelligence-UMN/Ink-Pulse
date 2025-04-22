@@ -21,6 +21,9 @@
     if (similarityData && container) {
       renderChart();
     }
+    if (brush && brushGroup) {
+      brushGroup.call(brush);
+    }
   });
 
   $: if (similarityData && container && zoomTransform !== d3.zoomIdentity) {
@@ -178,14 +181,14 @@
 
       const scMin = xScale.invert(x1);
       const scMax = xScale.invert(x0);
-      const progressMin = yScale.invert(y1);
-      const progressMax = yScale.invert(y0);
+      const progressMin = newyScale.invert(y1);
+      const progressMax = newyScale.invert(y0);
 
       const filteredData = processedData.filter((d) => {
         const barX = xScale(d.residual_vector_norm);
-        const barY = yScale(d.endProgress);
+        const barY = newyScale(d.endProgress);
         const barWidth = xScale(0) - xScale(d.residual_vector_norm);
-        const barHeight = yScale(d.startProgress) - yScale(d.endProgress);
+        const barHeight = newyScale(d.startProgress) - newyScale(d.endProgress);
 
         return (
           barX + barWidth >= x0 &&

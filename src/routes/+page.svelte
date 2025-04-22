@@ -933,12 +933,6 @@
         aria-label="Change2Bar"
         class="material-symbols--restart-alt-rounded"
       ></a>
-      <a
-        on:click={open2close}
-        href=" "
-        aria-label="Instruction"
-        class="material-symbols--info-outline-rounded"
-      ></a>
       <button
         class="pattern-search-button"
         class:active={selectionMode}
@@ -948,6 +942,12 @@
         <span class="search-icon">🔍</span>
         {selectionMode ? "Exit Search" : "Pattern Search"}
       </button>
+      <a
+        on:click={open2close}
+        href=" "
+        aria-label="Instruction"
+        class="material-symbols--info-outline-rounded"
+      ></a>
     </nav>
     {#if showPatternSearch}
       <div class="pattern-search-panel">
@@ -987,6 +987,10 @@
                       {sessionId}
                       data={pattern.data}
                       selectedRange={pattern.range}
+                      yScale={yScale}
+                      bind:zoomTransform={
+                        zoomTransforms[sessionId]
+                      }
                     />
                   </div>
                 </div>
@@ -1548,7 +1552,7 @@
   }
 
   .material-symbols--info-outline-rounded {
-    display: inline-block;
+    display: flex;
     width: 24px;
     height: 24px;
     --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11t-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8t-.288-.712T12 7t-.712.288T11 8t.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12t-2.325-5.675T12 4T6.325 6.325T4 12t2.325 5.675T12 20m0-8'/%3E%3C/svg%3E");
@@ -1560,6 +1564,7 @@
     -webkit-mask-size: 100% 100%;
     mask-size: 100% 100%;
     margin-left: auto;
+    margin-left: 10px;
   }
 
   .material-symbols--filter-alt-outline {
@@ -1845,14 +1850,15 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 16px;
-    background-color: #4285f4;
+    padding: 4px 16px;
+    background-color: #137a7f;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s;
     font-weight: 500;
+    margin-left: auto;
   }
 
   .pattern-search-button.active {
@@ -1940,7 +1946,7 @@
 
   .view-pattern-button {
     padding: 4px 10px;
-    background-color: #4285f4;
+    background-color: #137a7f;
     color: white;
     border: none;
     border-radius: 4px;
