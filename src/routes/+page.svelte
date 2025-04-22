@@ -987,6 +987,10 @@
                       {sessionId}
                       data={pattern.data}
                       selectedRange={pattern.range}
+                      yScale={yScale}
+                      bind:zoomTransform={
+                        zoomTransforms[sessionId]
+                      }
                     />
                   </div>
                 </div>
