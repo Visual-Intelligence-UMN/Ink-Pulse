@@ -21,9 +21,6 @@
     if (similarityData && container) {
       renderChart();
     }
-    if (brush && brushGroup) {
-      brushGroup.call(brush);
-    }
   });
 
   $: if (similarityData && container || zoomTransform !== d3.zoomIdentity) {
@@ -219,19 +216,21 @@
             (fd) =>
               fd.startProgress === d.startProgress &&
               fd.endProgress === d.endProgress &&
-              fd.residual_vector_norm === d.residual_vector_norm
+              fd.residual_vector_norm === d.residual_vector_norm &&
+              fd.max_norm_vector === d.max_norm_vector
           );
           return isSelected ? 0.9 : 0.2;
         })
-        .attr("stroke-width", (d) => {
-          const isSelected = filteredData.some(
-            (fd) =>
-              fd.startProgress === d.startProgress &&
-              fd.endProgress === d.endProgress &&
-              fd.residual_vector_norm === d.residual_vector_norm
-          );
-          return isSelected ? 2 : 0.5;
-        });
+        // .attr("stroke-width", (d) => {
+        //   const isSelected = filteredData.some(
+        //     (fd) =>
+        //       fd.startProgress === d.startProgress &&
+        //       fd.endProgress === d.endProgress &&
+        //       fd.residual_vector_norm === d.residual_vector_norm &&
+        //       fd.max_norm_vector === d.max_norm_vector
+        //   );
+        //   return isSelected ? 0.1 : 0.1;
+        // });
     }
 
     if (!selectionMode) {

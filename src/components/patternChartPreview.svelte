@@ -5,6 +5,8 @@
   export let sessionId;
   export let data;
   export let selectedRange;
+  export let yScale;
+  export let zoomTransform = d3.zoomIdentity;
 
   let container;
   let prevSelectedRange;
@@ -35,11 +37,11 @@
     const processedData = data.map((d) => ({
       startProgress: d.startProgress,
       endProgress: d.endProgress,
-      residual_vector_norm: d.dissimilarity || d.residual_vector_norm,
+      residual_vector_norm: d.residual_vector_norm,
       source: d.source,
-      startTime: d.startTime,
-      endTime: d.endTime,
+      max_norm_vector: d.max_norm_vector,
     }));
+    const max_norm_vector = processedData[0].max_norm_vector
 
     const margin = { top: 10, right: 5, bottom: 25, left: 40 };
     const chartWidth = container.clientWidth - margin.left - margin.right;
@@ -58,8 +60,8 @@
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-    const xScale = d3.scaleLinear().domain([100, 0]).range([0, chartWidth]);
-    const newyScale = d3.scaleLinear().domain([0, 100]).range([chartHeight, 0]);
+    const xScale = d3.scaleLinear().domain([max_norm_vector, 0]).range([0, chartWidth]);
+    const newyScale = d3.scaleLinear().domain([100, 0]).range([0, chartHeight]);
 
     svg
       .append("defs")
@@ -74,7 +76,7 @@
     svg
       .append("g")
       .attr("transform", `translate(0, ${chartHeight})`)
-      .call(d3.axisBottom(xScale).ticks(3))
+      .call(d3.axisBottom(xScale).ticks(0))
       .append("text")
       .attr("x", chartWidth / 2)
       .attr("y", 20)
@@ -85,7 +87,7 @@
 
     svg
       .append("g")
-      .call(d3.axisLeft(newyScale).ticks(3))
+      .call(d3.axisLeft(newyScale).ticks(5))
       .append("text")
       .attr("transform", "rotate(-90)")
       .attr("y", -25)
@@ -107,7 +109,7 @@
       .attr("height", (d) => newyScale(d.startProgress) - newyScale(d.endProgress))
       .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
-      .attr("stroke-width", 0.5)
+      .attr("stroke-width", 0.1)
       .attr("opacity", 0.5)
       .attr("clip-path", `url(#clip_bar_preview_${sessionId})`);
 
@@ -123,7 +125,7 @@
         .attr("height", newyScale(progress.min) - newyScale(progress.max))
         .attr("fill", "none")
         .attr("stroke", "#000")
-        .attr("stroke-width", 1)
+        .attr("stroke-width", 0.1)
         .attr("stroke-dasharray", "3,3")
         .attr("pointer-events", "none");
 
@@ -141,19 +143,19 @@
 
           return isSelected ? 0.9 : 0.2;
         })
-        .attr("stroke-width", (d) => {
-          const isSelected =
-            d.residual_vector_norm >= sc.min &&
-            d.residual_vector_norm <= sc.max &&
-            ((d.startProgress >= progress.min &&
-              d.startProgress <= progress.max) ||
-              (d.endProgress >= progress.min &&
-                d.endProgress <= progress.max) ||
-              (d.startProgress <= progress.min &&
-                d.endProgress >= progress.max));
+        // .attr("stroke-width", (d) => {
+        //   const isSelected =
+        //     d.residual_vector_norm >= sc.min &&
+        //     d.residual_vector_norm <= sc.max &&
+        //     ((d.startProgress >= progress.min &&
+        //       d.startProgress <= progress.max) ||
+        //       (d.endProgress >= progress.min &&
+        //         d.endProgress <= progress.max) ||
+        //       (d.startProgress <= progress.min &&
+        //         d.endProgress >= progress.max));
 
-          return isSelected ? 2 : 0.5;
-        });
+        //   return isSelected ? 0.1 : 0.1;
+        // });
     }
   }
 </script>
