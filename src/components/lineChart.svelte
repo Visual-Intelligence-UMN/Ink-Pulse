@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher, afterUpdate } from "svelte";
+  import { createEventDispatcher, afterUpdate, onMount } from "svelte";
   import * as d3 from "d3";
 
   export let chartData: any[] = [];
@@ -60,6 +60,14 @@
 
     d3.select(xAxisG).call(xAxis);
     d3.select(yAxisG).call(yAxis);
+    d3.select(xAxisG).call(xAxis);
+
+    const ticks = d3.select(xAxisG).selectAll(".tick text");
+    ticks
+      .filter((_, i) => i === 0)
+      .attr("text-anchor", "start")
+      .attr("dx", "0.01em");
+
   }
 
   function initChart() {
@@ -206,6 +214,6 @@
     >
       Time (min)
     </text>
-    <g class="y-axis" bind:this={yAxisG}></g>
+    <g class="y-axis" bind:this={yAxisG} style="display: none"></g>
   </g>
 </svg>

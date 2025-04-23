@@ -385,12 +385,12 @@
       time100 = (time100 - time0) / (1000 * 60);
       currentTime = time100;
 
-      const progressElement = document.querySelector("progress");
-      if (progressElement) {
-        // at first let the max time = end time, the init time = end time
-        progressElement.max = time100;
-        progressElement.value = currentTime;
-      }
+      // const progressElement = document.querySelector("progress");
+      // if (progressElement) {
+      //   // at first let the max time = end time, the init time = end time
+      //   progressElement.max = time100;
+      //   progressElement.value = currentTime;
+      // }
 
       dataDict = data;
       let sessionData = {
@@ -419,7 +419,7 @@
         return [...sessions];
       });
 
-      await tick();
+      // await tick();
 
       const { chartData, textElements, paragraphColor } = handleEvents(
         data,
@@ -437,7 +437,7 @@
         return [...sessions];
       });
 
-      await tick();
+      // await tick();
 
       fetchSimilarityData(sessionFile).then((similarityData) => {
         if (similarityData) {
@@ -565,7 +565,6 @@
     let nowSelectTag = new Set(
       $filterTableData.filter((f) => f.selected).map((f) => f.prompt_code)
     );
-    console.log(nowSelectTag);
     selectedTags.update((selected) => {
       selected = selected.filter((tag) => nowSelectTag.has(tag));
       return selected;
@@ -1122,7 +1121,7 @@
                   <progress
                     value={sessionData?.currentTime || 0}
                     max={sessionData?.time100 || 1}
-                  ></progress>
+                  />
                 </div>
                 <div class="scale-container">
                   <div class="scale" id="scale"></div>
