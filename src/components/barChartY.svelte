@@ -26,7 +26,7 @@
     }
   });
 
-  $: if (similarityData && container && zoomTransform !== d3.zoomIdentity) {
+  $: if (similarityData && container || zoomTransform !== d3.zoomIdentity) {
     renderChart();
   }
 
@@ -67,12 +67,11 @@
     const processedData = similarityData.map((item) => ({
       startProgress: item.start_progress * 100,
       endProgress: item.end_progress * 100,
-      residual_vector_norm: item.residual_vector_norm * 100,
+      residual_vector_norm: item.norm_vector,
       source: item.source,
-      startTime: item.start_time / 60, // Convert to minutes
-      endTime: item.end_time / 60, // Convert to minutes
-      dissimilarity: item.residual_vector_norm * 100,
+      max_norm_vector: item.max_norm_vector,
     }));
+    const max_norm_vector = processedData[0].max_norm_vector
 
     const margin = { top: 20, right: 0, bottom: 30, left: 50 };
     const chartWidth = width - margin.left - margin.right;
@@ -92,7 +91,7 @@
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-    const xScale = d3.scaleLinear().domain([100, 0]).range([0, chartWidth]);
+    const xScale = d3.scaleLinear().domain([max_norm_vector, 0]).range([0, chartWidth]);
     const newyScale = zoomTransform.rescaleY(yScale.copy());
 
     svg
@@ -108,7 +107,7 @@
     svg
       .append("g")
       .attr("transform", `translate(0, ${chartHeight})`)
-      .call(d3.axisBottom(xScale).ticks(5))
+      .call(d3.axisBottom(xScale).ticks(0))
       .append("text")
       .attr("x", chartWidth / 2)
       .attr("y", 25)
@@ -144,7 +143,6 @@
       )
       .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
-      .attr("stroke-width", 1)
       .attr("opacity", 0.5)
       .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke-width", 0.1)
@@ -211,7 +209,7 @@
     }
 
     function resetBars() {
-      bars.attr("opacity", 0.5).attr("stroke-width", 1);
+      bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
     }
 
     function highlightBars(filteredData) {

@@ -5,8 +5,6 @@
   export let sessionId;
   export let data;
   export let selectedRange;
-  export let yScale;
-  export let zoomTransform = d3.zoomIdentity;
 
   let container;
   let prevSelectedRange;
