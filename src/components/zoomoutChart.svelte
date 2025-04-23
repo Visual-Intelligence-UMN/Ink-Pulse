@@ -1,4 +1,5 @@
 <script lang="ts">
+  import BarChartY from "./barChartY.svelte";
   export let chartData: any[] = [];
   export let sessionId;
   export let sessionTopic;

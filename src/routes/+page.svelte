@@ -1025,7 +1025,8 @@
           </div>
         </div>
       {/if}
-      {#if showMulti && $storeSessionData.length > 0}
+      <div class:hide={!showMulti}>
+      {#if $storeSessionData.length > 0}
         {#if loading}
           <div class="loading"></div>
           <div class="line-md--loading-twotone-loop"></div>
@@ -1179,8 +1180,9 @@
         </div>
       {/if}
     </div>
-
-    {#if !showMulti && $storeSessionData.length > 0}
+    </div>
+    <div class:hide={showMulti}>
+    {#if $storeSessionData.length > 0}
       {#each $storeSessionData as sessionData (sessionData.sessionId)}
         <div class="zoomout-chart">
           <ZoomoutChart
@@ -1194,6 +1196,7 @@
         </div>
       {/each}
     {/if}
+    </div>
 
     <div class="table" class:collapsed={isCollapsed}>
       <table>
@@ -1996,5 +1999,9 @@
     background-color: #ffeb3b;
     padding: 0 1px;
     border-radius: 2px;
+  }
+
+  .hide {
+    display: none;
   }
 </style>
