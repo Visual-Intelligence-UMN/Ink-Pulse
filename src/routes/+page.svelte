@@ -986,6 +986,11 @@
                       {sessionId}
                       data={pattern.data}
                       selectedRange={pattern.range}
+                      yScale={yScale}
+                      bind:zoomTransform={
+                        zoomTransforms[sessionId]
+                      }
+                      bind:this={chartRefs[sessionId]}
                     />
                   </div>
                 </div>
@@ -1025,7 +1030,8 @@
           </div>
         </div>
       {/if}
-      {#if showMulti && $storeSessionData.length > 0}
+      <div class:hide={!showMulti}>
+      {#if $storeSessionData.length > 0}
         {#if loading}
           <div class="loading"></div>
           <div class="line-md--loading-twotone-loop"></div>
@@ -1179,21 +1185,26 @@
         </div>
       {/if}
     </div>
-
-    {#if !showMulti && $storeSessionData.length > 0}
+    </div>
+    <div class:hide={showMulti}>
+    {#if $storeSessionData.length > 0}
       {#each $storeSessionData as sessionData (sessionData.sessionId)}
         <div class="zoomout-chart">
-          <ZoomoutChart
+          <!-- <ZoomoutChart
             bind:this={chartRefs[sessionData.sessionId]}
             chartData={sessionData.chartData}
             sessionId={sessionData.sessionId}
             sessionTopic={sessions.find(
               (s) => s.session_id === sessionData.sessionId
             ).prompt_code}
-          />
+            yScale={yScale}
+            similarityData={sessionData.similarityData}
+            {height}
+          /> -->
         </div>
       {/each}
     {/if}
+    </div>
 
     <div class="table" class:collapsed={isCollapsed}>
       <table>
@@ -1996,5 +2007,9 @@
     background-color: #ffeb3b;
     padding: 0 1px;
     border-radius: 2px;
+  }
+
+  .hide {
+    display: none;
   }
 </style>
