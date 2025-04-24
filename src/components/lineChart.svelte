@@ -146,31 +146,33 @@
             fill={d.backgroundColor}
           />
         {/each}
-
+      </g>
+    
+      <g>
         {#each chartData.filter((d) => !d.isSuggestionOpen) as d (d.index)}
           <circle
-            cx={scaledX(d.time)}
-            cy={scaledY(d.percentage)}
+            cx={zoomTransform.applyX(scaledX(d.time))}
+            cy={zoomTransform.applyY(scaledY(d.percentage))}
             r={selectedPoint?.index === d.index ? 5 : hoveredPoint?.index === d.index ? 5 : 2}
             fill={d.color}
-            opacity={selectedPoint === d || hoveredPoint === d? 1 : d.opacity}
+            opacity={selectedPoint === d || hoveredPoint === d ? 1 : d.opacity}
             on:click={() => handlePointClick(d)}
             on:mouseover={() => (hoveredPoint = d)}
             on:mouseout={() => (hoveredPoint = null)}
             style="cursor: pointer;"
           />
         {/each}
-
+  
         {#each chartData.filter((d) => d.isSuggestionOpen) as d}
           <path
             d={d3.symbol().type(d3.symbolTriangle).size(40)()}
             fill="#FFBBCC"
             opacity={d.opacity + 0.29}
-            transform={`translate(${scaledX(d.time)},${scaledY(d.percentage + 6)}) rotate(180)`}
+            transform={`translate(${zoomTransform.applyX(scaledX(d.time))},${zoomTransform.applyY(scaledY(d.percentage + 6))}) rotate(180)`}
           />
         {/each}
-      </g>
     </g>
+  </g>
 
     <g clip-path="url(#clip-text)">
       {#if paragraphColor.length < 10}
@@ -200,6 +202,7 @@
         {/each}
       {/if}
     </g>
+
     <g
       class="x-axis"
       transform={`translate(0, ${height - margin.top - margin.bottom})`}
