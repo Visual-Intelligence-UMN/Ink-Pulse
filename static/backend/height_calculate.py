@@ -28,12 +28,12 @@ def read_file(file_path):
 
 def process_files(base_path):
     for filename in os.listdir(base_path):
-        if filename.endswith('.jsonl'):
+        if filename.endswith('.json'):
             file_path = os.path.join(base_path, filename)
             read_file(file_path)
             print(f"Updated height in file: {filename}")
 
 script_dir = os.path.dirname(os.path.abspath(__file__)) 
 static_dir = os.path.dirname(script_dir)
-json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-json")
+json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/similarity_results")
 process_files(json_path)

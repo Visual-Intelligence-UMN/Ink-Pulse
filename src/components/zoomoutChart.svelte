@@ -2,8 +2,8 @@
   import { onMount } from "svelte";
   import * as d3 from "d3";
   export let similarityData;
-  export let width = 150;
-  export let height;
+  export let width = 50;
+  let height = 150;
   export let yScale;
 
   let container;
@@ -12,8 +12,6 @@
 
   export let sessionId;
   export let sessionTopic;
-  const boxWidth = 0.1;
-  const boxHeight = 10;
 
   onMount(() => {
     if (similarityData && container) {
@@ -36,8 +34,7 @@
       max_norm_vector: item.max_norm_vector,
     }));
     const max_norm_vector = processedData[0].max_norm_vector
-
-    const margin = { top: 20, right: 0, bottom: 30, left: 50 };
+    const margin = { top: 0, right: 0, bottom: 0, left: 0 };
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
 
@@ -71,26 +68,26 @@
     svg
       .append("g")
       .attr("transform", `translate(0, ${chartHeight})`)
-      .call(d3.axisBottom(xScale).ticks(0))
+      // .call(d3.axisBottom(xScale).ticks(3))
       .append("text")
       .attr("x", chartWidth / 2)
       .attr("y", 25)
-      .attr("fill", "black")
-      .attr("text-anchor", "middle")
-      .style("font-size", "10px")
-      .text("Semantic Change (%)");
+      // .attr("fill", "black")
+      // .attr("text-anchor", "middle")
+      // .style("font-size", "10px")
+      // .text("Semantic Change (%)");
 
     svg
       .append("g")
-      .call(d3.axisLeft(newyScale).ticks(5))
+      // .call(d3.axisLeft(newyScale).ticks(3))
       .append("text")
       .attr("transform", "rotate(-90)")
       .attr("y", -35)
       .attr("x", -chartHeight / 2)
-      .attr("fill", "black")
-      .attr("text-anchor", "middle")
-      .style("font-size", "10px")
-      .text("Progress(%)");
+      // .attr("fill", "black")
+      // .attr("text-anchor", "middle")
+      // .style("font-size", "10px")
+      // .text("Progress(%)");
 
     bars = svg
       .selectAll(".bar")
@@ -114,18 +111,25 @@
   }
 </script>
     
-<svg>
-  <text
-      x={boxWidth}
-      y={boxHeight + 10}
-      font-size=12px
-      font-family="Poppins, sans-serif"
-  >{sessionTopic}-{sessionId}</text>
-  <div bind:this={container} data-session-id={sessionId}></div>
-</svg>
+<div class="chart-container">
+  <div class="session-label">
+    {sessionTopic} - {sessionId}
+  </div>
+  <div bind:this={container} data-session-id={sessionId} style="transform: rotate(90deg)"></div>
+</div>
 
 <style>
-  div {
-    position: relative;
+  .session-label {
+    width: 400px;
+    font-size: 12px;
+    font-family: "Poppins", sans-serif;
+    margin-top: 35px;
+  }
+
+  .chart-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
   }
 </style>
