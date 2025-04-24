@@ -12,6 +12,7 @@
   import ZoomoutChart from "../components/zoomoutChart.svelte";
   import * as d3 from "d3";
   import PatternChartPreview from "../components/patternChartPreview.svelte";
+  import SkeletonLoading from "../components/skeletonLoading.svelte";
 
   let chartRefs = {};
   function resetZoom(sessionId) {
@@ -1032,11 +1033,12 @@
       {/if}
       <div class:hide={!showMulti}>
       {#if $storeSessionData.length > 0}
-        {#if loading}
+        <!-- {#if loading}
           <div class="loading"></div>
           <div class="line-md--loading-twotone-loop"></div>
-        {/if}
+        {/if} -->
         <div class="multi-box">
+          <!-- <SkeletonLoading/> -->
           {#each $storeSessionData as sessionData (sessionData.sessionId)}
             <div class="display-box">
               <div class="content-box">
