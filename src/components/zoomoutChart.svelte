@@ -34,6 +34,11 @@
       max_norm_vector: item.max_norm_vector,
     }));
     const max_norm_vector = processedData[0].max_norm_vector
+    const min_norm_vector = d3.min(processedData, d => d.residual_vector_norm);
+    const opacityScale = d3.scaleLinear()
+      .domain([min_norm_vector, max_norm_vector])
+      .range([0.2, 1]);
+
     const margin = { top: 0, right: 0, bottom: 0, left: 0 };
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
@@ -104,7 +109,7 @@
       )
       .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
-      .attr("opacity", 0.5)
+      .attr("opacity", (d) => opacityScale(d.residual_vector_norm))
       .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke-width", 0.1)
       .attr("clip-path", "url(#clip_bar)");
