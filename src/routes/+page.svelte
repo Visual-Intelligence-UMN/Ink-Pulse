@@ -1190,17 +1190,15 @@
     {#if $storeSessionData.length > 0}
       {#each $storeSessionData as sessionData (sessionData.sessionId)}
         <div class="zoomout-chart">
-          <!-- <ZoomoutChart
+          <ZoomoutChart
             bind:this={chartRefs[sessionData.sessionId]}
-            chartData={sessionData.chartData}
             sessionId={sessionData.sessionId}
             sessionTopic={sessions.find(
               (s) => s.session_id === sessionData.sessionId
             ).prompt_code}
             yScale={yScale}
             similarityData={sessionData.similarityData}
-            {height}
-          /> -->
+          />
         </div>
       {/each}
     {/if}
@@ -1802,8 +1800,10 @@
   }
 
   .zoomout-chart {
+    display: flex;
     margin-left: 300px;
     height: 30px;
+    margin-bottom: 30px;
   }
 
   .loading {
