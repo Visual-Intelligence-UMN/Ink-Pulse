@@ -1193,7 +1193,7 @@
       {/if}
     </div>
     </div>
-    <div class:hide={showMulti}>
+    <div class:hide={showMulti} style="margin-top: 100px;">
     {#if $storeSessionData.length > 0}
       {#each $storeSessionData as sessionData (sessionData.sessionId)}
         <div class="zoomout-chart">
