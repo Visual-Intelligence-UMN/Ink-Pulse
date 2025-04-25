@@ -1,46 +1,47 @@
 <script>
-    function Random() {
-        const min = 50;
-        const max = 100;
-        return `${Math.floor(Math.random() * (max - min + 1)) + min}%`;
-    }
+  function Random() {
+      const min = 50;
+      const max = 100;
+      return `${Math.floor(Math.random() * (max - min + 1)) + min}%`;
+  }
 
   let skeletonWidths = Array.from({ length: 14 }, () => Random());
   
 </script>
-
-<div class="display-box">
-    <div class="content-box">
-        <div class="session-identifier">
-            <div class="skeleton-line" style="width: 80%;"></div>
-        </div>
-        <div>
-            <div class="skeleton-line" style="width: 30%; margin-top: 20px"></div>
-        <div class="summary-container">
-            <div class="skeleton-line" style="width: 90%;"></div>
-        </div>
-        </div>
-        <div class="chart-container">
-        <div class="chart-wrapper">
-            <div class="skeleton-line" style="width: 120px; height: 170px; margin-left: 40px"></div>
-            <div class="skeleton-line" style="width: 300px; height: 170px; margin-left: 2px"></div>
-        </div>
-            <div class="skeleton-line" style="margin: 0 auto; width: 15%; height: 25px"></div>
-        </div>
-    </div>
-    <div class="content-box">
-        <div class="progress-container">
-            <div class="skeleton-line" style="height: 1.3rem; border-radius: 12px;"></div>
-        </div>
-        <div class="scale-container">
-        <div class="scale" id="scale"></div>
-        </div>
-        <div class="text-container">
-            {#each skeletonWidths as width}
-                <div class="skeleton-line" style="width: {width}; margin-bottom: 8px"></div>
-            {/each}
-        </div>
-    </div>
+<div>
+  <div class="display-box">
+      <div class="content-box">
+          <div class="session-identifier">
+              <div class="skeleton-line" style="width: 80%;"></div>
+          </div>
+          <div>
+              <div class="skeleton-line" style="width: 30%; margin-top: 20px"></div>
+          <div class="summary-container">
+              <div class="skeleton-line" style="width: 90%;"></div>
+          </div>
+          </div>
+          <div class="chart-container">
+          <div class="chart-wrapper">
+              <div class="skeleton-line" style="width: 120px; height: 170px; margin-left: 40px"></div>
+              <div class="skeleton-line" style="width: 300px; height: 170px; margin-left: 2px"></div>
+          </div>
+              <div class="skeleton-line" style="margin: 0 auto; width: 15%; height: 25px"></div>
+          </div>
+      </div>
+      <div class="content-box">
+          <div class="progress-container">
+              <div class="skeleton-line" style="height: 1.3rem; border-radius: 12px;"></div>
+          </div>
+          <div class="scale-container">
+          <div class="scale" id="scale"></div>
+          </div>
+          <div class="text-container">
+              {#each skeletonWidths as width}
+                  <div class="skeleton-line" style="width: {width}; margin-bottom: 8px"></div>
+              {/each}
+          </div>
+      </div>
+  </div>
 </div>
 
 <style>

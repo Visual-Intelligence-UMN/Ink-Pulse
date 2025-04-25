@@ -20,6 +20,7 @@
   onMount(() => {
     if (similarityData && container) {
       renderChart();
+      dispatch('chartLoaded', sessionId);
     }
   });
 

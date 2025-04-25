@@ -67,7 +67,6 @@
       .filter((_, i) => i === 0)
       .attr("text-anchor", "start")
       .attr("dx", "0.01em");
-
   }
 
   function initChart() {

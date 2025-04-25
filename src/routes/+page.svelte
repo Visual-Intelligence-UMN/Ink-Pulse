@@ -72,7 +72,6 @@
   let firstSession = true;
   export const filterTableData = writable([]);
   let isCollapsed = false;
-  let loading = true;
   // store to track filter states
   const promptFilterStatus = writable({});
   const margin = { top: 20, right: 0, bottom: 30, left: 50 };
@@ -82,6 +81,28 @@
     .domain([0, 100])
     .range([height - margin.top - margin.bottom, 0]);
   let zoomTransforms = {};
+
+  let loadedMap = {
+    "e4611bd31b794677b02c52d5700b2e38": false,
+    "233f1efcf0274acba92f46bf2f8766d2": false,
+  };
+  function syncLoadedMap(currentMap, sessionList) {
+    const newMap = { ...currentMap };
+    for (const s of sessionList) {
+      if (!(s.sessionId in newMap)) {
+        newMap[s.sessionId] = false;
+      }
+    }
+    return newMap;
+  }
+  $: loadedMap = syncLoadedMap(loadedMap, $storeSessionData);
+  function handleChartLoaded(event) {
+    const sessionId = event.detail;
+    loadedMap = {
+      ...loadedMap,
+      [sessionId]: true
+    };
+  }
 
   function open2close() {
     isOpen = !isOpen;
@@ -386,13 +407,6 @@
       time100 = (time100 - time0) / (1000 * 60);
       currentTime = time100;
 
-      // const progressElement = document.querySelector("progress");
-      // if (progressElement) {
-      //   // at first let the max time = end time, the init time = end time
-      //   progressElement.max = time100;
-      //   progressElement.value = currentTime;
-      // }
-
       dataDict = data;
       let sessionData = {
         sessionId: sessionFile,
@@ -420,8 +434,6 @@
         return [...sessions];
       });
 
-      // await tick();
-
       const { chartData, textElements, paragraphColor } = handleEvents(
         data,
         sessionFile
@@ -438,8 +450,6 @@
         return [...sessions];
       });
 
-      // await tick();
-
       fetchSimilarityData(sessionFile).then((similarityData) => {
         if (similarityData) {
           storeSessionData.update((sessions) => {
@@ -454,15 +464,6 @@
           });
         }
       });
-
-      let isCurrentlySelected = $filterTableData.filter(
-        (item) => item.selected
-      );
-      loading = true;
-
-      if (isCurrentlySelected.length == $storeSessionData.length) {
-        loading = false;
-      }
     } catch (error) {
       console.error("Error when reading the data file:", error);
     }
@@ -1005,7 +1006,6 @@
         </div>
       </div>
     {/if}
-
     <div class="container">
       {#if isOpen}
         <div class="introduction-background">
@@ -1038,8 +1038,11 @@
           <div class="line-md--loading-twotone-loop"></div>
         {/if} -->
         <div class="multi-box">
-          <!-- <SkeletonLoading/> -->
           {#each $storeSessionData as sessionData (sessionData.sessionId)}
+          {#if !loadedMap[sessionData.sessionId]}
+              <SkeletonLoading />
+          {/if}
+          <div class:hide={!loadedMap[sessionData.sessionId]}>
             <div class="display-box">
               <div class="content-box">
                 <div class="session-identifier">
@@ -1098,6 +1101,7 @@
                         bind:this={
                           chartRefs[sessionData.sessionId + "-barChart"]
                         }
+                        on:chartLoaded={handleChartLoaded}
                       />
                     {/if}
                     <div>
@@ -1183,6 +1187,7 @@
                 </div>
               </div>
             </div>
+          </div>
           {/each}
         </div>
       {/if}
@@ -1284,9 +1289,9 @@
   }
 
   .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    /* display: flex; */
+    /* justify-content: space-between; */
+    /* align-items: flex-start; */
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
