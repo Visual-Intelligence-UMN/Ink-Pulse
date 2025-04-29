@@ -83,7 +83,7 @@
   let zoomTransforms = {};
 
   let loadedMap = {
-    "e4611bd31b794677b02c52d5700b2e38": false,
+    e4611bd31b794677b02c52d5700b2e38: false,
     "233f1efcf0274acba92f46bf2f8766d2": false,
   };
   function syncLoadedMap(currentMap, sessionList) {
@@ -100,7 +100,7 @@
     const sessionId = event.detail;
     loadedMap = {
       ...loadedMap,
-      [sessionId]: true
+      [sessionId]: true,
     };
   }
 
@@ -115,6 +115,13 @@
     } else {
       closePatternSearch();
     }
+  }
+
+  function deletePattern(sessionId) {
+    const newSelectedPatterns = { ...selectedPatterns };
+    delete newSelectedPatterns[sessionId];
+
+    selectedPatterns = newSelectedPatterns;
   }
 
   function closePatternSearch() {
@@ -972,26 +979,31 @@
                 <div class="pattern-item">
                   <div class="pattern-header">
                     <h5>Session: {sessionId}</h5>
-                    <button
-                      class="view-pattern-button"
-                      on:click={() => scrollToSession(sessionId)}>View</button
-                    >
+                    <div class="pattern-buttons">
+                      <button
+                        class="view-pattern-button"
+                        on:click={() => scrollToSession(sessionId)}>View</button
+                      >
+                      <button
+                        class="delete-pattern-button"
+                        on:click={() => deletePattern(sessionId)}>Delete</button
+                      >
+                    </div>
                   </div>
+
                   <div class="pattern-details">
                     <div>Semantic Change: {pattern.scRange}</div>
                     <div>Progress Range: {pattern.progressRange}</div>
                     <div>Patterns Found: {pattern.count}</div>
                   </div>
 
-                  <div class="pattern-chart-preview">
+                  <div class="pattern-chart-preview small-preview">
                     <PatternChartPreview
                       {sessionId}
                       data={pattern.data}
                       selectedRange={pattern.range}
-                      yScale={yScale}
-                      bind:zoomTransform={
-                        zoomTransforms[sessionId]
-                      }
+                      {yScale}
+                      bind:zoomTransform={zoomTransforms[sessionId]}
                       bind:this={chartRefs[sessionId]}
                     />
                   </div>
@@ -1032,183 +1044,187 @@
         </div>
       {/if}
       <div class:hide={!showMulti}>
-      {#if $storeSessionData.length > 0}
-        <!-- {#if loading}
+        {#if $storeSessionData.length > 0}
+          <!-- {#if loading}
           <div class="loading"></div>
           <div class="line-md--loading-twotone-loop"></div>
         {/if} -->
-        <div class="multi-box">
-          {#each $storeSessionData as sessionData (sessionData.sessionId)}
-          {#if !loadedMap[sessionData.sessionId]}
-              <SkeletonLoading />
-          {/if}
-          <div class:hide={!loadedMap[sessionData.sessionId]}>
-            <div class="display-box">
-              <div class="content-box">
-                <div class="session-identifier">
-                  <h3>
-                    {#if sessions && sessions.find((s) => s.session_id === sessionData.sessionId)}
-                      {sessions.find(
-                        (s) => s.session_id === sessionData.sessionId
-                      ).prompt_code} - {sessionData.sessionId}
-                    {:else}
-                      Session: {sessionData.sessionId}
-                    {/if}
-                  </h3>
-                </div>
-                <div
-                  class="session-summary"
-                  id="summary-{sessionData.sessionId}"
-                >
-                  <h3>Session Summary</h3>
-                  <div class="summary-container">
-                    <div class="totalText">
-                      {sessionData.summaryData
-                        ? `Total Text: ${sessionData.summaryData.totalProcessedCharacters} characters`
-                        : ""}
+          <div class="multi-box">
+            {#each $storeSessionData as sessionData (sessionData.sessionId)}
+              {#if !loadedMap[sessionData.sessionId]}
+                <SkeletonLoading />
+              {/if}
+              <div class:hide={!loadedMap[sessionData.sessionId]}>
+                <div class="display-box">
+                  <div class="content-box">
+                    <div class="session-identifier">
+                      <h3>
+                        {#if sessions && sessions.find((s) => s.session_id === sessionData.sessionId)}
+                          {sessions.find(
+                            (s) => s.session_id === sessionData.sessionId
+                          ).prompt_code} - {sessionData.sessionId}
+                        {:else}
+                          Session: {sessionData.sessionId}
+                        {/if}
+                      </h3>
                     </div>
-                    <div class="totalInsertions">
-                      {sessionData.summaryData
-                        ? `Insertions: ${sessionData.summaryData.totalInsertions}`
-                        : ""}
+                    <div
+                      class="session-summary"
+                      id="summary-{sessionData.sessionId}"
+                    >
+                      <h3>Session Summary</h3>
+                      <div class="summary-container">
+                        <div class="totalText">
+                          {sessionData.summaryData
+                            ? `Total Text: ${sessionData.summaryData.totalProcessedCharacters} characters`
+                            : ""}
+                        </div>
+                        <div class="totalInsertions">
+                          {sessionData.summaryData
+                            ? `Insertions: ${sessionData.summaryData.totalInsertions}`
+                            : ""}
+                        </div>
+                        <div class="totalDeletions">
+                          {sessionData.summaryData
+                            ? `Deletions: ${sessionData.summaryData.totalDeletions}`
+                            : ""}
+                        </div>
+                        <div class="totalSuggestions">
+                          {sessionData.summaryData
+                            ? `Suggestions: ${sessionData.summaryData.totalSuggestions - 1}`
+                            : ""}
+                        </div>
+                      </div>
                     </div>
-                    <div class="totalDeletions">
-                      {sessionData.summaryData
-                        ? `Deletions: ${sessionData.summaryData.totalDeletions}`
-                        : ""}
-                    </div>
-                    <div class="totalSuggestions">
-                      {sessionData.summaryData
-                        ? `Suggestions: ${sessionData.summaryData.totalSuggestions - 1}`
-                        : ""}
-                    </div>
-                  </div>
-                </div>
-                <div class="chart-container">
-                  <div class="chart-wrapper">
-                    {#if sessionData.similarityData}
-                      <BarChartY
-                        sessionId={sessionData.sessionId}
-                        similarityData={sessionData.similarityData}
-                        {yScale}
-                        {height}
-                        bind:zoomTransform={
-                          zoomTransforms[sessionData.sessionId]
-                        }
-                        {selectionMode}
-                        on:selectionChanged={handleSelectionChanged}
-                        on:selectionCleared={handleSelectionCleared}
-                        bind:this={
-                          chartRefs[sessionData.sessionId + "-barChart"]
-                        }
-                        on:chartLoaded={handleChartLoaded}
-                      />
-                    {/if}
-                    <div>
-                      <LineChart
-                        bind:this={chartRefs[sessionData.sessionId]}
-                        chartData={sessionData.chartData}
-                        paragraphColor={sessionData.paragraphColor}
-                        on:pointSelected={(e) =>
-                          handlePointSelected(e, sessionData.sessionId)}
-                        {yScale}
-                        {height}
-                        bind:zoomTransform={
-                          zoomTransforms[sessionData.sessionId]
-                        }
-                      />
-                    </div>
-                  </div>
-                  <button
-                    on:click={() => resetZoom(sessionData.sessionId)}
-                    class="zoom-reset-btn"
-                  >
-                    Reset Zoom
-                  </button>
-                </div>
-              </div>
-              <div class="content-box">
-                <div class="progress-container">
-                  <span>{(sessionData?.currentTime || 0).toFixed(2)} mins</span>
-                  <progress
-                    value={sessionData?.currentTime || 0}
-                    max={sessionData?.time100 || 1}
-                  />
-                </div>
-                <div class="scale-container">
-                  <div class="scale" id="scale"></div>
-                </div>
-                <div class="text-container">
-                  {#if sessionData.textElements && sessionData.textElements.length > 0}
-                    {#if sessionData.textElements[0].text !== "\n"}
-                      <span
-                        class="text-span"
-                        style="color: black; font-weight: normal;"
+                    <div class="chart-container">
+                      <div class="chart-wrapper">
+                        {#if sessionData.similarityData}
+                          <BarChartY
+                            sessionId={sessionData.sessionId}
+                            similarityData={sessionData.similarityData}
+                            {yScale}
+                            {height}
+                            bind:zoomTransform={
+                              zoomTransforms[sessionData.sessionId]
+                            }
+                            {selectionMode}
+                            on:selectionChanged={handleSelectionChanged}
+                            on:selectionCleared={handleSelectionCleared}
+                            bind:this={
+                              chartRefs[sessionData.sessionId + "-barChart"]
+                            }
+                            on:chartLoaded={handleChartLoaded}
+                          />
+                        {/if}
+                        <div>
+                          <LineChart
+                            bind:this={chartRefs[sessionData.sessionId]}
+                            chartData={sessionData.chartData}
+                            paragraphColor={sessionData.paragraphColor}
+                            on:pointSelected={(e) =>
+                              handlePointSelected(e, sessionData.sessionId)}
+                            {yScale}
+                            {height}
+                            bind:zoomTransform={
+                              zoomTransforms[sessionData.sessionId]
+                            }
+                          />
+                        </div>
+                      </div>
+                      <button
+                        on:click={() => resetZoom(sessionData.sessionId)}
+                        class="zoom-reset-btn"
                       >
-                        1.
-                      </span>
-                    {/if}
-                    {#each sessionData.textElements as element, index}
-                      {#if element.text === "\n" && index + 1 < sessionData.textElements.length}
-                        <br />
-                        {#if index + 1 < sessionData.textElements.length && sessionData.textElements[index + 1].text === "\n"}{:else if index > 0 && sessionData.textElements[index - 1].text === "\n"}
+                        Reset Zoom
+                      </button>
+                    </div>
+                  </div>
+                  <div class="content-box">
+                    <div class="progress-container">
+                      <span
+                        >{(sessionData?.currentTime || 0).toFixed(2)} mins</span
+                      >
+                      <progress
+                        value={sessionData?.currentTime || 0}
+                        max={sessionData?.time100 || 1}
+                      />
+                    </div>
+                    <div class="scale-container">
+                      <div class="scale" id="scale"></div>
+                    </div>
+                    <div class="text-container">
+                      {#if sessionData.textElements && sessionData.textElements.length > 0}
+                        {#if sessionData.textElements[0].text !== "\n"}
                           <span
                             class="text-span"
                             style="color: black; font-weight: normal;"
                           >
-                            {(() => {
-                              let count =
-                                sessionData.textElements[0].text !== "\n"
-                                  ? 1
-                                  : 0;
-                              for (let i = 0; i < index; i++) {
-                                if (
-                                  sessionData.textElements[i].text === "\n" &&
-                                  i > 0 &&
-                                  sessionData.textElements[i - 1].text === "\n"
-                                ) {
-                                  count++;
-                                }
-                              }
-                              return count + 1;
-                            })()}.
+                            1.
                           </span>
                         {/if}
-                      {:else}
-                        <span
-                          class="text-span"
-                          style="color: {element.textColor}"
-                        >
-                          {element.text}
-                        </span>
+                        {#each sessionData.textElements as element, index}
+                          {#if element.text === "\n" && index + 1 < sessionData.textElements.length}
+                            <br />
+                            {#if index + 1 < sessionData.textElements.length && sessionData.textElements[index + 1].text === "\n"}{:else if index > 0 && sessionData.textElements[index - 1].text === "\n"}
+                              <span
+                                class="text-span"
+                                style="color: black; font-weight: normal;"
+                              >
+                                {(() => {
+                                  let count =
+                                    sessionData.textElements[0].text !== "\n"
+                                      ? 1
+                                      : 0;
+                                  for (let i = 0; i < index; i++) {
+                                    if (
+                                      sessionData.textElements[i].text ===
+                                        "\n" &&
+                                      i > 0 &&
+                                      sessionData.textElements[i - 1].text ===
+                                        "\n"
+                                    ) {
+                                      count++;
+                                    }
+                                  }
+                                  return count + 1;
+                                })()}.
+                              </span>
+                            {/if}
+                          {:else}
+                            <span
+                              class="text-span"
+                              style="color: {element.textColor}"
+                            >
+                              {element.text}
+                            </span>
+                          {/if}
+                        {/each}
                       {/if}
-                    {/each}
-                  {/if}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            {/each}
           </div>
-          {/each}
-        </div>
-      {/if}
-    </div>
+        {/if}
+      </div>
     </div>
     <div class:hide={showMulti} style="margin-top: 100px;">
-    {#if $storeSessionData.length > 0}
-      {#each $storeSessionData as sessionData (sessionData.sessionId)}
-        <div class="zoomout-chart">
-          <ZoomoutChart
-            bind:this={chartRefs[sessionData.sessionId]}
-            sessionId={sessionData.sessionId}
-            sessionTopic={sessions.find(
-              (s) => s.session_id === sessionData.sessionId
-            ).prompt_code}
-            yScale={yScale}
-            similarityData={sessionData.similarityData}
-          />
-        </div>
-      {/each}
-    {/if}
+      {#if $storeSessionData.length > 0}
+        {#each $storeSessionData as sessionData (sessionData.sessionId)}
+          <div class="zoomout-chart">
+            <ZoomoutChart
+              bind:this={chartRefs[sessionData.sessionId]}
+              sessionId={sessionData.sessionId}
+              sessionTopic={sessions.find(
+                (s) => s.session_id === sessionData.sessionId
+              ).prompt_code}
+              {yScale}
+              similarityData={sessionData.similarityData}
+            />
+          </div>
+        {/each}
+      {/if}
     </div>
 
     <div class="table" class:collapsed={isCollapsed}>
@@ -1967,6 +1983,20 @@
     font-size: 12px;
   }
 
+  .pattern-chart-preview.small-preview {
+    width: 60%;
+    height: 120px;
+  }
+
+  .delete-pattern-button {
+    padding: 4px 10px;
+    background-color: #921515;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+  }
   .pattern-details {
     font-size: 13px;
     color: #5f6368;
