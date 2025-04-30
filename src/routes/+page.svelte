@@ -1231,9 +1231,9 @@
       <table>
         <thead>
           <tr>
-            <th style="text-transform: uppercase">Session ID</th>
+            <th style="text-transform: uppercase; padding-top: 10px; padding-bottom: 7px">Session ID</th>
             <th
-              style="display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase"
+              style="display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; padding-top: 10px; padding-bottom: 7px"
               >Prompt Code
               <a
                 on:click|preventDefault={toggleFilter}
@@ -1246,7 +1246,7 @@
               >
               </a>
             </th>
-            <th style="text-transform: uppercase">Selected</th>
+            <th style="text-transform: uppercase; padding-top: 10px; padding-bottom: 7px">Selected</th>
             <th>
               <a
                 on:click|preventDefault={toggleTableCollapse}
@@ -1266,7 +1266,7 @@
             <tr>
               <td>{row.session_id}</td>
               <td>{row.prompt_code}</td>
-              <td>
+              <td style="padding-left: 230px">
                 <input
                   type="checkbox"
                   checked={row.selected}
@@ -1539,13 +1539,11 @@
     cursor: pointer;
   }
 
-  .table {
+  .table, .collapsed {
     position: fixed;
     bottom: 0;
     width: 100%;
-    height: 200px;
     background-color: white;
-    padding: 1em 0;
     margin: 0px;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
     z-index: 1;
@@ -1553,6 +1551,15 @@
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    transition: height 0.2s ease;
+  }
+
+  .table {
+    height: 225px;
+  }
+
+  .collapsed {
+    height: 40px;
   }
 
   thead {
@@ -1560,22 +1567,6 @@
     top: 0;
     background: white;
     z-index: 10;
-  }
-
-  .collapsed {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    height: 25px;
-    background-color: white;
-    padding: 1em 0;
-    margin: 0px;
-    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-    z-index: 1;
-    left: 0;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
   }
 
   .material-symbols--info-outline-rounded {

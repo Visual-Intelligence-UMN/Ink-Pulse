@@ -167,7 +167,7 @@
             d={d3.symbol().type(d3.symbolTriangle).size(40)()}
             fill="#FFBBCC"
             opacity={d.opacity + 0.29}
-            transform={`translate(${zoomTransform.applyX(scaledX(d.time))},${zoomTransform.applyY(scaledY(d.percentage + 6))}) rotate(180)`}
+            transform={`translate(${zoomTransform.applyX(scaledX(d.time))},${zoomTransform.applyY(scaledY((d.percentage + 6 / zoomTransform.k)))}) rotate(180)`}
           />
         {/each}
     </g>

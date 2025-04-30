@@ -101,8 +101,14 @@
       .append("rect")
       .attr("class", "bar")
       .attr("y", (d) => newyScale(d.endProgress))
-      .attr("x", (d) => xScale(d.residual_vector_norm))
-      .attr("width", (d) => xScale(0) - xScale(d.residual_vector_norm))
+      .attr("x", (_, i) => {
+        const firstElement = i === 0 ? 0 : max_norm_vector / 2;
+        return xScale(firstElement);
+      })
+      .attr("width", (_, i) => {
+        const firstElement = i === 0 ? 0 : max_norm_vector;
+        return xScale(0) - xScale(firstElement);
+      })
       .attr(
         "height",
         (d) => newyScale(d.startProgress) - newyScale(d.endProgress)
