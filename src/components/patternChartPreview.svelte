@@ -5,8 +5,6 @@
   export let sessionId;
   export let data;
   export let selectedRange;
-  export let yScale;
-  export let zoomTransform = d3.zoomIdentity;
 
   let container;
   let prevSelectedRange;
@@ -39,9 +37,7 @@
       endProgress: d.endProgress,
       residual_vector_norm: d.residual_vector_norm,
       source: d.source,
-      max_norm_vector: d.max_norm_vector,
     }));
-    const max_norm_vector = processedData[0].max_norm_vector
 
     const margin = { top: 10, right: 5, bottom: 25, left: 40 };
     const chartWidth = container.clientWidth - margin.left - margin.right;
@@ -60,7 +56,7 @@
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-    const xScale = d3.scaleLinear().domain([max_norm_vector, 0]).range([0, chartWidth]);
+    const xScale = d3.scaleLinear().domain([1, 0]).range([0, chartWidth]);
     const newyScale = d3.scaleLinear().domain([100, 0]).range([0, chartHeight]);
 
     svg
@@ -141,21 +137,8 @@
               (d.startProgress <= progress.min &&
                 d.endProgress >= progress.max));
 
-          return isSelected ? 0.9 : 0.2;
+          return isSelected ? 0.9 : 0.1;
         })
-        // .attr("stroke-width", (d) => {
-        //   const isSelected =
-        //     d.residual_vector_norm >= sc.min &&
-        //     d.residual_vector_norm <= sc.max &&
-        //     ((d.startProgress >= progress.min &&
-        //       d.startProgress <= progress.max) ||
-        //       (d.endProgress >= progress.min &&
-        //         d.endProgress <= progress.max) ||
-        //       (d.startProgress <= progress.min &&
-        //         d.endProgress >= progress.max));
-
-        //   return isSelected ? 0.1 : 0.1;
-        // });
     }
   }
 </script>

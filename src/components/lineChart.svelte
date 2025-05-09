@@ -123,14 +123,14 @@
         height={height - margin.top - margin.bottom}
       />
     </clipPath>
-    <clipPath id="clip-text">
+    <!-- <clipPath id="clip-text">
       <rect
         x="-5"
         y="-20"
         width={width - margin.left - margin.right}
         height={height - margin.top - margin.bottom}
       />
-    </clipPath>
+    </clipPath> -->
   </defs>
 
   <g transform={`translate(${margin.left},${margin.top})`}>
@@ -173,7 +173,7 @@
     </g>
   </g>
 
-    <g clip-path="url(#clip-text)">
+    <!-- <g clip-path="url(#clip-text)">
       {#if paragraphColor.length < 10}
         {#each paragraphColor as d, index}
           <text
@@ -200,7 +200,7 @@
           {/if}
         {/each}
       {/if}
-    </g>
+    </g> -->
 
     <g
       class="x-axis"

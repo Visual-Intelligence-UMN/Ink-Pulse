@@ -1,137 +1,93 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, createEventDispatcher } from "svelte";
   import * as d3 from "d3";
-  export let similarityData;
-  export let width = 50;
-  let height = 150;
-  export let yScale;
 
-  let container;
-  let svg;
-  let bars;
+  const dispatch = createEventDispatcher();
+  
+  export let similarityData;
+  let height = 10;
+  const margin = { top: 0, right: 0, bottom: 0, left: 0 };
+
+  let canvasEl;
+  let context: CanvasRenderingContext2D;
 
   export let sessionId;
   export let sessionTopic;
 
-  onMount(() => {
-    if (similarityData && container) {
-      renderChart();
-    }
-  });
-
-  $: if (similarityData && container) {
-    renderChart();
+  function handleContainerClick() {
+    dispatch('containerClick', { sessionId });
   }
 
-  function renderChart() {
-    d3.select(container).selectAll("svg").remove();
+  function renderCanvas() {
+    if (!similarityData || !canvasEl) return;
 
     const processedData = similarityData.map((item) => ({
+      text: item.sentence,
       startProgress: item.start_progress * 100,
       endProgress: item.end_progress * 100,
-      residual_vector_norm: item.norm_vector,
+      residual_vector_norm: item.residual_vector_norm,
       source: item.source,
-      max_norm_vector: item.max_norm_vector,
     }));
-    const max_norm_vector = processedData[0].max_norm_vector
-    const min_norm_vector = d3.min(processedData, d => d.residual_vector_norm);
-    const opacityScale = d3.scaleLinear()
-      .domain([min_norm_vector, max_norm_vector])
-      .range([0.2, 1]);
+    const textLength = processedData[processedData.length - 1]["text"].length / 3000;
+    let width = 100 * textLength;
+    
+    const xScale = d3
+      .scaleLinear()
+      .domain([0, 100])
+      .range([0, width - margin.left - margin.right]);
+    const yScale = d3.scaleLinear().domain([1, 0]).range([0, height]);
+    const opacityScale = d3.scaleLinear().domain([0, 1]).range([0.2, 1]);
 
-    const margin = { top: 0, right: 0, bottom: 0, left: 0 };
-    const chartWidth = width - margin.left - margin.right;
-    const chartHeight = height - margin.top - margin.bottom;
+    const canvas = canvasEl;
+    context = canvas.getContext("2d");
 
-    svg = d3
-      .select(container)
-      .append("svg")
-      .style("display", "block")
-      .style("vertical-align", "top")
-      .attr("width", "100%")
-      .attr("height", chartHeight + margin.top + margin.bottom)
-      .attr(
-        "viewBox",
-        `0 0 ${chartWidth + margin.left + margin.right} ${chartHeight + margin.top + margin.bottom}`
-      )
-      .append("g")
-      .attr("transform", `translate(${margin.left}, ${margin.top})`);
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = width + "px";
+    canvas.style.height = height + "px";
+    context.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const xScale = d3.scaleLinear().domain([max_norm_vector, 0]).range([0, chartWidth]);
-    const newyScale = yScale.copy();
+    context.clearRect(0, 0, width, height);
 
-    svg
-      .append("defs")
-      .append("clipPath")
-      .attr("id", "clip_bar")
-      .append("rect")
-      .attr("x", 0)
-      .attr("y", 0)
-      .attr("width", chartWidth)
-      .attr("height", chartHeight);
+    for (let i = 0; i < processedData.length; i++) {
+      const d = processedData[i];
+      const isFirst = i === 0;
+      const barY = yScale(isFirst ? 0 : 1);
+      const barHeight = yScale(0) - yScale(isFirst ? 0 : 1);
+      const barX = xScale(d.startProgress);
+      const barWidth = xScale(d.endProgress) - barX;
 
-    svg
-      .append("g")
-      .attr("transform", `translate(0, ${chartHeight})`)
-      // .call(d3.axisBottom(xScale).ticks(3))
-      .append("text")
-      .attr("x", chartWidth / 2)
-      .attr("y", 25)
-      // .attr("fill", "black")
-      // .attr("text-anchor", "middle")
-      // .style("font-size", "10px")
-      // .text("Semantic Change (%)");
+      context.fillStyle = d.source === "user" ? "#66C2A5" : "#FC8D62";
+      context.globalAlpha = opacityScale(d.residual_vector_norm);
+      context.fillRect(barX, barY, barWidth, barHeight);
+      context.strokeStyle = d.source === "user" ? "#66C2A5" : "#FC8D62";
+      context.lineWidth = 0.1;
+      context.strokeRect(barX, barY, barWidth, barHeight);
+    }
 
-    svg
-      .append("g")
-      // .call(d3.axisLeft(newyScale).ticks(3))
-      .append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", -35)
-      .attr("x", -chartHeight / 2)
-      // .attr("fill", "black")
-      // .attr("text-anchor", "middle")
-      // .style("font-size", "10px")
-      // .text("Progress(%)");
+    context.globalAlpha = 1;
+  }
 
-    bars = svg
-      .selectAll(".bar")
-      .data(processedData)
-      .enter()
-      .append("rect")
-      .attr("class", "bar")
-      .attr("y", (d) => newyScale(d.endProgress))
-      .attr("x", (_, i) => {
-        const firstElement = i === 0 ? 0 : max_norm_vector / 2;
-        return xScale(firstElement);
-      })
-      .attr("width", (_, i) => {
-        const firstElement = i === 0 ? 0 : max_norm_vector;
-        return xScale(0) - xScale(firstElement);
-      })
-      .attr(
-        "height",
-        (d) => newyScale(d.startProgress) - newyScale(d.endProgress)
-      )
-      .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
-      .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
-      .attr("opacity", (d) => opacityScale(d.residual_vector_norm))
-      .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
-      .attr("stroke-width", 0.1)
-      .attr("clip-path", "url(#clip_bar)");
+  onMount(() => {
+    renderCanvas();
+  });
+
+  $: if (similarityData && canvasEl) {
+    renderCanvas();
   }
 </script>
-    
-<div class="chart-container">
-  <div class="session-label">
-    {sessionTopic} - {sessionId}
+
+<div class="chart-container" on:click={handleContainerClick}>
+  <div class="session-label">{sessionTopic} - {sessionId}</div>
+  <div style="margin-top: 30px">
+    <canvas bind:this={canvasEl} data-session-id={sessionId}></canvas>
   </div>
-  <div bind:this={container} data-session-id={sessionId} style="transform: rotate(90deg)"></div>
 </div>
 
 <style>
   .session-label {
-    width: 400px;
+    width: 350px;
     font-size: 12px;
     font-family: "Poppins", sans-serif;
     margin-top: 35px;
@@ -141,6 +97,8 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 4px;
+    cursor: pointer;
+    width: 500px;
+    height: 10px;
   }
 </style>

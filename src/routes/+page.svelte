@@ -12,6 +12,7 @@
   import ZoomoutChart from "../components/zoomoutChart.svelte";
   import * as d3 from "d3";
   import PatternChartPreview from "../components/patternChartPreview.svelte";
+  import PatternChartPreviewSerach from "../components/patternChartPreviewSerach.svelte";
   import SkeletonLoading from "../components/skeletonLoading.svelte";
 
   let chartRefs = {};
@@ -66,7 +67,7 @@
   let showFilter = false;
   export const selectedTags = writable([]);
   let filterOptions = [];
-  let showMulti = true;
+  let showMulti = false;
   export const storeSessionData = writable([]);
   let tableData = [];
   let firstSession = true;
@@ -81,6 +82,62 @@
     .domain([0, 100])
     .range([height - margin.top - margin.bottom, 0]);
   let zoomTransforms = {};
+  export const clickSession = writable(null);
+  let patternData = [];
+
+  async function handleContainerClick(event) {
+    const sessionId = event.detail.sessionId;
+    try {
+      const data = await fetchSessionData(sessionId);
+      if (data) {
+        clickSession.set(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch session data:", error);
+    }
+    showMulti = !showMulti
+  }
+
+  const fetchSessionData = async (sessionFile) => {
+    try {
+      const response = await fetch(
+        `${base}/chi2022-coauthor-v1.0/coauthor-json/${sessionFile}.jsonl`
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch session data: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      const time0 = new Date(data.init_time);
+      let time100 = new Date(data.end_time);
+      time100 = (time100 - time0) / (1000 * 60);
+      const currentTime = time100;
+      const { chartData, textElements, paragraphColor } = handleEvents(data, sessionFile);
+
+      let similarityData = null;
+      try {
+        similarityData = await fetchSimilarityData(sessionFile);
+      } catch (err) {
+        console.error("Error fetching similarity data:", err);
+      }
+
+      return {
+        sessionId: sessionFile,
+        time0,
+        time100,
+        currentTime,
+        chartData,
+        textElements,
+        paragraphColor,
+        similarityData,
+        totalSimilarityData: similarityData,
+      };
+    } catch (error) {
+      console.error("Error when reading the data file:", error);
+      return null;
+    }
+  };
 
   let loadedMap = {
     e4611bd31b794677b02c52d5700b2e38: false,
@@ -120,8 +177,85 @@
   function deletePattern(sessionId) {
     const newSelectedPatterns = { ...selectedPatterns };
     delete newSelectedPatterns[sessionId];
+    patternData = []
 
     selectedPatterns = newSelectedPatterns;
+  }
+
+  async function searchPattern(sessionId) {
+    const pattern = selectedPatterns[sessionId];
+    const selectionRange = pattern.range;
+    let results = [];
+
+    const searchParams = {
+      semanticChange: {
+        min: selectionRange.sc.min,
+        max: selectionRange.sc.max
+      },
+      progress: {
+        min: selectionRange.progress.min,
+        max: selectionRange.progress.max
+      },
+      source: pattern.sources
+    };
+
+    try {
+      const fileListResponse = await fetch('session_name.json');
+      const fileList = await fileListResponse.json();
+      for (const fileName of fileList) {
+        const dataResponse = await fetch(`/chi2022-coauthor-v1.0/similarity_results/${fileName}`);
+        const data = await dataResponse.json();
+        const extractedFileName = fileName.split(".")[0].replace(/_similarity$/, "");
+        
+        const filtered = data.filter(item => {
+          const sc = item.residual_vector_norm;
+          const start = item.start_progress * 100;
+          const end = item.end_progress * 100;
+          const progressMin = Math.min(start, end);
+          const progressMax = Math.max(start, end);
+
+          // return (
+          //   sc >= searchParams.semanticChange.min &&
+          //   sc <= searchParams.semanticChange.max &&
+          //   progressMax >= searchParams.progress.min &&
+          //   progressMin <= searchParams.progress.max
+          // )
+          return (
+            sc >= searchParams.semanticChange.min &&
+            sc <= searchParams.semanticChange.max &&
+            progressMin >= searchParams.progress.min &&
+            progressMax <= searchParams.progress.max
+          );
+        })
+          const converted = filtered.map(item => ({
+            startProgress: item.start_progress * 100,
+            endProgress: item.end_progress * 100,
+            residual_vector_norm: item.residual_vector_norm,
+            source: item.source,
+          }));
+          if (converted.length > 0) {
+            converted.forEach(item => {
+              results.push({
+                sessionId: extractedFileName,
+                data: item,
+                range: {
+                  scRange: {
+                    min: item.residual_vector_norm,
+                    max: item.residual_vector_norm
+                  },
+                  progressRange: {
+                    min: Math.min(item.startProgress, item.endProgress),
+                    max: Math.max(item.startProgress, item.endProgress)
+                  }
+                }
+              });
+            });
+          }
+      }
+      patternData = results;
+    } catch (error) {
+      console.error('Search failed:', error);
+    }
   }
 
   function closePatternSearch() {
@@ -140,11 +274,12 @@
   }
 
   function handleSelectionChanged(event) {
-    const { sessionId, range, data } = event.detail;
+    const { sessionId, range, data, sources } = event.detail;
 
     selectedPatterns[sessionId] = {
       range,
       data,
+      sources,
       scRange: `${range.sc.min.toFixed(1)} - ${range.sc.max.toFixed(1)}%`,
       progressRange: `${range.progress.min.toFixed(1)} - ${range.progress.max.toFixed(1)}%`,
       count: data.length,
@@ -286,20 +421,6 @@
     });
     filterSessions();
     if (event.target.checked) {
-      // const newSessions = tableData.filter((item) => item.prompt_code === tag);
-      // for (const newSession of newSessions) {
-      //   storeSessionData.update((sessionData) => {
-      //     if (
-      //       !sessionData.some(
-      //         (session) => session.sessionId === newSession.session_id
-      //       )
-      //     ) {
-      //       sessionData.push({
-      //         sessionId: newSession.session_id,
-      //       });
-      //     }
-      //     return sessionData;
-      //   });
       for (const newSession of $filterTableData) {
         storeSessionData.update((sessionData) => {
           if (
@@ -860,28 +981,28 @@
 
   function handlePointSelected(e, sessionId) {
     const d = e.detail;
-    storeSessionData.update((sessions) => {
-      const idx = sessions.findIndex((s) => s.sessionId === sessionId);
-      if (idx !== -1) {
-        sessions[idx].textElements = d.currentText
-          .split("")
-          .map((char, index) => ({
-            text: char,
-            textColor: d.currentColor[index],
-          }));
-        sessions[idx].currentTime = d.time;
-        sessions[idx].chartData = sessions[idx].chartData.map((point) => {
-          return {
+    clickSession.update((currentSession) => {
+      if (currentSession.sessionId === sessionId) {
+        const updatedSession = {
+          ...currentSession,
+          textElements: d.currentText
+            .split("")
+            .map((char, index) => ({
+              text: char,
+              textColor: d.currentColor[index],
+            })),
+          currentTime: d.time,
+          chartData: currentSession.chartData.map((point) => ({
             ...point,
             opacity: point.index > d.index ? 0.01 : 1,
-          };
-        });
-        const similarityData = sessions[idx].totalSimilarityData;
+          })),
+        };
+
+        const similarityData = currentSession.totalSimilarityData;
         let selectedData = [];
         for (let i = 0; i < similarityData.length; i++) {
           const currentItem = similarityData[i];
-          const currentEndProgress = currentItem.end_progress;
-          if (d.percentage < currentEndProgress * 100) {
+          if (d.percentage < currentItem.end_progress * 100) {
             selectedData = similarityData.slice(0, i);
             break;
           }
@@ -889,9 +1010,13 @@
         if (selectedData.length === 0 && similarityData.length > 0) {
           selectedData = similarityData;
         }
-        sessions[idx].similarityData = selectedData;
+
+        return {
+          ...updatedSession,
+          similarityData: selectedData,
+        };
       }
-      return [...sessions];
+      return currentSession;
     });
   }
 </script>
@@ -988,6 +1113,10 @@
                         class="delete-pattern-button"
                         on:click={() => deletePattern(sessionId)}>Delete</button
                       >
+                      <button
+                        class="search-pattern-button"
+                        on:click={() => searchPattern(sessionId)}>Search</button
+                      >
                     </div>
                   </div>
 
@@ -1002,11 +1131,29 @@
                       {sessionId}
                       data={pattern.data}
                       selectedRange={pattern.range}
-                      {yScale}
-                      bind:zoomTransform={zoomTransforms[sessionId]}
                       bind:this={chartRefs[sessionId]}
                     />
                   </div>
+                  {#if patternData.length > 0}
+                    {#each patternData as pData}
+                    <div style="margin-bottom: 30px;">
+                      <div class="pattern-details">
+                        <div>Semantic Change: 0.0 – {pData.range.scRange.max.toFixed(1)}%</div>
+                        <div>Progress Range: {pData.range.progressRange.min.toFixed(1)} – {pData.range.progressRange.max.toFixed(1)}%</div>
+                      </div>
+                      <div class="pattern-chart-preview">
+                        <PatternChartPreviewSerach
+                        sessionId={pData.sessionId}
+                        data={pData.data}
+                        />
+                      </div>
+                    </div>
+                    {/each}
+                  {:else}
+                    <div class="no-data-message">
+                      No data found matching the search criteria.
+                    </div>
+                  {/if}
                 </div>
               {/each}
             </div>
@@ -1043,241 +1190,197 @@
           </div>
         </div>
       {/if}
-      <div class:hide={!showMulti}>
+      {#if !showMulti}
+      <div style="margin-top: 100px;">
         {#if $storeSessionData.length > 0}
-          <!-- {#if loading}
-          <div class="loading"></div>
-          <div class="line-md--loading-twotone-loop"></div>
-        {/if} -->
-          <div class="multi-box">
-            {#each $storeSessionData as sessionData (sessionData.sessionId)}
-              {#if !loadedMap[sessionData.sessionId]}
-                <SkeletonLoading />
-              {/if}
-              <div class:hide={!loadedMap[sessionData.sessionId]}>
-                <div class="display-box">
-                  <div class="content-box">
-                    <div class="session-identifier">
-                      <h3>
-                        {#if sessions && sessions.find((s) => s.session_id === sessionData.sessionId)}
-                          {sessions.find(
-                            (s) => s.session_id === sessionData.sessionId
-                          ).prompt_code} - {sessionData.sessionId}
-                        {:else}
-                          Session: {sessionData.sessionId}
-                        {/if}
-                      </h3>
-                    </div>
-                    <div
-                      class="session-summary"
-                      id="summary-{sessionData.sessionId}"
-                    >
-                      <h3>Session Summary</h3>
-                      <div class="summary-container">
-                        <div class="totalText">
-                          {sessionData.summaryData
-                            ? `Total Text: ${sessionData.summaryData.totalProcessedCharacters} characters`
-                            : ""}
-                        </div>
-                        <div class="totalInsertions">
-                          {sessionData.summaryData
-                            ? `Insertions: ${sessionData.summaryData.totalInsertions}`
-                            : ""}
-                        </div>
-                        <div class="totalDeletions">
-                          {sessionData.summaryData
-                            ? `Deletions: ${sessionData.summaryData.totalDeletions}`
-                            : ""}
-                        </div>
-                        <div class="totalSuggestions">
-                          {sessionData.summaryData
-                            ? `Suggestions: ${sessionData.summaryData.totalSuggestions - 1}`
-                            : ""}
-                        </div>
-                      </div>
-                    </div>
-                    <div class="chart-container">
-                      <div class="chart-wrapper">
-                        {#if sessionData.similarityData}
-                          <BarChartY
-                            sessionId={sessionData.sessionId}
-                            similarityData={sessionData.similarityData}
-                            {yScale}
-                            {height}
-                            bind:zoomTransform={
-                              zoomTransforms[sessionData.sessionId]
-                            }
-                            {selectionMode}
-                            on:selectionChanged={handleSelectionChanged}
-                            on:selectionCleared={handleSelectionCleared}
-                            bind:this={
-                              chartRefs[sessionData.sessionId + "-barChart"]
-                            }
-                            on:chartLoaded={handleChartLoaded}
-                          />
-                        {/if}
-                        <div>
-                          <LineChart
-                            bind:this={chartRefs[sessionData.sessionId]}
-                            chartData={sessionData.chartData}
-                            paragraphColor={sessionData.paragraphColor}
-                            on:pointSelected={(e) =>
-                              handlePointSelected(e, sessionData.sessionId)}
-                            {yScale}
-                            {height}
-                            bind:zoomTransform={
-                              zoomTransforms[sessionData.sessionId]
-                            }
-                          />
-                        </div>
-                      </div>
-                      <button
-                        on:click={() => resetZoom(sessionData.sessionId)}
-                        class="zoom-reset-btn"
-                      >
-                        Reset Zoom
-                      </button>
-                    </div>
+          {#each $storeSessionData as sessionData (sessionData.sessionId)}
+            <div class="zoomout-chart">
+              <ZoomoutChart
+                on:containerClick={handleContainerClick}
+                bind:this={chartRefs[sessionData.sessionId]}
+                sessionId={sessionData.sessionId}
+                sessionTopic={sessions.find(
+                  (s) => s.session_id === sessionData.sessionId
+                ).prompt_code}
+          
+                similarityData={sessionData.similarityData}
+              />
+            </div>
+          {/each}
+        {/if}
+      </div>
+    {/if}
+    {#if showMulti}
+      {#if $clickSession}
+        <div class="multi-box">
+          <div class="display-box">
+            <div class="content-box">
+              <div class="session-identifier">
+                <h3>
+                  {#if sessions && sessions.find((s) => s.session_id === $clickSession.sessionId)}
+                    {sessions.find(
+                      (s) => s.session_id === $clickSession.sessionId
+                    ).prompt_code} - {$clickSession.sessionId}
+                  {:else}
+                    Session: {$clickSession.sessionId}
+                  {/if}
+                </h3>
+              </div>
+              <div
+                class="session-summary"
+                id="summary-{$clickSession.sessionId}"
+              >
+                <h3>Session Summary</h3>
+                <div class="summary-container">
+                  <div class="totalText">
+                    {$clickSession.summaryData
+                      ? `Total Text: ${$clickSession.summaryData.totalProcessedCharacters} characters`
+                      : ""}
                   </div>
-                  <div class="content-box">
-                    <div class="progress-container">
-                      <span
-                        >{(sessionData?.currentTime || 0).toFixed(2)} mins</span
-                      >
-                      <progress
-                        value={sessionData?.currentTime || 0}
-                        max={sessionData?.time100 || 1}
-                      />
-                    </div>
-                    <div class="scale-container">
-                      <div class="scale" id="scale"></div>
-                    </div>
-                    <div class="text-container">
-                      {#if sessionData.textElements && sessionData.textElements.length > 0}
-                        {#if sessionData.textElements[0].text !== "\n"}
-                          <span
-                            class="text-span"
-                            style="color: black; font-weight: normal;"
-                          >
-                            1.
-                          </span>
-                        {/if}
-                        {#each sessionData.textElements as element, index}
-                          {#if element.text === "\n" && index + 1 < sessionData.textElements.length}
-                            <br />
-                            {#if index + 1 < sessionData.textElements.length && sessionData.textElements[index + 1].text === "\n"}{:else if index > 0 && sessionData.textElements[index - 1].text === "\n"}
-                              <span
-                                class="text-span"
-                                style="color: black; font-weight: normal;"
-                              >
-                                {(() => {
-                                  let count =
-                                    sessionData.textElements[0].text !== "\n"
-                                      ? 1
-                                      : 0;
-                                  for (let i = 0; i < index; i++) {
-                                    if (
-                                      sessionData.textElements[i].text ===
-                                        "\n" &&
-                                      i > 0 &&
-                                      sessionData.textElements[i - 1].text ===
-                                        "\n"
-                                    ) {
-                                      count++;
-                                    }
-                                  }
-                                  return count + 1;
-                                })()}.
-                              </span>
-                            {/if}
-                          {:else}
-                            <span
-                              class="text-span"
-                              style="color: {element.textColor}"
-                            >
-                              {element.text}
-                            </span>
-                          {/if}
-                        {/each}
-                      {/if}
-                    </div>
+                  <div class="totalInsertions">
+                    {$clickSession.summaryData
+                      ? `Insertions: ${$clickSession.summaryData.totalInsertions}`
+                      : ""}
+                  </div>
+                  <div class="totalDeletions">
+                    {$clickSession.summaryData
+                      ? `Deletions: ${$clickSession.summaryData.totalDeletions}`
+                      : ""}
+                  </div>
+                  <div class="totalSuggestions">
+                    {$clickSession.summaryData
+                      ? `Suggestions: ${$clickSession.summaryData.totalSuggestions - 1}`
+                      : ""}
                   </div>
                 </div>
               </div>
-            {/each}
-          </div>
-        {/if}
-      </div>
-    </div>
-    <div class:hide={showMulti} style="margin-top: 100px;">
-      {#if $storeSessionData.length > 0}
-        {#each $storeSessionData as sessionData (sessionData.sessionId)}
-          <div class="zoomout-chart">
-            <ZoomoutChart
-              bind:this={chartRefs[sessionData.sessionId]}
-              sessionId={sessionData.sessionId}
-              sessionTopic={sessions.find(
-                (s) => s.session_id === sessionData.sessionId
-              ).prompt_code}
-              {yScale}
-              similarityData={sessionData.similarityData}
-            />
-          </div>
-        {/each}
-      {/if}
-    </div>
-
-    <div class="table" class:collapsed={isCollapsed}>
-      <table>
-        <thead>
-          <tr>
-            <th style="text-transform: uppercase; padding-top: 10px; padding-bottom: 7px">Session ID</th>
-            <th
-              style="display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; padding-top: 10px; padding-bottom: 7px"
-              >Prompt Code
-              <a
-                on:click|preventDefault={toggleFilter}
-                href=" "
-                aria-label="Filter"
-                bind:this={filterButton}
-                class={showFilter
-                  ? "material-symbols--filter-alt"
-                  : "material-symbols--filter-alt-outline"}
-              >
-              </a>
-            </th>
-            <th style="text-transform: uppercase; padding-top: 10px; padding-bottom: 7px">Selected</th>
-            <th>
-              <a
-                on:click|preventDefault={toggleTableCollapse}
-                href=" "
-                aria-label="Collapse"
-                bind:this={collapseButton}
-                class={isCollapsed
-                  ? "material-symbols--stat-1-rounded"
-                  : "material-symbols--stat-minus-1-rounded"}
-              >
-              </a>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each $filterTableData as row, index}
-            <tr>
-              <td>{row.session_id}</td>
-              <td>{row.prompt_code}</td>
-              <td style="padding-left: 230px">
-                <input
-                  type="checkbox"
-                  checked={row.selected}
-                  on:change={() => handleSelectChange(index)}
+              <div class="chart-container">
+                <div class="chart-wrapper">
+                  {#if $clickSession.similarityData}
+                    <BarChartY
+                      sessionId={$clickSession.sessionId}
+                      similarityData={$clickSession.similarityData}
+                      {yScale}
+                      {height}
+                      bind:zoomTransform={
+                        zoomTransforms[$clickSession.sessionId]
+                      }
+                      {selectionMode}
+                      on:selectionChanged={handleSelectionChanged}
+                      on:selectionCleared={handleSelectionCleared}
+                      bind:this={
+                        chartRefs[$clickSession.sessionId + "-barChart"]
+                      }
+                      on:chartLoaded={handleChartLoaded}
+                    />
+                  {/if}
+                  <div>
+                    <LineChart
+                      bind:this={chartRefs[$clickSession.sessionId]}
+                      chartData={$clickSession.chartData}
+                      paragraphColor={$clickSession.paragraphColor}
+                      on:pointSelected={(e) =>
+                        handlePointSelected(e, $clickSession.sessionId)}
+                      {yScale}
+                      {height}
+                      bind:zoomTransform={
+                        zoomTransforms[$clickSession.sessionId]
+                      }
+                    />
+                  </div>
+                </div>
+                <button
+                  on:click={() => resetZoom($clickSession.sessionId)}
+                  class="zoom-reset-btn"
+                >
+                  Reset Zoom
+                </button>
+              </div>
+            </div>
+            <div class="content-box">
+              <div class="progress-container">
+                <span
+                  >{($clickSession?.currentTime || 0).toFixed(2)} mins</span
+                >
+                <progress
+                  value={$clickSession?.currentTime || 0}
+                  max={$clickSession?.time100 || 1}
                 />
-              </td>
-            </tr>
-          {/each}
-        </tbody>
-      </table>
+              </div>
+              <div class="scale-container">
+                <div class="scale" id="scale"></div>
+              </div>
+              <div class="text-container">
+                {#if $clickSession.textElements && $clickSession.textElements.length > 0}
+                  {#each $clickSession.textElements as element, index}
+                      <span
+                        class="text-span"
+                        style="color: {element.textColor}"
+                      >
+                        {element.text}
+                      </span>
+                  {/each}
+                {/if}
+              </div>
+            </div>
+          </div>
+        </div>
+      {/if}
+    {/if}
     </div>
+    {#if !showMulti}
+      <div class="table" class:collapsed={isCollapsed}>
+        <table>
+          <thead>
+            <tr>
+              <th style="text-transform: uppercase; padding-top: 10px; padding-bottom: 7px">Session ID</th>
+              <th
+                style="display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; padding-top: 10px; padding-bottom: 7px"
+                >Prompt Code
+                <a
+                  on:click|preventDefault={toggleFilter}
+                  href=" "
+                  aria-label="Filter"
+                  bind:this={filterButton}
+                  class={showFilter
+                    ? "material-symbols--filter-alt"
+                    : "material-symbols--filter-alt-outline"}
+                >
+                </a>
+              </th>
+              <th style="text-transform: uppercase; padding-top: 10px; padding-bottom: 7px">Selected</th>
+              <th>
+                <a
+                  on:click|preventDefault={toggleTableCollapse}
+                  href=" "
+                  aria-label="Collapse"
+                  bind:this={collapseButton}
+                  class={isCollapsed
+                    ? "material-symbols--stat-1-rounded"
+                    : "material-symbols--stat-minus-1-rounded"}
+                >
+                </a>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each $filterTableData as row, index}
+              <tr>
+                <td>{row.session_id}</td>
+                <td>{row.prompt_code}</td>
+                <td style="padding-left: 230px">
+                  <input
+                    type="checkbox"
+                    checked={row.selected}
+                    on:change={() => handleSelectChange(index)}
+                  />
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
   </header>
 </div>
 
@@ -1817,7 +1920,6 @@
     display: flex;
     margin-left: 300px;
     height: 30px;
-    margin-bottom: 30px;
   }
 
   .loading {
@@ -1988,6 +2090,17 @@
     cursor: pointer;
     font-size: 12px;
   }
+
+  .search-pattern-button {
+    padding: 4px 10px;
+    background-color: #137a7f;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+
   .pattern-details {
     font-size: 13px;
     color: #5f6368;
