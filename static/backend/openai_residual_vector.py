@@ -35,32 +35,29 @@ def get_openai_embedding(text, model="text-embedding-3-small"):
 def compute_vector_norm(residual_vector):
     return float(np.linalg.norm(residual_vector))
 
-
-def compute_char_norm(text_current, text_prev, vector_norm):
-    char_diff = max(1, len(text_current) - len(text_prev))
-    return vector_norm / char_diff
-
-
 def analyze_residuals(sentences):
     results = []
     for i, sentence in enumerate(sentences):
         sentence["embedding"] = get_openai_embedding(sentence["text"])
         if i == 0:
-            sentence["residual_vector_norm"] = 1.0
-            sentence["residual_vector_char_norm"] = 1.0
+            sentence["residual_vector"] = 0.0
         else:
             prev_embedding = sentences[i - 1]["embedding"]
             curr_embedding = sentence["embedding"]
             residual_vector = curr_embedding - prev_embedding
-            residual_vector_norm = compute_vector_norm(residual_vector)
+            residual_vector = compute_vector_norm(residual_vector)
+            sentence["residual_vector"] = residual_vector
 
-            prev_text = sentences[i - 1]["text"]
-            curr_text = sentence["text"]
-            residual_vector_char_norm = compute_char_norm(curr_text, prev_text, residual_vector_norm)
+    norms = [s["residual_vector"] for s in sentences]
+    min_norm = min(norms)
+    max_norm = max(norms)
+    norm_range = max_norm - min_norm if max_norm != min_norm else 1.0
 
-            sentence["residual_vector_norm"] = residual_vector_norm
-            sentence["residual_vector_char_norm"] = residual_vector_char_norm
-
+    for sentence in sentences:
+        raw_norm = sentence["residual_vector"]
+        normalized = (raw_norm - min_norm) / norm_range
+        sentence["residual_vector_norm"] = normalized
+    for sentence in sentences:
         result_entry = {
             "sentence": sentence["text"],
             "source": sentence["source"],
@@ -69,12 +66,13 @@ def analyze_residuals(sentences):
             "start_time": sentence["start_time"],
             "end_time": sentence["end_time"],
             "last_event_time": sentence["last_event_time"],
-            "residual_vector_norm": sentence.get("residual_vector_norm"),
-            "residual_vector_char_norm": sentence.get("residual_vector_char_norm")
+            "residual_vector": sentence["residual_vector"],
+            "residual_vector_norm": sentence["residual_vector_norm"],
         }
         results.append(result_entry)
 
     return results
+
 
 
 def convert_types(obj):
