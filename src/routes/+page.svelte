@@ -200,10 +200,10 @@
     };
 
     try {
-      const fileListResponse = await fetch('session_name.json');
+      const fileListResponse = await fetch(`${base}/session_name.json`);
       const fileList = await fileListResponse.json();
       for (const fileName of fileList) {
-        const dataResponse = await fetch(`/chi2022-coauthor-v1.0/similarity_results/${fileName}`);
+        const dataResponse = await fetch(`${base}/chi2022-coauthor-v1.0/similarity_results/${fileName}`);
         const data = await dataResponse.json();
         const extractedFileName = fileName.split(".")[0].replace(/_similarity$/, "");
         
