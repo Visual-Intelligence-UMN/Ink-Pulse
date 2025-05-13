@@ -16,7 +16,10 @@ def read_file(file_path):
             if delta == 0:
                 event["residual_vector_norm"] = 0
             else:
-                event["residual_vector_norm"] = event["residual_vector"] / abs(delta) if delta != 0 else 1
+                if delta == 0 or delta == 1 or delta ==2:
+                    event["residual_vector_norm"] = 0
+                else:
+                    event["residual_vector_norm"] = event["residual_vector"] / abs(delta) if delta != 0 else 1
     residual = [item["residual_vector_norm"] for item in data]
     min_norm = min(residual)
     max_norm = max(residual)
