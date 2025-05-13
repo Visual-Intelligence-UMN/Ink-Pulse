@@ -36,7 +36,7 @@
       .domain([0, 100])
       .range([0, width - margin.left - margin.right]);
     const yScale = d3.scaleLinear().domain([1, 0]).range([0, height]);
-    const opacityScale = d3.scaleLinear().domain([0, 1]).range([0.2, 1]);
+    const opacityScale = d3.scaleLinear().domain([0, 1]).range([0.3, 1]);
 
     const canvas = canvasEl;
     context = canvas.getContext("2d");

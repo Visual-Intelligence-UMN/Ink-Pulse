@@ -8,21 +8,23 @@ def read_file(file_path):
     if not isinstance(data, list) or len(data) == 0 or not all(isinstance(item, dict) for item in data):
         print(f"Invalid structure in file {file_path}")
         return
-
     for i, event in enumerate(data):
         if i == 0:
-            event["height"] = event["end_progress"] - event["start_progress"]
-            event["norm_vector"] = 0
+            event["residual_vector_norm"] = 0
         else:
-            height = event["end_progress"] - event["start_progress"]
-            if height < 0:
-                height = 0
-            event["height"] = height
-            event["norm_vector"] = event["residual_vector_norm"] / len(event["sentence"])
-    max_norm_vector = max(event["norm_vector"] for event in data)
-    for event in data:
-        event["max_norm_vector"] = max_norm_vector
-
+            delta = len(event["sentence"]) - len(data[i - 1]["sentence"])
+            if delta == 0:
+                event["residual_vector_norm"] = 0
+            else:
+                event["residual_vector_norm"] = event["residual_vector"] / abs(delta) if delta != 0 else 1
+    residual = [item["residual_vector_norm"] for item in data]
+    min_norm = min(residual)
+    max_norm = max(residual)
+    norm_range = max_norm - min_norm if max_norm != min_norm else 1.0
+    for i, event in enumerate(data):
+        if event["residual_vector_norm"] != 0:
+            raw_norm = event["residual_vector_norm"]
+            event["residual_vector_norm"] = (raw_norm - min_norm) / norm_range
     with open(file_path, 'w', encoding='utf-8') as file:
         json.dump(data, file, ensure_ascii=False,  indent=4)
 
@@ -45,5 +47,5 @@ def write_json(json_path):
 script_dir = os.path.dirname(os.path.abspath(__file__)) 
 static_dir = os.path.dirname(script_dir)
 json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/similarity_results")
-# process_files(json_path)
-write_json(json_path)
+process_files(json_path)
+# write_json(json_path)
