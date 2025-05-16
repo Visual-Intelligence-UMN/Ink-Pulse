@@ -88,7 +88,9 @@
   async function handleContainerClick(event) {
     const sessionId = event.detail.sessionId;
     try {
-      const data = await fetchSessionData(sessionId);
+      const allSessions = get(storeSessionData);
+      const data = allSessions.find(item => item.sessionId === sessionId);
+
       if (data) {
         clickSession.set(data);
       }
@@ -97,47 +99,6 @@
     }
     showMulti = !showMulti
   }
-
-  const fetchSessionData = async (sessionFile) => {
-    try {
-      const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/coauthor-json/${sessionFile}.jsonl`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch session data: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      const time0 = new Date(data.init_time);
-      let time100 = new Date(data.end_time);
-      time100 = (time100 - time0) / (1000 * 60);
-      const currentTime = time100;
-      const { chartData, textElements, paragraphColor } = handleEvents(data, sessionFile);
-
-      let similarityData = null;
-      try {
-        similarityData = await fetchSimilarityData(sessionFile);
-      } catch (err) {
-        console.error("Error fetching similarity data:", err);
-      }
-
-      return {
-        sessionId: sessionFile,
-        time0,
-        time100,
-        currentTime,
-        chartData,
-        textElements,
-        paragraphColor,
-        similarityData,
-        totalSimilarityData: similarityData,
-      };
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
 
   let loadedMap = {
     e4611bd31b794677b02c52d5700b2e38: false,
@@ -782,6 +743,14 @@
     let firstTime = null;
     let indexOfAct = 0;
 
+    let totalInsertions = 0;
+    let totalDeletions = 0;
+    let totalSuggestions = 0;
+    let totalInsertionTime = 0;
+    let totalDeletionTime = 0;
+    let totalSuggestionTime = 0;
+    let totalProcessedCharacters = data.text[0].length;
+
     let combinedText = data.info.reduce((acc, event) => {
       if (acc.length === 0) {
         for (let i = 0; i < initText.length; i++) {
@@ -868,6 +837,17 @@
       }
       indexOfAct += 1;
 
+      if (name === "text-insert") {
+        totalInsertions++;
+        totalInsertionTime += relativeTime;
+      } else if (name === "text-delete") {
+        totalDeletions++;
+        totalDeletionTime += relativeTime;
+      } else if (name === "suggestion-open") {
+        totalSuggestions++;
+        totalSuggestionTime += relativeTime;
+      }
+
       return acc;
     }, []);
 
@@ -895,42 +875,7 @@
     textElements = combinedText;
     chartData = chartData.slice(0, -1); // delete last "\n"
     chartData[0].isSuggestionOpen = false; // change the init api insert into false so not show in the chart
-    calculateSessionAnalytics(data, sessionId);
-
-    return {
-      chartData,
-      textElements,
-      paragraphColor,
-    };
-  };
-
-  const calculateSessionAnalytics = (data, sessionId) => {
-    let totalInsertions = 0;
-    let totalDeletions = 0;
-    let totalSuggestions = 0;
-    let totalInsertionTime = 0;
-    let totalDeletionTime = 0;
-    let totalSuggestionTime = 0;
-    let totalProcessedCharacters = data.text[0].length;
-
-    data.info.forEach((event) => {
-      const { name, event_time } = event;
-      const eventTime = new Date(event_time);
-      const relativeTime =
-        (eventTime - new Date(data.info[0].event_time)) / (1000 * 60); // in minutes
-
-      if (name === "text-insert") {
-        totalInsertions++;
-        totalInsertionTime += relativeTime;
-      } else if (name === "text-delete") {
-        totalDeletions++;
-        totalDeletionTime += relativeTime;
-      } else if (name === "suggestion-open") {
-        totalSuggestions++;
-        totalSuggestionTime += relativeTime;
-      }
-    });
-
+    // calculateSessionAnalytics(data, sessionId);
     storeSessionData.update((sessions) => {
       const idx = sessions.findIndex((s) => s.sessionId === sessionId);
       if (idx !== -1) {
@@ -951,7 +896,62 @@
       totalDeletions,
       totalSuggestions
     );
+
+    return {
+      chartData,
+      textElements,
+      paragraphColor,
+    };
   };
+
+  // const calculateSessionAnalytics = (data, sessionId) => {
+  //   let totalInsertions = 0;
+  //   let totalDeletions = 0;
+  //   let totalSuggestions = 0;
+  //   let totalInsertionTime = 0;
+  //   let totalDeletionTime = 0;
+  //   let totalSuggestionTime = 0;
+  //   let totalProcessedCharacters = data.text[0].length;
+
+  //   data.info.forEach((event) => {
+  //     const { name, event_time } = event;
+  //     const eventTime = new Date(event_time);
+  //     const relativeTime =
+  //       (eventTime - new Date(data.info[0].event_time)) / (1000 * 60); // in minutes
+
+  //     if (name === "text-insert") {
+  //       totalInsertions++;
+  //       totalInsertionTime += relativeTime;
+  //     } else if (name === "text-delete") {
+  //       totalDeletions++;
+  //       totalDeletionTime += relativeTime;
+  //     } else if (name === "suggestion-open") {
+  //       totalSuggestions++;
+  //       totalSuggestionTime += relativeTime;
+  //     }
+  //   });
+
+  //   storeSessionData.update((sessions) => {
+  //     const idx = sessions.findIndex((s) => s.sessionId === sessionId);
+  //     if (idx !== -1) {
+  //       sessions[idx].summaryData = {
+  //         totalProcessedCharacters,
+  //         totalInsertions,
+  //         totalDeletions,
+  //         totalSuggestions,
+  //       };
+  //     }
+  //     return [...sessions];
+  //   });
+
+  //   updateSessionSummary(
+  //     sessionId,
+  //     totalProcessedCharacters,
+  //     totalInsertions,
+  //     totalDeletions,
+  //     totalSuggestions
+  //   );
+  // };
 
   const updateSessionSummary = (
     sessionId,
