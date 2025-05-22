@@ -84,6 +84,28 @@
   let zoomTransforms = {};
   export const clickSession = writable(null);
   let patternData = [];
+  let RangeSlider = null;
+  let writingProgressRange = [];
+  let timeRange = [];
+  let sourceRange = [];
+  let semanticRange = [];
+  let semanticData = [];
+  let semanticTrend = [];
+  onMount(async () => {
+    const mod = await import('svelte-range-slider-pips');
+    RangeSlider = mod.default;
+  });
+  let isProgressChecked = true
+  let isTimeChecked = true
+  let isSourceChecked = true
+  let isSemanticChecked = true
+  let isValueRangeChecked = true
+  let isValueTrendChecked = true
+  $: if (!isSemanticChecked) {
+    isValueRangeChecked = false;
+    isValueTrendChecked = false;
+  }
+  let patternDataList = [];
 
   async function handleContainerClick(event) {
     const sessionId = event.detail.sessionId;
@@ -143,80 +165,145 @@
     selectedPatterns = newSelectedPatterns;
   }
 
-  async function searchPattern(sessionId) {
-    const pattern = selectedPatterns[sessionId];
-    const selectionRange = pattern.range;
-    let results = [];
-
-    const searchParams = {
-      semanticChange: {
-        min: selectionRange.sc.min,
-        max: selectionRange.sc.max
-      },
-      progress: {
-        min: selectionRange.progress.min,
-        max: selectionRange.progress.max
-      },
-      source: pattern.sources
+  function isDataValid(item, checks) {
+    const fieldMap = {
+      progress: (d) => d.end_progress * 100,
+      time: (d) => d.end_time / 60,
+      semantic: (d) => d.residual_vector_norm,
     };
 
+    for (const [key, [checked, range]] of Object.entries(checks)) {
+      if (!checked || !(key in fieldMap)) continue;
+      const value = fieldMap[key](item);
+      if (value < range[0] || value > range[1]) return false;
+    }
+
+    return true;
+  }
+
+  function getTrendPattern(values) {
+    const pattern = [];
+    for (let i = 1; i < values.length; i++) {
+      if (values[i] > values[i - 1]) pattern.push('up');
+      else if (values[i] < values[i - 1]) pattern.push('down');
+      else pattern.push('flat');
+    }
+    return pattern;
+  }
+
+  function matchesTrend(values, expectedTrend) {
+    const actual = getTrendPattern(values);
+    return actual.every((v, i) => v === expectedTrend[i]);
+  }
+
+
+  function findSegments(data, checks, minCount) {
+    const segments = [];
+    const sourceChecked = checks.source[0];
+    const sourceOrder = checks.source[1];
+    const trendChecked = checks.trend[0];
+    const expectedTrend = checks.trend[1];
+    const useSourceMatch = sourceChecked && Array.isArray(sourceOrder) && sourceOrder.length > 0;
+
+    if (useSourceMatch) {
+      const windowSize = sourceOrder.length;
+      for (let i = 0; i <= data.length - windowSize; i++) {
+        const window = data.slice(i, i + windowSize);
+        const sources = window.map(d => d.source);
+        const allValid = window.every(d => isDataValid(d, checks));
+        if (!allValid) continue;
+        if (sources.every((src, idx) => src === sourceOrder[idx])) {
+          if (trendChecked && expectedTrend && expectedTrend.length === window.length - 1) {
+            const values = window.map(d => d.residual_vector_norm);
+            if (!matchesTrend(values, expectedTrend)) continue;
+          }
+          segments.push([...window]);
+          i += windowSize - 1;
+        }
+      }
+    } else {
+      let currentSegment = [];
+      for (const item of data) {
+        if (isDataValid(item, checks)) {
+          currentSegment.push(item);
+        } else {
+          if (currentSegment.length >= minCount) {
+            if (trendChecked && expectedTrend && expectedTrend.length === currentSegment.length - 1) {
+              const values = currentSegment.map(d => d.residual_vector_norm);
+              if (matchesTrend(values, expectedTrend)) {
+                segments.push([...currentSegment]);
+              }
+            } else if (!trendChecked) {
+              segments.push([...currentSegment]);
+            }
+          }
+          currentSegment = [];
+        }
+      }
+      if (currentSegment.length >= minCount) {
+        if (trendChecked && expectedTrend && expectedTrend.length === currentSegment.length - 1) {
+          const values = currentSegment.map(d => d.residual_vector_norm);
+          if (matchesTrend(values, expectedTrend)) {
+            segments.push([...currentSegment]);
+          }
+        } else if (!trendChecked) {
+          segments.push([...currentSegment]);
+        }
+      }
+    }
+    return segments;
+  }
+
+  async function searchPattern(sessionId) {
+    const sessionData = selectedPatterns[sessionId]
+    const count = sessionData.count
+    let results = [];
+    const checks = {
+      progress: [isProgressChecked, writingProgressRange],
+      time: [isTimeChecked, timeRange],
+      source: [isSourceChecked, sourceRange],
+      semantic: [isValueRangeChecked, semanticRange],
+      trend: [isValueTrendChecked, semanticTrend],
+    };
     try {
       const fileListResponse = await fetch(`${base}/session_name.json`);
       const fileList = await fileListResponse.json();
+
       for (const fileName of fileList) {
         const dataResponse = await fetch(`${base}/chi2022-coauthor-v1.0/similarity_results/${fileName}`);
         const data = await dataResponse.json();
+        const segments = findSegments(data, checks, count);
         const extractedFileName = fileName.split(".")[0].replace(/_similarity$/, "");
-        
-        const filtered = data.filter(item => {
-          const sc = item.residual_vector_norm;
-          const start = item.start_progress * 100;
-          const end = item.end_progress * 100;
-          const progressMin = Math.min(start, end);
-          const progressMax = Math.max(start, end);
-
-          // return (
-          //   sc >= searchParams.semanticChange.min &&
-          //   sc <= searchParams.semanticChange.max &&
-          //   progressMax >= searchParams.progress.min &&
-          //   progressMin <= searchParams.progress.max
-          // )
-          return (
-            sc >= searchParams.semanticChange.min &&
-            sc <= searchParams.semanticChange.max &&
-            progressMin >= searchParams.progress.min &&
-            progressMax <= searchParams.progress.max
-          );
-        })
-          const converted = filtered.map(item => ({
-            startProgress: item.start_progress * 100,
-            endProgress: item.end_progress * 100,
-            residual_vector_norm: item.residual_vector_norm,
-            source: item.source,
-          }));
-          if (converted.length > 0) {
-            converted.forEach(item => {
-              results.push({
-                sessionId: extractedFileName,
-                data: item,
-                range: {
-                  scRange: {
-                    min: item.residual_vector_norm,
-                    max: item.residual_vector_norm
-                  },
-                  progressRange: {
-                    min: Math.min(item.startProgress, item.endProgress),
-                    max: Math.max(item.startProgress, item.endProgress)
-                  }
-                }
-              });
-            });
-          }
+        const taggedSegments = segments.map(segment =>
+          segment.map(item => ({ ...item, id: extractedFileName }))
+        );
+        results.push(...taggedSegments);
       }
+      // console.log("Check", results)
       patternData = results;
+      patternDataLoad(results.slice(0, 3));
     } catch (error) {
-      console.error('Search failed:', error);
+      console.error('Search failed', error);
     }
+  }
+
+  async function patternDataLoad(results) {
+    const ids = results.map(group => group[0]?.id).filter(Boolean);
+    const fetchPromises = ids.map(id => fetchData(id, false, false));
+    await Promise.all(fetchPromises);
+    const sessionDataList = get(storeSessionData);
+    patternDataList = results.map(group => {
+      const id = group[0]?.id;
+      const sessionData = sessionDataList.find(s => s.sessionId === id);
+      if (sessionData) {
+        return {
+          ...sessionData,
+          segments: group
+        };
+      }
+      return null;
+    }).filter(Boolean);
+    // console.log(patternDataList);
   }
 
   function closePatternSearch() {
@@ -234,11 +321,26 @@
     selectedPatterns = {};
   }
 
+  function getTrend(a, b) {
+    if (a < b) return 'up';
+    if (a > b) return 'down';
+    return 'flat';
+  }
+
   function handleSelectionChanged(event) {
-    const { sessionId, range, data, sources } = event.detail;
+    const { sessionId, range, dataRange, data, sources } = event.detail;
+    writingProgressRange = [dataRange.progressRange.min, dataRange.progressRange.max];
+    timeRange = [dataRange.timeRange.min, dataRange.timeRange.max];
+    sourceRange = sources;
+    semanticRange = [dataRange.scRange.min, dataRange.scRange.max];
+    semanticData = dataRange.sc.sc;
+    for (let i = 1; i < semanticData.length; i++) {
+      semanticTrend.push(getTrend(semanticData[i - 1], semanticData[i]));
+    }
 
     selectedPatterns[sessionId] = {
       range,
+      dataRange,
       data,
       sources,
       scRange: `${range.sc.min.toFixed(1)} - ${range.sc.max.toFixed(1)}%`,
@@ -395,7 +497,7 @@
           }
           return sessionData;
         });
-        await fetchData(newSession.session_id, false);
+        await fetchData(newSession.session_id, false, true);
       }
     } else {
       storeSessionData.update((sessionData) => {
@@ -412,7 +514,7 @@
         (item) => item.prompt_code === tag
       );
       for (const sessionToRemove of sessionsToRemove) {
-        await fetchData(sessionToRemove.session_id, true);
+        await fetchData(sessionToRemove.session_id, true, true);
       }
     }
 
@@ -432,7 +534,7 @@
           selectedTagsList.includes(item.prompt_code)
         );
         for (const session of allSessionsForTag) {
-          await fetchData(session.session_id, false);
+          await fetchData(session.session_id, false, true);
         }
       }
     } else {
@@ -440,7 +542,7 @@
         selectedTagsList.includes(item.prompt_code)
       );
       for (const session of allSessionsForTag) {
-        await fetchData(session.session_id, false);
+        await fetchData(session.session_id, false,true);
       }
     }
     updatePromptFilterStatus();
@@ -473,7 +575,7 @@
     showFilter = !showFilter;
   };
 
-  const fetchData = async (sessionFile, isDelete) => {
+  const fetchData = async (sessionFile, isDelete, isPrompt) => {
     if (!firstSession && isDelete) {
       storeSessionData.update((data) => {
         return data.filter((item) => item.sessionId !== sessionFile);
@@ -556,8 +658,9 @@
     } catch (error) {
       console.error("Error when reading the data file:", error);
     }
-
-    updatePromptFilterStatus();
+    if (isPrompt) {
+      updatePromptFilterStatus();
+    }
   };
 
   const fetchSimilarityData = async (sessionFile) => {
@@ -627,13 +730,13 @@
     if (!isCurrentlySelected) {
       for (let i = 0; i < selectedSession.length; i++) {
         selectedSession[i] = sessionId;
-        fetchData(sessionId, false);
+        fetchData(sessionId, false, true);
       }
     } else {
       storeSessionData.update((data) => {
         return data.filter((item) => item.session_id !== sessionId);
       });
-      fetchData(sessionId, true);
+      fetchData(sessionId, true, true);
     }
 
     for (let i = 0; i < selectedSession.length; i++) {
@@ -671,7 +774,7 @@
     document.title = "Ink-Pulse";
     fetchSessions();
     for (let i = 0; i < selectedSession.length; i++) {
-      fetchData(selectedSession[i], true);
+      fetchData(selectedSession[i], true, true);
       fetchSimilarityData(selectedSession[i]).then((data) => {
         if (data) {
           storeSessionData.update((sessions) => {
@@ -904,55 +1007,6 @@
     };
   };
 
-  // const calculateSessionAnalytics = (data, sessionId) => {
-  //   let totalInsertions = 0;
-  //   let totalDeletions = 0;
-  //   let totalSuggestions = 0;
-  //   let totalInsertionTime = 0;
-  //   let totalDeletionTime = 0;
-  //   let totalSuggestionTime = 0;
-  //   let totalProcessedCharacters = data.text[0].length;
-
-  //   data.info.forEach((event) => {
-  //     const { name, event_time } = event;
-  //     const eventTime = new Date(event_time);
-  //     const relativeTime =
-  //       (eventTime - new Date(data.info[0].event_time)) / (1000 * 60); // in minutes
-
-  //     if (name === "text-insert") {
-  //       totalInsertions++;
-  //       totalInsertionTime += relativeTime;
-  //     } else if (name === "text-delete") {
-  //       totalDeletions++;
-  //       totalDeletionTime += relativeTime;
-  //     } else if (name === "suggestion-open") {
-  //       totalSuggestions++;
-  //       totalSuggestionTime += relativeTime;
-  //     }
-  //   });
-
-  //   storeSessionData.update((sessions) => {
-  //     const idx = sessions.findIndex((s) => s.sessionId === sessionId);
-  //     if (idx !== -1) {
-  //       sessions[idx].summaryData = {
-  //         totalProcessedCharacters,
-  //         totalInsertions,
-  //         totalDeletions,
-  //         totalSuggestions,
-  //       };
-  //     }
-  //     return [...sessions];
-  //   });
-
-  //   updateSessionSummary(
-  //     sessionId,
-  //     totalProcessedCharacters,
-  //     totalInsertions,
-  //     totalDeletions,
-  //     totalSuggestions
-  //   );
-  // };
-
   const updateSessionSummary = (
     sessionId,
     totalProcessedCharacters,
@@ -1119,13 +1173,17 @@
                       >
                     </div>
                   </div>
-
                   <div class="pattern-details">
-                    <div>Semantic Change: {pattern.scRange}</div>
-                    <div>Progress Range: {pattern.progressRange}</div>
-                    <div>Patterns Found: {pattern.count}</div>
+                    <div>
+                      Semantic Change: {pattern.dataRange.scRange.min.toFixed(2)} - {pattern.dataRange.scRange.max.toFixed(2)}
+                    </div>
+                    <div>
+                      Progress Range: {pattern.dataRange.progressRange.min.toFixed(2)}% - {pattern.dataRange.progressRange.max.toFixed(2)}%
+                    </div>
+                    <div>
+                      Counts: {pattern.count}
+                    </div>
                   </div>
-
                   <div class="pattern-chart-preview small-preview">
                     <PatternChartPreview
                       {sessionId}
@@ -1134,20 +1192,67 @@
                       bind:this={chartRefs[sessionId]}
                     />
                   </div>
-                  {#if patternData.length > 0}
-                    {#each patternData as pData}
-                    <div style="margin-bottom: 30px;">
-                      <div class="pattern-details">
-                        <div>Semantic Change: 0.0 – {pData.range.scRange.max.toFixed(1)}%</div>
-                        <div>Progress Range: {pData.range.progressRange.min.toFixed(1)} – {pData.range.progressRange.max.toFixed(1)}%</div>
-                      </div>
-                      <div class="pattern-chart-preview">
-                        <PatternChartPreviewSerach
-                        sessionId={pData.sessionId}
-                        data={pData.data}
+                  <div class:dimmed={!isProgressChecked} style="display: flex; align-items: center; font-size: 13px;">
+                    <input type="checkbox" bind:checked={isProgressChecked} />
+                    Writing Progress
+                    <div style="flex: 1;"></div>
+                    <RangeSlider class="rangeSlider" min={0} max={100} bind:values={writingProgressRange}/>
+                  </div>
+                  <div class:dimmed={!isTimeChecked} style="display: flex; align-items: center; font-size: 13px;">
+                    <input type="checkbox" bind:checked={isTimeChecked} />
+                    Time 
+                    <div style="flex: 1;"></div>
+                    <RangeSlider class="rangeSlider" min={0} max={$clickSession?.time100} bind:values={timeRange}/>
+                  </div>
+                  <div class:dimmed={!isSourceChecked} style="font-size: 13px;">
+                    <input type="checkbox" bind:checked={isSourceChecked} />
+                    Source(human/AI)
+                  </div>
+                  <div style="font-size: 13px;">
+                    <div class:dimmed={!isSemanticChecked}>
+                      <input type="checkbox" bind:checked={isSemanticChecked} />
+                      Semantic Expansion
+                    </div>
+                    <div style="margin-left: 20px;">
+                      <div class:dimmed={!isValueRangeChecked}>
+                        <input
+                          type="checkbox"
+                          bind:checked={isValueRangeChecked}
+                          disabled={!isSemanticChecked}
                         />
+                        Value Range
+                      </div>
+                      <div class:dimmed={!isValueTrendChecked}>
+                        <input
+                          type="checkbox"
+                          bind:checked={isValueTrendChecked}
+                          disabled={!isSemanticChecked}
+                        />
+                        Value Trend
                       </div>
                     </div>
+                  </div>
+                  {#if patternDataList.length > 0}
+                    {#each patternDataList as sessionData}
+                        <div class="chart-container">
+                          <div class="chart-wrapper">
+                            <PatternChartPreviewSerach
+                              sessionId={sessionData.sessionId}
+                              data={sessionData.segments}
+                            />
+                            <!-- <div>
+                              <LineChart
+                                bind:this={chartRefs[sessionData.sessionId]}
+                                chartData={sessionData.chartData}
+                                paragraphColor={sessionData.paragraphColor}
+                                on:pointSelected={(e) => handlePointSelected(e, sessionData.sessionId)}
+                                {yScale}
+                                {height}
+                                bind:zoomTransform={zoomTransforms[sessionData.sessionId]}
+                              />
+                            </div> -->
+                          </div>
+                        </div>
                     {/each}
                   {:else}
                     <div class="no-data-message">
@@ -1305,7 +1410,7 @@
                 <progress
                   value={$clickSession?.currentTime || 0}
                   max={$clickSession?.time100 || 1}
-                />
+                ></progress>
               </div>
               <div class="scale-container">
                 <div class="scale" id="scale"></div>
@@ -1390,6 +1495,8 @@
     --progColor: hsl(6, 100%, 75%);
     --progHeight: 20px;
     --progBackgroundColor: hsl(6, 100%, 90%);
+    --range-handle:           #86cecb;
+    --range-handle-focus:     #137a7f;
   }
 
   .zoom-reset-btn {
@@ -1408,9 +1515,6 @@
   }
 
   .container {
-    /* display: flex; */
-    /* justify-content: space-between; */
-    /* align-items: flex-start; */
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
@@ -2152,5 +2256,14 @@
 
   .hide {
     display: none;
+  }
+
+  :global(.rangeSlider) {
+    font-size: 4px;
+    width: 100px;
+  }
+
+  .dimmed {
+    color: #5f6368
   }
 </style>

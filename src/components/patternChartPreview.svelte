@@ -127,18 +127,24 @@
 
       bars
         .attr("opacity", (d) => {
-          const isSelected =
-            d.residual_vector_norm >= sc.min &&
-            d.residual_vector_norm <= sc.max &&
-            ((d.startProgress >= progress.min &&
-              d.startProgress <= progress.max) ||
-              (d.endProgress >= progress.min &&
-                d.endProgress <= progress.max) ||
-              (d.startProgress <= progress.min &&
-                d.endProgress >= progress.max));
+          const barMinX = Math.min(d.residual_vector_norm, 0);
+          const barMaxX = Math.max(d.residual_vector_norm, 0);
+
+          const xOverlap = !(barMaxX < sc.min || barMinX > sc.max);
+
+          const barStart = d.startProgress;
+          const barEnd = d.endProgress;
+
+          const yOverlap =
+            (barStart >= progress.min && barStart <= progress.max) ||
+            (barEnd >= progress.min && barEnd <= progress.max) ||
+            (barStart <= progress.min && barEnd >= progress.max);
+
+          const isSelected = xOverlap && yOverlap;
 
           return isSelected ? 0.9 : 0.1;
-        })
+        });
+
     }
   }
 </script>
