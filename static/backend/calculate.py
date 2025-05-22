@@ -1,5 +1,7 @@
 import os
 import json
+import numpy as np
+from scipy.stats import norm
 
 def read_file(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
@@ -20,14 +22,21 @@ def read_file(file_path):
                     event["residual_vector_norm"] = 0
                 else:
                     event["residual_vector_norm"] = event["residual_vector"] / abs(delta) if delta != 0 else 1
-    residual = [item["residual_vector_norm"] for item in data]
-    min_norm = min(residual)
-    max_norm = max(residual)
-    norm_range = max_norm - min_norm if max_norm != min_norm else 1.0
-    for i, event in enumerate(data):
-        if event["residual_vector_norm"] != 0:
-            raw_norm = event["residual_vector_norm"]
-            event["residual_vector_norm"] = (raw_norm - min_norm) / norm_range
+    values = [e["residual_vector_norm"] for e in data if e["residual_vector_norm"] != 0]
+    log_values = np.log1p(values)
+    mean_val = np.mean(log_values)
+    std_val = np.std(log_values)
+    def normalize_residual(val):
+        log_val = np.log1p(val)
+        z = (log_val - mean_val) / std_val
+        return norm.cdf(z)
+    for e in data:
+        val = e["residual_vector_norm"]
+        if val != 0:
+            e["residual_vector_norm"] = normalize_residual(val)
+        else:
+            e["residual_vector_norm"] = 0
+
     with open(file_path, 'w', encoding='utf-8') as file:
         json.dump(data, file, ensure_ascii=False,  indent=4)
 
@@ -36,7 +45,7 @@ def process_files(base_path):
         if filename.endswith('.json'):
             file_path = os.path.join(base_path, filename)
             read_file(file_path)
-            print(f"Updated height in file: {filename}")
+            print(f"Update file: {filename}")
 
 def write_json(json_path):
     name = []

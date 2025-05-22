@@ -1,5 +1,5 @@
 <script>
-    import { onMount, afterUpdate } from "svelte";
+    import { onMount } from "svelte";
     import * as d3 from "d3";
 
     export let sessionId;
@@ -10,37 +10,19 @@
 
     onMount(() => {
         if (data && container) {
-        renderChart();
-        }
-    });
-
-    afterUpdate(() => {
-        if (
-        data &&
-        container &&
-        JSON.stringify(prevData) !== JSON.stringify(data)
-        ) {
-        renderChart();
-        prevData = JSON.parse(JSON.stringify(data));
+            renderChart();
+            prevData = JSON.parse(JSON.stringify(data));
         }
     });
 
     function renderChart() {
         d3.select(container).selectAll("svg").remove();
-
-        const processedData = Array.isArray(data)
-        ? data.map((d) => ({
-            startProgress: d.startProgress,
-            endProgress: d.endProgress,
+        const processedData = data.map((d) => ({
+            startProgress: d.start_progress * 100,
+            endProgress: d.end_progress * 100,
             residual_vector_norm: d.residual_vector_norm,
             source: d.source,
-            }))
-        : [{
-            startProgress: data.startProgress,
-            endProgress: data.endProgress,
-            residual_vector_norm: data.residual_vector_norm,
-            source: data.source,
-            }];
+        }));
 
         const margin = { top: 10, right: 5, bottom: 25, left: 40 };
         const chartWidth = container.clientWidth - margin.left - margin.right;

@@ -62,11 +62,14 @@
   function renderChart() {
     d3.select(container).selectAll("svg").remove();
 
-    const processedData = similarityData.map((item) => ({
+    const processedData = similarityData.map((item, i) => ({
+      id: i,
       startProgress: item.start_progress * 100,
       endProgress: item.end_progress * 100,
       residual_vector_norm: item.residual_vector_norm,
       source: item.source,
+      startTime: item.start_time / 60,
+      endTime: item.end_time / 60,
     }));
 
     const margin = { top: 20, right: 0, bottom: 30, left: 50 };
@@ -171,7 +174,11 @@
 
       currentSelection = event.selection;
 
-      const [[x0, y0], [x1, y1]] = event.selection;
+      const [[rawX0, rawY0], [rawX1, rawY1]] = event.selection;
+      const x0 = Math.min(rawX0, rawX1);
+      const x1 = Math.max(rawX0, rawX1);
+      const y0 = Math.min(rawY0, rawY1);
+      const y1 = Math.max(rawY0, rawY1);
 
       const scMin = xScale.invert(x1);
       const scMax = xScale.invert(x0);
@@ -191,13 +198,29 @@
           barY <= y1
         );
       });
-
       highlightBars(filteredData);
 
       dispatch("selectionChanged", {
         range: {
           sc: { min: scMin, max: scMax },
           progress: { min: progressMin, max: progressMax },
+        },
+        dataRange: {  
+          scRange: {
+            min: d3.min(filteredData, d => d.residual_vector_norm),
+            max: d3.max(filteredData, d => d.residual_vector_norm),
+          },
+          progressRange: {
+            min: d3.min(filteredData, d => d.startProgress),
+            max: d3.max(filteredData, d => d.endProgress),
+          },
+          timeRange: {
+            min: filteredData[0].startTime,
+            max: filteredData[filteredData.length - 1].endTime,
+          },
+          sc: {
+            sc: filteredData.map(d => d.residual_vector_norm),
+          }
         },
         data: filteredData,
         sessionId: sessionId,
@@ -210,17 +233,8 @@
     }
 
     function highlightBars(filteredData) {
-      bars
-        .attr("opacity", (d) => {
-          const isSelected = filteredData.some(
-            (fd) =>
-              fd.startProgress === d.startProgress &&
-              fd.endProgress === d.endProgress &&
-              fd.residual_vector_norm === d.residual_vector_norm &&
-              fd.source === d.source
-          );
-          return isSelected ? 0.9 : 0.1;
-        })
+      const selectedIds = new Set(filteredData.map(d => d.id));
+      bars.attr("opacity", (d) => selectedIds.has(d.id) ? 0.9 : 0.1);
     }
 
     if (!selectionMode) {
