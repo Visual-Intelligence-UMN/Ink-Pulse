@@ -106,13 +106,14 @@
     isValueTrendChecked = false;
   }
   let patternDataList = [];
+  export const initData = writable([]);
 
   async function handleContainerClick(event) {
     const sessionId = event.detail.sessionId;
+    await fetchData(sessionId, false, true);
     try {
       const allSessions = get(storeSessionData);
       const data = allSessions.find(item => item.sessionId === sessionId);
-
       if (data) {
         clickSession.set(data);
       }
@@ -279,7 +280,6 @@
         );
         results.push(...taggedSegments);
       }
-      // console.log("Check", results)
       patternData = results;
       patternDataLoad(results.slice(0, 3));
     } catch (error) {
@@ -303,7 +303,6 @@
       }
       return null;
     }).filter(Boolean);
-    // console.log(patternDataList);
   }
 
   function closePatternSearch() {
@@ -485,36 +484,51 @@
     filterSessions();
     if (event.target.checked) {
       for (const newSession of $filterTableData) {
-        storeSessionData.update((sessionData) => {
-          if (
-            !sessionData.some(
-              (session) => session.sessionId === newSession.session_id
-            )
-          ) {
-            sessionData.push({
-              sessionId: newSession.session_id,
-            });
-          }
-          return sessionData;
-        });
-        await fetchData(newSession.session_id, false, true);
+        // storeSessionData.update((sessionData) => {
+        //   if (
+        //     !sessionData.some(
+        //       (session) => session.sessionId === newSession.session_id
+        //     )
+        //   ) {
+        //     sessionData.push({
+        //       sessionId: newSession.session_id,
+        //     });
+        //   }
+        //   return sessionData;
+        // });
+        // await fetchData(newSession.session_id, false, true);
+        await fetchInitData(newSession.session_id, false, true);
+        // const similarityData = await fetchSimilarityData(newSession.session_id);
+        // if (similarityData) {
+        //   initData.update((sessions) => {
+        //     if (!sessions.find(s => s.sessionId === newSession.session_id)) {
+        //       sessions.push({
+        //         sessionId: newSession.session_id,
+        //         similarityData: similarityData,
+        //         totalSimilarityData: similarityData,
+        //       });
+        //     }
+        //     return [...sessions];
+        //   });
+        // }
       }
     } else {
-      storeSessionData.update((sessionData) => {
-        return sessionData.filter(
-          (session) =>
-            !tableData.some(
-              (item) =>
-                item.prompt_code === tag &&
-                item.session_id === session.sessionId
-            )
-        );
-      });
+      // storeSessionData.update((sessionData) => {
+      //   return sessionData.filter(
+      //     (session) =>
+      //       !tableData.some(
+      //         (item) =>
+      //           item.prompt_code === tag &&
+      //           item.session_id === session.sessionId
+      //       )
+      //   );
+      // });
       const sessionsToRemove = tableData.filter(
         (item) => item.prompt_code === tag
       );
       for (const sessionToRemove of sessionsToRemove) {
-        await fetchData(sessionToRemove.session_id, true, true);
+        // await fetchData(sessionToRemove.session_id, true, true);
+        await fetchInitData(sessionToRemove.session_id, true, true);
       }
     }
 
@@ -534,7 +548,8 @@
           selectedTagsList.includes(item.prompt_code)
         );
         for (const session of allSessionsForTag) {
-          await fetchData(session.session_id, false, true);
+          // await fetchData(session.session_id, false, true);
+          await fetchInitData(session.session_id, false, true);
         }
       }
     } else {
@@ -542,7 +557,8 @@
         selectedTagsList.includes(item.prompt_code)
       );
       for (const session of allSessionsForTag) {
-        await fetchData(session.session_id, false,true);
+        // await fetchData(session.session_id, false,true);
+        await fetchInitData(session.session_id, false,true);
       }
     }
     updatePromptFilterStatus();
@@ -574,6 +590,32 @@
   const toggleFilter = () => {
     showFilter = !showFilter;
   };
+
+  async function fetchInitData(sessionId, isDelete, isPrompt) {
+    if (isDelete) {
+      initData.update((data) => data.filter((item) => item.sessionId !== sessionId));
+      return;
+    }
+
+    const similarityData = await fetchSimilarityData(sessionId);
+    if (similarityData) {
+      initData.update((sessions) => {
+        if (!sessions.find((s) => s.sessionId === sessionId)) {
+          sessions.push({
+            sessionId,
+            similarityData,
+            totalSimilarityData: similarityData,
+          });
+        }
+        return [...sessions];
+      });
+    }
+
+    if (isPrompt) {
+      updatePromptFilterStatus();
+    }
+  }
+
 
   const fetchData = async (sessionFile, isDelete, isPrompt) => {
     if (!firstSession && isDelete) {
@@ -641,20 +683,20 @@
         return [...sessions];
       });
 
-      fetchSimilarityData(sessionFile).then((similarityData) => {
-        if (similarityData) {
-          storeSessionData.update((sessions) => {
-            let sessionIndex = sessions.findIndex(
-              (s) => s.sessionId === sessionFile
-            );
-            if (sessionIndex !== -1) {
-              sessions[sessionIndex].similarityData = similarityData;
-              sessions[sessionIndex].totalSimilarityData = similarityData;
-            }
-            return [...sessions];
-          });
-        }
-      });
+      const similarityData = await fetchSimilarityData(sessionFile);
+      if (similarityData) {
+        storeSessionData.update((sessions) => {
+          let sessionIndex = sessions.findIndex(
+            (s) => s.sessionId === sessionFile
+          );
+          if (sessionIndex !== -1) {
+            sessions[sessionIndex].similarityData = similarityData;
+            sessions[sessionIndex].totalSimilarityData = similarityData;
+          }
+          return [...sessions];
+        });
+      }
+
     } catch (error) {
       console.error("Error when reading the data file:", error);
     }
@@ -730,13 +772,15 @@
     if (!isCurrentlySelected) {
       for (let i = 0; i < selectedSession.length; i++) {
         selectedSession[i] = sessionId;
-        fetchData(sessionId, false, true);
+        // fetchData(sessionId, false, true);
+        fetchInitData(sessionId, false, true);
       }
     } else {
-      storeSessionData.update((data) => {
-        return data.filter((item) => item.session_id !== sessionId);
-      });
-      fetchData(sessionId, true, true);
+      // storeSessionData.update((data) => {
+      //   return data.filter((item) => item.session_id !== sessionId);
+      // });
+      // fetchData(sessionId, true, true);
+      fetchInitData(sessionId, true, true);
     }
 
     for (let i = 0; i < selectedSession.length; i++) {
@@ -749,6 +793,18 @@
             if (sessionIndex !== -1) {
               sessions[sessionIndex].similarityData = similarityData;
               sessions[sessionIndex].totalSimilarityData = similarityData;
+            }
+            return [...sessions];
+          });
+
+          initData.update((sessions) => {
+            if (!sessions.find(s => s.sessionId === sessionId)) {
+              const newSession = {
+                sessionId: sessionId,
+                similarityData: similarityData,
+                totalSimilarityData: similarityData,
+              };
+              sessions.push(newSession);
             }
             return [...sessions];
           });
@@ -774,20 +830,31 @@
     document.title = "Ink-Pulse";
     fetchSessions();
     for (let i = 0; i < selectedSession.length; i++) {
-      fetchData(selectedSession[i], true, true);
+      // fetchData(selectedSession[i], true, true);
+      // fetchSimilarityData(selectedSession[i]).then((data) => {
+      //   if (data) {
+      //     storeSessionData.update((sessions) => {
+      //       let sessionIndex = sessions.findIndex(
+      //         (s) => s.sessionId === selectedSession[i]
+      //       );
+      //       if (sessionIndex !== -1) {
+      //         sessions[sessionIndex].similarityData = data;
+      //         sessions[sessionIndex].totalSimilarityData = data;
+      //       }
+      //       return [...sessions];
+      //     });
+      //   }
+      // });
       fetchSimilarityData(selectedSession[i]).then((data) => {
-        if (data) {
-          storeSessionData.update((sessions) => {
-            let sessionIndex = sessions.findIndex(
-              (s) => s.sessionId === selectedSession[i]
-            );
-            if (sessionIndex !== -1) {
-              sessions[sessionIndex].similarityData = data;
-              sessions[sessionIndex].totalSimilarityData = data;
-            }
-            return [...sessions];
-          });
-        }
+          initData.update((sessions) => {
+            const newSession = {
+              sessionId: selectedSession[i],
+              similarityData: data,
+              totalSimilarityData: data,
+            };
+            sessions.push(newSession);
+          return [...sessions];
+        });
       });
     }
   });
@@ -1297,8 +1364,8 @@
       {/if}
       {#if !showMulti}
       <div style="margin-top: 100px;">
-        {#if $storeSessionData.length > 0}
-          {#each $storeSessionData as sessionData (sessionData.sessionId)}
+        {#if $initData.length > 0}
+          {#each $initData as sessionData (sessionData.sessionId)}
             <div class="zoomout-chart">
               <ZoomoutChart
                 on:containerClick={handleContainerClick}
