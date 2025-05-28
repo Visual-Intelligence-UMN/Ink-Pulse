@@ -267,10 +267,59 @@
     return segments;
   }
 
+  function buildVectorFromSegment(segment, checks) {
+    console.log("gayu segment", segment);
+    console.log("gayu checks", checks);
+    const vector = {
+      x: [],
+    };
+
+    if (checks.source[0]) vector.s = [];
+    if (checks.time[0]) vector.t = [];
+    if (checks.progress[0]) vector.p = [];
+    if (checks.trend[0]) vector.tr = [];
+    if (checks.semantic[0]) vector.sem = [];
+
+    for (let i = 0; i < segment.length; i++) {
+      const item = segment[i];
+
+      vector.x.push(item.x ?? 0);
+
+      if (checks.source[0]) {
+        const source = item.source?.toLowerCase();
+        vector.s.push(source === "user" ? "H" : "A");
+      }
+
+      if (checks.time[0]) {
+        const tStart = item.start_time ?? 0;
+        const tEnd = item.end_time ?? 0;
+        vector.t.push(tEnd - tStart);
+      }
+
+      if (checks.progress[0]) {
+        const y1 = item.start_progress ?? 0;
+        const y2 = item.end_progress ?? 0;
+        vector.p.push(y2 - y1);
+      }
+
+      if (checks.trend[0]) {
+        const trendArray = checks.trend[1] || [];
+        vector.tr.push(trendArray[i] ?? null);
+      }
+      if (checks.semantic[0]) {
+        const semanticArray = checks.semantic[1] || [];
+        vector.sem.push(semanticArray[i] ?? null);
+      }
+    }
+
+    return vector;
+  }
+
   async function searchPattern(sessionId) {
     const sessionData = selectedPatterns[sessionId];
     const count = sessionData.count;
     let results = [];
+    let patternVectors = []; // ⬅️ NEW: store vectors
     const checks = {
       progress: [isProgressChecked, writingProgressRange],
       time: [isTimeChecked, timeRange],
@@ -291,13 +340,24 @@
         const extractedFileName = fileName
           .split(".")[0]
           .replace(/_similarity$/, "");
+
         const taggedSegments = segments.map((segment) =>
           segment.map((item) => ({ ...item, id: extractedFileName }))
         );
+
+        for (const segment of taggedSegments) {
+          const vector = buildVectorFromSegment(segment, checks);
+          patternVectors.push(vector);
+        }
+
         results.push(...taggedSegments);
       }
+
       patternData = results;
       patternDataLoad(results.slice(0, 3));
+
+      // You can do something with patternVectors if needed
+      console.log("Pattern Vectors:", patternVectors); // ⬅️ check output here
     } catch (error) {
       console.error("Search failed", error);
     }
@@ -1295,6 +1355,11 @@
                       max={100}
                       bind:values={writingProgressRange}
                     />
+                    <div
+                      style="font-size: 12px; margin-top: 4px; text-align: right;"
+                    >
+                      Selected: {writingProgressRange[0]}% – {writingProgressRange[1]}%
+                    </div>
                   </div>
                   <div
                     class:dimmed={!isTimeChecked}
@@ -1309,6 +1374,11 @@
                       max={$clickSession?.time100}
                       bind:values={timeRange}
                     />
+                    <div
+                      style="font-size: 12px; margin-top: 4px; text-align: right;"
+                    >
+                      Selected: {timeRange[0]} – {timeRange[1]}
+                    </div>
                   </div>
                   <div class:dimmed={!isSourceChecked} style="font-size: 13px;">
                     <input type="checkbox" bind:checked={isSourceChecked} />
