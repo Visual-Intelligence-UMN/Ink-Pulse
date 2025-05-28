@@ -685,31 +685,46 @@
       const response = await fetch(`${base}/fine.json`);
       const data = await response.json();
       sessions = data || [];
+      // Here
       if (firstSession) {
-        tableData = sessions.map((session) => {
-          return {
-            session_id: session.session_id,
-            prompt_code: session.prompt_code,
-            selected:
-              session.session_id === "e4611bd31b794677b02c52d5700b2e38" ||
-              session.session_id === "233f1efcf0274acba92f46bf2f8766d2"
-                ? true
-                : false,
-          };
-        });
+        tableData = sessions.map((session, i) => ({
+          session_id: session.session_id,
+          prompt_code: session.prompt_code,
+          selected: i < 30,
+        }));
         firstSession = false;
-        selectedTags.set(["reincarnation", "bee"]);
-        filterSessions();
-        $filterTableData = tableData.filter((session) =>
-          $selectedTags.includes(session.prompt_code)
+
+        
+        filterTableData.set(
+          tableData.map((row) => ({
+            ...row,
+            selected: row.selected,
+          }))
         );
-        filterOptions = Array.from(
-          new Set(tableData.map((row) => row.prompt_code))
+
+        const selectedRows = tableData.filter((r) => r.selected);
+        const tagSet = new Set(selectedRows.map((r) => r.prompt_code));
+        selectedTags.set([...tagSet]);
+
+        
+        storeSessionData.set([]);
+        await Promise.all(
+          selectedRows.map(async (row) => {
+            storeSessionData.update((arr) => {
+              if (!arr.some((s) => s.sessionId === row.session_id)) {
+                arr.push({ sessionId: row.session_id });
+              }
+              return arr;
+            });
+            await fetchData(row.session_id, false, true);
+          })
         );
+
+        filterOptions = Array.from(new Set(tableData.map((r) => r.prompt_code)));
         updatePromptFilterStatus();
       }
     } catch (error) {
-      console.error("Error when fetching sessions:", error);
+      console.error(error);
     }
   };
 
@@ -1296,7 +1311,7 @@
         </div>
       {/if}
       {#if !showMulti}
-      <div style="margin-top: 100px;">
+      <div class="zoomout-grid">
         {#if $storeSessionData.length > 0}
           {#each $storeSessionData as sessionData (sessionData.sessionId)}
             <div class="zoomout-chart">
@@ -2022,9 +2037,18 @@
 
   .zoomout-chart {
     display: flex;
-    margin-left: 300px;
+    margin-left: 100px;
     height: 30px;
   }
+  .zoomout-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    column-gap: 12px;
+    row-gap: 10px; 
+    margin-top: 100px; 
+    padding: 0 20px;
+  }
+
 
   .loading {
     position: fixed;
