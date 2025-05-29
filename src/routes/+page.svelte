@@ -107,6 +107,7 @@
   }
   let patternDataList = [];
   export const initData = writable([]);
+  let currentResults = {};
 
   async function handleContainerClick(event) {
     const sessionId = event.detail.sessionId;
@@ -182,97 +183,53 @@
     return true;
   }
 
-  function getTrendPattern(values) {
-    const pattern = [];
-    for (let i = 1; i < values.length; i++) {
-      if (values[i] > values[i - 1]) pattern.push("up");
-      else if (values[i] < values[i - 1]) pattern.push("down");
-      else pattern.push("flat");
-    }
-    return pattern;
-  }
-
-  function matchesTrend(values, expectedTrend) {
-    const actual = getTrendPattern(values);
-    return actual.every((v, i) => v === expectedTrend[i]);
-  }
-
   function findSegments(data, checks, minCount) {
     const segments = [];
-    const sourceChecked = checks.source[0];
-    const sourceOrder = checks.source[1];
-    const trendChecked = checks.trend[0];
-    const expectedTrend = checks.trend[1];
-    const useSourceMatch =
-      sourceChecked && Array.isArray(sourceOrder) && sourceOrder.length > 0;
-
-    if (useSourceMatch) {
-      const windowSize = sourceOrder.length;
-      for (let i = 0; i <= data.length - windowSize; i++) {
-        const window = data.slice(i, i + windowSize);
-        const sources = window.map((d) => d.source);
-        const allValid = window.every((d) => isDataValid(d, checks));
-        if (!allValid) continue;
-        if (sources.every((src, idx) => src === sourceOrder[idx])) {
-          if (
-            trendChecked &&
-            expectedTrend &&
-            expectedTrend.length === window.length - 1
-          ) {
-            const values = window.map((d) => d.residual_vector_norm);
-            if (!matchesTrend(values, expectedTrend)) continue;
-          }
-          segments.push([...window]);
-          i += windowSize - 1;
-        }
-      }
-    } else {
-      let currentSegment = [];
-      for (const item of data) {
-        if (isDataValid(item, checks)) {
-          currentSegment.push(item);
-        } else {
-          if (currentSegment.length >= minCount) {
-            if (
-              trendChecked &&
-              expectedTrend &&
-              expectedTrend.length === currentSegment.length - 1
-            ) {
-              const values = currentSegment.map((d) => d.residual_vector_norm);
-              if (matchesTrend(values, expectedTrend)) {
-                segments.push([...currentSegment]);
-              }
-            } else if (!trendChecked) {
-              segments.push([...currentSegment]);
-            }
-          }
-          currentSegment = [];
-        }
-      }
-      if (currentSegment.length >= minCount) {
-        if (
-          trendChecked &&
-          expectedTrend &&
-          expectedTrend.length === currentSegment.length - 1
-        ) {
-          const values = currentSegment.map((d) => d.residual_vector_norm);
-          if (matchesTrend(values, expectedTrend)) {
-            segments.push([...currentSegment]);
-          }
-        } else if (!trendChecked) {
-          segments.push([...currentSegment]);
-        }
+    for (let i = 0; i <= data.length - minCount; i++) {
+      const window = data.slice(i, i + minCount);
+      const allValid = window.every(item => isDataValid(item, checks));
+      if (allValid) {
+        segments.push([...window]);
       }
     }
     return segments;
   }
 
+  function buildVectorForCurrentSegment(currentResults, checks) {
+    const currentVector = {};
+    if (checks.source[0]) currentVector.s = [];
+    if (checks.time[0]) currentVector.t = [];
+    if (checks.progress[0]) currentVector.p = [];
+    if (checks.trend[0]) currentVector.tr = [];
+    if (checks.semantic[0]) currentVector.sem = [];
+    for (let i = 0; i < currentResults.length; i++) {
+      const currentItem = currentResults[i];
+      if (checks.source[0]) {
+        currentVector.s.push(checks.source[1][i] === "user" ? 1 : 0);
+      }
+
+      if (checks.time[0]) {
+        currentVector.t.push(currentItem.endTime - currentItem.startTime);
+      }
+
+      if (checks.progress[0]) {
+        currentVector.p.push(currentItem.endProgress - currentItem.startProgress);
+      }
+
+      if (checks.semantic[0]) {
+        currentVector.sem.push(currentItem.residual_vector_norm)
+      }
+    }
+
+    if (checks.trend[0]) {
+        currentVector.tr = semanticTrend;
+    }
+
+    return currentVector;
+  }
+
   function buildVectorFromSegment(segment, checks) {
-    console.log("gayu segment", segment);
-    console.log("gayu checks", checks);
-    const vector = {
-      x: [],
-    };
+    const vector = {};
 
     if (checks.source[0]) vector.s = [];
     if (checks.time[0]) vector.t = [];
@@ -283,11 +240,9 @@
     for (let i = 0; i < segment.length; i++) {
       const item = segment[i];
 
-      vector.x.push(item.x ?? 0);
-
       if (checks.source[0]) {
         const source = item.source?.toLowerCase();
-        vector.s.push(source === "user" ? "H" : "A");
+        vector.s.push(source === "user" ? 1 : 0); // user is 1, api is 0
       }
 
       if (checks.time[0]) {
@@ -303,12 +258,14 @@
       }
 
       if (checks.trend[0]) {
-        const trendArray = checks.trend[1] || [];
-        vector.tr.push(trendArray[i] ?? null);
+        if (i > 0) {
+          const trend = getTrend(segment[i - 1].residual_vector_norm, item.residual_vector_norm);
+          vector.tr.push(trend);
+        }
       }
+
       if (checks.semantic[0]) {
-        const semanticArray = checks.semantic[1] || [];
-        vector.sem.push(semanticArray[i] ?? null);
+        vector.sem.push(item.residual_vector_norm ?? null);
       }
     }
 
@@ -319,7 +276,7 @@
     const sessionData = selectedPatterns[sessionId];
     const count = sessionData.count;
     let results = [];
-    let patternVectors = []; // ⬅️ NEW: store vectors
+    let patternVectors = [];
     const checks = {
       progress: [isProgressChecked, writingProgressRange],
       time: [isTimeChecked, timeRange],
@@ -327,11 +284,16 @@
       semantic: [isValueRangeChecked, semanticRange],
       trend: [isValueTrendChecked, semanticTrend],
     };
+
     try {
       const fileListResponse = await fetch(`${base}/session_name.json`);
       const fileList = await fileListResponse.json();
 
       for (const fileName of fileList) {
+        const fileId = fileName.split(".")[0].replace(/_similarity$/, "");
+        if (fileId === sessionId) {
+          continue;
+        }
         const dataResponse = await fetch(
           `${base}/chi2022-coauthor-v1.0/similarity_results/${fileName}`
         );
@@ -347,20 +309,55 @@
 
         for (const segment of taggedSegments) {
           const vector = buildVectorFromSegment(segment, checks);
+          vector.id = segment[0]?.id ?? null;
           patternVectors.push(vector);
         }
 
         results.push(...taggedSegments);
       }
+      const currentVector = buildVectorForCurrentSegment(currentResults, checks)
 
       patternData = results;
-      patternDataLoad(results.slice(0, 3));
-
-      // You can do something with patternVectors if needed
-      console.log("Pattern Vectors:", patternVectors); // ⬅️ check output here
+      const finalScore = calculateRank(patternVectors, currentVector)
+      const idToData = Object.fromEntries(patternData.map(d => [d[0].id, d]));
+      const top5Data = finalScore.slice(0, 5)
+        .map(([id]) => idToData[id])
+      patternDataLoad(top5Data);
     } catch (error) {
       console.error("Search failed", error);
     }
+  }
+
+  function l2(arr1, arr2) {
+    let sum = 0;
+    for (let i = 1; i < arr1.length; i++) {
+      sum += (arr1[i] - arr2[i]) **2;
+    }
+    return Math.sqrt(sum);
+  }
+
+  function calculateRank(patternVectors, currentVector) {
+    const weights = {
+      s: 1.5,
+      t: 0.1,
+      p: 1,
+      tr: 2,
+      sem: 2.5
+    }
+    let finalScore = [];
+    for (const item of patternVectors) {
+      let score = 0;
+      for (const key in item) {
+        if (key != "id") {
+          let weight = weights[key] ?? 1;
+          let arr = item[key];
+          score += weight * l2(arr, currentVector[key]);
+        }
+      }
+      finalScore.push([item.id, score]);
+    }
+    finalScore.sort((a, b) => a[1] - b[1]);
+    return finalScore;
   }
 
   async function patternDataLoad(results) {
@@ -399,9 +396,9 @@
   }
 
   function getTrend(a, b) {
-    if (a < b) return "up";
-    if (a > b) return "down";
-    return "flat";
+    if (a < b) return 1; // up is 1, flat is 0, down is -1
+    if (a > b) return -1;
+    return 0;
   }
 
   function handleSelectionChanged(event) {
@@ -417,6 +414,7 @@
     for (let i = 1; i < semanticData.length; i++) {
       semanticTrend.push(getTrend(semanticData[i - 1], semanticData[i]));
     }
+    currentResults = data
 
     selectedPatterns[sessionId] = {
       range,
@@ -565,50 +563,13 @@
     filterSessions();
     if (event.target.checked) {
       for (const newSession of $filterTableData) {
-        // storeSessionData.update((sessionData) => {
-        //   if (
-        //     !sessionData.some(
-        //       (session) => session.sessionId === newSession.session_id
-        //     )
-        //   ) {
-        //     sessionData.push({
-        //       sessionId: newSession.session_id,
-        //     });
-        //   }
-        //   return sessionData;
-        // });
-        // await fetchData(newSession.session_id, false, true);
         await fetchInitData(newSession.session_id, false, true);
-        // const similarityData = await fetchSimilarityData(newSession.session_id);
-        // if (similarityData) {
-        //   initData.update((sessions) => {
-        //     if (!sessions.find(s => s.sessionId === newSession.session_id)) {
-        //       sessions.push({
-        //         sessionId: newSession.session_id,
-        //         similarityData: similarityData,
-        //         totalSimilarityData: similarityData,
-        //       });
-        //     }
-        //     return [...sessions];
-        //   });
-        // }
       }
     } else {
-      // storeSessionData.update((sessionData) => {
-      //   return sessionData.filter(
-      //     (session) =>
-      //       !tableData.some(
-      //         (item) =>
-      //           item.prompt_code === tag &&
-      //           item.session_id === session.sessionId
-      //       )
-      //   );
-      // });
       const sessionsToRemove = tableData.filter(
         (item) => item.prompt_code === tag
       );
       for (const sessionToRemove of sessionsToRemove) {
-        // await fetchData(sessionToRemove.session_id, true, true);
         await fetchInitData(sessionToRemove.session_id, true, true);
       }
     }
@@ -629,7 +590,6 @@
           selectedTagsList.includes(item.prompt_code)
         );
         for (const session of allSessionsForTag) {
-          // await fetchData(session.session_id, false, true);
           await fetchInitData(session.session_id, false, true);
         }
       }
@@ -638,7 +598,6 @@
         selectedTagsList.includes(item.prompt_code)
       );
       for (const session of allSessionsForTag) {
-        // await fetchData(session.session_id, false,true);
         await fetchInitData(session.session_id, false, true);
       }
     }
@@ -853,14 +812,9 @@
     if (!isCurrentlySelected) {
       for (let i = 0; i < selectedSession.length; i++) {
         selectedSession[i] = sessionId;
-        // fetchData(sessionId, false, true);
         fetchInitData(sessionId, false, true);
       }
     } else {
-      // storeSessionData.update((data) => {
-      //   return data.filter((item) => item.session_id !== sessionId);
-      // });
-      // fetchData(sessionId, true, true);
       fetchInitData(sessionId, true, true);
     }
 
@@ -911,21 +865,6 @@
     document.title = "Ink-Pulse";
     fetchSessions();
     for (let i = 0; i < selectedSession.length; i++) {
-      // fetchData(selectedSession[i], true, true);
-      // fetchSimilarityData(selectedSession[i]).then((data) => {
-      //   if (data) {
-      //     storeSessionData.update((sessions) => {
-      //       let sessionIndex = sessions.findIndex(
-      //         (s) => s.sessionId === selectedSession[i]
-      //       );
-      //       if (sessionIndex !== -1) {
-      //         sessions[sessionIndex].similarityData = data;
-      //         sessions[sessionIndex].totalSimilarityData = data;
-      //       }
-      //       return [...sessions];
-      //     });
-      //   }
-      // });
       fetchSimilarityData(selectedSession[i]).then((data) => {
         initData.update((sessions) => {
           const newSession = {
@@ -1321,14 +1260,10 @@
                   </div>
                   <div class="pattern-details">
                     <div>
-                      Semantic Change: {pattern.dataRange.scRange.min.toFixed(
-                        2
-                      )} - {pattern.dataRange.scRange.max.toFixed(2)}
+                      Semantic Change: {pattern.dataRange.scRange.min.toFixed(2)} - {pattern.dataRange.scRange.max.toFixed(2)}
                     </div>
                     <div>
-                      Progress Range: {pattern.dataRange.progressRange.min.toFixed(
-                        2
-                      )}% - {pattern.dataRange.progressRange.max.toFixed(2)}%
+                      Progress Range: {pattern.dataRange.progressRange.min.toFixed(2)}% - {pattern.dataRange.progressRange.max.toFixed(2)}%
                     </div>
                     <div>
                       Counts: {pattern.count}
@@ -1349,17 +1284,12 @@
                     <input type="checkbox" bind:checked={isProgressChecked} />
                     Writing Progress
                     <div style="flex: 1;"></div>
-                    <RangeSlider
+                    <RangeSlider range float
                       class="rangeSlider"
                       min={0}
                       max={100}
                       bind:values={writingProgressRange}
                     />
-                    <div
-                      style="font-size: 12px; margin-top: 4px; text-align: right;"
-                    >
-                      Selected: {writingProgressRange[0]}% – {writingProgressRange[1]}%
-                    </div>
                   </div>
                   <div
                     class:dimmed={!isTimeChecked}
@@ -1368,17 +1298,12 @@
                     <input type="checkbox" bind:checked={isTimeChecked} />
                     Time
                     <div style="flex: 1;"></div>
-                    <RangeSlider
+                    <RangeSlider range float
                       class="rangeSlider"
                       min={0}
                       max={$clickSession?.time100}
                       bind:values={timeRange}
                     />
-                    <div
-                      style="font-size: 12px; margin-top: 4px; text-align: right;"
-                    >
-                      Selected: {timeRange[0]} – {timeRange[1]}
-                    </div>
                   </div>
                   <div class:dimmed={!isSourceChecked} style="font-size: 13px;">
                     <input type="checkbox" bind:checked={isSourceChecked} />
@@ -2119,8 +2044,8 @@
   }
 
   input[type="checkbox"]:checked {
-    background-color: #86cecb;
-    border-color: #86cecb;
+    background-color: #ffbbcc;
+    border-color: #ffbbcc;
   }
 
   input[type="checkbox"]:checked::before {
@@ -2446,6 +2371,14 @@
   :global(.rangeSlider) {
     font-size: 4px;
     width: 100px;
+  }
+
+ :global(.rangeFloat) {
+    font-size: 12px !important;
+    opacity: 1 !important;
+    background-color: transparent !important;
+    color: #99A2A2 !important;
+    top: 0 !important;
   }
 
   .dimmed {
