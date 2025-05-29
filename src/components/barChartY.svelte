@@ -24,6 +24,10 @@
     }
   });
 
+  $: if (!zoomTransform) {
+    zoomTransform = d3.zoomIdentity;
+  }
+
   $: if (similarityData && container || zoomTransform !== d3.zoomIdentity) {
     renderChart();
   }

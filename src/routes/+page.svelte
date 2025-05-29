@@ -108,6 +108,7 @@
   let patternDataList = [];
   export const initData = writable([]);
   let currentResults = {};
+  let isSearch = false;
 
   async function handleContainerClick(event) {
     const sessionId = event.detail.sessionId;
@@ -163,6 +164,8 @@
     const newSelectedPatterns = { ...selectedPatterns };
     delete newSelectedPatterns[sessionId];
     patternData = [];
+    patternDataList = [];
+    currentResults = {};
 
     selectedPatterns = newSelectedPatterns;
   }
@@ -273,6 +276,7 @@
   }
 
   async function searchPattern(sessionId) {
+    isSearch = true;
     const sessionData = selectedPatterns[sessionId];
     const count = sessionData.count;
     let results = [];
@@ -393,6 +397,9 @@
     });
 
     selectedPatterns = {};
+    patternData = [];
+    patternDataList = [];
+    currentResults = {};
   }
 
   function getTrend(a, b) {
@@ -437,18 +444,6 @@
     }
 
     resetTextHighlighting(sessionId);
-  }
-
-  function scrollToSession(sessionId) {
-    const sessionElement = document.getElementById(`summary-${sessionId}`);
-    if (sessionElement) {
-      sessionElement.scrollIntoView({ behavior: "smooth", block: "center" });
-
-      sessionElement.classList.add("highlight-flash");
-      setTimeout(() => {
-        sessionElement.classList.remove("highlight-flash");
-      }, 2000);
-    }
   }
 
   function highlightTextSegments(sessionId, selectedData) {
@@ -1242,12 +1237,8 @@
               {#each Object.entries(selectedPatterns) as [sessionId, pattern]}
                 <div class="pattern-item">
                   <div class="pattern-header">
-                    <h5>Session: {sessionId}</h5>
+                    <h5>Session: {sessionId.slice(0, 4)}</h5>
                     <div class="pattern-buttons">
-                      <button
-                        class="view-pattern-button"
-                        on:click={() => scrollToSession(sessionId)}>View</button
-                      >
                       <button
                         class="delete-pattern-button"
                         on:click={() => deletePattern(sessionId)}>Delete</button
@@ -1358,7 +1349,7 @@
                         </div>
                       </div>
                     {/each}
-                  {:else}
+                  {:else if patternDataList.length == 0 && isSearch}
                     <div class="no-data-message">
                       No data found matching the search criteria.
                     </div>
@@ -2276,7 +2267,7 @@
 
   .pattern-header h5 {
     margin: 0;
-    font-size: 14px;
+    font-size: 12px;
     color: #202124;
   }
 
