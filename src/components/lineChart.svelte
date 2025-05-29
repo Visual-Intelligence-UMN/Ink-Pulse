@@ -39,6 +39,7 @@
   }
 
   $: if (chartData.length) {
+    updateAxes();
     initChart();
   }
 
