@@ -282,4 +282,16 @@ function findSegments(data, checks, minCount) {
     return pattern;
   }
 
+  function scrollToSession(sessionId) {
+    const sessionElement = document.getElementById(`summary-${sessionId}`);
+    if (sessionElement) {
+      sessionElement.scrollIntoView({ behavior: "smooth", block: "center" });
+
+      sessionElement.classList.add("highlight-flash");
+      setTimeout(() => {
+        sessionElement.classList.remove("highlight-flash");
+      }, 2000);
+    }
+  }
+
 '''
