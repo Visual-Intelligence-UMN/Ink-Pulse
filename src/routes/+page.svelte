@@ -673,7 +673,7 @@
 
       time0 = new Date(data.init_time);
       time100 = new Date(data.end_time);
-      time100 = (time100 - time0) / (1000 * 60);
+      time100 = (time100.getTime() - time0.getTime()) / (1000 * 60);
       currentTime = time100;
 
       dataDict = data;
@@ -874,6 +874,38 @@
     }
   });
 
+ 
+function handleChartZoom(event) {
+  event.preventDefault();
+  
+  if (!$clickSession || !$clickSession.sessionId) return;
+  
+  const sessionId = $clickSession.sessionId;
+  const currentTransform = zoomTransforms[sessionId] || d3.zoomIdentity;
+  
+  const scaleFactor = event.deltaY > 0 ? 0.9 : 1.1;
+  const newK = Math.max(1, Math.min(5, currentTransform.k * scaleFactor));
+  
+  const rect = event.currentTarget.getBoundingClientRect();
+  const mouseY = event.clientY - rect.top;
+  
+  const chartHeight = height - margin.top - margin.bottom;
+  const centerY = mouseY - margin.top;
+  
+  const currentCenterY = (centerY - currentTransform.y) / currentTransform.k;
+  const newTranslateY = centerY - (currentCenterY * newK);
+  
+  const maxTranslateY = 0;
+  const minTranslateY = -chartHeight * (newK - 1);
+  const clampedY = Math.max(minTranslateY, Math.min(newTranslateY, maxTranslateY));
+  
+  zoomTransforms[sessionId] = d3.zoomIdentity
+    .translate(currentTransform.x, clampedY)
+    .scale(newK);
+  
+  zoomTransforms = { ...zoomTransforms };
+}
+
   function generateColorGrey(index) {
     const colors = ["rgba(220, 220, 220, 0.5)", "rgba(240, 240, 240, 0.3)"];
     return colors[index % colors.length];
@@ -951,7 +983,7 @@
         firstTime = eventTime;
         paragraphTime.push({ time: 0, pos: 0 });
       }
-      const relativeTime = (eventTime - firstTime) / (1000 * 60); // convert time into easy format
+      const relativeTime = (eventTime.getTime() - firstTime.getTime()) / (1000 * 60);
 
       if (name === "text-insert") {
         // check whether insert a sentence or a character, divede into characters if it is a sentence
@@ -1459,7 +1491,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="chart-container">
+                <div class="chart-container" on:wheel={handleChartZoom}>
                   <div class="chart-wrapper">
                     {#if $clickSession.similarityData}
                       <BarChartY
@@ -1467,15 +1499,11 @@
                         similarityData={$clickSession.similarityData}
                         {yScale}
                         {height}
-                        bind:zoomTransform={
-                          zoomTransforms[$clickSession.sessionId]
-                        }
+                        bind:zoomTransform={zoomTransforms[$clickSession.sessionId]}
                         {selectionMode}
                         on:selectionChanged={handleSelectionChanged}
                         on:selectionCleared={handleSelectionCleared}
-                        bind:this={
-                          chartRefs[$clickSession.sessionId + "-barChart"]
-                        }
+                        bind:this={chartRefs[$clickSession.sessionId + "-barChart"]}
                         on:chartLoaded={handleChartLoaded}
                       />
                     {/if}
@@ -1488,9 +1516,7 @@
                           handlePointSelected(e, $clickSession.sessionId)}
                         {yScale}
                         {height}
-                        bind:zoomTransform={
-                          zoomTransforms[$clickSession.sessionId]
-                        }
+                        bind:zoomTransform={zoomTransforms[$clickSession.sessionId]}
                       />
                     </div>
                   </div>
@@ -1499,7 +1525,7 @@
                     class="zoom-reset-btn"
                   >
                     Reset Zoom
-                  </button>
+                  </button>                
                 </div>
               </div>
               <div class="content-box">
