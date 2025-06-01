@@ -688,10 +688,15 @@
       // Here
       if (firstSession) {
         tableData = sessions.map((session, i) => ({
-          session_id: session.session_id,
-          prompt_code: session.prompt_code,
-          selected: i < 30,
+         session_id: session.session_id,
+         prompt_code: session.prompt_code,
+         selected: i < 30,
         }));
+        // tableData = sessions.map((session) => ({
+        //   session_id: session.session_id,
+        //   prompt_code: session.prompt_code,
+        //   selected: true,
+        // }));
         firstSession = false;
 
         
@@ -1530,12 +1535,13 @@
   }
 
   .container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    margin-top: 70px;
-    margin-bottom: 70px;
-  }
+  width: 100%;
+  margin: 0;
+  margin-top: 70px;
+  margin-bottom: 70px;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
 
   .multi-box {
     display: flex;
