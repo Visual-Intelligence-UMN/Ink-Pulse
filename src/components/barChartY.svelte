@@ -24,6 +24,10 @@
     }
   });
 
+  $: if (!zoomTransform) {
+    zoomTransform = d3.zoomIdentity;
+  }
+
   $: if (similarityData && container || zoomTransform !== d3.zoomIdentity) {
     renderChart();
   }
@@ -148,7 +152,7 @@
       .attr("clip-path", "url(#clip_bar)");
 
     brush = d3
-      .brush()
+      .brushY()
       .extent([
         [0, 0],
         [chartWidth, chartHeight],
@@ -156,9 +160,9 @@
       .on("end", brushed);
 
     brushGroup = svg.append("g").attr("class", "brush");
+    brushGroup.call(brush);
 
     if (selectionMode) {
-      brushGroup.call(brush);
       brushGroup.style("pointer-events", "all");
     } else {
       brushGroup.style("pointer-events", "none");
@@ -173,31 +177,19 @@
       }
 
       currentSelection = event.selection;
+      const [y0, y1] = event.selection;
 
-      const [[rawX0, rawY0], [rawX1, rawY1]] = event.selection;
-      const x0 = Math.min(rawX0, rawX1);
-      const x1 = Math.max(rawX0, rawX1);
-      const y0 = Math.min(rawY0, rawY1);
-      const y1 = Math.max(rawY0, rawY1);
-
-      const scMin = xScale.invert(x1);
-      const scMax = xScale.invert(x0);
       const progressMin = newyScale.invert(y1);
       const progressMax = newyScale.invert(y0);
 
       const filteredData = processedData.filter((d) => {
-        const barX = xScale(d.residual_vector_norm);
         const barY = newyScale(d.endProgress);
-        const barWidth = xScale(0) - xScale(d.residual_vector_norm);
         const barHeight = newyScale(d.startProgress) - newyScale(d.endProgress);
-
-        return (
-          barX + barWidth >= x0 &&
-          barX <= x1 &&
-          barY + barHeight >= y0 &&
-          barY <= y1
-        );
+        return barY + barHeight >= y0 && barY <= y1;
       });
+      const scMin = d3.min(filteredData, d => d.residual_vector_norm) ?? 0;
+      const scMax = d3.max(filteredData, d => d.residual_vector_norm) ?? 0;
+
       highlightBars(filteredData);
 
       dispatch("selectionChanged", {
