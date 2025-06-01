@@ -1194,12 +1194,18 @@
         <span class="user-line">●</span> User written
         <span class="api-line">●</span> AI writing
       </div>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded"
+        rel="stylesheet"
+      />
       <a
         on:click={change2bar}
         href=" "
-        aria-label="Change2Bar"
-        class="material-symbols--restart-alt-rounded"
-      ></a>
+        aria-label="Toggle View"
+        class="material-symbols-rounded"
+      >
+        swap_horiz
+      </a>
       <button
         class="pattern-search-button"
         class:active={selectionMode}
