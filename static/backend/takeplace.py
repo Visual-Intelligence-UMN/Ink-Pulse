@@ -294,4 +294,131 @@ function findSegments(data, checks, minCount) {
     }
   }
 
+  const fetchData = async (sessionFile, isDelete, isPrompt) => {
+    if (!firstSession && isDelete) {
+      storeSessionData.update((data) => {
+        return data.filter((item) => item.sessionId !== sessionFile);
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${base}/chi2022-coauthor-v1.0/coauthor-json/${sessionFile}.jsonl`
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch session data: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      time0 = new Date(data.init_time);
+      time100 = new Date(data.end_time);
+      time100 = (time100 - time0) / (1000 * 60);
+      currentTime = time100;
+
+      dataDict = data;
+      let sessionData = {
+        sessionId: sessionFile,
+        time0,
+        time100,
+        currentTime,
+        chartData: [],
+      };
+
+      storeSessionData.update((sessions) => {
+        let sessionIndex = sessions.findIndex(
+          (s) => s.sessionId === sessionFile
+        );
+        if (sessionIndex !== -1) {
+          sessions[sessionIndex] = {
+            ...sessions[sessionIndex],
+            time0,
+            time100,
+            currentTime,
+            chartData: [],
+          };
+        } else {
+          sessions.push(sessionData);
+        }
+        return [...sessions];
+      });
+
+      const { chartData, textElements, paragraphColor } = handleEvents(
+        data,
+        sessionFile
+      );
+      storeSessionData.update((sessions) => {
+        let sessionIndex = sessions.findIndex(
+          (s) => s.sessionId === sessionFile
+        );
+        if (sessionIndex !== -1) {
+          sessions[sessionIndex].chartData = chartData;
+          sessions[sessionIndex].textElements = textElements;
+          sessions[sessionIndex].paragraphColor = paragraphColor;
+        }
+        return [...sessions];
+      });
+
+      const similarityData = await fetchSimilarityData(sessionFile);
+      if (similarityData) {
+        storeSessionData.update((sessions) => {
+          let sessionIndex = sessions.findIndex(
+            (s) => s.sessionId === sessionFile
+          );
+          if (sessionIndex !== -1) {
+            sessions[sessionIndex].similarityData = similarityData;
+            sessions[sessionIndex].totalSimilarityData = similarityData;
+          }
+          return [...sessions];
+        });
+      }
+    } catch (error) {
+      console.error("Error when reading the data file:", error);
+    }
+    if (isPrompt) {
+      updatePromptFilterStatus();
+    }
+  };
+
+  const updateSessionSummary = (
+    sessionId,
+    totalProcessedCharacters,
+    totalInsertions,
+    totalDeletions,
+    totalSuggestions
+  ) => {
+    const sessionSummaryContainer = document.getElementById(
+      `summary-${sessionId}`
+    );
+
+    if (!sessionSummaryContainer) {
+      console.error(`Summary container for session ${sessionId} not found`);
+      return;
+    }
+
+    sessionSummaryContainer.querySelector(".totalText").textContent =
+      `Total Text: ${totalProcessedCharacters} characters`;
+    sessionSummaryContainer.querySelector(".totalInsertions").textContent =
+      `Insertions: ${totalInsertions}`;
+    sessionSummaryContainer.querySelector(".totalDeletions").textContent =
+      `Deletions: ${totalDeletions}`;
+    sessionSummaryContainer.querySelector(".totalSuggestions").textContent =
+      `Suggestions: ${totalSuggestions - 1}`;
+  };
+
+              {#each $initData as sessionData (sessionData.sessionId)}
+              <div class="zoomout-chart">
+                <ZoomoutChart
+                  on:containerClick={handleContainerClick}
+                  bind:this={chartRefs[sessionData.sessionId]}
+                  sessionId={sessionData.sessionId}
+                  sessionTopic={sessions.find(
+                    (s) => s.session_id === sessionData.sessionId
+                  ).prompt_code}
+                  similarityData={sessionData.similarityData}
+                />
+              </div>
+            {/each}
+
 '''

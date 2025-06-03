@@ -72,14 +72,10 @@
   onMount(() => {
     renderCanvas();
   });
-
-  $: if (similarityData && canvasEl) {
-    renderCanvas();
-  }
 </script>
 
 <div class="chart-container" on:click={handleContainerClick}>
-  <div class="session-label">{sessionTopic} - {sessionId}</div>
+  <div class="session-label">{sessionTopic} - {sessionId.slice(0, 4)}</div>
   <div style="margin-top: 30px">
     <canvas bind:this={canvasEl} data-session-id={sessionId}></canvas>
   </div>
