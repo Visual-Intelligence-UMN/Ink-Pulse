@@ -836,37 +836,37 @@
       });
     }
   });
-
-  function handleChartZoom(event) {
-    event.preventDefault();
-    
-    if (!$clickSession || !$clickSession.sessionId) return;
-    
-    const sessionId = $clickSession.sessionId;
-    const currentTransform = zoomTransforms[sessionId] || d3.zoomIdentity;
-    
-    const scaleFactor = event.deltaY > 0 ? 0.9 : 1.1;
-    const newK = Math.max(1, Math.min(5, currentTransform.k * scaleFactor));
-    
-    const rect = event.currentTarget.getBoundingClientRect();
-    const mouseY = event.clientY - rect.top;
-    
-    const chartHeight = height - margin.top - margin.bottom;
-    const centerY = mouseY - margin.top;
-    
-    const currentCenterY = (centerY - currentTransform.y) / currentTransform.k;
-    const newTranslateY = centerY - (currentCenterY * newK);
-    
-    const maxTranslateY = 0;
-    const minTranslateY = -chartHeight * (newK - 1);
-    const clampedY = Math.max(minTranslateY, Math.min(newTranslateY, maxTranslateY));
-    
-    zoomTransforms[sessionId] = d3.zoomIdentity
-      .translate(currentTransform.x, clampedY)
-      .scale(newK);
-    
-    zoomTransforms = { ...zoomTransforms };
-  }
+ 
+function handleChartZoom(event) {
+  event.preventDefault();
+  
+  if (!$clickSession || !$clickSession.sessionId) return;
+  
+  const sessionId = $clickSession.sessionId;
+  const currentTransform = zoomTransforms[sessionId] || d3.zoomIdentity;
+  
+  const scaleFactor = event.deltaY > 0 ? 0.9 : 1.1;
+  const newK = Math.max(1, Math.min(5, currentTransform.k * scaleFactor));
+  
+  const rect = event.currentTarget.getBoundingClientRect();
+  const mouseY = event.clientY - rect.top;
+  
+  const chartHeight = height - margin.top - margin.bottom;
+  const centerY = mouseY - margin.top;
+  
+  const currentCenterY = (centerY - currentTransform.y) / currentTransform.k;
+  const newTranslateY = centerY - (currentCenterY * newK);
+  
+  const maxTranslateY = 0;
+  const minTranslateY = -chartHeight * (newK - 1);
+  const clampedY = Math.max(minTranslateY, Math.min(newTranslateY, maxTranslateY));
+  
+  zoomTransforms[sessionId] = d3.zoomIdentity
+    .translate(currentTransform.x, clampedY)
+    .scale(newK);
+  
+  zoomTransforms = { ...zoomTransforms };
+}
 
   function generateColorGrey(index) {
     const colors = ["rgba(220, 220, 220, 0.5)", "rgba(240, 240, 240, 0.3)"];
@@ -1034,7 +1034,7 @@
       }
     };
   };
-
+  
   function handlePointSelected(e, sessionId) {
     const d = e.detail;
     clickSession.update((currentSession) => {
