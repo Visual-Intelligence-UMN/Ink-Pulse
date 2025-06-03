@@ -14,7 +14,9 @@
   import PatternChartPreview from "../components/patternChartPreview.svelte";
   import PatternChartPreviewSerach from "../components/patternChartPreviewSerach.svelte";
   import SkeletonLoading from "../components/skeletonLoading.svelte";
-
+  import { resolve } from "chart.js/helpers";
+  import { VList } from "virtua/svelte";
+  
   let chartRefs = {};
   function resetZoom(sessionId) {
     chartRefs[sessionId]?.resetZoom();
@@ -55,10 +57,7 @@
   let currentTime = 0;
   let paragraphTime = [];
   let paragraphColor = [];
-  let selectedSession = [
-    "e4611bd31b794677b02c52d5700b2e38",
-    "233f1efcf0274acba92f46bf2f8766d2",
-  ];
+  let selectedSession = [];
   let sessions = [];
   let time0 = null; // process bar's start time
   let time100 = null; // process bar's end time
@@ -68,7 +67,7 @@
   export const selectedTags = writable([]);
   let filterOptions = [];
   let showMulti = false;
-  export const storeSessionData = writable([]);
+  export const storeSessionData = writable(new Map());
   let tableData = [];
   let firstSession = true;
   export const filterTableData = writable([]);
@@ -110,35 +109,42 @@
   let currentResults = {};
   let isSearch = false;
 
+  function getPromptCode(sessionId) {
+    const found = sessions.find((s) => s.session_id === sessionId);
+    return found?.prompt_code ?? "";
+  }
+
+  function waitForSessionData(sessionId) {
+    return new Promise((resolve) => {
+      let _unsubscribe;
+      const unsubscribe = storeSessionData.subscribe((sessionMap) => {
+        const data = sessionMap.get(sessionId);
+        if (data) {
+          _unsubscribe?.();
+          resolve(data);
+        }
+      });
+      _unsubscribe = unsubscribe;
+    });
+  }
+
   async function handleContainerClick(event) {
     const sessionId = event.detail.sessionId;
-    await fetchData(sessionId, false, true);
+    loadedMap = {
+      ...loadedMap,
+      [sessionId]: false,
+    };
+    showMulti = true;
     try {
-      const allSessions = get(storeSessionData);
-      const data = allSessions.find((item) => item.sessionId === sessionId);
-      if (data) {
-        clickSession.set(data);
-      }
+      await fetchData(sessionId, false, true);
+      const data = await waitForSessionData(sessionId);
+      clickSession.set(data);
     } catch (error) {
       console.error("Failed to fetch session data:", error);
     }
-    showMulti = !showMulti;
   }
 
-  let loadedMap = {
-    e4611bd31b794677b02c52d5700b2e38: false,
-    "233f1efcf0274acba92f46bf2f8766d2": false,
-  };
-  function syncLoadedMap(currentMap, sessionList) {
-    const newMap = { ...currentMap };
-    for (const s of sessionList) {
-      if (!(s.sessionId in newMap)) {
-        newMap[s.sessionId] = false;
-      }
-    }
-    return newMap;
-  }
-  $: loadedMap = syncLoadedMap(loadedMap, $storeSessionData);
+  let loadedMap = {};
   function handleChartLoaded(event) {
     const sessionId = event.detail;
     loadedMap = {
@@ -368,11 +374,13 @@
     const ids = results.map((group) => group[0]?.id).filter(Boolean);
     const fetchPromises = ids.map((id) => fetchData(id, false, false));
     await Promise.all(fetchPromises);
-    const sessionDataList = get(storeSessionData);
+
+    const sessionDataMap = get(storeSessionData);
+
     patternDataList = results
       .map((group) => {
         const id = group[0]?.id;
-        const sessionData = sessionDataList.find((s) => s.sessionId === id);
+        const sessionData = sessionDataMap.get(id);
         if (sessionData) {
           return {
             ...sessionData,
@@ -433,7 +441,7 @@
       count: data.length,
     };
 
-    highlightTextSegments(sessionId, data);
+    highlightTextSegments(sessionId, data); // ???
   }
 
   function handleSelectionCleared(event) {
@@ -447,9 +455,7 @@
   }
 
   function highlightTextSegments(sessionId, selectedData) {
-    const sessionData = $storeSessionData.find(
-      (s) => s.sessionId === sessionId
-    );
+    const sessionData = $storeSessionData.get(sessionId);
     if (!sessionData || !sessionData.textElements) return;
 
     const textContainer = document.querySelector(`.text-container`);
@@ -492,20 +498,7 @@
 
   function change2bar() {
     showMulti = !showMulti;
-
-    setTimeout(() => {
-      $storeSessionData.forEach((sessionData) => {
-        if (sessionData.summaryData) {
-          updateSessionSummary(
-            sessionData.sessionId,
-            sessionData.summaryData.totalProcessedCharacters,
-            sessionData.summaryData.totalInsertions,
-            sessionData.summaryData.totalDeletions,
-            sessionData.summaryData.totalSuggestions
-          );
-        }
-      });
-    }, 0);
+    clickSession.set([]);
   }
 
   function updatePromptFilterStatus() {
@@ -569,7 +562,8 @@
       }
     }
 
-    const selectedSessions = get(storeSessionData);
+    const selectedSessionsMap = get(storeSessionData);
+    const selectedSessions = Array.from(selectedSessionsMap.values());
     const selectedTagsList = get(selectedTags);
     if (selectedTagsList.length > 1) {
       const tagSessionCount = selectedSessions.filter((session) =>
@@ -602,17 +596,18 @@
   function filterSessions() {
     if ($selectedTags.length === 0) {
       filterTableData.set([]);
-      storeSessionData.set([]);
+      storeSessionData.set(new Map());
     } else {
       const filteredData = tableData.filter((session) =>
         $selectedTags.includes(session.prompt_code)
       );
+      const sessionArray = Array.from($storeSessionData.values());
       const updatedData = filteredData.map((row) => ({
         ...row,
         selected:
-          $storeSessionData.some((item) => item.sessionId == row.session_id) ||
-          true,
+          sessionArray.some((item) => item.sessionId === row.session_id) || true,
       }));
+
       filterTableData.set(updatedData);
       updatePromptFilterStatus();
     }
@@ -655,20 +650,18 @@
 
   const fetchData = async (sessionFile, isDelete, isPrompt) => {
     if (!firstSession && isDelete) {
-      storeSessionData.update((data) => {
-        return data.filter((item) => item.sessionId !== sessionFile);
+      storeSessionData.update((map) => {
+        const newMap = new Map(map);
+        newMap.delete(sessionFile);
+        return newMap;
       });
       return;
     }
-
     try {
-      const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/coauthor-json/${sessionFile}.jsonl`
-      );
+      const response = await fetch(`${base}/chi2022-coauthor-v1.0/coauthor-json/${sessionFile}.jsonl`);
       if (!response.ok) {
         throw new Error(`Failed to fetch session data: ${response.status}`);
       }
-
       const data = await response.json();
 
       time0 = new Date(data.init_time);
@@ -676,65 +669,36 @@
       time100 = (time100.getTime() - time0.getTime()) / (1000 * 60);
       currentTime = time100;
 
-      dataDict = data;
-      let sessionData = {
+      const { chartData, textElements, paragraphColor, summaryData } = handleEvents(data, sessionFile);
+      const similarityData = await fetchSimilarityData(sessionFile);
+      let updatedSession = {
         sessionId: sessionFile,
         time0,
         time100,
         currentTime,
-        chartData: [],
+        chartData,
+        textElements,
+        paragraphColor,
+        summaryData,
+        similarityData: similarityData || undefined,
+        totalSimilarityData: similarityData || undefined,
       };
+      storeSessionData.update((sessionMap) => {
+        const newMap = new Map(sessionMap);
+        const existing = newMap.get(sessionFile);
 
-      storeSessionData.update((sessions) => {
-        let sessionIndex = sessions.findIndex(
-          (s) => s.sessionId === sessionFile
-        );
-        if (sessionIndex !== -1) {
-          sessions[sessionIndex] = {
-            ...sessions[sessionIndex],
-            time0,
-            time100,
-            currentTime,
-            chartData: [],
-          };
+        if (existing) {
+          newMap.set(sessionFile, { ...existing, ...updatedSession });
         } else {
-          sessions.push(sessionData);
+          newMap.set(sessionFile, updatedSession);
         }
-        return [...sessions];
-      });
 
-      const { chartData, textElements, paragraphColor } = handleEvents(
-        data,
-        sessionFile
-      );
-      storeSessionData.update((sessions) => {
-        let sessionIndex = sessions.findIndex(
-          (s) => s.sessionId === sessionFile
-        );
-        if (sessionIndex !== -1) {
-          sessions[sessionIndex].chartData = chartData;
-          sessions[sessionIndex].textElements = textElements;
-          sessions[sessionIndex].paragraphColor = paragraphColor;
-        }
-        return [...sessions];
+        return newMap;
       });
-
-      const similarityData = await fetchSimilarityData(sessionFile);
-      if (similarityData) {
-        storeSessionData.update((sessions) => {
-          let sessionIndex = sessions.findIndex(
-            (s) => s.sessionId === sessionFile
-          );
-          if (sessionIndex !== -1) {
-            sessions[sessionIndex].similarityData = similarityData;
-            sessions[sessionIndex].totalSimilarityData = similarityData;
-          }
-          return [...sessions];
-        });
-      }
     } catch (error) {
       console.error("Error when reading the data file:", error);
     }
+
     if (isPrompt) {
       updatePromptFilterStatus();
     }
@@ -767,15 +731,12 @@
           return {
             session_id: session.session_id,
             prompt_code: session.prompt_code,
-            selected:
-              session.session_id === "e4611bd31b794677b02c52d5700b2e38" ||
-              session.session_id === "233f1efcf0274acba92f46bf2f8766d2"
-                ? true
-                : false,
+            selected:true,
           };
         });
+        selectedSession = sessions.map(session => session.session_id);
         firstSession = false;
-        selectedTags.set(["reincarnation", "bee"]);
+        selectedTags.set(["reincarnation", "bee", "sideeffect", "pig", "obama", "mana", "dad", "mattdamon", "shapeshifter", "isolation"]);
         filterSessions();
         $filterTableData = tableData.filter((session) =>
           $selectedTags.includes(session.prompt_code)
@@ -816,17 +777,19 @@
     for (let i = 0; i < selectedSession.length; i++) {
       fetchSimilarityData(sessionId).then((similarityData) => {
         if (similarityData) {
-          storeSessionData.update((sessions) => {
-            let sessionIndex = sessions.findIndex(
-              (s) => s.sessionId === selectedSession[i]
-            );
-            if (sessionIndex !== -1) {
-              sessions[sessionIndex].similarityData = similarityData;
-              sessions[sessionIndex].totalSimilarityData = similarityData;
+          storeSessionData.update((sessionsMap) => {
+          selectedSession.forEach((sessionId) => {
+            if (sessionsMap.has(sessionId)) {
+              const session = sessionsMap.get(sessionId);
+              sessionsMap.set(sessionId, {
+                ...session,
+                similarityData: similarityData,
+                totalSimilarityData: similarityData,
+              });
             }
-            return [...sessions];
           });
-
+          return new Map(sessionsMap);
+        });
           initData.update((sessions) => {
             if (!sessions.find((s) => s.sessionId === sessionId)) {
               const newSession = {
@@ -856,9 +819,9 @@
     handleSessionChange($filterTableData[index].session_id);
   }
 
-  onMount(() => {
+  onMount(async () => {
     document.title = "Ink-Pulse";
-    fetchSessions();
+    await fetchSessions();
     for (let i = 0; i < selectedSession.length; i++) {
       fetchSimilarityData(selectedSession[i]).then((data) => {
         initData.update((sessions) => {
@@ -873,7 +836,6 @@
       });
     }
   });
-
  
 function handleChartZoom(event) {
   event.preventDefault();
@@ -950,15 +912,15 @@ function handleChartZoom(event) {
   }
 
   const handleEvents = (data, sessionId) => {
-    let initText = data.init_text.join("");
+    const initText = data.init_text.join("");
     let currentText = initText;
     let currentColor = [];
-    let wholeText = data.text[0];
-    wholeText = wholeText.slice(0, -1);
-    chartData = [];
-    paragraphColor = [];
+    let chartData = [];
+    let paragraphColor = [];
     let firstTime = null;
     let indexOfAct = 0;
+    const wholeText = data.text[0].slice(0, -1);
+    const totalTextLength = wholeText.length;
 
     let totalInsertions = 0;
     let totalDeletions = 0;
@@ -966,113 +928,72 @@ function handleChartZoom(event) {
     let totalInsertionTime = 0;
     let totalDeletionTime = 0;
     let totalSuggestionTime = 0;
-    let totalProcessedCharacters = data.text[0].length;
+    let totalProcessedCharacters = totalTextLength;
+    let currentCharArray = initText.split("");
+
+    const initColor = "#FC8D62";
+    currentColor = new Array(currentCharArray.length).fill(initColor);
 
     let combinedText = data.info.reduce((acc, event) => {
-      if (acc.length === 0) {
-        for (let i = 0; i < initText.length; i++) {
-          // init text's color should be the same as api insert
-          acc.push({ text: initText[i], textColor: "#FC8D62" });
-          currentColor.push("#FC8D62");
-        }
-      }
-      const { name, text, eventSource, event_time, count, pos } = event;
-      const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62"; // api and user insert color setting
+      const { name, text = "", eventSource, event_time, count = 0, pos = 0 } = event;
+      const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
       const eventTime = new Date(event_time);
+
       if (firstTime === null) {
         firstTime = eventTime;
-        paragraphTime.push({ time: 0, pos: 0 });
+        paragraphTime = [{ time: 0, pos: 0 }];
       }
-      const relativeTime = (eventTime.getTime() - firstTime.getTime()) / (1000 * 60);
+
+      const relativeTime = (eventTime.getTime() - firstTime.getTime()) / 60000;
+      let percentage;
 
       if (name === "text-insert") {
-        // check whether insert a sentence or a character, divede into characters if it is a sentence
-        if (pos === currentText.length) {
-          // inset chracter/sentence at the end of the text
-          currentText += text;
-          for (let i = 0; i < text.length; i++) {
-            acc.push({ text: text[i], textColor: textColor });
-            currentColor.push(textColor);
-          }
-        } else {
-          currentText =
-            currentText.slice(0, pos) + text + currentText.slice(pos);
-          for (let i = 0; i < text.length; i++) {
-            acc.splice(pos + i, 0, {
-              text: text[i],
-              textColor: textColor,
-            });
-            currentColor.splice(pos + i, 0, textColor);
-          }
-        }
-      } else if (name === "text-delete") {
-        // also check delete number
-        currentText =
-          currentText.slice(0, pos) + currentText.slice(pos + count);
-        let remainingCount = count;
-        let index = pos;
-        while (remainingCount > 0 && index < acc.length) {
-          if (acc[index].text.length <= remainingCount) {
-            remainingCount -= acc[index].text.length;
-            acc.splice(index, 1);
-            currentColor.splice(index, 1);
-          } else {
-            acc[index].text = acc[index].text.slice(remainingCount);
-            currentColor[index] = currentColor[index].slice(remainingCount);
-            remainingCount = 0;
-          }
-        }
-      }
-
-      const percentage = (currentText.length / wholeText.length) * 100;
-      endTime = relativeTime;
-
-      if (name === "suggestion-open") {
-        // use isSuggestionOpen to filter specific data
-        chartData.push({
-          time: relativeTime,
-          percentage: percentage,
-          eventSource,
-          color: textColor,
-          currentText,
-          currentColor: [...currentColor],
-          opacity: 1,
-          isSuggestionOpen: true,
-          index: indexOfAct,
+        const insertChars = [...text];
+        currentCharArray.splice(pos, 0, ...insertChars);
+        currentColor.splice(pos, 0, ...insertChars.map(() => textColor));
+        currentText = currentCharArray.join("");
+        insertChars.forEach((char, i) => {
+          acc.splice(pos + i, 0, { text: char, textColor });
         });
-      } else {
-        chartData.push({
-          time: relativeTime,
-          percentage: percentage,
-          eventSource,
-          color: textColor,
-          currentText,
-          currentColor: [...currentColor],
-          opacity: 1,
-          index: indexOfAct,
-        });
-      }
-      indexOfAct += 1;
-
-      if (name === "text-insert") {
         totalInsertions++;
         totalInsertionTime += relativeTime;
-      } else if (name === "text-delete") {
+      }
+
+      if (name === "text-delete") {
+        currentCharArray.splice(pos, count);
+        currentColor.splice(pos, count);
+        currentText = currentCharArray.join("");
+        acc.splice(pos, count);
         totalDeletions++;
         totalDeletionTime += relativeTime;
-      } else if (name === "suggestion-open") {
+      }
+
+      if (name === "suggestion-open") {
         totalSuggestions++;
         totalSuggestionTime += relativeTime;
       }
 
+      percentage = (currentCharArray.length / totalTextLength) * 100;
+
+      chartData.push({
+        time: relativeTime,
+        percentage,
+        eventSource,
+        color: textColor,
+        currentText,
+        currentColor: [...currentColor],
+        opacity: 1,
+        isSuggestionOpen: name === "suggestion-open",
+        index: indexOfAct++,
+      });
+
       return acc;
-    }, []);
+    }, [...initText].map(ch => ({ text: ch, textColor: "#FC8D62" })));
 
     paragraphTime = adjustTime(currentText, chartData);
-
     for (let i = 0; i < paragraphTime.length - 1; i++) {
-      const startTime = paragraphTime[i].time;
-      const endTime = paragraphTime[i + 1].time;
+      const { time: startTime } = paragraphTime[i];
+      const { time: endTime } = paragraphTime[i + 1];
       const color = generateColorGrey(i);
       paragraphColor.push({
         type: "box",
@@ -1088,65 +1009,32 @@ function handleChartZoom(event) {
       });
     }
 
-    combinedText = combinedText.slice(0, -1); // delete last "\n"
-    textElements = combinedText;
-    chartData = chartData.slice(0, -1); // delete last "\n"
-    chartData[0].isSuggestionOpen = false; // change the init api insert into false so not show in the chart
-    // calculateSessionAnalytics(data, sessionId);
-    storeSessionData.update((sessions) => {
-      const idx = sessions.findIndex((s) => s.sessionId === sessionId);
-      if (idx !== -1) {
-        sessions[idx].summaryData = {
-          totalProcessedCharacters,
-          totalInsertions,
-          totalDeletions,
-          totalSuggestions,
-        };
-      }
-      return [...sessions];
-    });
+    if (combinedText.length && combinedText[combinedText.length - 1].text === "\n") {
+      combinedText.pop();
+      currentCharArray.pop();
+      currentColor.pop();
+      chartData.pop();
+      totalProcessedCharacters--;
+      totalInsertions--;
+    }
 
-    updateSessionSummary(
-      sessionId,
-      totalProcessedCharacters,
-      totalInsertions,
-      totalDeletions,
-      totalSuggestions
-    );
+    if (chartData.length) {
+      chartData[0].isSuggestionOpen = false;
+    }
 
     return {
       chartData,
-      textElements,
+      textElements: combinedText,
       paragraphColor,
+      summaryData: {
+        totalProcessedCharacters,
+        totalInsertions,
+        totalDeletions,
+        totalSuggestions,
+      }
     };
   };
-
-  const updateSessionSummary = (
-    sessionId,
-    totalProcessedCharacters,
-    totalInsertions,
-    totalDeletions,
-    totalSuggestions
-  ) => {
-    const sessionSummaryContainer = document.getElementById(
-      `summary-${sessionId}`
-    );
-
-    if (!sessionSummaryContainer) {
-      console.error(`Summary container for session ${sessionId} not found`);
-      return;
-    }
-
-    sessionSummaryContainer.querySelector(".totalText").textContent =
-      `Total Text: ${totalProcessedCharacters} characters`;
-    sessionSummaryContainer.querySelector(".totalInsertions").textContent =
-      `Insertions: ${totalInsertions}`;
-    sessionSummaryContainer.querySelector(".totalDeletions").textContent =
-      `Deletions: ${totalDeletions}`;
-    sessionSummaryContainer.querySelector(".totalSuggestions").textContent =
-      `Suggestions: ${totalSuggestions - 1}`;
-  };
-
+  
   function handlePointSelected(e, sessionId) {
     const d = e.detail;
     clickSession.update((currentSession) => {
@@ -1190,6 +1078,7 @@ function handleChartZoom(event) {
 <div class="App">
   <header class="App-header">
     <nav>
+      {#if !showMulti}
       <div
         class={`filter-container ${showFilter ? (isCollapsed ? "filter-container-close" : "") : ""} ${showFilter ? "show" : ""}`}
       >
@@ -1221,6 +1110,7 @@ function handleChartZoom(event) {
           </label>
         {/each}
       </div>
+      {/if}
       <div class="chart-explanation">
         <span class="triangle-text">▼</span> user open the AI suggestion
         <span class="user-line">●</span> User written
@@ -1230,14 +1120,16 @@ function handleChartZoom(event) {
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded"
         rel="stylesheet"
       />
-      <a
-        on:click={change2bar}
-        href=" "
-        aria-label="Toggle View"
-        class="material-symbols-rounded"
-      >
-        swap_horiz
-      </a>
+      {#if showMulti}
+        <a
+          on:click={change2bar}
+          href=" "
+          aria-label="Toggle View"
+          class="material-symbols-rounded"
+        >
+          swap_horiz
+        </a>
+      {/if}
       <button
         class="pattern-search-button"
         class:active={selectionMode}
@@ -1428,130 +1320,137 @@ function handleChartZoom(event) {
           </div>
         </div>
       {/if}
-      {#if !showMulti}
-        <div style="margin-top: 100px;">
-          {#if $initData.length > 0}
-            {#each $initData as sessionData (sessionData.sessionId)}
+      <div style="margin-top: 100px;" hidden={showMulti}>
+        {#if $initData.length > 0}
+          <VList
+            data={$initData}
+            style="height: 75vh;"
+            getKey={(item) => item.sessionId}
+          >
+            {#snippet children(sessionData)}
               <div class="zoomout-chart">
                 <ZoomoutChart
                   on:containerClick={handleContainerClick}
                   bind:this={chartRefs[sessionData.sessionId]}
                   sessionId={sessionData.sessionId}
-                  sessionTopic={sessions.find(
-                    (s) => s.session_id === sessionData.sessionId
-                  ).prompt_code}
+                  sessionTopic={getPromptCode(sessionData.sessionId)}
                   similarityData={sessionData.similarityData}
                 />
               </div>
-            {/each}
-          {/if}
-        </div>
-      {/if}
+            {/snippet}
+          </VList>
+        {/if}
+      </div>
       {#if showMulti}
         {#if $clickSession}
           <div class="multi-box">
-            <div class="display-box">
-              <div class="content-box">
-                <div class="session-identifier">
-                  <h3>
-                    {#if sessions && sessions.find((s) => s.session_id === $clickSession.sessionId)}
-                      {sessions.find(
-                        (s) => s.session_id === $clickSession.sessionId
-                      ).prompt_code} - {$clickSession.sessionId}
-                    {:else}
-                      Session: {$clickSession.sessionId}
-                    {/if}
-                  </h3>
-                </div>
-                <div
-                  class="session-summary"
-                  id="summary-{$clickSession.sessionId}"
-                >
-                  <h3>Session Summary</h3>
-                  <div class="summary-container">
-                    <div class="totalText">
-                      {$clickSession.summaryData
-                        ? `Total Text: ${$clickSession.summaryData.totalProcessedCharacters} characters`
-                        : ""}
-                    </div>
-                    <div class="totalInsertions">
-                      {$clickSession.summaryData
-                        ? `Insertions: ${$clickSession.summaryData.totalInsertions}`
-                        : ""}
-                    </div>
-                    <div class="totalDeletions">
-                      {$clickSession.summaryData
-                        ? `Deletions: ${$clickSession.summaryData.totalDeletions}`
-                        : ""}
-                    </div>
-                    <div class="totalSuggestions">
-                      {$clickSession.summaryData
-                        ? `Suggestions: ${$clickSession.summaryData.totalSuggestions - 1}`
-                        : ""}
+            {#if !loadedMap[$clickSession.sessionId]}
+                  <SkeletonLoading />
+            {/if}
+            <div class:hide={!loadedMap[$clickSession.sessionId]}>
+              <div class="display-box">
+                <div class="content-box">
+                  <div class="session-identifier">
+                    <h3>
+                      {#if sessions && sessions.find((s) => s.session_id === $clickSession.sessionId)}
+                        {sessions.find(
+                          (s) => s.session_id === $clickSession.sessionId
+                        ).prompt_code} - {$clickSession.sessionId}
+                      {:else}
+                        Session: {$clickSession.sessionId}
+                      {/if}
+                    </h3>
+                  </div>
+                  <div
+                    class="session-summary"
+                    id="summary-{$clickSession.sessionId}"
+                  >
+                    <h3>Session Summary</h3>
+                    <div class="summary-container">
+                      <div class="totalText">
+                        {$clickSession.summaryData
+                          ? `Total Text: ${$clickSession.summaryData.totalProcessedCharacters} characters`
+                          : ""}
+                      </div>
+                      <div class="totalInsertions">
+                        {$clickSession.summaryData
+                          ? `Insertions: ${$clickSession.summaryData.totalInsertions}`
+                          : ""}
+                      </div>
+                      <div class="totalDeletions">
+                        {$clickSession.summaryData
+                          ? `Deletions: ${$clickSession.summaryData.totalDeletions}`
+                          : ""}
+                      </div>
+                      <div class="totalSuggestions">
+                        {$clickSession.summaryData
+                          ? `Suggestions: ${$clickSession.summaryData.totalSuggestions - 1}`
+                          : ""}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div class="chart-container" on:wheel={handleChartZoom}>
-                  <div class="chart-wrapper">
-                    {#if $clickSession.similarityData}
-                      <BarChartY
-                        sessionId={$clickSession.sessionId}
-                        similarityData={$clickSession.similarityData}
-                        {yScale}
-                        {height}
-                        bind:zoomTransform={zoomTransforms[$clickSession.sessionId]}
-                        {selectionMode}
-                        on:selectionChanged={handleSelectionChanged}
-                        on:selectionCleared={handleSelectionCleared}
-                        bind:this={chartRefs[$clickSession.sessionId + "-barChart"]}
-                        on:chartLoaded={handleChartLoaded}
-                      />
-                    {/if}
-                    <div>
-                      <LineChart
-                        bind:this={chartRefs[$clickSession.sessionId]}
-                        chartData={$clickSession.chartData}
-                        paragraphColor={$clickSession.paragraphColor}
-                        on:pointSelected={(e) =>
-                          handlePointSelected(e, $clickSession.sessionId)}
-                        {yScale}
-                        {height}
-                        bind:zoomTransform={zoomTransforms[$clickSession.sessionId]}
-                      />
+                  <div class="chart-container" on:wheel={handleChartZoom}>
+                    <div class="chart-wrapper">
+                      {#if $clickSession.similarityData}
+                        <BarChartY
+                          sessionId={$clickSession.sessionId}
+                          similarityData={$clickSession.similarityData}
+                          {yScale}
+                          {height}
+                          bind:zoomTransform={zoomTransforms[$clickSession.sessionId]}
+                          {selectionMode}
+                          on:selectionChanged={handleSelectionChanged}
+                          on:selectionCleared={handleSelectionCleared}
+                          bind:this={chartRefs[$clickSession.sessionId + "-barChart"]}
+                          on:chartLoaded={handleChartLoaded}
+                        />
+                      {/if}
+                      <div>
+                        <LineChart
+                          bind:this={chartRefs[$clickSession.sessionId]}
+                          chartData={$clickSession.chartData}
+                          paragraphColor={$clickSession.paragraphColor}
+                          on:pointSelected={(e) =>
+                            handlePointSelected(e, $clickSession.sessionId)}
+                          {yScale}
+                          {height}
+                          bind:zoomTransform={zoomTransforms[$clickSession.sessionId]}
+                        />
+                      </div>
                     </div>
+                    <button
+                      on:click={() => resetZoom($clickSession.sessionId)}
+                      class="zoom-reset-btn"
+                    >
+                      Reset Zoom
+                    </button>
                   </div>
-                  <button
-                    on:click={() => resetZoom($clickSession.sessionId)}
-                    class="zoom-reset-btn"
-                  >
-                    Reset Zoom
-                  </button>                
                 </div>
-              </div>
-              <div class="content-box">
-                <div class="progress-container">
-                  <span
-                    >{($clickSession?.currentTime || 0).toFixed(2)} mins</span
-                  >
-                  <progress
-                    value={$clickSession?.currentTime || 0}
-                    max={$clickSession?.time100 || 1}
-                  ></progress>
-                </div>
-                <div class="scale-container">
-                  <div class="scale" id="scale"></div>
-                </div>
-                <div class="text-container">
-                  {#if $clickSession.textElements && $clickSession.textElements.length > 0}
-                    {#each $clickSession.textElements as element, index}
-                      <span
-                        class="text-span"
-                        style="color: {element.textColor}"
-                      >
-                        {element.text}
-                      </span>
-                    {/each}
-                  {/if}
+                <div class="content-box">
+                  <div class="progress-container">
+                    <span
+                      >{($clickSession?.currentTime || 0).toFixed(2)} mins</span
+                    >
+                    <progress
+                      value={$clickSession?.currentTime || 0}
+                      max={$clickSession?.time100 || 1}
+                    ></progress>
+                  </div>
+                  <div class="scale-container">
+                    <div class="scale" id="scale"></div>
+                  </div>
+                  <div class="text-container">
+                    {#if $clickSession.textElements && $clickSession.textElements.length > 0}
+                      {#each $clickSession.textElements as element, index}
+                        <span
+                          class="text-span"
+                          style="color: {element.textColor}"
+                        >
+                          {element.text}
+                        </span>
+                      {/each}
+                    {/if}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1571,16 +1470,16 @@ function handleChartZoom(event) {
               <th
                 style="display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; padding-top: 10px; padding-bottom: 7px"
                 >Prompt Code
-                <a
-                  on:click|preventDefault={toggleFilter}
-                  href=" "
-                  aria-label="Filter"
-                  bind:this={filterButton}
-                  class={showFilter
-                    ? "material-symbols--filter-alt"
-                    : "material-symbols--filter-alt-outline"}
-                >
-                </a>
+                  <a
+                    on:click|preventDefault={toggleFilter}
+                    href=" "
+                    aria-label="Filter"
+                    bind:this={filterButton}
+                    class={showFilter
+                      ? "material-symbols--filter-alt"
+                      : "material-symbols--filter-alt-outline"}
+                  >
+                  </a>
               </th>
               <th
                 style="text-transform: uppercase; padding-top: 10px; padding-bottom: 7px"
@@ -1678,6 +1577,7 @@ function handleChartZoom(event) {
     white-space: pre-wrap;
     text-align: left;
     width: 100%;
+    margin-top: 50px;
   }
 
   .content-box {
@@ -1956,7 +1856,7 @@ function handleChartZoom(event) {
   .filter-container {
     position: absolute;
     top: 195px;
-    left: 930px;
+    left: 750px;
     background: white;
     border: 1px solid #ccc;
     padding: 12px;
@@ -1965,12 +1865,13 @@ function handleChartZoom(event) {
     width: 200px;
     text-align: left;
     border-radius: 8px;
+    transition: top 0.2s ease;
   }
 
   .filter-container-close {
     position: absolute;
     top: 370px;
-    left: 930px;
+    left: 750px;
     background: white;
     border: 1px solid #ccc;
     padding: 12px;
@@ -1979,6 +1880,7 @@ function handleChartZoom(event) {
     width: 200px;
     text-align: left;
     border-radius: 8px;
+    transition: top 0.2s ease;
   }
 
   .filter-container.show {

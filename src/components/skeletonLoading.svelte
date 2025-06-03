@@ -61,6 +61,7 @@
     white-space: pre-wrap;
     text-align: left;
     width: 100%;
+    margin-top: 50px;
 }
 
 .content-box {
@@ -85,18 +86,6 @@
     display: flex;
     align-items: flex-start;
     margin: 15px 0;
-}
-
-.content-box {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    height: 400px;
-    font-family: Poppins, sans-serif;
-    font-size: 14px;
-    white-space: pre-wrap;
-    text-align: left;
-    padding: 15px;
 }
 
 .text-container {
@@ -138,7 +127,7 @@
     rgba(255, 255, 255, 0.4) 50%,
     transparent 100%
   );
-  animation: shine 1.2s infinite;
+  animation: shine 0.6s infinite;
 }
 
 @keyframes shine {
