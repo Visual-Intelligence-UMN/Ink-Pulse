@@ -865,37 +865,37 @@
       });
     }
   });
-
-  function handleChartZoom(event) {
-    event.preventDefault();
-    
-    if (!$clickSession || !$clickSession.sessionId) return;
-    
-    const sessionId = $clickSession.sessionId;
-    const currentTransform = zoomTransforms[sessionId] || d3.zoomIdentity;
-    
-    const scaleFactor = event.deltaY > 0 ? 0.9 : 1.1;
-    const newK = Math.max(1, Math.min(5, currentTransform.k * scaleFactor));
-    
-    const rect = event.currentTarget.getBoundingClientRect();
-    const mouseY = event.clientY - rect.top;
-    
-    const chartHeight = height - margin.top - margin.bottom;
-    const centerY = mouseY - margin.top;
-    
-    const currentCenterY = (centerY - currentTransform.y) / currentTransform.k;
-    const newTranslateY = centerY - (currentCenterY * newK);
-    
-    const maxTranslateY = 0;
-    const minTranslateY = -chartHeight * (newK - 1);
-    const clampedY = Math.max(minTranslateY, Math.min(newTranslateY, maxTranslateY));
-    
-    zoomTransforms[sessionId] = d3.zoomIdentity
-      .translate(currentTransform.x, clampedY)
-      .scale(newK);
-    
-    zoomTransforms = { ...zoomTransforms };
-  }
+ 
+function handleChartZoom(event) {
+  event.preventDefault();
+  
+  if (!$clickSession || !$clickSession.sessionId) return;
+  
+  const sessionId = $clickSession.sessionId;
+  const currentTransform = zoomTransforms[sessionId] || d3.zoomIdentity;
+  
+  const scaleFactor = event.deltaY > 0 ? 0.9 : 1.1;
+  const newK = Math.max(1, Math.min(5, currentTransform.k * scaleFactor));
+  
+  const rect = event.currentTarget.getBoundingClientRect();
+  const mouseY = event.clientY - rect.top;
+  
+  const chartHeight = height - margin.top - margin.bottom;
+  const centerY = mouseY - margin.top;
+  
+  const currentCenterY = (centerY - currentTransform.y) / currentTransform.k;
+  const newTranslateY = centerY - (currentCenterY * newK);
+  
+  const maxTranslateY = 0;
+  const minTranslateY = -chartHeight * (newK - 1);
+  const clampedY = Math.max(minTranslateY, Math.min(newTranslateY, maxTranslateY));
+  
+  zoomTransforms[sessionId] = d3.zoomIdentity
+    .translate(currentTransform.x, clampedY)
+    .scale(newK);
+  
+  zoomTransforms = { ...zoomTransforms };
+}
 
   function generateColorGrey(index) {
     const colors = ["rgba(220, 220, 220, 0.5)", "rgba(240, 240, 240, 0.3)"];
@@ -1063,7 +1063,7 @@
       }
     };
   };
-
+  
   function handlePointSelected(e, sessionId) {
     const d = e.detail;
     clickSession.update((currentSession) => {
@@ -1581,11 +1581,12 @@
   }
 
   .container {
-    width: 100%;
+    width: 100%; 
     margin: 0 auto;
     margin-bottom: 70px;
     display: flex;
     justify-content: center;
+    padding: 0 10px;
   }
 
   .multi-box {
@@ -1658,6 +1659,30 @@
     text-align: center;
     top: 10%;
   }
+  .three-column-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 20px 10px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  
+  .grid-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .grid-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
 
   progress {
     width: 600px;
@@ -2094,7 +2119,6 @@
   .zoomout-chart {
     display: flex;
     margin-left: 300px;
-    margin-left: 0;
     height: 30px;
     width: 100%;
     justify-content: center;
