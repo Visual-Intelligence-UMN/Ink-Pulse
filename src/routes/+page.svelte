@@ -1357,7 +1357,7 @@ function handleChartZoom(event) {
           </div>
         </div>
       {/if}
-      <div style="margin-top: 100px;" hidden={showMulti}>
+      <div style="margin-top: 70px;" hidden={showMulti}>
         {#if $initData.length > 0}
           <div class="three-column-grid">
             {#each $initData as sessionData}
@@ -1378,7 +1378,7 @@ function handleChartZoom(event) {
       </div>
       {#if showMulti}
         {#if $clickSession}
-          <div class="multi-box">
+          <div class="multi-box" style="margin-top: 70px;">
             {#if !loadedMap[$clickSession.sessionId]}
                   <SkeletonLoading />
             {/if}
@@ -1583,8 +1583,9 @@ function handleChartZoom(event) {
   .container {
     width: 100%; 
     margin: 0 auto;
-    margin-top: 70px;
     margin-bottom: 70px;
+    display: flex;
+    justify-content: center;
     padding: 0 10px;
   }
 
@@ -1594,6 +1595,7 @@ function handleChartZoom(event) {
     gap: 20px;
     align-items: stretch;
     width: 100%;
+    max-width: 1200px;
   }
 
   .display-box {
