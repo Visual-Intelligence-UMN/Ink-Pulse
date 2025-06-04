@@ -28,21 +28,21 @@
   let selectedPatterns = {};
   let showPatternResults = false;
   let showPatternSearch = false;
+  let exactSourceButton;
+  let exactTrendButton;
 
-  onMount(() => {
-    if (filterButton) {
-      tippy(filterButton, {
-        content: "Click to filter based on prompt type",
-        placement: "top",
+  function initTippy(el, content) {
+    if (!el._tippy) {
+      tippy(el, {
+        content,
+        placement: 'top',
       });
     }
-    if (collapseButton) {
-      tippy(collapseButton, {
-        content: "Click to collapse/expand table view",
-        placement: "top",
-      });
-    }
-  });
+  }
+  $: filterButton && initTippy(filterButton, "Filter based on prompt type");
+  $: collapseButton && initTippy(collapseButton, "Collapse/Expand table view");
+  $: exactSourceButton && initTippy(exactSourceButton, "Open/Close exact search");
+  $: exactTrendButton && initTippy(exactTrendButton, "Open/Close exact search");
 
   let dataDict = {
     init_text: [], // Initial text
@@ -108,6 +108,14 @@
   export const initData = writable([]);
   let currentResults = {};
   let isSearch = false;
+  let isExactSearchSource = false;
+  let isExactSearchTrend = false;
+  $: if (!isSemanticChecked || !isValueTrendChecked) {
+    isExactSearchTrend = false;
+  }
+  $: if (!isSourceChecked) {
+    isExactSearchSource = false;
+  }
 
   function getPromptCode(sessionId) {
     const found = sessions.find((s) => s.session_id === sessionId);
@@ -192,15 +200,41 @@
     return true;
   }
 
+  function getTrendPattern(values) {
+    const pattern = [];
+    for (let i = 1; i < values.length; i++) {
+      if (values[i] > values[i - 1]) pattern.push(1);
+      else if (values[i] < values[i - 1]) pattern.push(-1);
+    }
+    return pattern;
+  }
+
+  function matchesTrend(values, expectedTrend) {
+    const actual = getTrendPattern(values);
+    return actual.every((v, i) => v === expectedTrend[i]);
+  }
+
   function findSegments(data, checks, minCount) {
     const segments = [];
     for (let i = 0; i <= data.length - minCount; i++) {
       const window = data.slice(i, i + minCount);
       const allValid = window.every(item => isDataValid(item, checks));
-      if (allValid) {
-        segments.push([...window]);
+      if (!allValid) continue;
+      if (isExactSearchSource && checks.source && checks.source[1]) {
+        const expectedSources = checks.source[1];
+        if (expectedSources.length !== minCount) continue;
+
+        const actualSources = window.map(item => item.source);
+        const matches = actualSources.every((src, idx) => src === expectedSources[idx]);
+        if (!matches) continue;
       }
+      if (isExactSearchTrend && checks.trend && checks.trend[1]) {
+        const values = window.map(item => item.residual_vector_norm);
+        if (!matchesTrend(values, checks.trend[1])) continue;
+      }
+      segments.push([...window]);
     }
+
     return segments;
   }
 
@@ -218,11 +252,11 @@
       }
 
       if (checks.time[0]) {
-        currentVector.t.push(currentItem.endTime - currentItem.startTime);
+        currentVector.t.push(currentItem.endTime * 60 - currentItem.startTime * 60);
       }
 
       if (checks.progress[0]) {
-        currentVector.p.push(currentItem.endProgress - currentItem.startProgress);
+        currentVector.p.push(currentItem.endProgress / 100 - currentItem.startProgress / 100);
       }
 
       if (checks.semantic[0]) {
@@ -253,31 +287,26 @@
         const source = item.source?.toLowerCase();
         vector.s.push(source === "user" ? 1 : 0); // user is 1, api is 0
       }
-
       if (checks.time[0]) {
         const tStart = item.start_time ?? 0;
         const tEnd = item.end_time ?? 0;
         vector.t.push(tEnd - tStart);
       }
-
       if (checks.progress[0]) {
         const y1 = item.start_progress ?? 0;
         const y2 = item.end_progress ?? 0;
         vector.p.push(y2 - y1);
       }
-
       if (checks.trend[0]) {
         if (i > 0) {
           const trend = getTrend(segment[i - 1].residual_vector_norm, item.residual_vector_norm);
           vector.tr.push(trend);
         }
       }
-
       if (checks.semantic[0]) {
         vector.sem.push(item.residual_vector_norm ?? null);
       }
     }
-
     return vector;
   }
 
@@ -340,7 +369,7 @@
 
   function l2(arr1, arr2) {
     let sum = 0;
-    for (let i = 1; i < arr1.length; i++) {
+    for (let i = 0; i < arr1.length; i++) {
       sum += (arr1[i] - arr2[i]) **2;
     }
     return Math.sqrt(sum);
@@ -348,11 +377,11 @@
 
   function calculateRank(patternVectors, currentVector) {
     const weights = {
-      s: 1.5,
-      t: 0.1,
-      p: 1,
-      tr: 2,
-      sem: 2.5
+      s: 1.5, // user 1, api 0
+      t: 0.01, // 1s
+      p: 1, // 1% -> 0.01
+      tr: 2.5, // up 1, down -1
+      sem: 2 // 1% -> 0.01
     }
     let finalScore = [];
     for (const item of patternVectors) {
@@ -411,7 +440,7 @@
   }
 
   function getTrend(a, b) {
-    if (a < b) return 1; // up is 1, flat is 0, down is -1
+    if (a < b) return 1; // up is 1, down is -1
     if (a > b) return -1;
     return 0;
   }
@@ -911,7 +940,7 @@
     return newParagraphTime;
   }
 
-  const handleEvents = (data, sessionId) => {
+  const handleEvents = (data, _) => {
     const initText = data.init_text.join("");
     let currentText = initText;
     let currentColor = [];
@@ -1229,6 +1258,10 @@
                   <div class:dimmed={!isSourceChecked} style="font-size: 13px;">
                     <input type="checkbox" bind:checked={isSourceChecked} />
                     Source(human/AI)
+                    <label class="switch" style="transform: translateY(4px);" bind:this={exactSourceButton}>
+                      <input type="checkbox" bind:checked={isExactSearchSource} disabled={!isSourceChecked}>
+                      <span class="slider"></span>
+                    </label>
                   </div>
                   <div style="font-size: 13px;">
                     <div class:dimmed={!isSemanticChecked}>
@@ -1251,6 +1284,10 @@
                           disabled={!isSemanticChecked}
                         />
                         Value Trend
+                        <label class="switch" style="transform: translateY(4px);" bind:this={exactTrendButton}>
+                          <input type="checkbox" bind:checked={isExactSearchTrend} disabled={!isSemanticChecked || !isValueTrendChecked}>
+                          <span class="slider"></span>
+                        </label>
                       </div>
                     </div>
                   </div>
@@ -1322,23 +1359,21 @@
       {/if}
       <div style="margin-top: 100px;" hidden={showMulti}>
         {#if $initData.length > 0}
-          <VList
-            data={$initData}
-            style="height: 75vh;"
-            getKey={(item) => item.sessionId}
-          >
-            {#snippet children(sessionData)}
-              <div class="zoomout-chart">
-                <ZoomoutChart
-                  on:containerClick={handleContainerClick}
-                  bind:this={chartRefs[sessionData.sessionId]}
-                  sessionId={sessionData.sessionId}
-                  sessionTopic={getPromptCode(sessionData.sessionId)}
-                  similarityData={sessionData.similarityData}
-                />
+          <div class="three-column-grid">
+            {#each $initData as sessionData}
+              <div class="grid-item">
+                <div class="zoomout-chart">
+                  <ZoomoutChart
+                    on:containerClick={handleContainerClick}
+                    bind:this={chartRefs[sessionData.sessionId]}
+                    sessionId={sessionData.sessionId}
+                    sessionTopic={getPromptCode(sessionData.sessionId)}
+                    similarityData={sessionData.similarityData}
+                  />
+                </div>
               </div>
-            {/snippet}
-          </VList>
+            {/each}
+          </div>
         {/if}
       </div>
       {#if showMulti}
@@ -2058,7 +2093,21 @@
   .zoomout-chart {
     display: flex;
     margin-left: 300px;
+    margin-left: 0;
     height: 30px;
+    width: 100%;
+    justify-content: center;
+  }
+  @media (max-width: 900px) {
+    .three-column-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (max-width: 600px) {
+    .three-column-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   .loading {
@@ -2308,5 +2357,72 @@
 
   .dimmed {
     color: #5f6368;
+  }
+
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 25px;
+    height: 14px;
+  }
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0;
+    right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: 0.2s;
+    border-radius: 28px;
+  }
+
+  .slider::before {
+    position: absolute;
+    content: "";
+    height: 11px;
+    width: 11px;
+    left: 1.5px;
+    bottom: 1.5px;
+    background-color: white;
+    transition: 0.2s;
+    border-radius: 50%;
+  }
+
+  input:checked + .slider {
+    background-color: #ffbbcc;
+  }
+
+  input:checked + .slider::before {
+    transform: translateX(11px);
+  }
+
+  .three-column-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 20px 10px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .grid-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .grid-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 </style>

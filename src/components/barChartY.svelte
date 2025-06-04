@@ -137,12 +137,15 @@
       .enter()
       .append("rect")
       .attr("class", "bar")
-      .attr("y", (d) => newyScale(d.endProgress))
+      .attr("y", (d) =>
+        newyScale(d.startProgress) < newyScale(d.endProgress)
+          ? newyScale(d.startProgress)
+          : newyScale(d.endProgress)
+      )
       .attr("x", (d) => xScale(d.residual_vector_norm))
       .attr("width", (d) => xScale(0) - xScale(d.residual_vector_norm))
-      .attr(
-        "height",
-        (d) => newyScale(d.startProgress) - newyScale(d.endProgress)
+      .attr("height", (d) =>
+        Math.abs(newyScale(d.startProgress) - newyScale(d.endProgress))
       )
       .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
