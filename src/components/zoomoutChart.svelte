@@ -94,7 +94,7 @@
     flex-direction: row;
     align-items: center;
     cursor: pointer;
-    width: 500px;
+    width: 330px;
     height: 10px;
   }
 </style>
