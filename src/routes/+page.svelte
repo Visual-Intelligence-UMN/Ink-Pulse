@@ -1322,23 +1322,21 @@ function handleChartZoom(event) {
       {/if}
       <div style="margin-top: 100px;" hidden={showMulti}>
         {#if $initData.length > 0}
-          <VList
-            data={$initData}
-            style="height: 75vh;"
-            getKey={(item) => item.sessionId}
-          >
-            {#snippet children(sessionData)}
-              <div class="zoomout-chart">
-                <ZoomoutChart
-                  on:containerClick={handleContainerClick}
-                  bind:this={chartRefs[sessionData.sessionId]}
-                  sessionId={sessionData.sessionId}
-                  sessionTopic={getPromptCode(sessionData.sessionId)}
-                  similarityData={sessionData.similarityData}
-                />
+          <div class="three-column-grid">
+            {#each $initData as sessionData}
+              <div class="grid-item">
+                <div class="zoomout-chart">
+                  <ZoomoutChart
+                    on:containerClick={handleContainerClick}
+                    bind:this={chartRefs[sessionData.sessionId]}
+                    sessionId={sessionData.sessionId}
+                    sessionTopic={getPromptCode(sessionData.sessionId)}
+                    similarityData={sessionData.similarityData}
+                  />
+                </div>
               </div>
-            {/snippet}
-          </VList>
+            {/each}
+          </div>
         {/if}
       </div>
       {#if showMulti}
@@ -1546,11 +1544,11 @@ function handleChartZoom(event) {
   }
 
   .container {
-    width: 100%;
-    max-width: 1200px;
+    width: 100%; 
     margin: 0 auto;
     margin-top: 70px;
     margin-bottom: 70px;
+    padding: 0 10px;
   }
 
   .multi-box {
@@ -1622,6 +1620,30 @@ function handleChartZoom(event) {
     text-align: center;
     top: 10%;
   }
+  .three-column-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 20px 10px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  
+  .grid-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .grid-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
 
   progress {
     width: 600px;
@@ -2057,8 +2079,21 @@ function handleChartZoom(event) {
 
   .zoomout-chart {
     display: flex;
-    margin-left: 300px;
+    margin-left: 0;
     height: 30px;
+    width: 100%;
+    justify-content: center;
+  }
+  @media (max-width: 900px) {
+    .three-column-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (max-width: 600px) {
+    .three-column-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   .loading {
