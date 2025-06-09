@@ -201,7 +201,7 @@
   }
 
   function handleIconClick(attribute, mode = 'group', specificValue = null) {
-  // 如果点击的是特定类别图标且已经在过滤该类别，则取消过滤
+
   if (selectedCategoryFilter === specificValue && specificValue) {
     groupingMode = false;
     selectedGroupAttribute = null;
@@ -212,22 +212,21 @@
     return;
   }
   
-  // 如果点击的是特定类别图标
+  
   if (specificValue) {
     groupingMode = true;
     selectedGroupAttribute = attribute;
     selectedCategoryFilter = specificValue;
     
-    // 只显示该特定类别的会话
+
     filteredSessions = filterSessionsByCategory(specificValue);
     groupedSessions = {};
     sortedSessions = [];
     return;
   }
-  
-  // 处理全局分组/排序（非特定类别）
+
   if (groupingMode && selectedGroupAttribute === attribute && !selectedCategoryFilter) {
-    // 取消分组
+
     groupingMode = false;
     selectedGroupAttribute = null;
     selectedCategoryFilter = null;
@@ -1848,12 +1847,6 @@ function handleChartZoom(event) {
     padding: 15px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
-
-  .grid-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-  
 
   progress {
     width: 600px;
