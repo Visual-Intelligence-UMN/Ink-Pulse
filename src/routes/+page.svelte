@@ -128,6 +128,22 @@
     });
   }
 
+  const categoryIcons = {
+    reincarnation: "🔄", 
+    bee: "🐝",          
+    sideeffect: "⚡",   
+    pig: "🐖", 
+    obama: "🏛️", 
+    mana: "✨", 
+    dad: "👨",  
+    mattdamon: "🎬", 
+    shapeshifter: "🌀",
+    isolation: "🏝️" 
+  };
+  function getCategoryIcon(promptCode) {
+    return categoryIcons[promptCode] || "📄"; 
+  }
+
   async function handleContainerClick(event) {
     const sessionId = event.detail.sessionId;
     loadedMap = {
@@ -1325,14 +1341,19 @@ function handleChartZoom(event) {
           <div class="three-column-grid">
             {#each $initData as sessionData}
               <div class="grid-item">
-                <div class="zoomout-chart">
-                  <ZoomoutChart
-                    on:containerClick={handleContainerClick}
-                    bind:this={chartRefs[sessionData.sessionId]}
-                    sessionId={sessionData.sessionId}
-                    sessionTopic={getPromptCode(sessionData.sessionId)}
-                    similarityData={sessionData.similarityData}
-                  />
+                <div class="chart-with-icon">
+                  <div class="zoomout-chart">
+                    <ZoomoutChart
+                      on:containerClick={handleContainerClick}
+                      bind:this={chartRefs[sessionData.sessionId]}
+                      sessionId={sessionData.sessionId}
+                      sessionTopic={getPromptCode(sessionData.sessionId)}
+                      similarityData={sessionData.similarityData}
+                    />
+                  </div>
+                  <span class="category-icon-inline">
+                    {getCategoryIcon(getPromptCode(sessionData.sessionId))}
+                  </span>
                 </div>
               </div>
             {/each}
@@ -1563,7 +1584,7 @@ function handleChartZoom(event) {
     display: flex;
     justify-content: space-between;
     align-items: stretch;
-    gap: 20px;
+    gap: 10px;
     border-radius: 15px;
     padding: 25px;
     box-shadow:
@@ -1588,6 +1609,15 @@ function handleChartZoom(event) {
     white-space: pre-wrap;
     text-align: left;
     padding: 15px;
+  }
+
+  .content-box:first-child {
+  flex: 3; 
+}
+
+  .content-box:last-child {
+    flex: 2; 
+    text-align: right; 
   }
 
   .text-container {
