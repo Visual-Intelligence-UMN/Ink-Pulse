@@ -446,7 +446,7 @@
   }
 
   function handleSelectionChanged(event) {
-    const { sessionId, range, dataRange, data, sources } = event.detail;
+    const { sessionId, range, dataRange, data, wholeData, sources } = event.detail;
     writingProgressRange = [
       dataRange.progressRange.min,
       dataRange.progressRange.max,
@@ -464,6 +464,7 @@
       range,
       dataRange,
       data,
+      wholeData,
       sources,
       scRange: `${range.sc.min.toFixed(1)} - ${range.sc.max.toFixed(1)}%`,
       progressRange: `${range.progress.min.toFixed(1)} - ${range.progress.max.toFixed(1)}%`,
@@ -1223,6 +1224,7 @@ function handleChartZoom(event) {
                     <PatternChartPreview
                       {sessionId}
                       data={pattern.data}
+                      wholeData={pattern.wholeData}
                       selectedRange={pattern.range}
                       bind:this={chartRefs[sessionId]}
                     />
@@ -1301,6 +1303,7 @@ function handleChartZoom(event) {
                           <PatternChartPreviewSerach
                             sessionId={sessionData.sessionId}
                             data={sessionData.segments}
+                            wholeData={sessionData.similarityData} 
                           />
                           <!-- <div>
                               <LineChart

@@ -218,6 +218,7 @@
           }
         },
         data: filteredData,
+        wholeData: processedData,
         sessionId: sessionId,
         sources: filteredData.map(d => d.source),
       });
