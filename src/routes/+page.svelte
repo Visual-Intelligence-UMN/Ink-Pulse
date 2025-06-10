@@ -2118,7 +2118,8 @@ function handleChartZoom(event) {
 
   .zoomout-chart {
     display: flex;
-    margin-left: 300px;
+    margin-left: 3vw;
+    margin-right: 3vw;
     height: 30px;
     width: 100%;
     justify-content: center;
