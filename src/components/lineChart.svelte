@@ -61,7 +61,6 @@
 
     d3.select(xAxisG).call(xAxis);
     d3.select(yAxisG).call(yAxis);
-    d3.select(xAxisG).call(xAxis);
 
     const ticks = d3.select(xAxisG).selectAll(".tick text");
     ticks

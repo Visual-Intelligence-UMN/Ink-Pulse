@@ -2428,27 +2428,4 @@ function handleChartZoom(event) {
     transform: translateX(11px);
   }
 
-  .three-column-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    padding: 20px 10px;
-    width: 100%;
-    margin: 0 auto;
-  }
-
-  .grid-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: white;
-    border-radius: 8px;
-    padding: 15px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .grid-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
 </style>
