@@ -91,8 +91,8 @@
         const minTranslateY = -(height - margin.top - margin.bottom) * (transform.k - 1);
         const clampedY = Math.max(minTranslateY, Math.min(transform.y, maxTranslateY));
         zoomTransform = d3.zoomIdentity.translate(transform.x, clampedY).scale(transform.k);
-              updateAxes();
-            });
+        updateAxes();
+      });
             
     d3.select(svgContainer).call(zoom);
     updateAxes();
