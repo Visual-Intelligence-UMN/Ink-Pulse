@@ -47,6 +47,13 @@
     updateAxes();
   }
   
+  $: if (zoomTransform) {
+    console.log("Updating axes with zoom transform:", zoomTransform);
+    d3.select(svgContainer).call(zoom.transform, zoomTransform)
+    updateAxes();
+  }
+
+
   afterUpdate(() => {
     if (svgContainer && zoom) {
       d3.select(svgContainer).call(zoom);
