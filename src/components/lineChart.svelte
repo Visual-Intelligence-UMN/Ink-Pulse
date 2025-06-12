@@ -49,14 +49,18 @@
   }
   
   $: if (zoomTransform) {
-    console.log("zooming:", zoomTransform);
+    // console.log("zooming:", zoomTransform);
 
     if (ZoomTransformIsInteral.k !== zoomTransform.k) {
-      let yCoordinate = (zoomTransform.y - ZoomTransformIsInteral.y) / (ZoomTransformIsInteral.k - zoomTransform.k);
-      let {x, y} = findPointAtY(yCoordinate)
+      let centerY = (zoomTransform.y - ZoomTransformIsInteral.y) / (ZoomTransformIsInteral.k - zoomTransform.k);
+      let {x, y} = findPointAtY(centerY)
       let centerX = x * (ZoomTransformIsInteral.k - zoomTransform.k) + ZoomTransformIsInteral.x;
-      zoomTransform.x = centerX;
+      const maxTranslateX = 0;
+      const minTranslateX = -(width - margin.left - margin.right) * (zoomTransform.k - 1);
+      const clampedY = Math.max(minTranslateX, Math.min(centerX, maxTranslateX));
+      zoomTransform.x = clampedY;
       ZoomTransformIsInteral = zoomTransform;
+      d3.select(svgContainer).call(zoom.transform, zoomTransform);
       updateAxes();
     }
   }
@@ -68,16 +72,6 @@
     }
   });
 
-  function zoomAtPoint(centerX, centerY, scaleFactor) {
-    const transform = d3.zoomIdentity
-      .translate(centerX, centerY)
-      .scale(scaleFactor)        
-      .translate(-centerX, -centerY); 
-    d3.select(svgContainer).call(zoom.transform, transform);
-    updateAxes();
-    zoomTransform = transform;
-    ZoomTransformIsInteral = transform;
-  }
 
 function findPointAtY(yCoordinate: number) {
   let closestPoint = null;
