@@ -23,6 +23,7 @@
   let xScale: any;
   export let yScale;
   export let zoomTransform = d3.zoomIdentity;
+  let ZoomTransformIsInteral = d3.zoomIdentity;
 
   let selectedPoint: any = null;
   let hoveredPoint: any = null;
@@ -48,9 +49,16 @@
   }
   
   $: if (zoomTransform) {
-    console.log("Updating axes with zoom transform:", zoomTransform);
-    d3.select(svgContainer).call(zoom.transform, zoomTransform)
-    updateAxes();
+    console.log("zooming:", zoomTransform);
+
+    if (ZoomTransformIsInteral.k !== zoomTransform.k) {
+      let yCoordinate = (zoomTransform.y - ZoomTransformIsInteral.y) / (ZoomTransformIsInteral.k - zoomTransform.k);
+      let {x, y} = findPointAtY(yCoordinate)
+      let centerX = x * (ZoomTransformIsInteral.k - zoomTransform.k) + ZoomTransformIsInteral.x;
+      zoomTransform.x = centerX;
+      ZoomTransformIsInteral = zoomTransform;
+      updateAxes();
+    }
   }
 
 
@@ -59,6 +67,41 @@
       d3.select(svgContainer).call(zoom);
     }
   });
+
+  function zoomAtPoint(centerX, centerY, scaleFactor) {
+    const transform = d3.zoomIdentity
+      .translate(centerX, centerY)
+      .scale(scaleFactor)        
+      .translate(-centerX, -centerY); 
+    d3.select(svgContainer).call(zoom.transform, transform);
+    updateAxes();
+    zoomTransform = transform;
+    ZoomTransformIsInteral = transform;
+  }
+
+function findPointAtY(yCoordinate: number) {
+  let closestPoint = null;
+  let minDistance = Infinity;
+
+  for (const d of chartData) {
+    const scaledYValue = scaledY(d.percentage);
+    const distance = Math.abs(scaledYValue - yCoordinate);
+
+    if (distance < minDistance) {
+      minDistance = distance;
+      closestPoint = d;
+    }
+  }
+
+  if (closestPoint) {
+    const x = scaledX(closestPoint.time)
+    const y = scaledY(closestPoint.percentage);
+    return { x, y };
+  }
+
+  return null;
+}
+
 
   function updateAxes() {
     if (!xScale || !yScale) return;
@@ -98,6 +141,7 @@
         const minTranslateY = -(height - margin.top - margin.bottom) * (transform.k - 1);
         const clampedY = Math.max(minTranslateY, Math.min(transform.y, maxTranslateY));
         zoomTransform = d3.zoomIdentity.translate(transform.x, clampedY).scale(transform.k);
+        ZoomTransformIsInteral = zoomTransform;
         updateAxes();
       });
             
