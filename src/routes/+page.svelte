@@ -16,7 +16,7 @@
   import SkeletonLoading from "../components/skeletonLoading.svelte";
   // import { resolve } from "chart.js/helpers";
   // import { VList } from "virtua/svelte";
-  
+
   let chartRefs = {};
   function resetZoom(sessionId) {
     chartRefs[sessionId]?.resetZoom();
@@ -136,6 +136,159 @@
     });
   }
 
+  let groupingMode = false;
+  let selectedGroupAttribute = null;
+  let selectedCategoryFilter = null; 
+  let groupedSessions = {};
+  let sortedSessions = [];
+  let filteredSessions = [];
+
+  function groupSessionsByAttribute(attribute, specificValue = null) {
+    const grouped = {};
+    $initData.forEach(sessionData => {
+      const sessionInfo = sessions.find(s => s.session_id === sessionData.sessionId);
+      if (sessionInfo) {
+        const key = sessionInfo[attribute] || 'unknown';
+        if (specificValue && key !== specificValue) {
+          return;
+        }
+        
+        if (!grouped[key]) {
+          grouped[key] = [];
+        }
+        grouped[key].push(sessionData);
+      }
+    });
+    
+    return grouped;
+  }
+  function filterSessionsByCategory(category) {
+    return $initData.filter(sessionData => {
+      const sessionInfo = sessions.find(s => s.session_id === sessionData.sessionId);
+      return sessionInfo && sessionInfo.prompt_code === category;
+    });
+  }
+
+  function rankSessionsByAttribute(attribute, sessionsData) {
+    const sessionsCopy = [...sessionsData];
+    
+    switch(attribute) {
+      case 'prompt_code':
+        return sessionsCopy.sort((a, b) => {
+          const aCode = getPromptCode(a.sessionId);
+          const bCode = getPromptCode(b.sessionId);
+          return aCode.localeCompare(bCode);
+        });
+        
+      case 'writing_time':
+        return sessionsCopy.sort((a, b) => {
+          const aTime = a.time100 || 0;
+          const bTime = b.time100 || 0;
+          return bTime - aTime;
+        });
+        
+      case 'text_length':
+        return sessionsCopy.sort((a, b) => {
+          const aLength = a.summaryData?.totalProcessedCharacters || 0;
+          const bLength = b.summaryData?.totalProcessedCharacters || 0;
+          return bLength - aLength;
+        });
+        
+      case 'suggestions_count':
+        return sessionsCopy.sort((a, b) => {
+          const aSuggestions = a.summaryData?.totalSuggestions || 0;
+          const bSuggestions = b.summaryData?.totalSuggestions || 0;
+          return bSuggestions - aSuggestions;
+        });
+        
+      default:
+        return sessionsCopy;
+    }
+  }
+
+  function handleIconClick(attribute, mode = 'group', specificValue = null) {
+
+  if (selectedCategoryFilter === specificValue && specificValue) {
+    groupingMode = false;
+    selectedGroupAttribute = null;
+    selectedCategoryFilter = null;
+    groupedSessions = {};
+    sortedSessions = [];
+    filteredSessions = [];
+    return;
+  }
+  
+  
+  if (specificValue) {
+    groupingMode = true;
+    selectedGroupAttribute = attribute;
+    selectedCategoryFilter = specificValue;
+    
+
+    filteredSessions = filterSessionsByCategory(specificValue);
+    groupedSessions = {};
+    sortedSessions = [];
+    return;
+  }
+
+  if (groupingMode && selectedGroupAttribute === attribute && !selectedCategoryFilter) {
+
+    groupingMode = false;
+    selectedGroupAttribute = null;
+    selectedCategoryFilter = null;
+    groupedSessions = {};
+    sortedSessions = [];
+    filteredSessions = [];
+  } else {
+    groupingMode = true;
+    selectedGroupAttribute = attribute;
+    selectedCategoryFilter = null;
+    
+    if (mode === 'group') {
+      groupedSessions = groupSessionsByAttribute(attribute);
+      sortedSessions = [];
+      filteredSessions = [];
+    } else if (mode === 'rank') {
+      sortedSessions = rankSessionsByAttribute(attribute, $initData);
+      groupedSessions = {};
+      filteredSessions = [];
+    }
+  }
+}
+function getDisplaySessions() {
+    if (selectedCategoryFilter && filteredSessions.length >= 0) {
+      return filteredSessions;
+    }
+    
+    if (!groupingMode) {
+      return $initData;
+    }
+    
+    if (Object.keys(groupedSessions).length > 0) {
+      return Object.values(groupedSessions).flat();
+    }
+    
+    if (sortedSessions.length > 0) {
+      return sortedSessions;
+    }
+    
+    return $initData;
+  }
+function isIconActive(promptCode) {
+  return selectedCategoryFilter === promptCode;
+}
+
+  function getGridItemClass(sessionId) {
+    if (!groupingMode) return '';
+    
+    const sessionInfo = sessions.find(s => s.session_id === sessionId);
+    if (!sessionInfo) return '';
+    
+    const attributeValue = sessionInfo[selectedGroupAttribute];
+    return `grouped-${attributeValue}`;
+  }
+
+  
   async function handleContainerClick(event) {
     const sessionId = event.detail.sessionId;
     loadedMap = {
@@ -1362,21 +1515,74 @@ function handleChartZoom(event) {
       {/if}
       <div style="margin-top: 70px;" hidden={showMulti}>
         {#if $initData.length > 0}
-          <div class="three-column-grid">
-            {#each $initData as sessionData}
-              <div class="grid-item">
-                <div class="zoomout-chart">
-                  <ZoomoutChart
-                    on:containerClick={handleContainerClick}
-                    bind:this={chartRefs[sessionData.sessionId]}
-                    sessionId={sessionData.sessionId}
-                    sessionTopic={getPromptCode(sessionData.sessionId)}
-                    similarityData={sessionData.similarityData}
-                  />
-                </div>
+          {#if selectedCategoryFilter}
+            <!-- Filter -->
+            <div class="category-filter-section">
+              <div class="category-filter-header">
+                <h2>
+                  <span class="category-icon-large">
+                    {getCategoryIcon(selectedCategoryFilter)}
+                  </span>
+                  {selectedCategoryFilter.toUpperCase()} Sessions
+                  <span class="session-count">({filteredSessions.length})</span>
+                </h2>
               </div>
-            {/each}
-          </div>
+              
+              <div class="three-column-grid">
+                {#each filteredSessions as sessionData}
+                  <div class="grid-item filtered-item">
+                    <div class="chart-with-icon">
+                      <div class="zoomout-chart">
+                        <ZoomoutChart
+                          on:containerClick={handleContainerClick}
+                          bind:this={chartRefs[sessionData.sessionId]}
+                          sessionId={sessionData.sessionId}
+                          sessionTopic={getPromptCode(sessionData.sessionId)}
+                          similarityData={sessionData.similarityData}
+                        />
+                      </div>
+                      <span 
+                        class="category-icon-inline clickable-icon active-filter"
+                        on:click={() => handleIconClick('prompt_code', 'group', selectedCategoryFilter)}
+                        title="Click to clear filter"
+                      >
+                        {getCategoryIcon(getPromptCode(sessionData.sessionId))}
+                      </span>
+                    </div>
+                  </div>
+                {/each}
+              </div>
+            </div>
+            
+          
+          {:else}
+            <!-- 普通网格或排序显示模式 -->
+            <div class="three-column-grid">
+              {#each getDisplaySessions() as sessionData}
+                <div class="grid-item {getGridItemClass(sessionData.sessionId)}">
+                  <div class="chart-with-icon">
+                    <div class="zoomout-chart">
+                      <ZoomoutChart
+                        on:containerClick={handleContainerClick}
+                        bind:this={chartRefs[sessionData.sessionId]}
+                        sessionId={sessionData.sessionId}
+                        sessionTopic={getPromptCode(sessionData.sessionId)}
+                        similarityData={sessionData.similarityData}
+                      />
+                    </div>
+                    <span 
+                      class="category-icon-inline clickable-icon"
+                      class:active-filter={isIconActive(getPromptCode(sessionData.sessionId))}
+                      on:click={() => handleIconClick('prompt_code', 'group', getPromptCode(sessionData.sessionId))}
+                      title="Click to show only {getPromptCode(sessionData.sessionId)} sessions"
+                    >
+                      {getCategoryIcon(getPromptCode(sessionData.sessionId))}
+                    </span>
+                  </div>
+                </div>
+              {/each}
+            </div>
+          {/if}
         {/if}
       </div>
       {#if showMulti}
@@ -1605,7 +1811,7 @@ function handleChartZoom(event) {
     display: flex;
     justify-content: space-between;
     align-items: stretch;
-    gap: 20px;
+    gap: 10px;
     border-radius: 15px;
     padding: 25px;
     box-shadow:
@@ -1630,6 +1836,15 @@ function handleChartZoom(event) {
     white-space: pre-wrap;
     text-align: left;
     padding: 15px;
+  }
+
+  .content-box:first-child {
+  flex: 3; 
+}
+
+  .content-box:last-child {
+    flex: 2; 
+    text-align: right; 
   }
 
   .text-container {
@@ -1662,14 +1877,6 @@ function handleChartZoom(event) {
     text-align: center;
     top: 10%;
   }
-  .three-column-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    padding: 20px 10px;
-    width: 100%;
-    margin: 0 auto;
-  }
   
   .grid-item {
     display: flex;
@@ -1680,12 +1887,6 @@ function handleChartZoom(event) {
     padding: 15px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
-
-  .grid-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-  
 
   progress {
     width: 600px;
