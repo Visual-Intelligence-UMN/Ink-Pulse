@@ -14,11 +14,9 @@
   import PatternChartPreview from "../components/patternChartPreview.svelte";
   import PatternChartPreviewSerach from "../components/patternChartPreviewSerach.svelte";
   import SkeletonLoading from "../components/skeletonLoading.svelte";
-  import { resolve } from "chart.js/helpers";
-  import { VList } from "virtua/svelte";
-  import { topicIcons, getCategoryIcon } from "../components/topicIcons.js";
-  import '../components/styles.css';
-  
+  // import { resolve } from "chart.js/helpers";
+  // import { VList } from "virtua/svelte";
+
   let chartRefs = {};
   function resetZoom(sessionId) {
     chartRefs[sessionId]?.resetZoom();
@@ -28,7 +26,7 @@
   let collapseButton;
   let selectionMode = false;
   let selectedPatterns = {};
-  let showPatternResults = false;
+  // let showPatternResults = false;
   let showPatternSearch = false;
   let exactSourceButton;
   let exactTrendButton;
