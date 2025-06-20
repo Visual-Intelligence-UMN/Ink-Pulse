@@ -250,6 +250,45 @@
     }
   }
 }
+let filteredByCategory = []; 
+function handleCategoryIconClick(category) {
+  if (selectedCategoryFilter === category) {
+
+    selectedCategoryFilter = null;
+    filteredByCategory = [];
+    
+    const originalFilteredData = tableData.filter((session) =>
+      $selectedTags.includes(session.prompt_code)
+    );
+    const originalUpdatedData = originalFilteredData.map((row) => ({
+      ...row,
+      selected: true
+    }));
+    filterTableData.set(originalUpdatedData);
+    
+  } else {
+    
+    selectedCategoryFilter = category;
+    
+
+    filteredByCategory = $initData.filter(sessionData => {
+      const sessionInfo = sessions.find(s => s.session_id === sessionData.sessionId);
+      return sessionInfo && sessionInfo.prompt_code === category;
+    });
+    
+
+    const categoryTableRows = tableData.filter(row => row.prompt_code === category);
+    filterTableData.set(categoryTableRows.map(row => ({
+      ...row,
+      selected: true
+    })));
+    
+ 
+    categoryTableRows.forEach(row => {
+      fetchInitData(row.session_id, false, true);
+    });
+  }
+}
 function getDisplaySessions() {
     if (selectedCategoryFilter && filteredSessions.length >= 0) {
       return filteredSessions;
@@ -1492,7 +1531,7 @@ function handleChartZoom(event) {
               </div>
               
               <div class="three-column-grid">
-                {#each filteredSessions as sessionData}
+                {#each (selectedCategoryFilter ? filteredByCategory : filteredSessions) as sessionData}
                   <div class="grid-item filtered-item">
                     <div class="chart-with-icon">
                       <div class="zoomout-chart">
@@ -1506,7 +1545,7 @@ function handleChartZoom(event) {
                       </div>
                       <span 
                         class="category-icon-inline clickable-icon active-filter"
-                        on:click={() => handleIconClick('prompt_code', 'group', selectedCategoryFilter)}
+                        on:click={() => handleCategoryIconClick(getPromptCode(sessionData.sessionId))}
                         title="Click to clear filter"
                       >
                         {getCategoryIcon(getPromptCode(sessionData.sessionId))}
@@ -1541,7 +1580,7 @@ function handleChartZoom(event) {
                     <span 
                       class="category-icon-inline clickable-icon"
                       class:active-filter={isIconActive(getPromptCode(sessionData.sessionId))}
-                      on:click={() => handleIconClick('prompt_code', 'group', getPromptCode(sessionData.sessionId))}
+                      on:click={() => handleCategoryIconClick(getPromptCode(sessionData.sessionId))}
                       title="Click to show only {getPromptCode(sessionData.sessionId)} sessions"
                     >
                       {getCategoryIcon(getPromptCode(sessionData.sessionId))}
