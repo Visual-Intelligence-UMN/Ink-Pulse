@@ -17,6 +17,7 @@
   import { resolve } from "chart.js/helpers";
   import { VList } from "virtua/svelte";
   import { topicIcons, getCategoryIcon } from "../components/topicIcons.js";
+  import SemanticExpansionCircle from "../components/scoreIcon.svelte";
   import '../components/styles.css';
   
   let chartRefs = {};
@@ -1510,6 +1511,11 @@ function handleChartZoom(event) {
                       >
                         {getCategoryIcon(getPromptCode(sessionData.sessionId))}
                       </span>
+                      <SemanticExpansionCircle 
+                        similarityData={sessionData.similarityData || []}
+                        size={18}
+                        sessionId={sessionData.sessionId}
+                      />
                     </div>
                   </div>
                 {/each}
@@ -1540,6 +1546,11 @@ function handleChartZoom(event) {
                     >
                       {getCategoryIcon(getPromptCode(sessionData.sessionId))}
                     </span>
+                    <SemanticExpansionCircle 
+                      similarityData={sessionData.similarityData || []}
+                      size={18}
+                      sessionId={sessionData.sessionId}
+                    />
                   </div>
                 </div>
               {/each}
@@ -1802,10 +1813,6 @@ function handleChartZoom(event) {
   flex: 3; 
 }
 
-  .content-box:last-child {
-    flex: 2; 
-    text-align: right; 
-  }
 
   .text-container {
     flex: 1;
@@ -2286,17 +2293,6 @@ function handleChartZoom(event) {
     height: 30px;
     width: 100%;
     justify-content: center;
-  }
-  @media (max-width: 900px) {
-    .three-column-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  
-  @media (max-width: 600px) {
-    .three-column-grid {
-      grid-template-columns: 1fr;
-    }
   }
 
   .loading {

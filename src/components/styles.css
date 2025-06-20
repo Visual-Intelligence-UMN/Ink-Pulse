@@ -256,4 +256,14 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
+  @media (max-width: 900px) {
+    .three-column-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
   
+  @media (max-width: 600px) {
+    .three-column-grid {
+      grid-template-columns: 1fr;
+    }
+  }
