@@ -1621,6 +1621,7 @@ function handleChartZoom(event) {
                 <table class="sessions-table">
                   <thead>
                     <tr>
+                      <th>Activity</th>
                       <th class="sortable-header" on:click={() => handleSort('topic')}>
                         <span>Topic</span>
                         <span class="sort-icon">{getSortIcon('topic')}</span>
@@ -1629,7 +1630,6 @@ function handleChartZoom(event) {
                         <span>Score</span>
                         <span class="sort-icon">{getSortIcon('score')}</span>
                       </th>
-                      <th>Activity</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1685,6 +1685,7 @@ function handleChartZoom(event) {
                     <table class="sessions-table">
                       <thead>
                         <tr>
+                          <th>Activity</th>
                           <th class="sortable-header" on:click={() => handleSort('topic')}>
                             <span>Topic</span>
                             <span class="sort-icon">{getSortIcon('topic')}</span>
@@ -1693,7 +1694,6 @@ function handleChartZoom(event) {
                             <span>Score</span>
                             <span class="sort-icon">{getSortIcon('score')}</span>
                           </th>
-                          <th>Activity</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1702,7 +1702,17 @@ function handleChartZoom(event) {
                             class="session-row"
                             on:click={() => handleRowClick(sessionData)}
                           >
-                            
+                            <td class="activity-cell">
+                              <div class="mini-chart">
+                                <ZoomoutChart
+                                  on:containerClick={handleContainerClick}
+                                  bind:this={chartRefs[sessionData.sessionId]}
+                                  sessionId={sessionData.sessionId}
+                                  sessionTopic={getPromptCode(sessionData.sessionId)}
+                                  similarityData={sessionData.similarityData}
+                                />
+                              </div>
+                            </td>
                             <td class="topic-cell">
                               <button
                                 class="topic-icon-btn"
@@ -1719,17 +1729,6 @@ function handleChartZoom(event) {
                                 size={16}
                                 sessionId={sessionData.sessionId}
                               />
-                            </td>
-                            <td class="activity-cell">
-                              <div class="mini-chart">
-                                <ZoomoutChart
-                                  on:containerClick={handleContainerClick}
-                                  bind:this={chartRefs[sessionData.sessionId]}
-                                  sessionId={sessionData.sessionId}
-                                  sessionTopic={getPromptCode(sessionData.sessionId)}
-                                  similarityData={sessionData.similarityData}
-                                />
-                              </div>
                             </td>
                           </tr>
                         {/each}
