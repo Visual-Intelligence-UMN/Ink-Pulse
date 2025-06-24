@@ -19,6 +19,7 @@
   import { topicIcons, getCategoryIcon } from "../components/topicIcons.js";
   import SemanticExpansionCircle from "../components/scoreIcon.svelte";
   import '../components/styles.css';
+  import LineChartPreview from "../components/lineChartPreview.svelte";
   
   let chartRefs = {};
   function resetZoom(sessionId) {
@@ -162,7 +163,7 @@
 function getColumnGroups() {
   let sessions = getDisplaySessions();
   
-  // Topic 排序
+  // Topic
   if (sortColumn === 'topic' && sortDirection !== 'none') {
     sessions = [...sessions].sort((a, b) => {
       const aCode = getPromptCode(a.sessionId);
@@ -298,115 +299,109 @@ function calculateAccumulatedSemanticScore(data) {
   }
 
   function handleIconClick(attribute, mode = 'group', specificValue = null) {
-
-  if (selectedCategoryFilter === specificValue && specificValue) {
-    groupingMode = false;
-    selectedGroupAttribute = null;
-    selectedCategoryFilter = null;
-    groupedSessions = {};
-    sortedSessions = [];
-    filteredSessions = [];
-    return;
-  }
-  
-  
-  if (specificValue) {
-    groupingMode = true;
-    selectedGroupAttribute = attribute;
-    selectedCategoryFilter = specificValue;
-    
-
-    filteredSessions = filterSessionsByCategory(specificValue);
-    groupedSessions = {};
-    sortedSessions = [];
-    return;
-  }
-
-  if (groupingMode && selectedGroupAttribute === attribute && !selectedCategoryFilter) {
-
-    groupingMode = false;
-    selectedGroupAttribute = null;
-    selectedCategoryFilter = null;
-    groupedSessions = {};
-    sortedSessions = [];
-    filteredSessions = [];
-  } else {
-    groupingMode = true;
-    selectedGroupAttribute = attribute;
-    selectedCategoryFilter = null;
-    
-    if (mode === 'group') {
-      groupedSessions = groupSessionsByAttribute(attribute);
+    if (selectedCategoryFilter === specificValue && specificValue) {
+      groupingMode = false;
+      selectedGroupAttribute = null;
+      selectedCategoryFilter = null;
+      groupedSessions = {};
       sortedSessions = [];
       filteredSessions = [];
-    } else if (mode === 'rank') {
-      sortedSessions = rankSessionsByAttribute(attribute, $initData);
+      return;
+    }
+    
+    if (specificValue) {
+      groupingMode = true;
+      selectedGroupAttribute = attribute;
+      selectedCategoryFilter = specificValue;
+      
+      filteredSessions = filterSessionsByCategory(specificValue);
       groupedSessions = {};
+      sortedSessions = [];
+      return;
+    }
+
+    if (groupingMode && selectedGroupAttribute === attribute && !selectedCategoryFilter) {
+      groupingMode = false;
+      selectedGroupAttribute = null;
+      selectedCategoryFilter = null;
+      groupedSessions = {};
+      sortedSessions = [];
       filteredSessions = [];
+    } else {
+      groupingMode = true;
+      selectedGroupAttribute = attribute;
+      selectedCategoryFilter = null;
+      
+      if (mode === 'group') {
+        groupedSessions = groupSessionsByAttribute(attribute);
+        sortedSessions = [];
+        filteredSessions = [];
+      } else if (mode === 'rank') {
+        sortedSessions = rankSessionsByAttribute(attribute, $initData);
+        groupedSessions = {};
+        filteredSessions = [];
+      }
     }
   }
-}
-let filteredByCategory = []; 
-function handleCategoryIconClick(category) {
-  if (selectedCategoryFilter === category) {
 
-    selectedCategoryFilter = null;
-    filteredByCategory = [];
-    
-    const originalFilteredData = tableData.filter((session) =>
-      $selectedTags.includes(session.prompt_code)
-    );
-    const originalUpdatedData = originalFilteredData.map((row) => ({
-      ...row,
-      selected: true
-    }));
-    filterTableData.set(originalUpdatedData);
-    
-  } else {
-    
-    selectedCategoryFilter = category;
-    
+  let filteredByCategory = []; 
+  function handleCategoryIconClick(category) {
+    if (selectedCategoryFilter === category) {
+      selectedCategoryFilter = null;
+      filteredByCategory = [];
+      
+      const originalFilteredData = tableData.filter((session) =>
+        $selectedTags.includes(session.prompt_code)
+      );
+      const originalUpdatedData = originalFilteredData.map((row) => ({
+        ...row,
+        selected: true
+      }));
+      filterTableData.set(originalUpdatedData);
+      
+    } else {
+      selectedCategoryFilter = category;
 
-    filteredByCategory = $initData.filter(sessionData => {
-      const sessionInfo = sessions.find(s => s.session_id === sessionData.sessionId);
-      return sessionInfo && sessionInfo.prompt_code === category;
-    });
-    
+      filteredByCategory = $initData.filter(sessionData => {
+        const sessionInfo = sessions.find(s => s.session_id === sessionData.sessionId);
+        return sessionInfo && sessionInfo.prompt_code === category;
+      });  
 
-    const categoryTableRows = tableData.filter(row => row.prompt_code === category);
-    filterTableData.set(categoryTableRows.map(row => ({
-      ...row,
-      selected: true
-    })));
-    
- 
-    categoryTableRows.forEach(row => {
-      fetchInitData(row.session_id, false, true);
-    });
-  }
-}
-function getDisplaySessions() {
-    if (selectedCategoryFilter && filteredSessions.length >= 0) {
-      return filteredSessions;
+      const categoryTableRows = tableData.filter(row => row.prompt_code === category);
+      filterTableData.set(categoryTableRows.map(row => ({
+        ...row,
+        selected: true
+      })));
+      
+      categoryTableRows.forEach(row => {
+        fetchInitData(row.session_id, false, true);
+      });
     }
-    
-    if (!groupingMode) {
+  }
+
+  function getDisplaySessions() {
+      if (selectedCategoryFilter && filteredSessions.length >= 0) {
+        return filteredSessions;
+      }
+      
+      if (!groupingMode) {
+        return $initData;
+      }
+      
+      if (Object.keys(groupedSessions).length > 0) {
+        return Object.values(groupedSessions).flat();
+      }
+      
+      if (sortedSessions.length > 0) {
+        return sortedSessions;
+      }
+      
       return $initData;
     }
-    
-    if (Object.keys(groupedSessions).length > 0) {
-      return Object.values(groupedSessions).flat();
-    }
-    
-    if (sortedSessions.length > 0) {
-      return sortedSessions;
-    }
-    
-    return $initData;
+
+  function isIconActive(promptCode) {
+    return selectedCategoryFilter === promptCode;
   }
-function isIconActive(promptCode) {
-  return selectedCategoryFilter === promptCode;
-}
 
   function getGridItemClass(sessionId) {
     if (!groupingMode) return '';
@@ -418,7 +413,6 @@ function isIconActive(promptCode) {
     return `grouped-${attributeValue}`;
   }
 
-  
   async function handleContainerClick(event) {
     const sessionId = event.detail.sessionId;
     loadedMap = {
@@ -625,13 +619,14 @@ function isIconActive(promptCode) {
           .split(".")[0]
           .replace(/_similarity$/, "");
 
-        const taggedSegments = segments.map((segment) =>
-          segment.map((item) => ({ ...item, id: extractedFileName }))
+        const taggedSegments = segments.map((segment, index) =>
+          segment.map((item) => ({ ...item, id: extractedFileName, segmentId:`${extractedFileName}_${index}` }))
         );
 
         for (const segment of taggedSegments) {
           const vector = buildVectorFromSegment(segment, checks);
           vector.id = segment[0]?.id ?? null;
+          vector.segmentId = segment[0]?.segmentId ?? null;
           patternVectors.push(vector);
         }
 
@@ -641,9 +636,9 @@ function isIconActive(promptCode) {
 
       patternData = results;
       const finalScore = calculateRank(patternVectors, currentVector)
-      const idToData = Object.fromEntries(patternData.map(d => [d[0].id, d]));
+      const idToData = Object.fromEntries(patternData.map(d => [d[0].segmentId, d]));
       const top5Data = finalScore.slice(0, 5)
-        .map(([id]) => idToData[id])
+          .map(([segmentId]) => idToData[segmentId]);
       patternDataLoad(top5Data);
     } catch (error) {
       console.error("Search failed", error);
@@ -670,13 +665,13 @@ function isIconActive(promptCode) {
     for (const item of patternVectors) {
       let score = 0;
       for (const key in item) {
-        if (key != "id") {
+        if (key != "id" && key != "segmentId") {
           let weight = weights[key] ?? 1;
           let arr = item[key];
           score += weight * l2(arr, currentVector[key]);
         }
       }
-      finalScore.push([item.id, score]);
+      finalScore.push([item.segmentId, score]);
     }
     finalScore.sort((a, b) => a[1] - b[1]);
     return finalScore;
@@ -713,7 +708,6 @@ function isIconActive(promptCode) {
       if (chartRef && chartRef.clearSelection) {
         chartRef.clearSelection();
       }
-      resetTextHighlighting(sessionId);
     });
 
     selectedPatterns = {};
@@ -753,8 +747,6 @@ function isIconActive(promptCode) {
       progressRange: `${range.progress.min.toFixed(1)} - ${range.progress.max.toFixed(1)}%`,
       count: data.length,
     };
-
-    highlightTextSegments(sessionId, data); // ???
   }
 
   function handleSelectionCleared(event) {
@@ -763,50 +755,6 @@ function isIconActive(promptCode) {
     if (selectedPatterns[sessionId]) {
       delete selectedPatterns[sessionId];
     }
-
-    resetTextHighlighting(sessionId);
-  }
-
-  function highlightTextSegments(sessionId, selectedData) {
-    const sessionData = $storeSessionData.get(sessionId);
-    if (!sessionData || !sessionData.textElements) return;
-
-    const textContainer = document.querySelector(`.text-container`);
-    if (!textContainer) return;
-
-    const textElements = textContainer.querySelectorAll(".text-span");
-
-    textElements.forEach((el) => {
-      el.classList.remove("highlighted-text");
-    });
-
-    const progressRanges = selectedData.map((d) => ({
-      start: d.startProgress,
-      end: d.endProgress,
-    }));
-
-    sessionData.textElements.forEach((element, index) => {
-      if (!element) return;
-
-      const elementProgress = element.progress * 100;
-      if (!elementProgress) return;
-
-      const isInSelectedRange = progressRanges.some(
-        (range) =>
-          elementProgress >= range.start && elementProgress <= range.end
-      );
-
-      if (isInSelectedRange && textElements[index]) {
-        textElements[index].classList.add("highlighted-text");
-      }
-    });
-  }
-
-  function resetTextHighlighting(sessionId) {
-    const textElements = document.querySelectorAll(".text-span");
-    textElements.forEach((element) => {
-      element.classList.remove("highlighted-text");
-    });
   }
 
   function change2bar() {
@@ -1578,27 +1526,24 @@ function handleChartZoom(event) {
                   </div>
                   {#if patternDataList.length > 0}
                     {#each patternDataList as sessionData}
-                      <div class="chart-container">
+                      <div class="">
                         <div style="font-size: 13px; margin-bottom: 4px;">
                           <strong>{sessionData.sessionId}</strong>
                         </div>
-                        <div class="chart-wrapper">
-                          <PatternChartPreviewSerach
-                            sessionId={sessionData.sessionId}
-                            data={sessionData.segments}
-                            wholeData={sessionData.similarityData} 
-                          />
-                          <!-- <div>
-                              <LineChart
+                          <div style="display: flex; align-items: flex-start">
+                            <div>
+                              <PatternChartPreviewSerach
+                                sessionId={sessionData.sessionId}
+                                data={sessionData.segments}
+                                wholeData={sessionData.similarityData} 
+                              />
+                            </div>
+                            <div>
+                              <LineChartPreview
                                 bind:this={chartRefs[sessionData.sessionId]}
                                 chartData={sessionData.chartData}
-                                paragraphColor={sessionData.paragraphColor}
-                                on:pointSelected={(e) => handlePointSelected(e, sessionData.sessionId)}
-                                {yScale}
-                                {height}
-                                bind:zoomTransform={zoomTransforms[sessionData.sessionId]}
                               />
-                            </div> -->
+                            </div>
                         </div>
                       </div>
                     {/each}
@@ -1829,7 +1774,7 @@ function handleChartZoom(event) {
                       </div>
                     </div>
                   </div>
-                  <div class="chart-container" on:wheel={handleChartZoom}>
+                  <div class="" on:wheel={handleChartZoom}>
                     <div class="chart-wrapper">
                       {#if $clickSession.similarityData}
                         <BarChartY
@@ -2598,7 +2543,7 @@ function handleChartZoom(event) {
     position: fixed;
     top: 70px;
     right: 20px;
-    width: 380px;
+    width: 500px;
     max-height: calc(100vh - 100px);
     background-color: white;
     border-radius: 8px;
