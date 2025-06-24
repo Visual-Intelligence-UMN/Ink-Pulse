@@ -75,7 +75,7 @@
 </script>
 
 <div class="chart-container" on:click={handleContainerClick}>
-  <div class="session-label">{sessionTopic} - {sessionId.slice(0, 4)}</div>
+  <!-- <div class="session-label">{sessionTopic} - {sessionId.slice(0, 4)}</div> -->
   <div style="margin-top: 30px">
     <canvas bind:this={canvasEl} data-session-id={sessionId}></canvas>
   </div>
@@ -94,7 +94,7 @@
     flex-direction: row;
     align-items: center;
     cursor: pointer;
-    width: 330px;
+    width: 150px;
     height: 10px;
   }
 </style>

@@ -14,9 +14,12 @@
   import PatternChartPreview from "../components/patternChartPreview.svelte";
   import PatternChartPreviewSerach from "../components/patternChartPreviewSerach.svelte";
   import SkeletonLoading from "../components/skeletonLoading.svelte";
-  // import { resolve } from "chart.js/helpers";
-  // import { VList } from "virtua/svelte";
-
+  import { resolve } from "chart.js/helpers";
+  import { VList } from "virtua/svelte";
+  import { topicIcons, getCategoryIcon } from "../components/topicIcons.js";
+  import SemanticExpansionCircle from "../components/scoreIcon.svelte";
+  import '../components/styles.css';
+  
   let chartRefs = {};
   function resetZoom(sessionId) {
     chartRefs[sessionId]?.resetZoom();
@@ -122,6 +125,94 @@
     return found?.prompt_code ?? "";
   }
 
+
+  // Functions about tables
+
+  function handleRowClick(sessionData) {
+    handleContainerClick({ detail: { sessionId: sessionData.sessionId } });
+  }
+  // TOPIC ICONS
+  let sortColumn = '';
+  let sortDirection = 'none';
+
+  function handleSort(column) {
+    if (sortColumn === column) {
+
+      if (sortDirection === 'none') {
+        sortDirection = 'asc';
+      } else if (sortDirection === 'asc') {
+        sortDirection = 'desc';
+      } else {
+        sortDirection = 'none';
+      }
+    } else {
+    
+      sortColumn = column;
+      sortDirection = 'asc';
+    }
+  }
+
+  function getSortIcon(column) {
+    if (sortColumn !== column || sortDirection === 'none') {
+      return '↕️'; 
+    }
+    return sortDirection === 'asc' ? '↑' : '↓';
+  }
+
+function getColumnGroups() {
+  let sessions = getDisplaySessions();
+  
+  // Topic 排序
+  if (sortColumn === 'topic' && sortDirection !== 'none') {
+    sessions = [...sessions].sort((a, b) => {
+      const aCode = getPromptCode(a.sessionId);
+      const bCode = getPromptCode(b.sessionId);
+      
+      if (sortDirection === 'asc') {
+        return aCode.localeCompare(bCode);
+      } else {
+        return bCode.localeCompare(aCode);
+      }
+    });
+  }
+  
+  // Score 
+  if (sortColumn === 'score' && sortDirection !== 'none') {
+    sessions = [...sessions].sort((a, b) => {
+      const aScore = calculateAccumulatedSemanticScore(a.similarityData || []);
+      const bScore = calculateAccumulatedSemanticScore(b.similarityData || []);
+      
+      if (sortDirection === 'asc') {
+        return aScore - bScore; 
+      } else {
+        return bScore - aScore; 
+      }
+    });
+  }
+  
+  const groups = [[], [], []];
+  sessions.forEach((session, index) => {
+    const columnIndex = index % 3;
+    groups[columnIndex].push(session);
+  });
+  
+  return groups;
+}
+
+$: if (sortColumn || sortDirection) {
+
+}
+
+
+function calculateAccumulatedSemanticScore(data) {
+  if (!data || data.length === 0) return 0;
+  
+  const totalScore = data.reduce((sum, item) => {
+    return sum + (item.residual_vector_norm || 0);
+  }, 0);
+  
+  return totalScore;
+}
   function waitForSessionData(sessionId) {
     return new Promise((resolve) => {
       let _unsubscribe;
@@ -253,6 +344,45 @@
       groupedSessions = {};
       filteredSessions = [];
     }
+  }
+}
+let filteredByCategory = []; 
+function handleCategoryIconClick(category) {
+  if (selectedCategoryFilter === category) {
+
+    selectedCategoryFilter = null;
+    filteredByCategory = [];
+    
+    const originalFilteredData = tableData.filter((session) =>
+      $selectedTags.includes(session.prompt_code)
+    );
+    const originalUpdatedData = originalFilteredData.map((row) => ({
+      ...row,
+      selected: true
+    }));
+    filterTableData.set(originalUpdatedData);
+    
+  } else {
+    
+    selectedCategoryFilter = category;
+    
+
+    filteredByCategory = $initData.filter(sessionData => {
+      const sessionInfo = sessions.find(s => s.session_id === sessionData.sessionId);
+      return sessionInfo && sessionInfo.prompt_code === category;
+    });
+    
+
+    const categoryTableRows = tableData.filter(row => row.prompt_code === category);
+    filterTableData.set(categoryTableRows.map(row => ({
+      ...row,
+      selected: true
+    })));
+    
+ 
+    categoryTableRows.forEach(row => {
+      fetchInitData(row.session_id, false, true);
+    });
   }
 }
 function getDisplaySessions() {
@@ -1527,57 +1657,123 @@ function handleChartZoom(event) {
                   <span class="session-count">({filteredSessions.length})</span>
                 </h2>
               </div>
-              
-              <div class="three-column-grid">
-                {#each filteredSessions as sessionData}
-                  <div class="grid-item filtered-item">
-                    <div class="chart-with-icon">
-                      <div class="zoomout-chart">
-                        <ZoomoutChart
-                          on:containerClick={handleContainerClick}
-                          bind:this={chartRefs[sessionData.sessionId]}
-                          sessionId={sessionData.sessionId}
-                          sessionTopic={getPromptCode(sessionData.sessionId)}
-                          similarityData={sessionData.similarityData}
-                        />
-                      </div>
-                      <span 
-                        class="category-icon-inline clickable-icon active-filter"
-                        on:click={() => handleIconClick('prompt_code', 'group', selectedCategoryFilter)}
-                        title="Click to clear filter"
+              <div class="table-container full-width">
+                <table class="sessions-table">
+                  <thead>
+                    <tr>
+                      <th>Activity</th>
+                      <th class="sortable-header" on:click={() => handleSort('topic')}>
+                        <span>Topic</span>
+                        <span class="sort-icon">{getSortIcon('topic')}</span>
+                      </th>
+                      <th class="sortable-header" on:click={() => handleSort('score')}>
+                        <span>Score</span>
+                        <span class="sort-icon">{getSortIcon('score')}</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {#each (selectedCategoryFilter ? filteredByCategory : filteredSessions) as sessionData}
+                      <tr 
+                        class="session-row"
+                        on:click={() => handleRowClick(sessionData)}
                       >
-                        {getCategoryIcon(getPromptCode(sessionData.sessionId))}
-                      </span>
-                    </div>
-                  </div>
-                {/each}
+                        <td class="topic-cell">
+                          <button
+                            class="topic-icon-btn"
+                            on:click|stopPropagation={() => handleCategoryIconClick(getPromptCode(sessionData.sessionId))}
+                            title="Click to clear filter"
+                            type="button"
+                          >
+                            {getCategoryIcon(getPromptCode(sessionData.sessionId))}
+                          </button>
+                        </td>
+                        <td class="score-cell">
+                          <SemanticExpansionCircle 
+                            similarityData={sessionData.similarityData || []}
+                            size={16}
+                            sessionId={sessionData.sessionId}
+                          />
+                        </td>
+                        <td class="activity-cell">
+                          <div class="mini-chart">
+                            <ZoomoutChart
+                              on:containerClick={handleContainerClick}
+                              bind:this={chartRefs[sessionData.sessionId]}
+                              sessionId={sessionData.sessionId}
+                              sessionTopic={getPromptCode(sessionData.sessionId)}
+                              similarityData={sessionData.similarityData}
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    {/each}
+                  </tbody>
+                </table>
               </div>
+                              
             </div>
             
           
           {:else}
-            <!-- 普通网格或排序显示模式 -->
-            <div class="three-column-grid">
-              {#each getDisplaySessions() as sessionData}
-                <div class="grid-item {getGridItemClass(sessionData.sessionId)}">
-                  <div class="chart-with-icon">
-                    <div class="zoomout-chart">
-                      <ZoomoutChart
-                        on:containerClick={handleContainerClick}
-                        bind:this={chartRefs[sessionData.sessionId]}
-                        sessionId={sessionData.sessionId}
-                        sessionTopic={getPromptCode(sessionData.sessionId)}
-                        similarityData={sessionData.similarityData}
-                      />
-                    </div>
-                    <span 
-                      class="category-icon-inline clickable-icon"
-                      class:active-filter={isIconActive(getPromptCode(sessionData.sessionId))}
-                      on:click={() => handleIconClick('prompt_code', 'group', getPromptCode(sessionData.sessionId))}
-                      title="Click to show only {getPromptCode(sessionData.sessionId)} sessions"
-                    >
-                      {getCategoryIcon(getPromptCode(sessionData.sessionId))}
-                    </span>
+            <div class="three-columns">
+              {#each getColumnGroups() as columnGroup, columnIndex}
+                <div class="column">
+                  
+                  
+                  <div class="table-container">
+                    <table class="sessions-table">
+                      <thead>
+                        <tr>
+                          <th>Activity</th>
+                          <th class="sortable-header" on:click={() => handleSort('topic')}>
+                            <span>Topic</span>
+                            <span class="sort-icon">{getSortIcon('topic')}</span>
+                          </th>
+                          <th class="sortable-header" on:click={() => handleSort('score')}>
+                            <span>Score</span>
+                            <span class="sort-icon">{getSortIcon('score')}</span>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {#each columnGroup as sessionData}
+                          <tr 
+                            class="session-row"
+                            on:click={() => handleRowClick(sessionData)}
+                          >
+                            <td class="activity-cell">
+                              <div class="mini-chart">
+                                <ZoomoutChart
+                                  on:containerClick={handleContainerClick}
+                                  bind:this={chartRefs[sessionData.sessionId]}
+                                  sessionId={sessionData.sessionId}
+                                  sessionTopic={getPromptCode(sessionData.sessionId)}
+                                  similarityData={sessionData.similarityData}
+                                />
+                              </div>
+                            </td>
+                            <td class="topic-cell">
+                              <button
+                                class="topic-icon-btn"
+                                on:click|stopPropagation={() => handleCategoryIconClick(getPromptCode(sessionData.sessionId))}
+                                title={getPromptCode(sessionData.sessionId)}
+                                type="button"
+                              >
+                                {getCategoryIcon(getPromptCode(sessionData.sessionId))}
+                              </button>
+                            </td>
+                            <td class="score-cell">
+                              <SemanticExpansionCircle 
+                                similarityData={sessionData.similarityData || []}
+                                size={16}
+                                sessionId={sessionData.sessionId}
+                              />
+                            </td>
+                          </tr>
+                        {/each}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               {/each}
@@ -1842,10 +2038,6 @@ function handleChartZoom(event) {
   flex: 3; 
 }
 
-  .content-box:last-child {
-    flex: 2; 
-    text-align: right; 
-  }
 
   .text-container {
     flex: 1;
@@ -2327,17 +2519,6 @@ function handleChartZoom(event) {
     height: 30px;
     width: 100%;
     justify-content: center;
-  }
-  @media (max-width: 900px) {
-    .three-column-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  
-  @media (max-width: 600px) {
-    .three-column-grid {
-      grid-template-columns: 1fr;
-    }
   }
 
   .loading {
