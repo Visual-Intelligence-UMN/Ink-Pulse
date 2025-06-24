@@ -142,6 +142,7 @@
       sortColumn = column;
       sortDirection = 'asc';
     }
+    chartRefs = {};
   }
 
   function getSortIcon(column) {
@@ -1638,6 +1639,19 @@ function handleChartZoom(event) {
                         class="session-row"
                         on:click={() => handleRowClick(sessionData)}
                       >
+                        <td class="activity-cell">
+                          <div class="mini-chart">
+                            {#key `${sessionData.sessionId}-${sortColumn}-${sortDirection}`}
+                            <ZoomoutChart
+                              on:containerClick={handleContainerClick}
+                              bind:this={chartRefs[sessionData.sessionId]}
+                              sessionId={sessionData.sessionId}
+                              sessionTopic={getPromptCode(sessionData.sessionId)}
+                              similarityData={sessionData.similarityData}
+                            />
+                            {/key}
+                          </div>
+                        </td>
                         <td class="topic-cell">
                           <button
                             class="topic-icon-btn"
@@ -1654,17 +1668,6 @@ function handleChartZoom(event) {
                             size={16}
                             sessionId={sessionData.sessionId}
                           />
-                        </td>
-                        <td class="activity-cell">
-                          <div class="mini-chart">
-                            <ZoomoutChart
-                              on:containerClick={handleContainerClick}
-                              bind:this={chartRefs[sessionData.sessionId]}
-                              sessionId={sessionData.sessionId}
-                              sessionTopic={getPromptCode(sessionData.sessionId)}
-                              similarityData={sessionData.similarityData}
-                            />
-                          </div>
                         </td>
                       </tr>
                     {/each}
@@ -1704,6 +1707,7 @@ function handleChartZoom(event) {
                           >
                             <td class="activity-cell">
                               <div class="mini-chart">
+                                 {#key `${sessionData.sessionId}-${sortColumn}-${sortDirection}`}
                                 <ZoomoutChart
                                   on:containerClick={handleContainerClick}
                                   bind:this={chartRefs[sessionData.sessionId]}
@@ -1711,6 +1715,7 @@ function handleChartZoom(event) {
                                   sessionTopic={getPromptCode(sessionData.sessionId)}
                                   similarityData={sessionData.similarityData}
                                 />
+                                {/key}
                               </div>
                             </td>
                             <td class="topic-cell">
