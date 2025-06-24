@@ -29,23 +29,23 @@
   let collapseButton;
   let selectionMode = false;
   let selectedPatterns = {};
-  let showPatternResults = false;
+  // let showPatternResults = false;
   let showPatternSearch = false;
+  let exactSourceButton;
+  let exactTrendButton;
 
-  onMount(() => {
-    if (filterButton) {
-      tippy(filterButton, {
-        content: "Click to filter based on prompt type",
-        placement: "top",
+  function initTippy(el, content) {
+    if (!el._tippy) {
+      tippy(el, {
+        content,
+        placement: 'top',
       });
     }
-    if (collapseButton) {
-      tippy(collapseButton, {
-        content: "Click to collapse/expand table view",
-        placement: "top",
-      });
-    }
-  });
+  }
+  $: filterButton && initTippy(filterButton, "Filter based on prompt type");
+  $: collapseButton && initTippy(collapseButton, "Collapse/Expand table view");
+  $: exactSourceButton && initTippy(exactSourceButton, "Open/Close exact search");
+  $: exactTrendButton && initTippy(exactTrendButton, "Open/Close exact search");
 
   let dataDict = {
     init_text: [], // Initial text
@@ -111,6 +111,14 @@
   export const initData = writable([]);
   let currentResults = {};
   let isSearch = false;
+  let isExactSearchSource = false;
+  let isExactSearchTrend = false;
+  $: if (!isSemanticChecked || !isValueTrendChecked) {
+    isExactSearchTrend = false;
+  }
+  $: if (!isSourceChecked) {
+    isExactSearchSource = false;
+  }
 
   function getPromptCode(sessionId) {
     const found = sessions.find((s) => s.session_id === sessionId);
@@ -476,15 +484,41 @@ function isIconActive(promptCode) {
     return true;
   }
 
+  function getTrendPattern(values) {
+    const pattern = [];
+    for (let i = 1; i < values.length; i++) {
+      if (values[i] > values[i - 1]) pattern.push(1);
+      else if (values[i] < values[i - 1]) pattern.push(-1);
+    }
+    return pattern;
+  }
+
+  function matchesTrend(values, expectedTrend) {
+    const actual = getTrendPattern(values);
+    return actual.every((v, i) => v === expectedTrend[i]);
+  }
+
   function findSegments(data, checks, minCount) {
     const segments = [];
     for (let i = 0; i <= data.length - minCount; i++) {
       const window = data.slice(i, i + minCount);
       const allValid = window.every(item => isDataValid(item, checks));
-      if (allValid) {
-        segments.push([...window]);
+      if (!allValid) continue;
+      if (isExactSearchSource && checks.source && checks.source[1]) {
+        const expectedSources = checks.source[1];
+        if (expectedSources.length !== minCount) continue;
+
+        const actualSources = window.map(item => item.source);
+        const matches = actualSources.every((src, idx) => src === expectedSources[idx]);
+        if (!matches) continue;
       }
+      if (isExactSearchTrend && checks.trend && checks.trend[1]) {
+        const values = window.map(item => item.residual_vector_norm);
+        if (!matchesTrend(values, checks.trend[1])) continue;
+      }
+      segments.push([...window]);
     }
+
     return segments;
   }
 
@@ -502,11 +536,11 @@ function isIconActive(promptCode) {
       }
 
       if (checks.time[0]) {
-        currentVector.t.push(currentItem.endTime - currentItem.startTime);
+        currentVector.t.push(currentItem.endTime * 60 - currentItem.startTime * 60);
       }
 
       if (checks.progress[0]) {
-        currentVector.p.push(currentItem.endProgress - currentItem.startProgress);
+        currentVector.p.push(currentItem.endProgress / 100 - currentItem.startProgress / 100);
       }
 
       if (checks.semantic[0]) {
@@ -537,31 +571,26 @@ function isIconActive(promptCode) {
         const source = item.source?.toLowerCase();
         vector.s.push(source === "user" ? 1 : 0); // user is 1, api is 0
       }
-
       if (checks.time[0]) {
         const tStart = item.start_time ?? 0;
         const tEnd = item.end_time ?? 0;
         vector.t.push(tEnd - tStart);
       }
-
       if (checks.progress[0]) {
         const y1 = item.start_progress ?? 0;
         const y2 = item.end_progress ?? 0;
         vector.p.push(y2 - y1);
       }
-
       if (checks.trend[0]) {
         if (i > 0) {
           const trend = getTrend(segment[i - 1].residual_vector_norm, item.residual_vector_norm);
           vector.tr.push(trend);
         }
       }
-
       if (checks.semantic[0]) {
         vector.sem.push(item.residual_vector_norm ?? null);
       }
     }
-
     return vector;
   }
 
@@ -624,7 +653,7 @@ function isIconActive(promptCode) {
 
   function l2(arr1, arr2) {
     let sum = 0;
-    for (let i = 1; i < arr1.length; i++) {
+    for (let i = 0; i < arr1.length; i++) {
       sum += (arr1[i] - arr2[i]) **2;
     }
     return Math.sqrt(sum);
@@ -632,11 +661,11 @@ function isIconActive(promptCode) {
 
   function calculateRank(patternVectors, currentVector) {
     const weights = {
-      s: 1.5,
-      t: 0.1,
-      p: 1,
-      tr: 2,
-      sem: 2.5
+      s: 1.5, // user 1, api 0
+      t: 0.01, // 1s
+      p: 1, // 1% -> 0.01
+      tr: 2.5, // up 1, down -1
+      sem: 2 // 1% -> 0.01
     }
     let finalScore = [];
     for (const item of patternVectors) {
@@ -695,13 +724,13 @@ function isIconActive(promptCode) {
   }
 
   function getTrend(a, b) {
-    if (a < b) return 1; // up is 1, flat is 0, down is -1
+    if (a < b) return 1; // up is 1, down is -1
     if (a > b) return -1;
     return 0;
   }
 
   function handleSelectionChanged(event) {
-    const { sessionId, range, dataRange, data, sources } = event.detail;
+    const { sessionId, range, dataRange, data, wholeData, sources } = event.detail;
     writingProgressRange = [
       dataRange.progressRange.min,
       dataRange.progressRange.max,
@@ -719,6 +748,7 @@ function isIconActive(promptCode) {
       range,
       dataRange,
       data,
+      wholeData,
       sources,
       scRange: `${range.sc.min.toFixed(1)} - ${range.sc.max.toFixed(1)}%`,
       progressRange: `${range.progress.min.toFixed(1)} - ${range.progress.max.toFixed(1)}%`,
@@ -1195,7 +1225,7 @@ function handleChartZoom(event) {
     return newParagraphTime;
   }
 
-  const handleEvents = (data, sessionId) => {
+  const handleEvents = (data, _) => {
     const initText = data.init_text.join("");
     let currentText = initText;
     let currentColor = [];
@@ -1478,6 +1508,7 @@ function handleChartZoom(event) {
                     <PatternChartPreview
                       {sessionId}
                       data={pattern.data}
+                      wholeData={pattern.wholeData}
                       selectedRange={pattern.range}
                       bind:this={chartRefs[sessionId]}
                     />
@@ -1513,6 +1544,10 @@ function handleChartZoom(event) {
                   <div class:dimmed={!isSourceChecked} style="font-size: 13px;">
                     <input type="checkbox" bind:checked={isSourceChecked} />
                     Source(human/AI)
+                    <label class="switch" style="transform: translateY(4px);" bind:this={exactSourceButton}>
+                      <input type="checkbox" bind:checked={isExactSearchSource} disabled={!isSourceChecked}>
+                      <span class="slider"></span>
+                    </label>
                   </div>
                   <div style="font-size: 13px;">
                     <div class:dimmed={!isSemanticChecked}>
@@ -1535,6 +1570,10 @@ function handleChartZoom(event) {
                           disabled={!isSemanticChecked}
                         />
                         Value Trend
+                        <label class="switch" style="transform: translateY(4px);" bind:this={exactTrendButton}>
+                          <input type="checkbox" bind:checked={isExactSearchTrend} disabled={!isSemanticChecked || !isValueTrendChecked}>
+                          <span class="slider"></span>
+                        </label>
                       </div>
                     </div>
                   </div>
@@ -1548,6 +1587,7 @@ function handleChartZoom(event) {
                           <PatternChartPreviewSerach
                             sessionId={sessionData.sessionId}
                             data={sessionData.segments}
+                            wholeData={sessionData.similarityData} 
                           />
                           <!-- <div>
                               <LineChart
@@ -1604,7 +1644,7 @@ function handleChartZoom(event) {
           </div>
         </div>
       {/if}
-      <div style="margin-top: 100px;" hidden={showMulti}>
+      <div style="margin-top: 70px;" hidden={showMulti}>
         {#if $initData.length > 0}
           {#if selectedCategoryFilter}
             <!-- Filter -->
@@ -1748,7 +1788,7 @@ function handleChartZoom(event) {
       </div>
       {#if showMulti}
         {#if $clickSession}
-          <div class="multi-box">
+          <div class="multi-box" style="margin-top: 70px;">
             {#if !loadedMap[$clickSession.sessionId]}
                   <SkeletonLoading />
             {/if}
@@ -1953,8 +1993,9 @@ function handleChartZoom(event) {
   .container {
     width: 100%; 
     margin: 0 auto;
-    margin-top: 70px;
     margin-bottom: 70px;
+    display: flex;
+    justify-content: center;
     padding: 0 10px;
   }
 
@@ -1964,6 +2005,7 @@ function handleChartZoom(event) {
     gap: 20px;
     align-items: stretch;
     width: 100%;
+    max-width: 1200px;
   }
 
   .display-box {
@@ -2477,7 +2519,8 @@ function handleChartZoom(event) {
 
   .zoomout-chart {
     display: flex;
-    margin-left: 0;
+    margin-left: 3vw;
+    margin-right: 3vw;
     height: 30px;
     width: 100%;
     justify-content: center;
@@ -2731,4 +2774,48 @@ function handleChartZoom(event) {
   .dimmed {
     color: #5f6368;
   }
+
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 25px;
+    height: 14px;
+  }
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0;
+    right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: 0.2s;
+    border-radius: 28px;
+  }
+
+  .slider::before {
+    position: absolute;
+    content: "";
+    height: 11px;
+    width: 11px;
+    left: 1.5px;
+    bottom: 1.5px;
+    background-color: white;
+    transition: 0.2s;
+    border-radius: 50%;
+  }
+
+  input:checked + .slider {
+    background-color: #ffbbcc;
+  }
+
+  input:checked + .slider::before {
+    transform: translateX(11px);
+  }
+
 </style>

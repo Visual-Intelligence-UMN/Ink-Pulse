@@ -421,4 +421,11 @@ function findSegments(data, checks, minCount) {
               </div>
             {/each}
 
+            function resetTextHighlighting(sessionId) {
+    const textElements = document.querySelectorAll(".text-span");
+    textElements.forEach((element) => {
+      element.classList.remove("highlighted-text");
+    });
+  }
+
 '''

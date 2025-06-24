@@ -14,31 +14,52 @@ def read_file(file_path):
         if i == 0:
             event["residual_vector_norm"] = 0
         else:
-            delta = len(event["sentence"]) - len(data[i - 1]["sentence"])
-            if delta == 0:
+            prev_sentence = data[i - 1]["sentence"].strip()
+            curr_sentence = event["sentence"].strip()
+            length = len(event["sentence"])
+            delta = len(curr_sentence) - len(prev_sentence)
+            delta = max(delta, 1)
+            scale_factor = delta * (length ** 0.5)
+            if abs(delta) <= 2:
                 event["residual_vector_norm"] = 0
             else:
-                if delta == 0 or delta == 1 or delta ==2:
-                    event["residual_vector_norm"] = 0
-                else:
-                    event["residual_vector_norm"] = event["residual_vector"] / abs(delta) if delta != 0 else 1
+                event["residual_vector_norm"] = event["residual_vector"] / scale_factor
+
     values = [e["residual_vector_norm"] for e in data if e["residual_vector_norm"] != 0]
-    log_values = np.log1p(values)
-    mean_val = np.mean(log_values)
-    std_val = np.std(log_values)
-    def normalize_residual(val):
-        log_val = np.log1p(val)
-        z = (log_val - mean_val) / std_val
-        return norm.cdf(z)
-    for e in data:
-        val = e["residual_vector_norm"]
-        if val != 0:
-            e["residual_vector_norm"] = normalize_residual(val)
-        else:
+    
+    if len(values) == 0:
+        for e in data:
             e["residual_vector_norm"] = 0
+    elif len(values) == 1:
+        for e in data:
+            if e["residual_vector_norm"] != 0:
+                e["residual_vector_norm"] = 1
+            else:
+                e["residual_vector_norm"] = 0
+    else:
+        log_values = np.log1p(values)
+        mean_val = np.mean(log_values)
+        std_val = np.std(log_values)
+        if std_val == 0:
+            for e in data:
+                if e["residual_vector_norm"] != 0:
+                    e["residual_vector_norm"] = 1
+                else:
+                    e["residual_vector_norm"] = 0
+        else:
+            def normalize_residual(val):
+                log_val = np.log1p(val)
+                z = (log_val - mean_val) / std_val
+                return norm.cdf(z)
+            for e in data:
+                val = e["residual_vector_norm"]
+                if val != 0:
+                    e["residual_vector_norm"] = normalize_residual(val)
+                else:
+                    e["residual_vector_norm"] = 0
 
     with open(file_path, 'w', encoding='utf-8') as file:
-        json.dump(data, file, ensure_ascii=False,  indent=4)
+        json.dump(data, file, ensure_ascii=False, indent=4)
 
 def process_files(base_path):
     for filename in os.listdir(base_path):

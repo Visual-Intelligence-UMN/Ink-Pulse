@@ -23,6 +23,7 @@
   let xScale: any;
   export let yScale;
   export let zoomTransform = d3.zoomIdentity;
+  let ZoomTransformIsInteral = d3.zoomIdentity;
 
   let selectedPoint: any = null;
   let hoveredPoint: any = null;
@@ -47,11 +48,59 @@
     updateAxes();
   }
   
+
+  // helper code for handling zooming from outside the component
+  // When getting a zoomTransform from outside the component with only y and k values,
+  // x value is calculated based on the data points that have closest y value to the zoomTransform.y.
+  
+  $: if (zoomTransform) {
+    // console.log("zooming:", zoomTransform);
+
+    if (ZoomTransformIsInteral.k !== zoomTransform.k) {
+      let centerY = (zoomTransform.y - ZoomTransformIsInteral.y) / (ZoomTransformIsInteral.k - zoomTransform.k);
+      let {x, y} = findPointAtY(centerY)
+      let centerX = x * (ZoomTransformIsInteral.k - zoomTransform.k) + ZoomTransformIsInteral.x;
+      const maxTranslateX = 0;
+      const minTranslateX = -(width - margin.left - margin.right) * (zoomTransform.k - 1);
+      const clampedY = Math.max(minTranslateX, Math.min(centerX, maxTranslateX));
+      zoomTransform.x = clampedY;
+      ZoomTransformIsInteral = zoomTransform;
+      d3.select(svgContainer).call(zoom.transform, zoomTransform);
+      updateAxes();
+    }
+  }
+
+
   afterUpdate(() => {
     if (svgContainer && zoom) {
       d3.select(svgContainer).call(zoom);
     }
   });
+
+
+function findPointAtY(yCoordinate: number) {
+  let closestPoint = null;
+  let minDistance = Infinity;
+
+  for (const d of chartData) {
+    const scaledYValue = scaledY(d.percentage);
+    const distance = Math.abs(scaledYValue - yCoordinate);
+
+    if (distance < minDistance) {
+      minDistance = distance;
+      closestPoint = d;
+    }
+  }
+
+  if (closestPoint) {
+    const x = scaledX(closestPoint.time)
+    const y = scaledY(closestPoint.percentage);
+    return { x, y };
+  }
+
+  return null;
+}
+
 
   function updateAxes() {
     if (!xScale || !yScale) return;
@@ -61,7 +110,6 @@
 
     d3.select(xAxisG).call(xAxis);
     d3.select(yAxisG).call(yAxis);
-    d3.select(xAxisG).call(xAxis);
 
     const ticks = d3.select(xAxisG).selectAll(".tick text");
     ticks
@@ -92,8 +140,9 @@
         const minTranslateY = -(height - margin.top - margin.bottom) * (transform.k - 1);
         const clampedY = Math.max(minTranslateY, Math.min(transform.y, maxTranslateY));
         zoomTransform = d3.zoomIdentity.translate(transform.x, clampedY).scale(transform.k);
-              updateAxes();
-            });
+        ZoomTransformIsInteral = zoomTransform;
+        updateAxes();
+      });
             
     d3.select(svgContainer).call(zoom);
     updateAxes();
