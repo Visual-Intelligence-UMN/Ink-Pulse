@@ -23,7 +23,7 @@
   $: progressPercentage = normalizeScoreToPercentage(qualityScore);
   $: strokeColor = getColorByScoreLevel(scoreLevel);
   
-  function calculateAccumulatedSemanticScore(data) {
+  export function calculateAccumulatedSemanticScore(data) {
     if (!data || data.length === 0) return 0;
     
     const totalScore = data.reduce((sum, item) => {
