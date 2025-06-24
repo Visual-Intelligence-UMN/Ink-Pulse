@@ -8,6 +8,8 @@
 
     let container;
     let prevData;
+    let height = 125;
+    let width = 150;
 
     onMount(() => {
         if (data && container) {
@@ -34,8 +36,8 @@
         }));
 
         const margin = { top: 10, right: 5, bottom: 25, left: 40 };
-        const chartWidth = container.clientWidth - margin.left - margin.right;
-        const chartHeight = container.clientHeight - margin.top - margin.bottom;
+        const chartWidth = width - margin.left - margin.right;
+        const chartHeight = height - margin.top - margin.bottom;
 
         const svg = d3
             .select(container)
