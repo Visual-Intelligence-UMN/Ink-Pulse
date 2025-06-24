@@ -4,6 +4,7 @@
 
   export let sessionId;
   export let data;
+  export let wholeData;
   export let selectedRange;
 
   let container;
@@ -31,6 +32,13 @@
 
   function renderChart() {
     d3.select(container).selectAll("svg").remove();
+
+    const wholeProcessedData = wholeData.map((d) => ({
+      startProgress: d.startProgress,
+      endProgress: d.endProgress,
+      residual_vector_norm: d.residual_vector_norm,
+      source: d.source,
+    }));
 
     const processedData = data.map((d) => ({
       startProgress: d.startProgress,
@@ -93,20 +101,48 @@
       .style("font-size", "8px")
       .text("Progress(%)");
 
+    svg
+      .selectAll(".bar-whole")
+      .data(wholeProcessedData)
+      .enter()
+      .append("rect")
+      .attr("class", "bar-whole")
+      .attr("y", (d) =>
+        newyScale(d.startProgress) < newyScale(d.endProgress)
+          ? newyScale(d.startProgress)
+          : newyScale(d.endProgress)
+      )
+      .attr("x", (d) => xScale(d.residual_vector_norm))
+      .attr("width", (d) => xScale(0) - xScale(d.residual_vector_norm))
+      .attr("height", (d) =>
+        Math.abs(newyScale(d.startProgress) - newyScale(d.endProgress))
+      )
+      .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
+      .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
+      .attr("stroke-width", 0.1)
+      .attr("opacity", 0.2)
+      .attr("clip-path", `url(#clip_bar_preview_${sessionId})`);
+
     const bars = svg
       .selectAll(".bar")
       .data(processedData)
       .enter()
       .append("rect")
       .attr("class", "bar")
-      .attr("y", (d) => newyScale(d.endProgress))
+      .attr("y", (d) =>
+        newyScale(d.startProgress) < newyScale(d.endProgress)
+          ? newyScale(d.startProgress)
+          : newyScale(d.endProgress)
+      )
       .attr("x", (d) => xScale(d.residual_vector_norm))
       .attr("width", (d) => xScale(0) - xScale(d.residual_vector_norm))
-      .attr("height", (d) => newyScale(d.startProgress) - newyScale(d.endProgress))
+      .attr("height", (d) =>
+        Math.abs(newyScale(d.startProgress) - newyScale(d.endProgress))
+      )
       .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke-width", 0.1)
-      .attr("opacity", 0.5)
+      .attr("opacity", 0.9)
       .attr("clip-path", `url(#clip_bar_preview_${sessionId})`);
 
     if (selectedRange) {
@@ -115,9 +151,9 @@
       svg
         .append("rect")
         .attr("class", "selection-rect")
-        .attr("x", xScale(sc.max))
+        .attr("x", xScale(1))
         .attr("y", newyScale(progress.max))
-        .attr("width", xScale(sc.min) - xScale(sc.max))
+        .attr("width", xScale(0) - xScale(1))
         .attr("height", newyScale(progress.min) - newyScale(progress.max))
         .attr("fill", "none")
         .attr("stroke", "#000")
