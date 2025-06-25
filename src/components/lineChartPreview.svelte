@@ -18,7 +18,7 @@
   let svgContainer: SVGSVGElement;
   let width = 250;
   let height = 150;
-  const margin = { top: 20, right: 0, bottom: 30, left: 0 };
+  const margin = { top: 10, right: 0, bottom: 30, left: 0 };
 
   let xScale: any;
   let yScale = d3
