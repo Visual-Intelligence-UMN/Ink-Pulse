@@ -111,7 +111,7 @@
   let patternDataList = [];
   export const initData = writable([]);
   let currentResults = {};
-  let isSearch = false;
+  let isSearch = 0; // 0: not searching, 1: searching, 2: search done
   let isExactSearchSource = false;
   let isExactSearchTrend = false;
   $: if (!isSemanticChecked || !isValueTrendChecked) {
@@ -440,6 +440,7 @@ function calculateAccumulatedSemanticScore(data) {
 
   function open2close() {
     isOpen = !isOpen;
+    isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
   }
 
   function togglePatternSearch() {
@@ -452,6 +453,7 @@ function calculateAccumulatedSemanticScore(data) {
   }
 
   function deletePattern(sessionId) {
+    isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
     const newSelectedPatterns = { ...selectedPatterns };
     delete newSelectedPatterns[sessionId];
     patternData = [];
@@ -588,7 +590,7 @@ function calculateAccumulatedSemanticScore(data) {
   }
 
   async function searchPattern(sessionId) {
-    isSearch = true;
+    isSearch = 1; // 0: not searching, 1: searching, 2: search done
     const sessionData = selectedPatterns[sessionId];
     const count = sessionData.count;
     let results = [];
@@ -639,8 +641,11 @@ function calculateAccumulatedSemanticScore(data) {
       const idToData = Object.fromEntries(patternData.map(d => [d[0].segmentId, d]));
       const top5Data = finalScore.slice(0, 5)
           .map(([segmentId]) => idToData[segmentId]);
+
+      isSearch = 2; // 0: not searching, 1: searching, 2: search done
       patternDataLoad(top5Data);
     } catch (error) {
+      isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
       console.error("Search failed", error);
     }
   }
@@ -1547,7 +1552,7 @@ function handleChartZoom(event) {
                         </div>
                       </div>
                     {/each}
-                  {:else if patternDataList.length == 0 && isSearch}
+                  {:else if patternDataList.length == 0 && isSearch == 2}
                     <div class="no-data-message">
                       No data found matching the search criteria.
                     </div>
