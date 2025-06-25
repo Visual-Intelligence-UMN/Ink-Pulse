@@ -1529,7 +1529,11 @@ function handleChartZoom(event) {
                       </div>
                     </div>
                   </div>
-                  {#if patternDataList.length > 0}
+                  <div style="height: 30px;"></div>
+                  {#if patternDataList.length > 0 && isSearch == 2}
+                    <div>
+                      Search Results
+                    </div>
                     {#each patternDataList as sessionData}
                       <div class="">
                         <div style="font-size: 13px; margin-bottom: 4px;">
@@ -1555,6 +1559,10 @@ function handleChartZoom(event) {
                   {:else if patternDataList.length == 0 && isSearch == 2}
                     <div class="no-data-message">
                       No data found matching the search criteria.
+                    </div>
+                  {:else if isSearch == 1}
+                    <div class="loading-message">
+                      Searching for patterns...
                     </div>
                   {/if}
                 </div>
