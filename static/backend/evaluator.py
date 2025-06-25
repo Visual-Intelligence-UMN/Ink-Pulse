@@ -69,11 +69,24 @@ def process_evaluate(answer):
     score = data["score"]
     return score
 
+def longest_common(s1, s2):
+    min_len = min(len(s1), len(s2))
+    i = 0
+    while i < min_len and s1[i] == s2[i]:
+        i += 1
+    return s1[:i]
+
 def read_sentences(file_path):
-    with open (file_path, "r", encoding="utf-8") as file:
+    with open(file_path, "r", encoding="utf-8") as file:
         data = json.load(file)
-        intro = data["init_text"]
-        article = data["text"]
+        intro = data["init_text"][0].strip()
+        article = data["text"][0].lstrip()
+        prefix = longest_common(intro, article)
+        if prefix:
+            article = article[len(prefix):].lstrip()
+            # print("Match")
+        else:
+            print("No common prefix found")
     return intro, article
 
 def main():
@@ -88,13 +101,17 @@ def main():
         if file_name.endswith(".jsonl"):
             file_path = os.path.join(session_dir, file_name)
             session_id = os.path.splitext(file_name)[0]
-            print(session_id)
+            # print(session_id)
             session = topic_df[topic_df["session_id"] == session_id]
-            topic = session["prompt_code"].values[0]
-            intro, article = read_sentences(file_path)
-            result = evaluate_prompt(session_id, topic, intro, article)
-            output_path = os.path.join(output_dir, (session_id + "_similarity" + ".json"))
-            write_json(load_json(output_path), result, output_path)
+            if not session.empty:
+                print(session_id)
+                topic = session["prompt_code"].values[0]
+                intro, article = read_sentences(file_path)
+                print(intro)
+                print(article)
+                # result = evaluate_prompt(session_id, topic, intro, article)
+                # output_path = os.path.join(output_dir, (session_id + "_similarity" + ".json"))
+                # write_json(load_json(output_path), result, output_path)
             break
         break
 
