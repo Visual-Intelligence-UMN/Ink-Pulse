@@ -112,6 +112,9 @@
   export const initData = writable([]);
   let currentResults = {};
   let isSearch = 0; // 0: not searching, 1: searching, 2: search done
+  let searchCount = 0; // count of search results
+  let showResultCount // count of results to show in the UI
+
   let isExactSearchSource = false;
   let isExactSearchTrend = false;
   $: if (!isSemanticChecked || !isValueTrendChecked) {
@@ -638,11 +641,13 @@ function calculateAccumulatedSemanticScore(data) {
       patternData = results;
       const finalScore = calculateRank(patternVectors, currentVector)
       const idToData = Object.fromEntries(patternData.map(d => [d[0].segmentId, d]));
-      const top5Data = finalScore.slice(0, 5)
-          .map(([segmentId]) => idToData[segmentId]);
+      // const top5Data = finalScore.slice(0, 5)
+      //     .map(([segmentId]) => idToData[segmentId]);
+      const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
 
-      isSearch = 2; // 0: not searching, 1: searching, 2: search done
-      patternDataLoad(top5Data);
+      showResultCount = 5; // Initialize to show 5 results
+      searchCount = fullData.length;
+      patternDataLoad(fullData);
     } catch (error) {
       isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
       console.error("Search failed", error);
@@ -701,6 +706,8 @@ function calculateAccumulatedSemanticScore(data) {
         return null;
       })
       .filter(Boolean);
+
+    isSearch = 2; // reset search state; 0: not searching, 1: searching, 2: search done
   }
 
   function closePatternSearch() {
@@ -1534,28 +1541,44 @@ function handleChartZoom(event) {
                     <div>
                       Search Results
                     </div>
-                    {#each patternDataList as sessionData}
-                      <div class="">
-                        <div style="font-size: 13px; margin-bottom: 4px;">
-                          <strong>{sessionData.sessionId}</strong>
-                        </div>
+                    {#each patternDataList as sessionData, index}
+                      {#if index < showResultCount} 
+                        <div class="">
+                          <div style="font-size: 13px; margin-bottom: 4px;">
+                            <strong>{sessionData.sessionId}</strong>
+                          </div>
                           <div style="display: flex; align-items: flex-start">
                             <div>
                               <PatternChartPreviewSerach
-                                sessionId={sessionData.sessionId}
-                                data={sessionData.segments}
-                                wholeData={sessionData.similarityData} 
+                              sessionId={sessionData.sessionId}
+                              data={sessionData.segments}
+                              wholeData={sessionData.similarityData} 
                               />
                             </div>
                             <div>
                               <LineChartPreview
-                                bind:this={chartRefs[sessionData.sessionId]}
-                                chartData={sessionData.chartData}
+                              bind:this={chartRefs[sessionData.sessionId]}
+                              chartData={sessionData.chartData}
                               />
                             </div>
+                          </div>
                         </div>
-                      </div>
+                      {/if}
                     {/each}
+                    {#if showResultCount < patternDataList.length}
+                      <div style="display: flex; justify-content: center; margin-top: 10px;">
+                        <button
+                          class="search-pattern-button"
+                          on:click={() => {showResultCount += 5}}
+                        >
+                          More Results
+                        </button>
+                      </div>
+                    {:else}
+                      <div style="text-align: center; margin-top: 10px;">
+                        <span class="no-more-results">End of Results</span>
+                      </div>
+                    {/if}
                   {:else if patternDataList.length == 0 && isSearch == 2}
                     <div class="no-data-message">
                       No data found matching the search criteria.
