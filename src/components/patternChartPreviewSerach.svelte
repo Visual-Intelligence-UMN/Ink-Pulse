@@ -8,8 +8,8 @@
 
     let container;
     let prevData;
-    let height = 125;
-    let width = 150;
+    let height = 150;
+    let width = 186; // Parameter fine-tuned to fit the line chart
 
     onMount(() => {
         if (data && container) {
@@ -35,7 +35,7 @@
             source: d.source,
         }));
 
-        const margin = { top: 10, right: 5, bottom: 25, left: 40 };
+        const margin = { top: 10, right: 0, bottom: 25, left: 40 };
         const chartWidth = width - margin.left - margin.right;
         const chartHeight = height - margin.top - margin.bottom;
 

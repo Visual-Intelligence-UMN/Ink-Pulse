@@ -111,7 +111,10 @@
   let patternDataList = [];
   export const initData = writable([]);
   let currentResults = {};
-  let isSearch = false;
+  let isSearch = 0; // 0: not searching, 1: searching, 2: search done
+  let searchCount = 0; // count of search results
+  let showResultCount // count of results to show in the UI
+
   let isExactSearchSource = false;
   let isExactSearchTrend = false;
   $: if (!isSemanticChecked || !isValueTrendChecked) {
@@ -452,6 +455,7 @@ function calculateAccumulatedSemanticScore(data) {
   }
 
   function deletePattern(sessionId) {
+    isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
     const newSelectedPatterns = { ...selectedPatterns };
     delete newSelectedPatterns[sessionId];
     patternData = [];
@@ -588,7 +592,7 @@ function calculateAccumulatedSemanticScore(data) {
   }
 
   async function searchPattern(sessionId) {
-    isSearch = true;
+    isSearch = 1; // 0: not searching, 1: searching, 2: search done
     const sessionData = selectedPatterns[sessionId];
     const count = sessionData.count;
     let results = [];
@@ -637,10 +641,15 @@ function calculateAccumulatedSemanticScore(data) {
       patternData = results;
       const finalScore = calculateRank(patternVectors, currentVector)
       const idToData = Object.fromEntries(patternData.map(d => [d[0].segmentId, d]));
-      const top5Data = finalScore.slice(0, 5)
-          .map(([segmentId]) => idToData[segmentId]);
-      patternDataLoad(top5Data);
+      // const top5Data = finalScore.slice(0, 5)
+      //     .map(([segmentId]) => idToData[segmentId]);
+      const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
+
+      showResultCount = 5; // Initialize to show 5 results
+      searchCount = fullData.length;
+      patternDataLoad(fullData);
     } catch (error) {
+      isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
       console.error("Search failed", error);
     }
   }
@@ -697,11 +706,14 @@ function calculateAccumulatedSemanticScore(data) {
         return null;
       })
       .filter(Boolean);
+
+    isSearch = 2; // reset search state; 0: not searching, 1: searching, 2: search done
   }
 
   function closePatternSearch() {
     showPatternSearch = false;
     selectionMode = false;
+    isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
 
     Object.keys(selectedPatterns).forEach((sessionId) => {
       const chartRef = chartRefs[sessionId + "-barChart"];
@@ -1524,32 +1536,61 @@ function handleChartZoom(event) {
                       </div>
                     </div>
                   </div>
-                  {#if patternDataList.length > 0}
-                    {#each patternDataList as sessionData}
-                      <div class="">
-                        <div style="font-size: 13px; margin-bottom: 4px;">
-                          <strong>{sessionData.sessionId}</strong>
-                        </div>
+                  <div style="height: 30px;"></div>
+                  {#if patternDataList.length > 0 && isSearch == 2}
+                    <div>
+                      Search Results
+                    </div>
+                    {#each patternDataList as sessionData, index}
+                      {#if index < showResultCount} 
+                        <div class="search-result-container">
+                          <div style="font-size: 13px; margin-bottom: 4px; margin-left: 8px; position: relative;">
+                            <strong>{sessionData.sessionId}</strong>
+                            <button class="close-button" style="position: absolute; top:0px; right:0px; background-color: initial;"
+                              on:click={() => {
+                                patternDataList = patternDataList.filter(d => d !== sessionData);
+                              }}
+                            >×</button>
+                          </div>
                           <div style="display: flex; align-items: flex-start">
                             <div>
                               <PatternChartPreviewSerach
-                                sessionId={sessionData.sessionId}
-                                data={sessionData.segments}
-                                wholeData={sessionData.similarityData} 
+                              sessionId={sessionData.sessionId}
+                              data={sessionData.segments}
+                              wholeData={sessionData.similarityData} 
                               />
                             </div>
                             <div>
                               <LineChartPreview
-                                bind:this={chartRefs[sessionData.sessionId]}
-                                chartData={sessionData.chartData}
+                              bind:this={chartRefs[sessionData.sessionId]}
+                              chartData={sessionData.chartData}
                               />
                             </div>
+                          </div>
                         </div>
-                      </div>
+                      {/if}
                     {/each}
-                  {:else if patternDataList.length == 0 && isSearch}
+                    {#if showResultCount < patternDataList.length}
+                      <div style="display: flex; justify-content: center; margin-top: 10px;">
+                        <button
+                          class="search-pattern-button"
+                          on:click={() => {showResultCount += 5}}
+                        >
+                          More Results
+                        </button>
+                      </div>
+                    {:else}
+                      <div style="text-align: center; margin-top: 10px;">
+                        <span class="no-more-results">End of Results</span>
+                      </div>
+                    {/if}
+                  {:else if patternDataList.length == 0 && isSearch == 2}
                     <div class="no-data-message">
                       No data found matching the search criteria.
+                    </div>
+                  {:else if isSearch == 1}
+                    <div class="loading-message">
+                      Searching for patterns...
                     </div>
                   {/if}
                 </div>
@@ -2756,6 +2797,17 @@ function handleChartZoom(event) {
 
   input:checked + .slider::before {
     transform: translateX(11px);
+  }
+
+  .search-result-container {
+    transition: background-color 0.2s ease;
+    border-radius: 8px;
+    margin-top: 10px; 
+    margin-bottom: 10px;
+  }
+
+  .search-result-container:hover {
+    background-color: #e0e0e0;
   }
 
 </style>
