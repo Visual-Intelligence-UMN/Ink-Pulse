@@ -1543,9 +1543,14 @@ function handleChartZoom(event) {
                     </div>
                     {#each patternDataList as sessionData, index}
                       {#if index < showResultCount} 
-                        <div class="">
-                          <div style="font-size: 13px; margin-bottom: 4px;">
+                        <div class="search-result-container">
+                          <div style="font-size: 13px; margin-bottom: 4px; margin-left: 8px; position: relative;">
                             <strong>{sessionData.sessionId}</strong>
+                            <button class="close-button" style="position: absolute; top:0px; right:0px; background-color: initial;"
+                              on:click={() => {
+                                patternDataList = patternDataList.filter(d => d !== sessionData);
+                              }}
+                            >×</button>
                           </div>
                           <div style="display: flex; align-items: flex-start">
                             <div>
@@ -2792,6 +2797,17 @@ function handleChartZoom(event) {
 
   input:checked + .slider::before {
     transform: translateX(11px);
+  }
+
+  .search-result-container {
+    transition: background-color 0.2s ease;
+    border-radius: 8px;
+    margin-top: 10px; 
+    margin-bottom: 10px;
+  }
+
+  .search-result-container:hover {
+    background-color: #e0e0e0;
   }
 
 </style>
