@@ -32,22 +32,35 @@ def chatgpt_prompter(input_prompt):
     return completion.choices[0].message.content
 
 def evaluate_prompt(session_id, topic, intro, article):
-    result = []    
+    result = []
+    note = [] 
     EVALUATION_PROMPT_TEMPLATE = f"""
         Topic: {topic}
         Introduction: {intro}
         Article: {article}
         —– 
-        You are evaluating an article co-written by a human and an AI. You must score the topic-article pair on a scale from 0 to 5 based on this rubric:
-        Score 0: The content is unrelated to the topic, incoherent, or completely fails to form a meaningful piece of writing.
-        Score 1: The content is extremely superficial, lacks logical development, or reads like a mix of raw AI output and minimal human edits. The writing is highly fragmented and lacks coherence. Human-AI integration is poor or almost nonexistent.
-        Score 2: The article addresses the topic but is fragmented, overly simplistic, or disjointed. The ideas do not build well on each other. Human and AI contributions feel disconnected, with sudden transitions or unclear flow.
-        Score 3: The article stays on topic and has a logical structure, but much of the content is generic, repetitive, or shallow. AI-generated sections are noticeable due to stylistic mismatches, filler phrases, or lack of nuance. Transitions or tone shifts may be abrupt.
-        Score 4: The article flows well and develops its ideas with some depth. There may be slight inconsistencies in tone or moments of cliché, but the structure is solid and the content is relevant and coherent. Human-AI integration is smooth, though not fully seamless.
-        Score 5: The article is insightful, original, and demonstrates deep idea development. The writing is natural, coherent, and fully cohesive throughout. The human-AI collaboration is seamless — it feels like a single, unified authorial voice. There are no signs of template-based or generic AI writing.
+        You are evaluating an article co-written by a human and an AI. You must objectively score the topic-article pair based on the two criteria below:
+        New Idea (0-5):  
+        Evaluate how much *new, original thinking* the article contributes *beyond the Introduction*.  
+        - 0: No ideas; incoherent or irrelevant.  
+        - 1: Purely obvious or generic.  
+        - 2: Fragmented or shallow ideas.  
+        - 3: Standard ideas with some development.  
+        - 4: Clear new insights or novel angles.  
+        - 5: Multiple strong original ideas; deep or creative expansion beyond the intro.
+
+        Coherence (0-5):  
+        Evaluate how well the article maintains *logical structure*, *natural transitions*, and *stylistic consistency* throughout.
+        - 0: Disjointed or jarring; abrupt shifts in tone or topic. 
+        - 1: Minimal cohesion; sections feel stitched together.
+        - 2: Mostly smooth but has several awkward transitions.
+        - 3: Generally coherent; occasional unevenness.
+        - 4: Well-structured with clear, natural progression.
+        - 5: Seamless flow and unity; stylistically and structurally refined.
+
         Note: The Introduction is provided for context only and should NOT be considered part of the article content for scoring purposes.
         Your response should be in JSON format as follows:  
-        ["session_id": {session_id}, "score": "score", "reason": "your reason why you give that score"].
+        ["session_id": {session_id}, "idea_score": "idea_score","coherence_score": "coherence_score", "reason": "Explain briefly why you gave these scores, citing specific examples or patterns from the article."]
         —–
         score:
     """      
@@ -66,7 +79,9 @@ def evaluate_prompt(session_id, topic, intro, article):
 def process_evaluate(answer):
     answer = answer.strip().removeprefix("```json").removesuffix("```").strip()
     data = json.loads(answer)
-    score = data["score"]
+    idea_score = data["idea_score"]
+    coherence_score = data["coherence_score"]
+    score = int (idea_score) + int(coherence_score)
     return score
 
 def longest_common(s1, s2):
@@ -89,12 +104,21 @@ def read_sentences(file_path):
             print("No common prefix found")
     return intro, article
 
+def write_file(note_dir, session_id, results):
+    note_path = os.path.join(note_dir, session_id + ".json")
+    os.makedirs(note_dir, exist_ok=True)
+    with open(note_path, 'w', encoding='utf-8') as f:
+        json.dump(results, f, ensure_ascii=False, indent=4)
+
+    print(f"Done eval results: {note_path}")
+
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     static_dir = os.path.dirname(script_dir)
     session_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", "coauthor-json")
     topic_dir = os.path.join(static_dir, "session_metadata.csv")
     output_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", "similarity_results")
+    note_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", "eval_results")
     # os.makedirs(output_dir, exist_ok=True)
     topic_df = pd.read_csv(topic_dir)
     for file_name in os.listdir(session_dir):
@@ -107,13 +131,14 @@ def main():
                 print(session_id)
                 topic = session["prompt_code"].values[0]
                 intro, article = read_sentences(file_path)
-                print(intro)
-                print(article)
-                # result = evaluate_prompt(session_id, topic, intro, article)
-                # output_path = os.path.join(output_dir, (session_id + "_similarity" + ".json"))
-                # write_json(load_json(output_path), result, output_path)
-            break
-        break
+                # print(intro)
+                # print(article)
+                result = evaluate_prompt(session_id, topic, intro, article)
+                output_path = os.path.join(output_dir, (session_id + "_similarity" + ".json"))
+                write_json(load_json(output_path), result, output_path)
+
+                write_file(note_dir, session_id, result)
+
 
 if __name__ == "__main__":    
     main()

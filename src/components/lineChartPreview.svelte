@@ -1,19 +1,8 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
   import * as d3 from "d3";
 
   export let chartData: any[] = [];
   export let paragraphColor: any[] = [];
-
-  type ChartEvents = {
-    pointSelected: {
-      time: number;
-      percentage: number;
-      currentText: string;
-      currentColor: string[];
-    };
-  };
-  const dispatch = createEventDispatcher<ChartEvents>();
 
   let svgContainer: SVGSVGElement;
   let width = 250;
@@ -69,11 +58,6 @@
     updateAxes();
   }
 
-  function handlePointClick(d) {
-    selectedPoint = selectedPoint === d ? null : d;
-    dispatch("pointSelected", d);
-  }
-
   function scaledX(val) {
     return xScale ? xScale(val) : 0;
   }
@@ -117,10 +101,6 @@
             r={selectedPoint?.index === d.index ? 5 : hoveredPoint?.index === d.index ? 5 : 2}
             fill={d.color}
             opacity={selectedPoint === d || hoveredPoint === d ? 1 : d.opacity}
-            on:click={() => handlePointClick(d)}
-            on:mouseover={() => (hoveredPoint = d)}
-            on:mouseout={() => (hoveredPoint = null)}
-            style="cursor: pointer;"
           />
         {/each}
 
