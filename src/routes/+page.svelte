@@ -108,12 +108,13 @@
     isValueRangeChecked = false;
     isValueTrendChecked = false;
   }
-  let patternDataList = [];
+  // let patternDataList = [];
+  export const patternDataList = writable([]);
   export const initData = writable([]);
   let currentResults = {};
   let isSearch = 0; // 0: not searching, 1: searching, 2: search done
-  let searchCount = 0; // count of search results
-  let showResultCount // count of results to show in the UI
+  let searchCount = 5; // count of search results
+  export const showResultCount = writable(searchCount); // count of results to show in the UI
 
   let isExactSearchSource = false;
   let isExactSearchTrend = false;
@@ -124,14 +125,21 @@
     isExactSearchSource = false;
   }
 
+  export const searchPatternSet = writable([]);
+  const removepattern = () => {
+    showResultCount.update(count => count - 1);
+    console.log("数目", showResultCount)
+    searchPatternSet.subscribe(value => {
+      console.log(value);
+    });
+  };
+
   function getPromptCode(sessionId) {
     const found = sessions.find((s) => s.session_id === sessionId);
     return found?.prompt_code ?? "";
   }
 
-
   // Functions about tables
-
   function handleRowClick(sessionData) {
     handleContainerClick({ detail: { sessionId: sessionData.sessionId } });
   }
@@ -163,60 +171,54 @@
     return sortDirection === 'asc' ? '↑' : '↓';
   }
 
-function getColumnGroups() {
-  let sessions = getDisplaySessions();
-  
-  // Topic
-  if (sortColumn === 'topic' && sortDirection !== 'none') {
-    sessions = [...sessions].sort((a, b) => {
-      const aCode = getPromptCode(a.sessionId);
-      const bCode = getPromptCode(b.sessionId);
-      
-      if (sortDirection === 'asc') {
-        return aCode.localeCompare(bCode);
-      } else {
-        return bCode.localeCompare(aCode);
-      }
+  function getColumnGroups() {
+    let sessions = getDisplaySessions();
+    // Topic
+    if (sortColumn === 'topic' && sortDirection !== 'none') {
+      sessions = [...sessions].sort((a, b) => {
+        const aCode = getPromptCode(a.sessionId);
+        const bCode = getPromptCode(b.sessionId);
+        
+        if (sortDirection === 'asc') {
+          return aCode.localeCompare(bCode);
+        } else {
+          return bCode.localeCompare(aCode);
+        }
+      });
+    }
+    // Score 
+    if (sortColumn === 'score' && sortDirection !== 'none') {
+      sessions = [...sessions].sort((a, b) => {
+        const aScore = calculateAccumulatedSemanticScore(a.similarityData || []);
+        const bScore = calculateAccumulatedSemanticScore(b.similarityData || []);
+        if (sortDirection === 'asc') {
+          return aScore - bScore; 
+        } else {
+          return bScore - aScore; 
+        }
+      });
+    }
+    const groups = [[], [], []];
+    sessions.forEach((session, index) => {
+      const columnIndex = index % 3;
+      groups[columnIndex].push(session);
     });
+
+    return groups;
   }
-  
-  // Score 
-  if (sortColumn === 'score' && sortDirection !== 'none') {
-    sessions = [...sessions].sort((a, b) => {
-      const aScore = calculateAccumulatedSemanticScore(a.similarityData || []);
-      const bScore = calculateAccumulatedSemanticScore(b.similarityData || []);
-      
-      if (sortDirection === 'asc') {
-        return aScore - bScore; 
-      } else {
-        return bScore - aScore; 
-      }
-    });
+
+$: if (sortColumn || sortDirection) {}
+
+  function calculateAccumulatedSemanticScore(data) {
+    if (!data || data.length === 0) return 0;
+    
+    const totalScore = data.reduce((sum, item) => {
+      return sum + (item.residual_vector_norm || 0);
+    }, 0);
+    
+    return totalScore;
   }
-  
-  const groups = [[], [], []];
-  sessions.forEach((session, index) => {
-    const columnIndex = index % 3;
-    groups[columnIndex].push(session);
-  });
-  
-  return groups;
-}
 
-$: if (sortColumn || sortDirection) {
-
-}
-
-
-function calculateAccumulatedSemanticScore(data) {
-  if (!data || data.length === 0) return 0;
-  
-  const totalScore = data.reduce((sum, item) => {
-    return sum + (item.residual_vector_norm || 0);
-  }, 0);
-  
-  return totalScore;
-}
   function waitForSessionData(sessionId) {
     return new Promise((resolve) => {
       let _unsubscribe;
@@ -257,6 +259,7 @@ function calculateAccumulatedSemanticScore(data) {
     
     return grouped;
   }
+
   function filterSessionsByCategory(category) {
     return $initData.filter(sessionData => {
       const sessionInfo = sessions.find(s => s.session_id === sessionData.sessionId);
@@ -459,7 +462,7 @@ function calculateAccumulatedSemanticScore(data) {
     const newSelectedPatterns = { ...selectedPatterns };
     delete newSelectedPatterns[sessionId];
     patternData = [];
-    patternDataList = [];
+    patternDataList.set([]);
     currentResults = {};
 
     selectedPatterns = newSelectedPatterns;
@@ -645,7 +648,7 @@ function calculateAccumulatedSemanticScore(data) {
       //     .map(([segmentId]) => idToData[segmentId]);
       const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
 
-      showResultCount = 5; // Initialize to show 5 results
+      // showResultCount = 5; // Initialize to show 5 results
       searchCount = fullData.length;
       patternDataLoad(fullData);
     } catch (error) {
@@ -692,21 +695,21 @@ function calculateAccumulatedSemanticScore(data) {
     await Promise.all(fetchPromises);
 
     const sessionDataMap = get(storeSessionData);
-
-    patternDataList = results
-      .map((group) => {
-        const id = group[0]?.id;
-        const sessionData = sessionDataMap.get(id);
-        if (sessionData) {
-          return {
-            ...sessionData,
-            segments: group,
-          };
-        }
-        return null;
-      })
-      .filter(Boolean);
-
+    patternDataList.set(
+      results
+        .map((group) => {
+          const id = group[0]?.id;
+          const sessionData = sessionDataMap.get(id);
+          if (sessionData) {
+            return {
+              ...sessionData,
+              segments: group,
+            };
+          }
+          return null;
+        })
+        .filter(Boolean)
+    );
     isSearch = 2; // reset search state; 0: not searching, 1: searching, 2: search done
   }
 
@@ -724,7 +727,7 @@ function calculateAccumulatedSemanticScore(data) {
 
     selectedPatterns = {};
     patternData = [];
-    patternDataList = [];
+    patternDataList.set([]);
     currentResults = {};
   }
 
@@ -735,10 +738,20 @@ function calculateAccumulatedSemanticScore(data) {
   }
 
   function handleSelectionChanged(event) {
+    showResultCount.set(5)
+    isProgressChecked = true;
+    isTimeChecked = true;
+    isSourceChecked = true;
+    isSemanticChecked = true;
+    isValueRangeChecked = true;
+    isValueTrendChecked = true;
+    isExactSearchSource = false;
+    isExactSearchTrend = false;
+    semanticTrend = [];
     selectedPatterns = {};
-      patternData = [];
-      patternDataList = [];
-      currentResults = {};
+    patternData = [];
+    patternDataList.set([]);
+    currentResults = {};
     const { sessionId, range, dataRange, data, wholeData, sources } = event.detail;
     writingProgressRange = [
       dataRange.progressRange.min,
@@ -1114,36 +1127,36 @@ function calculateAccumulatedSemanticScore(data) {
     }
   });
  
-function handleChartZoom(event) {
-  event.preventDefault();
-  
-  if (!$clickSession || !$clickSession.sessionId) return;
-  
-  const sessionId = $clickSession.sessionId;
-  const currentTransform = zoomTransforms[sessionId] || d3.zoomIdentity;
-  
-  const scaleFactor = event.deltaY > 0 ? 0.9 : 1.1;
-  const newK = Math.max(1, Math.min(5, currentTransform.k * scaleFactor));
-  
-  const rect = event.currentTarget.getBoundingClientRect();
-  const mouseY = event.clientY - rect.top;
-  
-  const chartHeight = height - margin.top - margin.bottom;
-  const centerY = mouseY - margin.top;
-  
-  const currentCenterY = (centerY - currentTransform.y) / currentTransform.k;
-  const newTranslateY = centerY - (currentCenterY * newK);
-  
-  const maxTranslateY = 0;
-  const minTranslateY = -chartHeight * (newK - 1);
-  const clampedY = Math.max(minTranslateY, Math.min(newTranslateY, maxTranslateY));
-  
-  zoomTransforms[sessionId] = d3.zoomIdentity
-    .translate(currentTransform.x, clampedY)
-    .scale(newK);
-  
-  zoomTransforms = { ...zoomTransforms };
-}
+  function handleChartZoom(event) {
+    event.preventDefault();
+    
+    if (!$clickSession || !$clickSession.sessionId) return;
+    
+    const sessionId = $clickSession.sessionId;
+    const currentTransform = zoomTransforms[sessionId] || d3.zoomIdentity;
+    
+    const scaleFactor = event.deltaY > 0 ? 0.9 : 1.1;
+    const newK = Math.max(1, Math.min(5, currentTransform.k * scaleFactor));
+    
+    const rect = event.currentTarget.getBoundingClientRect();
+    const mouseY = event.clientY - rect.top;
+    
+    const chartHeight = height - margin.top - margin.bottom;
+    const centerY = mouseY - margin.top;
+    
+    const currentCenterY = (centerY - currentTransform.y) / currentTransform.k;
+    const newTranslateY = centerY - (currentCenterY * newK);
+    
+    const maxTranslateY = 0;
+    const minTranslateY = -chartHeight * (newK - 1);
+    const clampedY = Math.max(minTranslateY, Math.min(newTranslateY, maxTranslateY));
+    
+    zoomTransforms[sessionId] = d3.zoomIdentity
+      .translate(currentTransform.x, clampedY)
+      .scale(newK);
+    
+    zoomTransforms = { ...zoomTransforms };
+  }
 
   function generateColorGrey(index) {
     const colors = ["rgba(220, 220, 220, 0.5)", "rgba(240, 240, 240, 0.3)"];
@@ -1544,18 +1557,18 @@ function handleChartZoom(event) {
                       </div>
                     </div>
                   </div>
-                  {#if patternDataList.length > 0 && isSearch == 2}
+                  {#if $patternDataList.length > 0 && isSearch == 2}
                     <div>
                       Search Results
                     </div>
-                    {#each patternDataList as sessionData, index}
-                      {#if index < showResultCount} 
+                    {#each $patternDataList as sessionData, index}
+                      {#if index < $showResultCount} 
                         <div class="search-result-container">
                           <div style="font-size: 13px; margin-bottom: 4px; margin-left: 8px; position: relative;">
                             <strong>{sessionData.sessionId}</strong>
                             <button class="close-button" style="position: absolute; top:0px; right:0px; background-color: initial;"
                               on:click={() => {
-                                patternDataList = patternDataList.filter(d => d !== sessionData);
+                                removepattern();
                               }}
                             >×</button>
                           </div>
@@ -1577,21 +1590,34 @@ function handleChartZoom(event) {
                         </div>
                       {/if}
                     {/each}
-                    {#if showResultCount < patternDataList.length}
+                    {#if $showResultCount < $patternDataList.length}
                       <div style="display: flex; justify-content: center; margin-top: 10px;">
-                        <button
+                        <button 
                           class="search-pattern-button"
-                          on:click={() => {showResultCount += 5}}
-                        >
+                          style="margin-right: 10px;"
+                          on:click={() => {
+                              const sliceToSave = $patternDataList.slice(0, $showResultCount);
+                              searchPatternSet.update(current => [...current, sliceToSave]);
+                            }}>Save NOW Pattern
+                        </button>
+                        <button class="search-pattern-button" on:click={() => {$showResultCount += 5}}>
                           More Results
                         </button>
                       </div>
                     {:else}
+                    <div style="gap: 10px"></div>
+                      <button
+                        class="search-pattern-button"
+                        on:click={() => {
+                            const sliceToSave = $patternDataList.slice(0, $showResultCount);
+                            searchPatternSet.update(current => [...current, sliceToSave]);
+                          }}>Save NOW pattern
+                      </button>
                       <div style="text-align: center; margin-top: 10px;">
                         <span class="no-more-results">End of Results</span>
                       </div>
                     {/if}
-                  {:else if patternDataList.length == 0 && isSearch == 2}
+                  {:else if $patternDataList.length == 0 && isSearch == 2}
                     <div class="no-data-message">
                       No data found matching the search criteria.
                     </div>
@@ -1703,17 +1729,12 @@ function handleChartZoom(event) {
                     {/each}
                   </tbody>
                 </table>
-              </div>
-                              
+              </div>               
             </div>
-            
-          
           {:else}
             <div class="three-columns">
               {#each getColumnGroups() as columnGroup, columnIndex}
                 <div class="column">
-                  
-                  
                   <div class="table-container">
                     <table class="sessions-table">
                       <thead>
