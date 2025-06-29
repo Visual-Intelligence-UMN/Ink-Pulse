@@ -128,10 +128,6 @@
   export const searchPatternSet = writable([]);
   const removepattern = () => {
     showResultCount.update(count => count - 1);
-    console.log("数目", showResultCount)
-    searchPatternSet.subscribe(value => {
-      console.log(value);
-    });
   };
 
   function getPromptCode(sessionId) {
