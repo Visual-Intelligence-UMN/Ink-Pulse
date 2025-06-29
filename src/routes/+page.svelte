@@ -735,6 +735,10 @@ function calculateAccumulatedSemanticScore(data) {
   }
 
   function handleSelectionChanged(event) {
+    selectedPatterns = {};
+      patternData = [];
+      patternDataList = [];
+      currentResults = {};
     const { sessionId, range, dataRange, data, wholeData, sources } = event.detail;
     writingProgressRange = [
       dataRange.progressRange.min,
@@ -1463,80 +1467,83 @@ function handleChartZoom(event) {
                       Counts: {pattern.count}
                     </div>
                   </div>
-                  <div class="pattern-chart-preview small-preview">
-                    <PatternChartPreview
-                      {sessionId}
-                      data={pattern.data}
-                      wholeData={pattern.wholeData}
-                      selectedRange={pattern.range}
-                      bind:this={chartRefs[sessionId]}
-                    />
-                  </div>
-                  <div
-                    class:dimmed={!isProgressChecked}
-                    style="display: flex; align-items: center; font-size: 13px;"
-                  >
-                    <input type="checkbox" bind:checked={isProgressChecked} />
-                    Writing Progress
-                    <div style="flex: 1;"></div>
-                    <RangeSlider range float
-                      class="rangeSlider"
-                      min={0}
-                      max={100}
-                      bind:values={writingProgressRange}
-                    />
-                  </div>
-                  <div
-                    class:dimmed={!isTimeChecked}
-                    style="display: flex; align-items: center; font-size: 13px;"
-                  >
-                    <input type="checkbox" bind:checked={isTimeChecked} />
-                    Time
-                    <div style="flex: 1;"></div>
-                    <RangeSlider range float
-                      class="rangeSlider"
-                      min={0}
-                      max={$clickSession?.time100}
-                      bind:values={timeRange}
-                    />
-                  </div>
-                  <div class:dimmed={!isSourceChecked} style="font-size: 13px;">
-                    <input type="checkbox" bind:checked={isSourceChecked} />
-                    Source(human/AI)
-                    <label class="switch" style="transform: translateY(4px);" bind:this={exactSourceButton}>
-                      <input type="checkbox" bind:checked={isExactSearchSource} disabled={!isSourceChecked}>
-                      <span class="slider"></span>
-                    </label>
-                  </div>
-                  <div style="font-size: 13px;">
-                    <div class:dimmed={!isSemanticChecked}>
-                      <input type="checkbox" bind:checked={isSemanticChecked} />
-                      Semantic Expansion
+                  <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <div class="pattern-chart-preview small-preview">
+                      <PatternChartPreview
+                        {sessionId}
+                        data={pattern.data}
+                        wholeData={pattern.wholeData}
+                        selectedRange={pattern.range}
+                        bind:this={chartRefs[sessionId]}
+                      />
                     </div>
-                    <div style="margin-left: 20px;">
-                      <div class:dimmed={!isValueRangeChecked}>
-                        <input
-                          type="checkbox"
-                          bind:checked={isValueRangeChecked}
-                          disabled={!isSemanticChecked}
+                    <div style="margin-top: 5px; width: 60%">
+                      <div
+                        class:dimmed={!isProgressChecked}
+                        style="display: flex; align-items: center; font-size: 13px;"
+                      >
+                        <input type="checkbox" bind:checked={isProgressChecked} />
+                        Writing Progress
+                        <div style="flex: 1;"></div>
+                        <RangeSlider range float
+                          class="rangeSlider"
+                          min={0}
+                          max={100}
+                          bind:values={writingProgressRange}
                         />
-                        Value Range
                       </div>
-                      <div class:dimmed={!isValueTrendChecked}>
-                        <input
-                          type="checkbox"
-                          bind:checked={isValueTrendChecked}
-                          disabled={!isSemanticChecked}
+                      <div
+                        class:dimmed={!isTimeChecked}
+                        style="display: flex; align-items: center; font-size: 13px;"
+                      >
+                        <input type="checkbox" bind:checked={isTimeChecked} />
+                        Time
+                        <div style="flex: 1"></div>
+                        <RangeSlider range float
+                          class="rangeSlider"
+                          min={0}
+                          max={$clickSession?.time100}
+                          bind:values={timeRange}
                         />
-                        Value Trend
-                        <label class="switch" style="transform: translateY(4px);" bind:this={exactTrendButton}>
-                          <input type="checkbox" bind:checked={isExactSearchTrend} disabled={!isSemanticChecked || !isValueTrendChecked}>
+                      </div>
+                      <div class:dimmed={!isSourceChecked} style="font-size: 13px;">
+                        <input type="checkbox" bind:checked={isSourceChecked} />
+                        Source(human/AI)
+                        <label class="switch" style="transform: translateY(4px);" bind:this={exactSourceButton}>
+                          <input type="checkbox" bind:checked={isExactSearchSource} disabled={!isSourceChecked}>
                           <span class="slider"></span>
                         </label>
                       </div>
+                      <div style="font-size: 13px;">
+                        <div class:dimmed={!isSemanticChecked}>
+                          <input type="checkbox" bind:checked={isSemanticChecked} />
+                          Semantic Expansion
+                        </div>
+                          <div style="margin-left: 20px;">
+                            <div class:dimmed={!isValueRangeChecked}>
+                              <input
+                                type="checkbox"
+                                bind:checked={isValueRangeChecked}
+                                disabled={!isSemanticChecked}
+                              />
+                              Value Range
+                            </div>
+                            <div class:dimmed={!isValueTrendChecked}>
+                              <input
+                                type="checkbox"
+                                bind:checked={isValueTrendChecked}
+                                disabled={!isSemanticChecked}
+                              />
+                              Value Trend
+                              <label class="switch" style="transform: translateY(4px);" bind:this={exactTrendButton}>
+                                <input type="checkbox" bind:checked={isExactSearchTrend} disabled={!isSemanticChecked || !isValueTrendChecked}>
+                                <span class="slider"></span>
+                              </label>
+                            </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div style="height: 30px;"></div>
                   {#if patternDataList.length > 0 && isSearch == 2}
                     <div>
                       Search Results
@@ -2662,7 +2669,7 @@ function handleChartZoom(event) {
   }
 
   .pattern-chart-preview.small-preview {
-    width: 60%;
+    width: 150px; 
     height: 120px;
   }
 
