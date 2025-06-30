@@ -85,7 +85,7 @@
 
 <svg bind:this={svgContainer} {width} {height} style="vertical-align: top">
   <defs>
-    <clipPath id="clip">
+    <clipPath id="clipPreview">
       <rect
         x="0"
         y="0"
@@ -96,7 +96,7 @@
   </defs>
 
   <g transform={`translate(${margin.left},${margin.top})`}>
-    <g clip-path="url(#clip)">
+    <g clip-path="url(#clipPreview)">
       <g>
         {#each paragraphColor as d}
           <rect
