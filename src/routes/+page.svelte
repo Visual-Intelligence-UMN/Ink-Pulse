@@ -1549,6 +1549,7 @@ function handleChartZoom(event) {
                             <button class="close-button" style="position: absolute; top:0px; right:0px; background-color: initial;"
                               on:click={() => {
                                 patternDataList = patternDataList.filter(d => d !== sessionData);
+                                showResultCount--;
                               }}
                             >×</button>
                           </div>
