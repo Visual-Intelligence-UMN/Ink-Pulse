@@ -1728,7 +1728,7 @@ $: if (sortColumn || sortDirection) {}
               </div>               
             </div>
           {:else}
-            <div class="three-columns">
+            <div class="single-column">
               {#each getColumnGroups() as columnGroup, columnIndex}
                 <div class="column">
                   <div class="table-container">
