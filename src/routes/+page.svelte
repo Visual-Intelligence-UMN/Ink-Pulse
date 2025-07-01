@@ -1688,11 +1688,22 @@ $: if (sortColumn || sortDirection) {}
                     </tr>
                   </thead>
                   <tbody>
-                    {#each (selectedCategoryFilter ? filteredByCategory : filteredSessions) as sessionData}
+                    {#each (selectedCategoryFilter ? filteredByCategory : filteredSessions) as sessionData (sessionData.sessionId + sortColumn + sortDirection)}
                       <tr 
                         class="session-row"
                         on:click={() => handleRowClick(sessionData)}
                       >
+                        <td class="activity-cell">
+                          <div class="mini-chart">
+                            <ZoomoutChart
+                              on:containerClick={handleContainerClick}
+                              bind:this={chartRefs[sessionData.sessionId]}
+                              sessionId={sessionData.sessionId}
+                              sessionTopic={getPromptCode(sessionData.sessionId)}
+                              similarityData={sessionData.similarityData}
+                            />
+                          </div>
+                        </td>
                         <td class="topic-cell">
                           <button
                             class="topic-icon-btn"
@@ -1709,17 +1720,6 @@ $: if (sortColumn || sortDirection) {}
                             size={16}
                             sessionId={sessionData.sessionId}
                           />
-                        </td>
-                        <td class="activity-cell">
-                          <div class="mini-chart">
-                            <ZoomoutChart
-                              on:containerClick={handleContainerClick}
-                              bind:this={chartRefs[sessionData.sessionId]}
-                              sessionId={sessionData.sessionId}
-                              sessionTopic={getPromptCode(sessionData.sessionId)}
-                              similarityData={sessionData.similarityData}
-                            />
-                          </div>
                         </td>
                       </tr>
                     {/each}
@@ -1747,7 +1747,7 @@ $: if (sortColumn || sortDirection) {}
                         </tr>
                       </thead>
                       <tbody>
-                        {#each columnGroup as sessionData}
+                        {#each columnGroup as sessionData (sessionData.sessionId + sortColumn + sortDirection)}
                           <tr 
                             class="session-row"
                             on:click={() => handleRowClick(sessionData)}
