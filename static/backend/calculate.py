@@ -98,11 +98,25 @@ def read_file(file_path):
     with open(file_path, 'w', encoding='utf-8') as file:
         json.dump(data, file, ensure_ascii=False, indent=4)
 
+def delete_sentence(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()
+        data = json.loads(content)
+    if data and "sentence" in data[-1]:
+        length = len(data[-1]["sentence"]) / 3000
+    else:
+        length = 0.0
+    for item in data:
+        item["sentence"] = length
+    with open(file_path, 'w', encoding='utf-8') as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
+
 def process_files(base_path):
     for filename in os.listdir(base_path):
         if filename.endswith('.json'):
             file_path = os.path.join(base_path, filename)
-            read_file(file_path)
+            # read_file(file_path)
+            delete_sentence(file_path)
             print(f"Update file: {filename}")
 
 def write_json(json_path):
@@ -118,4 +132,4 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 static_dir = os.path.dirname(script_dir)
 json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/similarity_results")
 process_files(json_path)
-write_json(json_path)
+# write_json(json_path)

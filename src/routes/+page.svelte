@@ -1726,7 +1726,6 @@ $: if (sortColumn || sortDirection) {}
                               on:containerClick={handleContainerClick}
                               bind:this={chartRefs[sessionData.sessionId]}
                               sessionId={sessionData.sessionId}
-                              sessionTopic={getPromptCode(sessionData.sessionId)}
                               similarityData={sessionData.similarityData}
                             />
                           </div>
@@ -1768,7 +1767,6 @@ $: if (sortColumn || sortDirection) {}
                                   on:containerClick={handleContainerClick}
                                   bind:this={chartRefs[sessionData.sessionId]}
                                   sessionId={sessionData.sessionId}
-                                  sessionTopic={getPromptCode(sessionData.sessionId)}
                                   similarityData={sessionData.similarityData}
                                 />
                               </div>

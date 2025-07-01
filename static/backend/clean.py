@@ -6,15 +6,22 @@ def load_json(json_path):
     with open(json_path, "r", encoding="utf-8") as input_file:
         data = json.load(input_file)
     return data
+# clean code for Evaluation content
+# def clean(data):
+#     cleaned = []
+#     for item in data:
+#         eval_str = item.get("Evaluation", "")
+#         json_match = re.search(r'\{[\s\S]*?\}', eval_str)
+#         if json_match:
+#             eval_data = json.loads(json_match.group(0))
+#             cleaned.append(eval_data)
+#     return cleaned
 
 def clean(data):
     cleaned = []
     for item in data:
-        eval_str = item.get("Evaluation", "")
-        json_match = re.search(r'\{[\s\S]*?\}', eval_str)
-        if json_match:
-            eval_data = json.loads(json_match.group(0))
-            cleaned.append(eval_data)
+        score = item.get("idea_score", 0) + item.get("coherence_score", 0)
+        cleaned.append(score)
     return cleaned
 
 def main():
