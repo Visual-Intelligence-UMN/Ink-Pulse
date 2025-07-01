@@ -12,7 +12,6 @@
   let context: CanvasRenderingContext2D;
 
   export let sessionId;
-  export let sessionTopic;
 
   function handleContainerClick() {
     dispatch('containerClick', { sessionId });
@@ -22,13 +21,13 @@
     if (!similarityData || !canvasEl) return;
 
     const processedData = similarityData.map((item) => ({
-      text: item.sentence,
+      text_length: item.sentence,
       startProgress: item.start_progress * 100,
       endProgress: item.end_progress * 100,
       residual_vector_norm: item.residual_vector_norm,
       source: item.source,
     }));
-    const textLength = processedData[processedData.length - 1]["text"].length / 3000;
+    const textLength = processedData[processedData.length - 1]["text_length"];
     let width = 100 * textLength;
     
     const xScale = d3
@@ -75,20 +74,12 @@
 </script>
 
 <div class="chart-container" on:click={handleContainerClick}>
-  <!-- <div class="session-label">{sessionTopic} - {sessionId.slice(0, 4)}</div> -->
   <div style="margin-top: 30px">
     <canvas bind:this={canvasEl} data-session-id={sessionId}></canvas>
   </div>
 </div>
 
 <style>
-  .session-label {
-    width: 350px;
-    font-size: 12px;
-    font-family: "Poppins", sans-serif;
-    margin-top: 35px;
-  }
-
   .chart-container {
     display: flex;
     flex-direction: row;
