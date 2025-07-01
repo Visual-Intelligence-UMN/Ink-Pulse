@@ -113,7 +113,7 @@
   export const initData = writable([]);
   let currentResults = {};
   let isSearch = 0; // 0: not searching, 1: searching, 2: search done
-  let searchCount = 5; // count of search results
+  let searchCount = 0; // count of search results
   export const showResultCount = writable(searchCount); // count of results to show in the UI
 
   let isExactSearchSource = false;
@@ -126,8 +126,12 @@
   }
 
   export const searchPatternSet = writable([]);
-  const removepattern = () => {
-    showResultCount.update(count => count - 1);
+  const removepattern = (idToRemove) => {
+    console.log(idToRemove)
+    patternDataList.update(items => 
+      items.filter(item => !item.segments.some(s => s.segmentId === idToRemove))
+    );
+    showResultCount.update(count => Math.max(count - 1, 0));
   };
 
   function getPromptCode(sessionId) {
@@ -646,6 +650,7 @@ $: if (sortColumn || sortDirection) {}
 
       // showResultCount = 5; // Initialize to show 5 results
       searchCount = fullData.length;
+      console.log(fullData)
       patternDataLoad(fullData);
     } catch (error) {
       isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
@@ -1562,11 +1567,14 @@ $: if (sortColumn || sortDirection) {}
                         <div class="search-result-container">
                           <div style="font-size: 13px; margin-bottom: 4px; margin-left: 8px; position: relative;">
                             <strong>{sessionData.sessionId}</strong>
-                            <button class="close-button" style="position: absolute; top:0px; right:0px; background-color: initial;"
-                              on:click={() => {
-                                removepattern();
-                              }}
-                            >×</button>
+                            <div>
+                              <button
+                                class="close-button" style="position: absolute; top:0px; right:0px; background-color: initial;"
+                                on:click={() => {
+                                  removepattern(sessionData.segments[0].segmentId);
+                                }}
+                              >×</button>
+                            </div>
                           </div>
                           <div style="display: flex; align-items: flex-start">
                             <div>
@@ -1601,14 +1609,16 @@ $: if (sortColumn || sortDirection) {}
                         </button>
                       </div>
                     {:else}
-                    <div style="gap: 10px"></div>
+                    <div style="display: flex; justify-content: center;">
                       <button
-                        class="search-pattern-button"
-                        on:click={() => {
-                            const sliceToSave = $patternDataList.slice(0, $showResultCount);
-                            searchPatternSet.update(current => [...current, sliceToSave]);
-                          }}>Save NOW pattern
+                          class="search-pattern-button"
+                          on:click={() => {
+                              const sliceToSave = $patternDataList.slice(0, $showResultCount);
+                              searchPatternSet.update(current => [...current, sliceToSave]);
+                            }}>Save NOW pattern
                       </button>
+                    </div>
+                    <div style="gap: 10px"></div>
                       <div style="text-align: center; margin-top: 10px;">
                         <span class="no-more-results">End of Results</span>
                       </div>
