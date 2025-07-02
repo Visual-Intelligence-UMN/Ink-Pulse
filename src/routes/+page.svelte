@@ -165,32 +165,34 @@
         return '↕️'; 
       }
       return sortDirection === 'asc' ? '↑' : '↓';
-    }
+  }
     // FETCH SCORES
-    const fetchLLMScore = async (sessionFile) => {
+   const fetchLLMScore = async (sessionFile) => {
+    console.log("🔍 Trying to fetch LLM score for:", sessionFile);
     
     const url = `${base}/chi2022-coauthor-v1.0/eval_results/${sessionFile}.json`;
+    console.log("🔗 URL:", url);
     
     try {
       const response = await fetch(url);
+      console.log("📡 Response status:", response.status);
+      console.log("📡 Response ok:", response.ok);
       
       if (!response.ok) {
-       
+        console.error("❌ Response not ok:", response.status, response.statusText);
         throw new Error(`Failed to fetch LLM score: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log("📄 Raw data:", data);
       
-    
-      const scoreData = data[0];
-      console.log("Score data:", scoreData);
-      
-      const totalScore = scoreData.idea_score + scoreData.coherence_score;
-      console.log("Total score:", totalScore);
+      // 新格式：data 直接是数字数组 [6]
+      const totalScore = data[0]; // 直接取第一个元素
+      console.log("🎯 Total score:", totalScore);
       
       return totalScore;
     } catch (error) {
-      console.error("Error when reading LLM score file:", error);
+      console.error("💥 Error when reading LLM score file:", error);
       return null;
     }
   };
@@ -1757,7 +1759,6 @@ $: if (sortColumn || sortDirection) {}
                               on:containerClick={handleContainerClick}
                               bind:this={chartRefs[sessionData.sessionId]}
                               sessionId={sessionData.sessionId}
-                              sessionTopic={getPromptCode(sessionData.sessionId)}
                               similarityData={sessionData.similarityData}
                             />
                           </div>
@@ -1838,7 +1839,6 @@ $: if (sortColumn || sortDirection) {}
                       on:containerClick={handleContainerClick}
                       bind:this={chartRefs[sessionData.sessionId]}
                       sessionId={sessionData.sessionId}
-                      sessionTopic={getPromptCode(sessionData.sessionId)}
                       similarityData={sessionData.similarityData}
                     />
                   </div>
@@ -1875,7 +1875,6 @@ $: if (sortColumn || sortDirection) {}
                       on:containerClick={handleContainerClick}
                       bind:this={chartRefs[sessionData.sessionId]}
                       sessionId={sessionData.sessionId}
-                      sessionTopic={getPromptCode(sessionData.sessionId)}
                       similarityData={sessionData.similarityData}
                     />
                   </div>
@@ -1912,7 +1911,6 @@ $: if (sortColumn || sortDirection) {}
                       on:containerClick={handleContainerClick}
                       bind:this={chartRefs[sessionData.sessionId]}
                       sessionId={sessionData.sessionId}
-                      sessionTopic={getPromptCode(sessionData.sessionId)}
                       similarityData={sessionData.similarityData}
                     />
                   </div>
