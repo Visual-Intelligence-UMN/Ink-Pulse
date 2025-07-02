@@ -1786,164 +1786,163 @@ $: if (sortColumn || sortDirection) {}
                 </table>
               </div>               
             </div>
-          <!-- 替换你的 three-columns 部分 -->
-{:else}
-  <div class="unified-table-container">
-    <div class="unified-table-wrapper">
-      <table class="unified-sessions-table">
-        <thead>
-          <tr>
-            <!-- 第一组 -->
-            <th>Activity</th>
-            <th class="sortable-header" on:click={() => handleSort('topic')}>
-              <span>Topic</span>
-              <span class="sort-icon">{getSortIcon('topic')}</span>
-            </th>
-            <th class="sortable-header" on:click={() => handleSort('score')}>
-              <span>Score</span>
-              <span class="sort-icon">{getSortIcon('score')}</span>
-            </th>
-            
-            <!-- 第二组 -->
-            <th>Activity</th>
-            <th class="sortable-header" on:click={() => handleSort('topic')}>
-              <span>Topic</span>
-              <span class="sort-icon">{getSortIcon('topic')}</span>
-            </th>
-            <th class="sortable-header" on:click={() => handleSort('score')}>
-              <span>Score</span>
-              <span class="sort-icon">{getSortIcon('score')}</span>
-            </th>
-            
-            <!-- 第三组 -->
-            <th>Activity</th>
-            <th class="sortable-header" on:click={() => handleSort('topic')}>
-              <span>Topic</span>
-              <span class="sort-icon">{getSortIcon('topic')}</span>
-            </th>
-            <th class="sortable-header" on:click={() => handleSort('score')}>
-              <span>Score</span>
-              <span class="sort-icon">{getSortIcon('score')}</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each Array(Math.ceil(Math.max(...getColumnGroups().map(group => group.length)))) as _, rowIndex (rowIndex + sortColumn + sortDirection)}
-            <tr class="unified-session-row">
-              <!-- 第一列数据 -->
-              {#if getColumnGroups()[0] && getColumnGroups()[0][rowIndex]}
-                {@const sessionData = getColumnGroups()[0][rowIndex]}
-                <td class="activity-cell">
-                  <div class="mini-chart" on:click={() => handleRowClick(sessionData)}>
-                    <ZoomoutChart
-                      on:containerClick={handleContainerClick}
-                      bind:this={chartRefs[sessionData.sessionId]}
-                      sessionId={sessionData.sessionId}
-                      similarityData={sessionData.similarityData}
-                    />
-                  </div>
-                </td>
-                <td class="topic-cell">
-                  <button
-                    class="topic-icon-btn"
-                    on:click|stopPropagation={() => handleCategoryIconClick(getPromptCode(sessionData.sessionId))}
-                    title={getPromptCode(sessionData.sessionId)}
-                    type="button"
-                  >
-                    {getCategoryIcon(getPromptCode(sessionData.sessionId))}
-                  </button>
-                </td>
-                <td class="score-cell">
-                  <SemanticExpansionCircle 
-                    llmJudgeScore={sessionData.llmScore}
-                    size={16}
-                    sessionId={sessionData.sessionId}
-                  />
-                </td>
-              {:else}
-                <td class="empty-cell"></td>
-                <td class="empty-cell"></td>
-                <td class="empty-cell"></td>
-              {/if}
-              
-              <!-- 第二列数据 -->
-              {#if getColumnGroups()[1] && getColumnGroups()[1][rowIndex]}
-                {@const sessionData = getColumnGroups()[1][rowIndex]}
-                <td class="activity-cell">
-                  <div class="mini-chart" on:click={() => handleRowClick(sessionData)}>
-                    <ZoomoutChart
-                      on:containerClick={handleContainerClick}
-                      bind:this={chartRefs[sessionData.sessionId]}
-                      sessionId={sessionData.sessionId}
-                      similarityData={sessionData.similarityData}
-                    />
-                  </div>
-                </td>
-                <td class="topic-cell">
-                  <button
-                    class="topic-icon-btn"
-                    on:click|stopPropagation={() => handleCategoryIconClick(getPromptCode(sessionData.sessionId))}
-                    title={getPromptCode(sessionData.sessionId)}
-                    type="button"
-                  >
-                    {getCategoryIcon(getPromptCode(sessionData.sessionId))}
-                  </button>
-                </td>
-                <td class="score-cell">
-                  <SemanticExpansionCircle 
-                    llmJudgeScore={sessionData.llmScore}
-                    size={16}
-                    sessionId={sessionData.sessionId}
-                  />
-                </td>
-              {:else}
-                <td class="empty-cell"></td>
-                <td class="empty-cell"></td>
-                <td class="empty-cell"></td>
-              {/if}
-              
-              <!-- 第三列数据 -->
-              {#if getColumnGroups()[2] && getColumnGroups()[2][rowIndex]}
-                {@const sessionData = getColumnGroups()[2][rowIndex]}
-                <td class="activity-cell">
-                  <div class="mini-chart" on:click={() => handleRowClick(sessionData)}>
-                    <ZoomoutChart
-                      on:containerClick={handleContainerClick}
-                      bind:this={chartRefs[sessionData.sessionId]}
-                      sessionId={sessionData.sessionId}
-                      similarityData={sessionData.similarityData}
-                    />
-                  </div>
-                </td>
-                <td class="topic-cell">
-                  <button
-                    class="topic-icon-btn"
-                    on:click|stopPropagation={() => handleCategoryIconClick(getPromptCode(sessionData.sessionId))}
-                    title={getPromptCode(sessionData.sessionId)}
-                    type="button"
-                  >
-                    {getCategoryIcon(getPromptCode(sessionData.sessionId))}
-                  </button>
-                </td>
-                <td class="score-cell">
-                  <SemanticExpansionCircle 
-                    llmJudgeScore={sessionData.llmScore}
-                    size={16}
-                    sessionId={sessionData.sessionId}
-                  />
-                </td>
-              {:else}
-                <td class="empty-cell"></td>
-                <td class="empty-cell"></td>
-                <td class="empty-cell"></td>
-              {/if}
-            </tr>
-          {/each}
-        </tbody>
-      </table>
-    </div>
-  </div>
-{/if}
+          {:else}
+            <div class="unified-table-container">
+              <div class="unified-table-wrapper">
+                <table class="unified-sessions-table">
+                  <thead>
+                    <tr>
+                      <!-- 第一组 -->
+                      <th>Activity</th>
+                      <th class="sortable-header" on:click={() => handleSort('topic')}>
+                        <span>Topic</span>
+                        <span class="sort-icon">{getSortIcon('topic')}</span>
+                      </th>
+                      <th class="sortable-header" on:click={() => handleSort('score')}>
+                        <span>Score</span>
+                        <span class="sort-icon">{getSortIcon('score')}</span>
+                      </th>
+                      
+                      <!-- 第二组 -->
+                      <th>Activity</th>
+                      <th class="sortable-header" on:click={() => handleSort('topic')}>
+                        <span>Topic</span>
+                        <span class="sort-icon">{getSortIcon('topic')}</span>
+                      </th>
+                      <th class="sortable-header" on:click={() => handleSort('score')}>
+                        <span>Score</span>
+                        <span class="sort-icon">{getSortIcon('score')}</span>
+                      </th>
+                      
+                      <!-- 第三组 -->
+                      <th>Activity</th>
+                      <th class="sortable-header" on:click={() => handleSort('topic')}>
+                        <span>Topic</span>
+                        <span class="sort-icon">{getSortIcon('topic')}</span>
+                      </th>
+                      <th class="sortable-header" on:click={() => handleSort('score')}>
+                        <span>Score</span>
+                        <span class="sort-icon">{getSortIcon('score')}</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {#each Array(Math.ceil(Math.max(...getColumnGroups().map(group => group.length)))) as _, rowIndex (rowIndex + sortColumn + sortDirection)}
+                      <tr class="unified-session-row">
+                        <!-- 第一列数据 -->
+                        {#if getColumnGroups()[0] && getColumnGroups()[0][rowIndex]}
+                          {@const sessionData = getColumnGroups()[0][rowIndex]}
+                          <td class="activity-cell">
+                            <div class="mini-chart" on:click={() => handleRowClick(sessionData)}>
+                              <ZoomoutChart
+                                on:containerClick={handleContainerClick}
+                                bind:this={chartRefs[sessionData.sessionId]}
+                                sessionId={sessionData.sessionId}
+                                similarityData={sessionData.similarityData}
+                              />
+                            </div>
+                          </td>
+                          <td class="topic-cell">
+                            <button
+                              class="topic-icon-btn"
+                              on:click|stopPropagation={() => handleCategoryIconClick(getPromptCode(sessionData.sessionId))}
+                              title={getPromptCode(sessionData.sessionId)}
+                              type="button"
+                            >
+                              {getCategoryIcon(getPromptCode(sessionData.sessionId))}
+                            </button>
+                          </td>
+                          <td class="score-cell">
+                            <SemanticExpansionCircle 
+                              llmJudgeScore={sessionData.llmScore}
+                              size={16}
+                              sessionId={sessionData.sessionId}
+                            />
+                          </td>
+                        {:else}
+                          <td class="empty-cell"></td>
+                          <td class="empty-cell"></td>
+                          <td class="empty-cell"></td>
+                        {/if}
+                        
+                        <!-- 第二列数据 -->
+                        {#if getColumnGroups()[1] && getColumnGroups()[1][rowIndex]}
+                          {@const sessionData = getColumnGroups()[1][rowIndex]}
+                          <td class="activity-cell">
+                            <div class="mini-chart" on:click={() => handleRowClick(sessionData)}>
+                              <ZoomoutChart
+                                on:containerClick={handleContainerClick}
+                                bind:this={chartRefs[sessionData.sessionId]}
+                                sessionId={sessionData.sessionId}
+                                similarityData={sessionData.similarityData}
+                              />
+                            </div>
+                          </td>
+                          <td class="topic-cell">
+                            <button
+                              class="topic-icon-btn"
+                              on:click|stopPropagation={() => handleCategoryIconClick(getPromptCode(sessionData.sessionId))}
+                              title={getPromptCode(sessionData.sessionId)}
+                              type="button"
+                            >
+                              {getCategoryIcon(getPromptCode(sessionData.sessionId))}
+                            </button>
+                          </td>
+                          <td class="score-cell">
+                            <SemanticExpansionCircle 
+                              llmJudgeScore={sessionData.llmScore}
+                              size={16}
+                              sessionId={sessionData.sessionId}
+                            />
+                          </td>
+                        {:else}
+                          <td class="empty-cell"></td>
+                          <td class="empty-cell"></td>
+                          <td class="empty-cell"></td>
+                        {/if}
+                        
+                        <!-- 第三列数据 -->
+                        {#if getColumnGroups()[2] && getColumnGroups()[2][rowIndex]}
+                          {@const sessionData = getColumnGroups()[2][rowIndex]}
+                          <td class="activity-cell">
+                            <div class="mini-chart" on:click={() => handleRowClick(sessionData)}>
+                              <ZoomoutChart
+                                on:containerClick={handleContainerClick}
+                                bind:this={chartRefs[sessionData.sessionId]}
+                                sessionId={sessionData.sessionId}
+                                similarityData={sessionData.similarityData}
+                              />
+                            </div>
+                          </td>
+                          <td class="topic-cell">
+                            <button
+                              class="topic-icon-btn"
+                              on:click|stopPropagation={() => handleCategoryIconClick(getPromptCode(sessionData.sessionId))}
+                              title={getPromptCode(sessionData.sessionId)}
+                              type="button"
+                            >
+                              {getCategoryIcon(getPromptCode(sessionData.sessionId))}
+                            </button>
+                          </td>
+                          <td class="score-cell">
+                            <SemanticExpansionCircle 
+                              llmJudgeScore={sessionData.llmScore}
+                              size={16}
+                              sessionId={sessionData.sessionId}
+                            />
+                          </td>
+                        {:else}
+                          <td class="empty-cell"></td>
+                          <td class="empty-cell"></td>
+                          <td class="empty-cell"></td>
+                        {/if}
+                      </tr>
+                    {/each}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          {/if}
         {/if}
       </div>
       {#if showMulti}
