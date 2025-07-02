@@ -6,7 +6,7 @@
   align-items: center;
 }
 .three-column-grid {
-    display: block; /* 不要grid */
+    display: block; 
     padding: 20px 10px;
     width: 100%;
     margin: 0 auto;
@@ -16,13 +16,11 @@
     border-radius: 8px;
     background: white;
     
-    /* 关键：分栏布局 */
     column-count: 3;
     column-gap: 20px;
-    column-rule: 1px solid #e0e0e0; /* 列之间的分隔线 */
+    column-rule: 1px solid #e0e0e0; 
 }
 
-/* 防止表格行被分列截断 */
 .session-row {
     break-inside: avoid;
     page-break-inside: avoid;
@@ -33,9 +31,9 @@
     border-radius: 4px;
 }
 
-/* 表头只显示一次，在顶部 */
+
 .table-header {
-    column-span: all; /* 横跨所有列 */
+    column-span: all;
     margin-bottom: 20px;
     position: sticky;
     top: 0;
