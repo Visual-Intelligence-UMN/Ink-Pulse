@@ -1,7 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import "chartjs-adapter-date-fns";
-  import { writable } from "svelte/store";
+  import { writable, derived } from "svelte/store";
   import { tick } from "svelte";
   import { base } from "$app/paths";
   import tippy from "tippy.js";
@@ -20,6 +20,7 @@
   import SemanticExpansionCircle from "../components/scoreIcon.svelte";
   import '../components/styles.css';
   import LineChartPreview from "../components/lineChartPreview.svelte";
+  import SessionCell from "../components/sessionCell.svelte";
   
   let chartRefs = {};
   function resetZoom(sessionId) {
@@ -113,7 +114,7 @@
   export const initData = writable([]);
   let currentResults = {};
   let isSearch = 0; // 0: not searching, 1: searching, 2: search done
-  let searchCount = 0; // count of search results
+  let searchCount = 5; // count of search results
   export const showResultCount = writable(searchCount); // count of results to show in the UI
 
   let isExactSearchSource = false;
@@ -125,13 +126,27 @@
     isExactSearchSource = false;
   }
 
+  export const displaySessions = writable([]);
+  $: {
+    let newDisplaySessions = [];
+    if (selectedCategoryFilter && filteredSessions.length >= 0) {
+      newDisplaySessions = filteredSessions;
+    } else if (!groupingMode) {
+      newDisplaySessions = $initData;
+    } else if (Object.keys(groupedSessions).length > 0) {
+      newDisplaySessions = Object.values(groupedSessions).flat();
+    } else if (sortedSessions.length > 0) {
+      newDisplaySessions = sortedSessions;
+    } else {
+      newDisplaySessions = $initData;
+    }
+
+    displaySessions.set(newDisplaySessions);
+  }
+
   export const searchPatternSet = writable([]);
-  const removepattern = (idToRemove) => {
-    console.log(idToRemove)
-    patternDataList.update(items => 
-      items.filter(item => !item.segments.some(s => s.segmentId === idToRemove))
-    );
-    showResultCount.update(count => Math.max(count - 1, 0));
+  const removepattern = () => {
+    showResultCount.update(count => count - 1);
   };
 
   function getPromptCode(sessionId) {
@@ -165,11 +180,38 @@
   }
 
   function getSortIcon(column) {
-    if (sortColumn !== column || sortDirection === 'none') {
-      return '↕️'; 
-    }
-    return sortDirection === 'asc' ? '↑' : '↓';
+      if (sortColumn !== column || sortDirection === 'none') {
+        return '↕️'; 
+      }
+      return sortDirection === 'asc' ? '↑' : '↓';
   }
+    // FETCH SCORES
+   const fetchLLMScore = async (sessionFile) => {
+    // console.log("Trying to fetch LLM score for:", sessionFile);
+    
+    const url = `${base}/chi2022-coauthor-v1.0/eval_results/${sessionFile}.json`;
+    // console.log("URL:", url);
+    
+    try {
+      const response = await fetch(url);
+      // console.log("Response status:", response.status);
+      // console.log("Response ok:", response.ok);
+      
+      if (!response.ok) {
+        console.error("Response not ok:", response.status, response.statusText);
+        throw new Error(`Failed to fetch LLM score: ${response.status}`);
+      }
+
+      const data = await response.json();
+      // console.log("📄 Raw data:", data);
+      
+      const totalScore = data[0];
+      return totalScore;
+    } catch (error) {
+      console.error("💥 Error when reading LLM score file:", error);
+      return null;
+    }
+  };
 
   function getColumnGroups() {
     let sessions = getDisplaySessions();
@@ -189,8 +231,8 @@
     // Score 
     if (sortColumn === 'score' && sortDirection !== 'none') {
       sessions = [...sessions].sort((a, b) => {
-        const aScore = calculateAccumulatedSemanticScore(a.similarityData || []);
-        const bScore = calculateAccumulatedSemanticScore(b.similarityData || []);
+        const aScore = a.llmScore || 0; 
+        const bScore = b.llmScore || 0;
         if (sortDirection === 'asc') {
           return aScore - bScore; 
         } else {
@@ -650,7 +692,6 @@ $: if (sortColumn || sortDirection) {}
 
       // showResultCount = 5; // Initialize to show 5 results
       searchCount = fullData.length;
-      console.log(fullData)
       patternDataLoad(fullData);
     } catch (error) {
       isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
@@ -921,13 +962,25 @@ $: if (sortColumn || sortDirection) {}
     }
 
     const similarityData = await fetchSimilarityData(sessionId);
+    const llmScore = await fetchLLMScore(sessionId);
+    
     if (similarityData) {
       initData.update((sessions) => {
-        if (!sessions.find((s) => s.sessionId === sessionId)) {
+        
+        const existingIndex = sessions.findIndex(s => s.sessionId === sessionId);
+        
+        if (existingIndex !== -1) {
+         
+          sessions[existingIndex] = {
+            ...sessions[existingIndex],
+            llmScore: llmScore
+          };
+        } else {
           sessions.push({
             sessionId,
             similarityData,
             totalSimilarityData: similarityData,
+            llmScore: llmScore,
           });
         }
         return [...sessions];
@@ -937,7 +990,49 @@ $: if (sortColumn || sortDirection) {}
     if (isPrompt) {
       updatePromptFilterStatus();
     }
+    // console.log("🔍 Final initData after update:", sessions.find(s => s.sessionId === sessionId));
   }
+
+  const fetchSessions = async () => {
+    try {
+      const response = await fetch(`${base}/fine.json`);
+      const data = await response.json();
+      sessions = data || [];
+      
+      if (firstSession) {
+        tableData = sessions.map((session) => {
+          return {
+            session_id: session.session_id,
+            prompt_code: session.prompt_code,
+            selected: true,
+          };
+        });
+        
+        selectedSession = sessions.map(session => session.session_id);
+        firstSession = false;
+        selectedTags.set(["reincarnation", "bee", "sideeffect", "pig", "obama", "mana", "dad", "mattdamon", "shapeshifter", "isolation"]);
+        filterSessions();
+        
+        $filterTableData = tableData.filter((session) =>
+          $selectedTags.includes(session.prompt_code)
+        );
+        
+        filterOptions = Array.from(
+          new Set(tableData.map((row) => row.prompt_code))
+        );
+        
+        updatePromptFilterStatus();
+        
+        for (const session of $filterTableData) {
+          const llmScore = await fetchLLMScore(session.session_id);
+          // console.log("Initial LLM score for", session.session_id, ":", llmScore);
+          
+        }
+      }
+    } catch (error) {
+      console.error("Error when fetching sessions:", error);
+    }
+  };
 
   const fetchData = async (sessionFile, isDelete, isPrompt) => {
     if (!firstSession && isDelete) {
@@ -1012,36 +1107,6 @@ $: if (sortColumn || sortDirection) {}
     }
   };
 
-  const fetchSessions = async () => {
-    try {
-      const response = await fetch(`${base}/fine.json`);
-      const data = await response.json();
-      sessions = data || [];
-      if (firstSession) {
-        tableData = sessions.map((session) => {
-          return {
-            session_id: session.session_id,
-            prompt_code: session.prompt_code,
-            selected:true,
-          };
-        });
-        selectedSession = sessions.map(session => session.session_id);
-        firstSession = false;
-        selectedTags.set(["reincarnation", "bee", "sideeffect", "pig", "obama", "mana", "dad", "mattdamon", "shapeshifter", "isolation"]);
-        filterSessions();
-        $filterTableData = tableData.filter((session) =>
-          $selectedTags.includes(session.prompt_code)
-        );
-        filterOptions = Array.from(
-          new Set(tableData.map((row) => row.prompt_code))
-        );
-        updatePromptFilterStatus();
-      }
-    } catch (error) {
-      console.error("Error when fetching sessions:", error);
-    }
-  };
-
   const handleSessionChange = (sessionId) => {
     let isCurrentlySelected = $filterTableData.find(
       (row) => row.session_id == sessionId
@@ -1111,22 +1176,28 @@ $: if (sortColumn || sortDirection) {}
   }
 
   onMount(async () => {
-    document.title = "Ink-Pulse";
-    await fetchSessions();
-    for (let i = 0; i < selectedSession.length; i++) {
-      fetchSimilarityData(selectedSession[i]).then((data) => {
-        initData.update((sessions) => {
-          const newSession = {
-            sessionId: selectedSession[i],
-            similarityData: data,
-            totalSimilarityData: data,
-          };
-          sessions.push(newSession);
-          return [...sessions];
-        });
-      });
-    }
-  });
+  document.title = "Ink-Pulse";
+  await fetchSessions();
+  for (let i = 0; i < selectedSession.length; i++) {
+    const sessionId = selectedSession[i];
+    
+    // 获取相似度数据和LLM分数
+    const similarityData = await fetchSimilarityData(sessionId);
+    const llmScore = await fetchLLMScore(sessionId);
+    // console.log("✅ onMount LLM score for", sessionId, ":", llmScore);
+    
+    initData.update((sessions) => {
+      const newSession = {
+        sessionId: sessionId,
+        similarityData: similarityData,
+        totalSimilarityData: similarityData,
+        llmScore: llmScore,
+      };
+      sessions.push(newSession);
+      return [...sessions];
+    });
+  }
+});
  
   function handleChartZoom(event) {
     event.preventDefault();
@@ -1567,14 +1638,11 @@ $: if (sortColumn || sortDirection) {}
                         <div class="search-result-container">
                           <div style="font-size: 13px; margin-bottom: 4px; margin-left: 8px; position: relative;">
                             <strong>{sessionData.sessionId}</strong>
-                            <div>
-                              <button
-                                class="close-button" style="position: absolute; top:0px; right:0px; background-color: initial;"
-                                on:click={() => {
-                                  removepattern(sessionData.segments[0].segmentId);
-                                }}
-                              >×</button>
-                            </div>
+                            <button class="close-button" style="position: absolute; top:0px; right:0px; background-color: initial;"
+                              on:click={() => {
+                                removepattern();
+                              }}
+                            >×</button>
                           </div>
                           <div style="display: flex; align-items: flex-start">
                             <div>
@@ -1609,16 +1677,14 @@ $: if (sortColumn || sortDirection) {}
                         </button>
                       </div>
                     {:else}
-                    <div style="display: flex; justify-content: center;">
-                      <button
-                          class="search-pattern-button"
-                          on:click={() => {
-                              const sliceToSave = $patternDataList.slice(0, $showResultCount);
-                              searchPatternSet.update(current => [...current, sliceToSave]);
-                            }}>Save NOW pattern
-                      </button>
-                    </div>
                     <div style="gap: 10px"></div>
+                      <button
+                        class="search-pattern-button"
+                        on:click={() => {
+                            const sliceToSave = $patternDataList.slice(0, $showResultCount);
+                            searchPatternSet.update(current => [...current, sliceToSave]);
+                          }}>Save NOW pattern
+                      </button>
                       <div style="text-align: center; margin-top: 10px;">
                         <span class="no-more-results">End of Results</span>
                       </div>
@@ -1671,7 +1737,7 @@ $: if (sortColumn || sortDirection) {}
       <div style="margin-top: 70px;" hidden={showMulti}>
         {#if $initData.length > 0}
           {#if selectedCategoryFilter}
-            <!-- Filter -->
+
             <div class="category-filter-section">
               <div class="category-filter-header">
                 <h2>
@@ -1679,7 +1745,6 @@ $: if (sortColumn || sortDirection) {}
                     {getCategoryIcon(selectedCategoryFilter)}
                   </span>
                   {selectedCategoryFilter.toUpperCase()} Sessions
-                  <span class="session-count">({filteredSessions.length})</span>
                 </h2>
               </div>
               <div class="table-container full-width">
@@ -1698,104 +1763,62 @@ $: if (sortColumn || sortDirection) {}
                     </tr>
                   </thead>
                   <tbody>
-                    {#each (selectedCategoryFilter ? filteredByCategory : filteredSessions) as sessionData}
-                      <tr 
-                        class="session-row"
-                        on:click={() => handleRowClick(sessionData)}
-                      >
-                        <td class="topic-cell">
-                          <button
-                            class="topic-icon-btn"
-                            on:click|stopPropagation={() => handleCategoryIconClick(getPromptCode(sessionData.sessionId))}
-                            title="Click to clear filter"
-                            type="button"
-                          >
-                            {getCategoryIcon(getPromptCode(sessionData.sessionId))}
-                          </button>
-                        </td>
-                        <td class="score-cell">
-                          <SemanticExpansionCircle 
-                            similarityData={sessionData.similarityData || []}
-                            size={16}
-                            sessionId={sessionData.sessionId}
-                          />
-                        </td>
-                        <td class="activity-cell">
-                          <div class="mini-chart">
-                            <ZoomoutChart
-                              on:containerClick={handleContainerClick}
-                              bind:this={chartRefs[sessionData.sessionId]}
-                              sessionId={sessionData.sessionId}
-                              similarityData={sessionData.similarityData}
-                            />
-                          </div>
-                        </td>
+                    {#each (selectedCategoryFilter ? filteredByCategory : filteredSessions) as sessionData (sessionData.sessionId + sortColumn + sortDirection)}
+                      <tr class="session-row" on:click={() => handleRowClick(sessionData)}>
+                        <SessionCell
+                          {sessionData}
+                          {chartRefs}
+                          onRowClick={handleRowClick}
+                          onCategoryIconClick={handleCategoryIconClick}
+                          {getPromptCode}
+                          {getCategoryIcon}
+                        />
                       </tr>
                     {/each}
                   </tbody>
                 </table>
-              </div>               
+              </div>
             </div>
           {:else}
-            <div class="three-columns">
-              {#each getColumnGroups() as columnGroup, columnIndex}
-                <div class="column">
-                  <div class="table-container">
-                    <table class="sessions-table">
-                      <thead>
-                        <tr>
-                          <th>Activity</th>
-                          <th class="sortable-header" on:click={() => handleSort('topic')}>
-                            <span>Topic</span>
-                            <span class="sort-icon">{getSortIcon('topic')}</span>
-                          </th>
-                          <th class="sortable-header" on:click={() => handleSort('score')}>
-                            <span>Score</span>
-                            <span class="sort-icon">{getSortIcon('score')}</span>
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {#each columnGroup as sessionData}
-                          <tr 
-                            class="session-row"
-                            on:click={() => handleRowClick(sessionData)}
-                          >
-                            <td class="activity-cell">
-                              <div class="mini-chart">
-                                <ZoomoutChart
-                                  on:containerClick={handleContainerClick}
-                                  bind:this={chartRefs[sessionData.sessionId]}
-                                  sessionId={sessionData.sessionId}
-                                  similarityData={sessionData.similarityData}
-                                />
-                              </div>
-                            </td>
-                            <td class="topic-cell">
-                              <button
-                                class="topic-icon-btn"
-                                on:click|stopPropagation={() => handleCategoryIconClick(getPromptCode(sessionData.sessionId))}
-                                title={getPromptCode(sessionData.sessionId)}
-                                type="button"
-                              >
-                                {getCategoryIcon(getPromptCode(sessionData.sessionId))}
-                              </button>
-                            </td>
-                            <td class="score-cell">
-                              <SemanticExpansionCircle 
-                                similarityData={sessionData.similarityData || []}
-                                size={16}
-                                sessionId={sessionData.sessionId}
-                              />
-                            </td>
-                          </tr>
+
+            <div class="unified-table-container">
+              <div class="unified-table-wrapper">
+                <table class="unified-sessions-table">
+                  <thead>
+                    <tr>
+                      {#each Array(3) as _, colIndex}
+                        <th>Activity</th>
+                        <th class="sortable-header" on:click={() => handleSort('topic')}>
+                          <span>Topic</span>
+                          <span class="sort-icon">{getSortIcon('topic')}</span>
+                        </th>
+                        <th class="sortable-header" on:click={() => handleSort('score')}>
+                          <span>Score</span>
+                          <span class="sort-icon">{getSortIcon('score')}</span>
+                        </th>
+                      {/each}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {#each Array(Math.ceil(Math.max(...getColumnGroups().map(group => group.length)))) as _, rowIndex (rowIndex + sortColumn + sortDirection)}
+                      <tr class="unified-session-row">
+                        {#each getColumnGroups() as group}
+                          <SessionCell
+                            sessionData={group[rowIndex]}
+                            {chartRefs}
+                            onRowClick={handleRowClick}
+                            onCategoryIconClick={handleCategoryIconClick}
+                            {getPromptCode}
+                            {getCategoryIcon}
+                          />
                         {/each}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              {/each}
+                      </tr>
+                    {/each}
+                  </tbody>
+                </table>
+              </div>
             </div>
+
           {/if}
         {/if}
       </div>

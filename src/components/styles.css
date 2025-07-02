@@ -6,12 +6,39 @@
   align-items: center;
 }
 .three-column-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    display: block; 
     padding: 20px 10px;
     width: 100%;
     margin: 0 auto;
+    max-height: 70vh;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: white;
+    
+    column-count: 3;
+    column-gap: 20px;
+    column-rule: 1px solid #e0e0e0; 
+}
+
+.session-row {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    display: block;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #f0f0f0;
+    border-radius: 4px;
+}
+
+
+.table-header {
+    column-span: all;
+    margin-bottom: 20px;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
 }
 .grid-item:hover {
     transform: translateY(-2px);
