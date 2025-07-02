@@ -187,28 +187,25 @@
   }
     // FETCH SCORES
    const fetchLLMScore = async (sessionFile) => {
-    // console.log("🔍 Trying to fetch LLM score for:", sessionFile);
+    // console.log("Trying to fetch LLM score for:", sessionFile);
     
     const url = `${base}/chi2022-coauthor-v1.0/eval_results/${sessionFile}.json`;
-    // console.log("🔗 URL:", url);
+    // console.log("URL:", url);
     
     try {
       const response = await fetch(url);
-      // console.log("📡 Response status:", response.status);
-      // console.log("📡 Response ok:", response.ok);
+      // console.log("Response status:", response.status);
+      // console.log("Response ok:", response.ok);
       
       if (!response.ok) {
-        console.error("❌ Response not ok:", response.status, response.statusText);
+        console.error("Response not ok:", response.status, response.statusText);
         throw new Error(`Failed to fetch LLM score: ${response.status}`);
       }
 
       const data = await response.json();
       // console.log("📄 Raw data:", data);
       
-      // 新格式：data 直接是数字数组 [6]
-      const totalScore = data[0]; // 直接取第一个元素
-      // console.log("🎯 Total score:", totalScore);
-      
+      const totalScore = data[0];
       return totalScore;
     } catch (error) {
       console.error("💥 Error when reading LLM score file:", error);

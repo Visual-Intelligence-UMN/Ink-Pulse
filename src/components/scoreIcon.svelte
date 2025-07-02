@@ -30,7 +30,6 @@
   }
   
   function normalizeScoreToPercentage(score) {
-    // 直接用 (分数/10) * 100%
     return Math.max(5, (score / 10) * 100);
   }
   
