@@ -6,12 +6,41 @@
   align-items: center;
 }
 .three-column-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    display: block; /* 不要grid */
     padding: 20px 10px;
     width: 100%;
     margin: 0 auto;
+    max-height: 70vh;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: white;
+    
+    /* 关键：分栏布局 */
+    column-count: 3;
+    column-gap: 20px;
+    column-rule: 1px solid #e0e0e0; /* 列之间的分隔线 */
+}
+
+/* 防止表格行被分列截断 */
+.session-row {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    display: block;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #f0f0f0;
+    border-radius: 4px;
+}
+
+/* 表头只显示一次，在顶部 */
+.table-header {
+    column-span: all; /* 横跨所有列 */
+    margin-bottom: 20px;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
 }
 .grid-item:hover {
     transform: translateY(-2px);
@@ -368,14 +397,4 @@
 .mini-chart {
   height: 30px;
   width: 100%;
-}
-
-.single-column {
-  width: 100%;
-  max-width: 1000px;
-  margin: 0 auto;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
 }
