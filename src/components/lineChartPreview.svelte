@@ -15,47 +15,29 @@
     .domain([0, 100])
     .range([height - margin.top - margin.bottom, 0]);
 
-  let selectedPoint: any = null;
-  let hoveredPoint: any = null;
-
   let xAxisG: SVGGElement;
   let yAxisG: SVGGElement;
 
-  $: if (chartData.length) {
-    updateAxes();
-    initChart();
-  }
+  $: xScale = d3
+    .scaleLinear()
+    .domain([0, d3.max(chartData, (d) => d.time) || 1])
+    .range([0, width - margin.left - margin.right]);
 
-  $: if (xAxisG && yAxisG) {
-    updateAxes();
-  }
+  $: yScale = d3
+    .scaleLinear()
+    .domain([0, 100])
+    .range([height - margin.top - margin.bottom, 0]);
 
-  function updateAxes() {
-    if (!xScale || !yScale) return;
-
+  $: if (xScale && yScale && xAxisG && yAxisG) {
     const xAxis = d3.axisBottom(xScale).ticks(5);
     const yAxis = d3.axisRight(yScale).ticks(5);
-
     d3.select(xAxisG).call(xAxis);
-    d3.select(yAxisG).call(yAxis);
-
-    const ticks = d3.select(xAxisG).selectAll(".tick text");
-    ticks
+    d3.select(xAxisG)
+      .selectAll(".tick text")
       .filter((_, i) => i === 0)
-      .attr("text-anchor", "start")
-      .attr("dx", "0.01em");
-  }
-
-  function initChart() {
-    const minTime = 0;
-    const maxTime = d3.max(chartData, (d) => d.time);
-
-    xScale = d3
-      .scaleLinear()
-      .domain([minTime, maxTime])
-      .range([0, width - margin.left - margin.right]);
-
-    updateAxes();
+      .attr("dx", "1px")
+      .attr("text-anchor", "start");
+    d3.select(yAxisG).call(yAxis);
   }
 
   function scaledX(val) {
@@ -98,13 +80,9 @@
           <circle
             cx={scaledX(d.time)}
             cy={scaledY(d.percentage)}
-            r={selectedPoint?.index === d.index
-              ? 5
-              : hoveredPoint?.index === d.index
-                ? 5
-                : 2}
+            r={2}
             fill={d.color}
-            opacity={selectedPoint === d || hoveredPoint === d ? 1 : d.opacity}
+            opacity={d.opacity}
           />
         {/each}
 
@@ -126,7 +104,7 @@
     ></g>
     <text
       x={width / 2}
-      y={height - margin.top - 5}
+      y={height - margin.top - 7}
       text-anchor="middle"
       font-size="10px"
       fill="black"

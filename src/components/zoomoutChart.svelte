@@ -1,24 +1,41 @@
 <script lang="ts">
-  import { onMount, createEventDispatcher } from "svelte";
+  import { onMount, onDestroy, afterUpdate } from "svelte";
+  import { createEventDispatcher } from "svelte";
   import * as d3 from "d3";
 
   const dispatch = createEventDispatcher();
 
   export let similarityData;
+  export let sessionId;
+
   let height = 10;
   const margin = { top: 0, right: 0, bottom: 0, left: 0 };
 
-  let canvasEl;
-  let context: CanvasRenderingContext2D;
+  let canvasEl: HTMLCanvasElement;
+  let context: CanvasRenderingContext2D | null = null;
 
-  export let sessionId;
+  let observer: IntersectionObserver;
+  let isVisible = false;
+  let lastDataHash = "";
 
   function handleContainerClick() {
     dispatch("containerClick", { sessionId });
   }
 
+  function hashData(data) {
+    try {
+      return JSON.stringify(data);
+    } catch {
+      return "";
+    }
+  }
+
   function renderCanvas() {
-    if (!similarityData || !canvasEl) return;
+    if (!similarityData || !canvasEl || !isVisible) return;
+
+    const dataHash = hashData(similarityData);
+    if (dataHash === lastDataHash) return;
+    lastDataHash = dataHash;
 
     const processedData = similarityData.map((item) => ({
       text_length: item.sentence,
@@ -27,31 +44,30 @@
       residual_vector_norm: item.residual_vector_norm,
       source: item.source,
     }));
-    const textLength = processedData[processedData.length - 1]["text_length"];
-    let width = 100 * textLength;
 
-    const xScale = d3
-      .scaleLinear()
-      .domain([0, 100])
-      .range([0, width - margin.left - margin.right]);
+    const textLength =
+      processedData[processedData.length - 1]?.text_length || 1;
+    const width = 100 * textLength;
+
+    const xScale = d3.scaleLinear().domain([0, 100]).range([0, width]);
     const yScale = d3.scaleLinear().domain([1, 0]).range([0, height]);
     const opacityScale = d3.scaleLinear().domain([0, 1]).range([0.3, 1]);
 
-    const canvas = canvasEl;
-    context = canvas.getContext("2d");
-
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    canvas.style.width = width + "px";
-    canvas.style.height = height + "px";
-    context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    canvasEl.width = width * dpr;
+    canvasEl.height = height * dpr;
+    canvasEl.style.width = width + "px";
+    canvasEl.style.height = height + "px";
 
-    context.clearRect(0, 0, width, height);
+    context = canvasEl.getContext("2d");
+    if (!context) return;
 
-    for (let i = 0; i < processedData.length; i++) {
-      const d = processedData[i];
-      const isFirst = i === 0;
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    context.scale(dpr, dpr);
+    context.clearRect(0, 0, canvasEl.width, canvasEl.height);
+
+    for (const d of processedData) {
+      const isFirst = processedData.indexOf(d) === 0;
       const barY = yScale(isFirst ? 0 : 1);
       const barHeight = yScale(0) - yScale(isFirst ? 0 : 1);
       const barX = xScale(d.startProgress);
@@ -60,7 +76,8 @@
       context.fillStyle = d.source === "user" ? "#66C2A5" : "#FC8D62";
       context.globalAlpha = opacityScale(d.residual_vector_norm);
       context.fillRect(barX, barY, barWidth, barHeight);
-      context.strokeStyle = d.source === "user" ? "#66C2A5" : "#FC8D62";
+
+      context.strokeStyle = context.fillStyle;
       context.lineWidth = 0.1;
       context.strokeRect(barX, barY, barWidth, barHeight);
     }
@@ -68,8 +85,30 @@
     context.globalAlpha = 1;
   }
 
+  function setupObserver() {
+    observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        if (isVisible) renderCanvas();
+      },
+      { threshold: 0.1 },
+    );
+
+    if (canvasEl) observer.observe(canvasEl);
+  }
+
   onMount(() => {
-    renderCanvas();
+    setupObserver();
+  });
+
+  afterUpdate(() => {
+    if (isVisible) renderCanvas();
+  });
+
+  onDestroy(() => {
+    if (observer && canvasEl) {
+      observer.unobserve(canvasEl);
+    }
   });
 </script>
 

@@ -1885,7 +1885,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    {#each selectedCategoryFilter ? filteredByCategory : filteredSessions as sessionData (sessionData.sessionId + sortColumn + sortDirection)}
+                    {#each selectedCategoryFilter ? filteredByCategory : filteredSessions as sessionData (sessionData.sessionId)}
                       <tr
                         class="session-row"
                         on:click={() => handleRowClick(sessionData)}
