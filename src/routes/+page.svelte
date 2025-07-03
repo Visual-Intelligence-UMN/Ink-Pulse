@@ -2146,6 +2146,10 @@
     --range-handle-focus: #137a7f;
   }
 
+  .App {
+    overflow-x: hidden;
+  }
+
   * {
     font-family: "Poppins", sans-serif;
   }
@@ -2681,4 +2685,5 @@
   .search-result-container:hover {
     background-color: #e0e0e0;
   }
+
 </style>
