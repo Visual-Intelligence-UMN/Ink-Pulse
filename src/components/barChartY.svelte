@@ -20,7 +20,7 @@
   onMount(() => {
     if (similarityData && container) {
       renderChart();
-      dispatch('chartLoaded', sessionId);
+      dispatch("chartLoaded", sessionId);
     }
   });
 
@@ -28,7 +28,7 @@
     zoomTransform = d3.zoomIdentity;
   }
 
-  $: if (similarityData && container || zoomTransform !== d3.zoomIdentity) {
+  $: if ((similarityData && container) || zoomTransform !== d3.zoomIdentity) {
     renderChart();
   }
 
@@ -89,7 +89,7 @@
       .attr("height", chartHeight + margin.top + margin.bottom)
       .attr(
         "viewBox",
-        `0 0 ${chartWidth + margin.left + margin.right} ${chartHeight + margin.top + margin.bottom}`
+        `0 0 ${chartWidth + margin.left + margin.right} ${chartHeight + margin.top + margin.bottom}`,
       )
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
@@ -140,12 +140,12 @@
       .attr("y", (d) =>
         newyScale(d.startProgress) < newyScale(d.endProgress)
           ? newyScale(d.startProgress)
-          : newyScale(d.endProgress)
+          : newyScale(d.endProgress),
       )
       .attr("x", (d) => xScale(d.residual_vector_norm))
       .attr("width", (d) => xScale(0) - xScale(d.residual_vector_norm))
       .attr("height", (d) =>
-        Math.abs(newyScale(d.startProgress) - newyScale(d.endProgress))
+        Math.abs(newyScale(d.startProgress) - newyScale(d.endProgress)),
       )
       .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
@@ -190,8 +190,8 @@
         const barHeight = newyScale(d.startProgress) - newyScale(d.endProgress);
         return barY + barHeight >= y0 && barY <= y1;
       });
-      const scMin = d3.min(filteredData, d => d.residual_vector_norm) ?? 0;
-      const scMax = d3.max(filteredData, d => d.residual_vector_norm) ?? 0;
+      const scMin = d3.min(filteredData, (d) => d.residual_vector_norm) ?? 0;
+      const scMax = d3.max(filteredData, (d) => d.residual_vector_norm) ?? 0;
 
       highlightBars(filteredData);
 
@@ -200,27 +200,27 @@
           sc: { min: scMin, max: scMax },
           progress: { min: progressMin, max: progressMax },
         },
-        dataRange: {  
+        dataRange: {
           scRange: {
-            min: d3.min(filteredData, d => d.residual_vector_norm),
-            max: d3.max(filteredData, d => d.residual_vector_norm),
+            min: d3.min(filteredData, (d) => d.residual_vector_norm),
+            max: d3.max(filteredData, (d) => d.residual_vector_norm),
           },
           progressRange: {
-            min: d3.min(filteredData, d => d.startProgress),
-            max: d3.max(filteredData, d => d.endProgress),
+            min: d3.min(filteredData, (d) => d.startProgress),
+            max: d3.max(filteredData, (d) => d.endProgress),
           },
           timeRange: {
             min: filteredData[0].startTime,
             max: filteredData[filteredData.length - 1].endTime,
           },
           sc: {
-            sc: filteredData.map(d => d.residual_vector_norm),
-          }
+            sc: filteredData.map((d) => d.residual_vector_norm),
+          },
         },
         data: filteredData,
         wholeData: processedData,
         sessionId: sessionId,
-        sources: filteredData.map(d => d.source),
+        sources: filteredData.map((d) => d.source),
       });
     }
 
@@ -229,8 +229,8 @@
     }
 
     function highlightBars(filteredData) {
-      const selectedIds = new Set(filteredData.map(d => d.id));
-      bars.attr("opacity", (d) => selectedIds.has(d.id) ? 0.9 : 0.1);
+      const selectedIds = new Set(filteredData.map((d) => d.id));
+      bars.attr("opacity", (d) => (selectedIds.has(d.id) ? 0.9 : 0.1));
     }
 
     if (!selectionMode) {

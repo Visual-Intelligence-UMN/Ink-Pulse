@@ -18,10 +18,11 @@
   import { VList } from "virtua/svelte";
   import { topicIcons, getCategoryIcon } from "../components/topicIcons.js";
   import SemanticExpansionCircle from "../components/scoreIcon.svelte";
-  import '../components/styles.css';
+  import "../components/styles.css";
   import LineChartPreview from "../components/lineChartPreview.svelte";
   import SessionCell from "../components/sessionCell.svelte";
-  
+  import SavePanel from "../components/savePanel.svelte";
+
   let chartRefs = {};
   function resetZoom(sessionId) {
     chartRefs[sessionId]?.resetZoom();
@@ -40,13 +41,14 @@
     if (!el._tippy) {
       tippy(el, {
         content,
-        placement: 'top',
+        placement: "top",
       });
     }
   }
   $: filterButton && initTippy(filterButton, "Filter based on prompt type");
   $: collapseButton && initTippy(collapseButton, "Collapse/Expand table view");
-  $: exactSourceButton && initTippy(exactSourceButton, "Open/Close exact search");
+  $: exactSourceButton &&
+    initTippy(exactSourceButton, "Open/Close exact search");
   $: exactTrendButton && initTippy(exactTrendButton, "Open/Close exact search");
 
   let dataDict = {
@@ -117,8 +119,8 @@
   let searchCount = 5; // count of search results
   export const showResultCount = writable(searchCount); // count of results to show in the UI
 
-  let isExactSearchSource = false;
-  let isExactSearchTrend = false;
+  let isExactSearchSource = true;
+  let isExactSearchTrend = true;
   $: if (!isSemanticChecked || !isValueTrendChecked) {
     isExactSearchTrend = false;
   }
@@ -146,8 +148,35 @@
 
   export const searchPatternSet = writable([]);
   const removepattern = () => {
-    showResultCount.update(count => count - 1);
+    showResultCount.update((count) => count - 1);
   };
+
+  let isSave = false;
+  let nameInput = "";
+  let colorInput = "#66ccff";
+  async function openSavePanel() {
+    isSave = false;
+    await tick();
+    nameInput = "";
+    colorInput = "#66ccff";
+    isSave = true;
+  }
+
+  function handleSave(event) {
+    const { name, color } = event.detail;
+    const sliceToSave = $patternDataList.slice(0, $showResultCount);
+    const itemToSave = {
+      name,
+      color,
+      pattern: sliceToSave,
+    };
+    searchPatternSet.update((current) => [...current, itemToSave]);
+    isSave = false;
+  }
+
+  function handleClose() {
+    isSave = false;
+  }
 
   function getPromptCode(sessionId) {
     const found = sessions.find((s) => s.session_id === sessionId);
@@ -159,56 +188,45 @@
     handleContainerClick({ detail: { sessionId: sessionData.sessionId } });
   }
   // TOPIC ICONS
-  let sortColumn = '';
-  let sortDirection = 'none';
+  let sortColumn = "";
+  let sortDirection = "none";
 
   function handleSort(column) {
     if (sortColumn === column) {
-
-      if (sortDirection === 'none') {
-        sortDirection = 'asc';
-      } else if (sortDirection === 'asc') {
-        sortDirection = 'desc';
+      if (sortDirection === "none") {
+        sortDirection = "asc";
+      } else if (sortDirection === "asc") {
+        sortDirection = "desc";
       } else {
-        sortDirection = 'none';
+        sortDirection = "none";
       }
     } else {
-    
       sortColumn = column;
-      sortDirection = 'asc';
+      sortDirection = "asc";
     }
   }
 
   function getSortIcon(column) {
-      if (sortColumn !== column || sortDirection === 'none') {
-        return '↕️'; 
-      }
-      return sortDirection === 'asc' ? '↑' : '↓';
+    if (sortColumn !== column || sortDirection === "none") {
+      return "↕️";
+    }
+    return sortDirection === "asc" ? "↑" : "↓";
   }
-    // FETCH SCORES
-   const fetchLLMScore = async (sessionFile) => {
-    // console.log("Trying to fetch LLM score for:", sessionFile);
-    
+  // FETCH SCORES
+  const fetchLLMScore = async (sessionFile) => {
     const url = `${base}/chi2022-coauthor-v1.0/eval_results/${sessionFile}.json`;
-    // console.log("URL:", url);
-    
     try {
       const response = await fetch(url);
-      // console.log("Response status:", response.status);
-      // console.log("Response ok:", response.ok);
-      
       if (!response.ok) {
         console.error("Response not ok:", response.status, response.statusText);
         throw new Error(`Failed to fetch LLM score: ${response.status}`);
       }
 
       const data = await response.json();
-      // console.log("📄 Raw data:", data);
-      
       const totalScore = data[0];
       return totalScore;
     } catch (error) {
-      console.error("💥 Error when reading LLM score file:", error);
+      console.error("Error when reading LLM score file:", error);
       return null;
     }
   };
@@ -216,27 +234,27 @@
   function getColumnGroups() {
     let sessions = getDisplaySessions();
     // Topic
-    if (sortColumn === 'topic' && sortDirection !== 'none') {
+    if (sortColumn === "topic" && sortDirection !== "none") {
       sessions = [...sessions].sort((a, b) => {
         const aCode = getPromptCode(a.sessionId);
         const bCode = getPromptCode(b.sessionId);
-        
-        if (sortDirection === 'asc') {
+
+        if (sortDirection === "asc") {
           return aCode.localeCompare(bCode);
         } else {
           return bCode.localeCompare(aCode);
         }
       });
     }
-    // Score 
-    if (sortColumn === 'score' && sortDirection !== 'none') {
+    // Score
+    if (sortColumn === "score" && sortDirection !== "none") {
       sessions = [...sessions].sort((a, b) => {
-        const aScore = a.llmScore || 0; 
+        const aScore = a.llmScore || 0;
         const bScore = b.llmScore || 0;
-        if (sortDirection === 'asc') {
-          return aScore - bScore; 
+        if (sortDirection === "asc") {
+          return aScore - bScore;
         } else {
-          return bScore - aScore; 
+          return bScore - aScore;
         }
       });
     }
@@ -249,15 +267,16 @@
     return groups;
   }
 
-$: if (sortColumn || sortDirection) {}
+  $: if (sortColumn || sortDirection) {
+  }
 
   function calculateAccumulatedSemanticScore(data) {
     if (!data || data.length === 0) return 0;
-    
+
     const totalScore = data.reduce((sum, item) => {
       return sum + (item.residual_vector_norm || 0);
     }, 0);
-    
+
     return totalScore;
   }
 
@@ -277,76 +296,80 @@ $: if (sortColumn || sortDirection) {}
 
   let groupingMode = false;
   let selectedGroupAttribute = null;
-  let selectedCategoryFilter = null; 
+  let selectedCategoryFilter = null;
   let groupedSessions = {};
   let sortedSessions = [];
   let filteredSessions = [];
 
   function groupSessionsByAttribute(attribute, specificValue = null) {
     const grouped = {};
-    $initData.forEach(sessionData => {
-      const sessionInfo = sessions.find(s => s.session_id === sessionData.sessionId);
+    $initData.forEach((sessionData) => {
+      const sessionInfo = sessions.find(
+        (s) => s.session_id === sessionData.sessionId,
+      );
       if (sessionInfo) {
-        const key = sessionInfo[attribute] || 'unknown';
+        const key = sessionInfo[attribute] || "unknown";
         if (specificValue && key !== specificValue) {
           return;
         }
-        
+
         if (!grouped[key]) {
           grouped[key] = [];
         }
         grouped[key].push(sessionData);
       }
     });
-    
+
     return grouped;
   }
 
   function filterSessionsByCategory(category) {
-    return $initData.filter(sessionData => {
-      const sessionInfo = sessions.find(s => s.session_id === sessionData.sessionId);
+    return $initData.filter((sessionData) => {
+      const sessionInfo = sessions.find(
+        (s) => s.session_id === sessionData.sessionId,
+      );
       return sessionInfo && sessionInfo.prompt_code === category;
     });
   }
 
   function rankSessionsByAttribute(attribute, sessionsData) {
     const sessionsCopy = [...sessionsData];
-    
-    switch(attribute) {
-      case 'prompt_code':
+
+    switch (attribute) {
+      case "prompt_code":
         return sessionsCopy.sort((a, b) => {
           const aCode = getPromptCode(a.sessionId);
           const bCode = getPromptCode(b.sessionId);
           return aCode.localeCompare(bCode);
         });
-        
-      case 'writing_time':
+
+      case "writing_time":
         return sessionsCopy.sort((a, b) => {
           const aTime = a.time100 || 0;
           const bTime = b.time100 || 0;
           return bTime - aTime;
         });
-        
-      case 'text_length':
+
+      case "text_length":
         return sessionsCopy.sort((a, b) => {
           const aLength = a.summaryData?.totalProcessedCharacters || 0;
           const bLength = b.summaryData?.totalProcessedCharacters || 0;
           return bLength - aLength;
         });
-        
-      case 'suggestions_count':
+
+      case "suggestions_count":
         return sessionsCopy.sort((a, b) => {
           const aSuggestions = a.summaryData?.totalSuggestions || 0;
           const bSuggestions = b.summaryData?.totalSuggestions || 0;
           return bSuggestions - aSuggestions;
         });
-        
+
       default:
         return sessionsCopy;
     }
   }
 
-  function handleIconClick(attribute, mode = 'group', specificValue = null) {
+  function handleIconClick(attribute, mode = "group", specificValue = null) {
     if (selectedCategoryFilter === specificValue && specificValue) {
       groupingMode = false;
       selectedGroupAttribute = null;
@@ -356,19 +379,23 @@ $: if (sortColumn || sortDirection) {}
       filteredSessions = [];
       return;
     }
-    
+
     if (specificValue) {
       groupingMode = true;
       selectedGroupAttribute = attribute;
       selectedCategoryFilter = specificValue;
-      
+
       filteredSessions = filterSessionsByCategory(specificValue);
       groupedSessions = {};
       sortedSessions = [];
       return;
     }
 
-    if (groupingMode && selectedGroupAttribute === attribute && !selectedCategoryFilter) {
+    if (
+      groupingMode &&
+      selectedGroupAttribute === attribute &&
+      !selectedCategoryFilter
+    ) {
       groupingMode = false;
       selectedGroupAttribute = null;
       selectedCategoryFilter = null;
@@ -379,12 +406,12 @@ $: if (sortColumn || sortDirection) {}
       groupingMode = true;
       selectedGroupAttribute = attribute;
       selectedCategoryFilter = null;
-      
-      if (mode === 'group') {
+
+      if (mode === "group") {
         groupedSessions = groupSessionsByAttribute(attribute);
         sortedSessions = [];
         filteredSessions = [];
-      } else if (mode === 'rank') {
+      } else if (mode === "rank") {
         sortedSessions = rankSessionsByAttribute(attribute, $initData);
         groupedSessions = {};
         filteredSessions = [];
@@ -392,71 +419,76 @@ $: if (sortColumn || sortDirection) {}
     }
   }
 
-  let filteredByCategory = []; 
+  let filteredByCategory = [];
   function handleCategoryIconClick(category) {
     if (selectedCategoryFilter === category) {
       selectedCategoryFilter = null;
       filteredByCategory = [];
-      
+
       const originalFilteredData = tableData.filter((session) =>
-        $selectedTags.includes(session.prompt_code)
+        $selectedTags.includes(session.prompt_code),
       );
       const originalUpdatedData = originalFilteredData.map((row) => ({
         ...row,
-        selected: true
+        selected: true,
       }));
       filterTableData.set(originalUpdatedData);
-      
     } else {
       selectedCategoryFilter = category;
 
-      filteredByCategory = $initData.filter(sessionData => {
-        const sessionInfo = sessions.find(s => s.session_id === sessionData.sessionId);
+      filteredByCategory = $initData.filter((sessionData) => {
+        const sessionInfo = sessions.find(
+          (s) => s.session_id === sessionData.sessionId,
+        );
         return sessionInfo && sessionInfo.prompt_code === category;
-      });  
+      });
 
-      const categoryTableRows = tableData.filter(row => row.prompt_code === category);
-      filterTableData.set(categoryTableRows.map(row => ({
-        ...row,
-        selected: true
-      })));
-      
-      categoryTableRows.forEach(row => {
+      const categoryTableRows = tableData.filter(
+        (row) => row.prompt_code === category,
+      );
+      filterTableData.set(
+        categoryTableRows.map((row) => ({
+          ...row,
+          selected: true,
+        })),
+      );
+
+      categoryTableRows.forEach((row) => {
         fetchInitData(row.session_id, false, true);
       });
     }
   }
 
   function getDisplaySessions() {
-      if (selectedCategoryFilter && filteredSessions.length >= 0) {
-        return filteredSessions;
-      }
-      
-      if (!groupingMode) {
-        return $initData;
-      }
-      
-      if (Object.keys(groupedSessions).length > 0) {
-        return Object.values(groupedSessions).flat();
-      }
-      
-      if (sortedSessions.length > 0) {
-        return sortedSessions;
-      }
-      
+    if (selectedCategoryFilter && filteredSessions.length >= 0) {
+      return filteredSessions;
+    }
+
+    if (!groupingMode) {
       return $initData;
     }
+
+    if (Object.keys(groupedSessions).length > 0) {
+      return Object.values(groupedSessions).flat();
+    }
+
+    if (sortedSessions.length > 0) {
+      return sortedSessions;
+    }
+
+    return $initData;
+  }
 
   function isIconActive(promptCode) {
     return selectedCategoryFilter === promptCode;
   }
 
   function getGridItemClass(sessionId) {
-    if (!groupingMode) return '';
-    
-    const sessionInfo = sessions.find(s => s.session_id === sessionId);
-    if (!sessionInfo) return '';
-    
+    if (!groupingMode) return "";
+
+    const sessionInfo = sessions.find((s) => s.session_id === sessionId);
+    if (!sessionInfo) return "";
+
     const attributeValue = sessionInfo[selectedGroupAttribute];
     return `grouped-${attributeValue}`;
   }
@@ -544,18 +576,20 @@ $: if (sortColumn || sortDirection) {}
     const segments = [];
     for (let i = 0; i <= data.length - minCount; i++) {
       const window = data.slice(i, i + minCount);
-      const allValid = window.every(item => isDataValid(item, checks));
+      const allValid = window.every((item) => isDataValid(item, checks));
       if (!allValid) continue;
       if (isExactSearchSource && checks.source && checks.source[1]) {
         const expectedSources = checks.source[1];
         if (expectedSources.length !== minCount) continue;
 
-        const actualSources = window.map(item => item.source);
-        const matches = actualSources.every((src, idx) => src === expectedSources[idx]);
+        const actualSources = window.map((item) => item.source);
+        const matches = actualSources.every(
+          (src, idx) => src === expectedSources[idx],
+        );
         if (!matches) continue;
       }
       if (isExactSearchTrend && checks.trend && checks.trend[1]) {
-        const values = window.map(item => item.residual_vector_norm);
+        const values = window.map((item) => item.residual_vector_norm);
         if (!matchesTrend(values, checks.trend[1])) continue;
       }
       segments.push([...window]);
@@ -578,20 +612,24 @@ $: if (sortColumn || sortDirection) {}
       }
 
       if (checks.time[0]) {
-        currentVector.t.push(currentItem.endTime * 60 - currentItem.startTime * 60);
+        currentVector.t.push(
+          currentItem.endTime * 60 - currentItem.startTime * 60,
+        );
       }
 
       if (checks.progress[0]) {
-        currentVector.p.push(currentItem.endProgress / 100 - currentItem.startProgress / 100);
+        currentVector.p.push(
+          currentItem.endProgress / 100 - currentItem.startProgress / 100,
+        );
       }
 
       if (checks.semantic[0]) {
-        currentVector.sem.push(currentItem.residual_vector_norm)
+        currentVector.sem.push(currentItem.residual_vector_norm);
       }
     }
 
     if (checks.trend[0]) {
-        currentVector.tr = semanticTrend;
+      currentVector.tr = semanticTrend;
     }
 
     return currentVector;
@@ -625,7 +663,10 @@ $: if (sortColumn || sortDirection) {}
       }
       if (checks.trend[0]) {
         if (i > 0) {
-          const trend = getTrend(segment[i - 1].residual_vector_norm, item.residual_vector_norm);
+          const trend = getTrend(
+            segment[i - 1].residual_vector_norm,
+            item.residual_vector_norm,
+          );
           vector.tr.push(trend);
         }
       }
@@ -660,7 +701,7 @@ $: if (sortColumn || sortDirection) {}
           continue;
         }
         const dataResponse = await fetch(
-          `${base}/chi2022-coauthor-v1.0/similarity_results/${fileName}`
+          `${base}/chi2022-coauthor-v1.0/similarity_results/${fileName}`,
         );
         const data = await dataResponse.json();
         const segments = findSegments(data, checks, count);
@@ -669,7 +710,11 @@ $: if (sortColumn || sortDirection) {}
           .replace(/_similarity$/, "");
 
         const taggedSegments = segments.map((segment, index) =>
-          segment.map((item) => ({ ...item, id: extractedFileName, segmentId:`${extractedFileName}_${index}` }))
+          segment.map((item) => ({
+            ...item,
+            id: extractedFileName,
+            segmentId: `${extractedFileName}_${index}`,
+          })),
         );
 
         for (const segment of taggedSegments) {
@@ -681,11 +726,16 @@ $: if (sortColumn || sortDirection) {}
 
         results.push(...taggedSegments);
       }
-      const currentVector = buildVectorForCurrentSegment(currentResults, checks)
+      const currentVector = buildVectorForCurrentSegment(
+        currentResults,
+        checks,
+      );
 
       patternData = results;
-      const finalScore = calculateRank(patternVectors, currentVector)
-      const idToData = Object.fromEntries(patternData.map(d => [d[0].segmentId, d]));
+      const finalScore = calculateRank(patternVectors, currentVector);
+      const idToData = Object.fromEntries(
+        patternData.map((d) => [d[0].segmentId, d]),
+      );
       // const top5Data = finalScore.slice(0, 5)
       //     .map(([segmentId]) => idToData[segmentId]);
       const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
@@ -702,7 +752,7 @@ $: if (sortColumn || sortDirection) {}
   function l2(arr1, arr2) {
     let sum = 0;
     for (let i = 0; i < arr1.length; i++) {
-      sum += (arr1[i] - arr2[i]) **2;
+      sum += (arr1[i] - arr2[i]) ** 2;
     }
     return Math.sqrt(sum);
   }
@@ -713,8 +763,8 @@ $: if (sortColumn || sortDirection) {}
       t: 0.01, // 1s
       p: 1, // 1% -> 0.01
       tr: 2.5, // up 1, down -1
-      sem: 2 // 1% -> 0.01
-    }
+      sem: 2, // 1% -> 0.01
+    };
     let finalScore = [];
     for (const item of patternVectors) {
       let score = 0;
@@ -750,7 +800,7 @@ $: if (sortColumn || sortDirection) {}
           }
           return null;
         })
-        .filter(Boolean)
+        .filter(Boolean),
     );
     isSearch = 2; // reset search state; 0: not searching, 1: searching, 2: search done
   }
@@ -780,21 +830,22 @@ $: if (sortColumn || sortDirection) {}
   }
 
   function handleSelectionChanged(event) {
-    showResultCount.set(5)
+    showResultCount.set(5);
     isProgressChecked = true;
     isTimeChecked = true;
     isSourceChecked = true;
     isSemanticChecked = true;
     isValueRangeChecked = true;
     isValueTrendChecked = true;
-    isExactSearchSource = false;
-    isExactSearchTrend = false;
+    isExactSearchSource = true;
+    isExactSearchTrend = true;
     semanticTrend = [];
     selectedPatterns = {};
     patternData = [];
     patternDataList.set([]);
     currentResults = {};
-    const { sessionId, range, dataRange, data, wholeData, sources } = event.detail;
+    const { sessionId, range, dataRange, data, wholeData, sources } =
+      event.detail;
     writingProgressRange = [
       dataRange.progressRange.min,
       dataRange.progressRange.max,
@@ -806,7 +857,7 @@ $: if (sortColumn || sortDirection) {}
     for (let i = 1; i < semanticData.length; i++) {
       semanticTrend.push(getTrend(semanticData[i - 1], semanticData[i]));
     }
-    currentResults = data
+    currentResults = data;
 
     selectedPatterns[sessionId] = {
       range,
@@ -849,8 +900,8 @@ $: if (sortColumn || sortDirection) {}
       const totalSessions = sessions.length;
       const selectedSessions = sessions.filter((session) =>
         $filterTableData.find(
-          (item) => item.session_id === session.session_id && item.selected
-        )
+          (item) => item.session_id === session.session_id && item.selected,
+        ),
       ).length;
 
       if (selectedSessions === 0) {
@@ -887,7 +938,7 @@ $: if (sortColumn || sortDirection) {}
       }
     } else {
       const sessionsToRemove = tableData.filter(
-        (item) => item.prompt_code === tag
+        (item) => item.prompt_code === tag,
       );
       for (const sessionToRemove of sessionsToRemove) {
         await fetchInitData(sessionToRemove.session_id, true, true);
@@ -902,13 +953,13 @@ $: if (sortColumn || sortDirection) {}
         selectedTagsList.some((tag) =>
           tableData.some(
             (item) =>
-              item.session_id === session.sessionId && item.prompt_code === tag
-          )
-        )
+              item.session_id === session.sessionId && item.prompt_code === tag,
+          ),
+        ),
       ).length;
       if (tagSessionCount === 1) {
         const allSessionsForTag = tableData.filter((item) =>
-          selectedTagsList.includes(item.prompt_code)
+          selectedTagsList.includes(item.prompt_code),
         );
         for (const session of allSessionsForTag) {
           await fetchInitData(session.session_id, false, true);
@@ -916,7 +967,7 @@ $: if (sortColumn || sortDirection) {}
       }
     } else {
       const allSessionsForTag = tableData.filter((item) =>
-        selectedTagsList.includes(item.prompt_code)
+        selectedTagsList.includes(item.prompt_code),
       );
       for (const session of allSessionsForTag) {
         await fetchInitData(session.session_id, false, true);
@@ -931,13 +982,14 @@ $: if (sortColumn || sortDirection) {}
       storeSessionData.set(new Map());
     } else {
       const filteredData = tableData.filter((session) =>
-        $selectedTags.includes(session.prompt_code)
+        $selectedTags.includes(session.prompt_code),
       );
       const sessionArray = Array.from($storeSessionData.values());
       const updatedData = filteredData.map((row) => ({
         ...row,
         selected:
-          sessionArray.some((item) => item.sessionId === row.session_id) || true,
+          sessionArray.some((item) => item.sessionId === row.session_id) ||
+          true,
       }));
 
       filterTableData.set(updatedData);
@@ -956,24 +1008,23 @@ $: if (sortColumn || sortDirection) {}
   async function fetchInitData(sessionId, isDelete, isPrompt) {
     if (isDelete) {
       initData.update((data) =>
-        data.filter((item) => item.sessionId !== sessionId)
+        data.filter((item) => item.sessionId !== sessionId),
       );
       return;
     }
-
     const similarityData = await fetchSimilarityData(sessionId);
     const llmScore = await fetchLLMScore(sessionId);
-    
+
     if (similarityData) {
       initData.update((sessions) => {
-        
-        const existingIndex = sessions.findIndex(s => s.sessionId === sessionId);
-        
+        const existingIndex = sessions.findIndex(
+          (s) => s.sessionId === sessionId,
+        );
+
         if (existingIndex !== -1) {
-         
           sessions[existingIndex] = {
             ...sessions[existingIndex],
-            llmScore: llmScore
+            llmScore: llmScore,
           };
         } else {
           sessions.push({
@@ -986,11 +1037,9 @@ $: if (sortColumn || sortDirection) {}
         return [...sessions];
       });
     }
-
     if (isPrompt) {
       updatePromptFilterStatus();
     }
-    // console.log("🔍 Final initData after update:", sessions.find(s => s.sessionId === sessionId));
   }
 
   const fetchSessions = async () => {
@@ -998,7 +1047,7 @@ $: if (sortColumn || sortDirection) {}
       const response = await fetch(`${base}/fine.json`);
       const data = await response.json();
       sessions = data || [];
-      
+
       if (firstSession) {
         tableData = sessions.map((session) => {
           return {
@@ -1007,27 +1056,32 @@ $: if (sortColumn || sortDirection) {}
             selected: true,
           };
         });
-        
-        selectedSession = sessions.map(session => session.session_id);
+
+        selectedSession = sessions.map((session) => session.session_id);
         firstSession = false;
-        selectedTags.set(["reincarnation", "bee", "sideeffect", "pig", "obama", "mana", "dad", "mattdamon", "shapeshifter", "isolation"]);
+        selectedTags.set([
+          "reincarnation",
+          "bee",
+          "sideeffect",
+          "pig",
+          "obama",
+          "mana",
+          "dad",
+          "mattdamon",
+          "shapeshifter",
+          "isolation",
+        ]);
         filterSessions();
-        
+
         $filterTableData = tableData.filter((session) =>
-          $selectedTags.includes(session.prompt_code)
+          $selectedTags.includes(session.prompt_code),
         );
-        
+
         filterOptions = Array.from(
-          new Set(tableData.map((row) => row.prompt_code))
+          new Set(tableData.map((row) => row.prompt_code)),
         );
-        
+
         updatePromptFilterStatus();
-        
-        for (const session of $filterTableData) {
-          const llmScore = await fetchLLMScore(session.session_id);
-          // console.log("Initial LLM score for", session.session_id, ":", llmScore);
-          
-        }
       }
     } catch (error) {
       console.error("Error when fetching sessions:", error);
@@ -1044,7 +1098,9 @@ $: if (sortColumn || sortDirection) {}
       return;
     }
     try {
-      const response = await fetch(`${base}/chi2022-coauthor-v1.0/coauthor-json/${sessionFile}.jsonl`);
+      const response = await fetch(
+        `${base}/chi2022-coauthor-v1.0/coauthor-json/${sessionFile}.jsonl`,
+      );
       if (!response.ok) {
         throw new Error(`Failed to fetch session data: ${response.status}`);
       }
@@ -1055,7 +1111,8 @@ $: if (sortColumn || sortDirection) {}
       time100 = (time100.getTime() - time0.getTime()) / (1000 * 60);
       currentTime = time100;
 
-      const { chartData, textElements, paragraphColor, summaryData } = handleEvents(data, sessionFile);
+      const { chartData, textElements, paragraphColor, summaryData } =
+        handleEvents(data, sessionFile);
       const similarityData = await fetchSimilarityData(sessionFile);
       let updatedSession = {
         sessionId: sessionFile,
@@ -1093,7 +1150,7 @@ $: if (sortColumn || sortDirection) {}
   const fetchSimilarityData = async (sessionFile) => {
     try {
       const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/similarity_results/${sessionFile}_similarity.json`
+        `${base}/chi2022-coauthor-v1.0/similarity_results/${sessionFile}_similarity.json`,
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -1109,7 +1166,7 @@ $: if (sortColumn || sortDirection) {}
 
   const handleSessionChange = (sessionId) => {
     let isCurrentlySelected = $filterTableData.find(
-      (row) => row.session_id == sessionId
+      (row) => row.session_id == sessionId,
     )?.selected;
 
     filterTableData.set(
@@ -1118,7 +1175,7 @@ $: if (sortColumn || sortDirection) {}
           return { ...row, selected: !row.selected };
         }
         return row;
-      })
+      }),
     );
 
     if (!isCurrentlySelected) {
@@ -1134,18 +1191,18 @@ $: if (sortColumn || sortDirection) {}
       fetchSimilarityData(sessionId).then((similarityData) => {
         if (similarityData) {
           storeSessionData.update((sessionsMap) => {
-          selectedSession.forEach((sessionId) => {
-            if (sessionsMap.has(sessionId)) {
-              const session = sessionsMap.get(sessionId);
-              sessionsMap.set(sessionId, {
-                ...session,
-                similarityData: similarityData,
-                totalSimilarityData: similarityData,
-              });
-            }
+            selectedSession.forEach((sessionId) => {
+              if (sessionsMap.has(sessionId)) {
+                const session = sessionsMap.get(sessionId);
+                sessionsMap.set(sessionId, {
+                  ...session,
+                  similarityData: similarityData,
+                  totalSimilarityData: similarityData,
+                });
+              }
+            });
+            return new Map(sessionsMap);
           });
-          return new Map(sessionsMap);
-        });
           initData.update((sessions) => {
             if (!sessions.find((s) => s.sessionId === sessionId)) {
               const newSession = {
@@ -1162,7 +1219,7 @@ $: if (sortColumn || sortDirection) {}
     }
 
     let nowSelectTag = new Set(
-      $filterTableData.filter((f) => f.selected).map((f) => f.prompt_code)
+      $filterTableData.filter((f) => f.selected).map((f) => f.prompt_code),
     );
     selectedTags.update((selected) => {
       selected = selected.filter((tag) => nowSelectTag.has(tag));
@@ -1176,57 +1233,57 @@ $: if (sortColumn || sortDirection) {}
   }
 
   onMount(async () => {
-  document.title = "Ink-Pulse";
-  await fetchSessions();
-  for (let i = 0; i < selectedSession.length; i++) {
-    const sessionId = selectedSession[i];
-    
-    // 获取相似度数据和LLM分数
-    const similarityData = await fetchSimilarityData(sessionId);
-    const llmScore = await fetchLLMScore(sessionId);
-    // console.log("✅ onMount LLM score for", sessionId, ":", llmScore);
-    
-    initData.update((sessions) => {
-      const newSession = {
-        sessionId: sessionId,
-        similarityData: similarityData,
-        totalSimilarityData: similarityData,
-        llmScore: llmScore,
-      };
-      sessions.push(newSession);
-      return [...sessions];
-    });
-  }
-});
- 
+    document.title = "Ink-Pulse";
+    await fetchSessions();
+    for (let i = 0; i < selectedSession.length; i++) {
+      const sessionId = selectedSession[i];
+      const similarityData = await fetchSimilarityData(sessionId);
+      const llmScore = await fetchLLMScore(sessionId);
+
+      initData.update((sessions) => {
+        const newSession = {
+          sessionId: sessionId,
+          similarityData: similarityData,
+          totalSimilarityData: similarityData,
+          llmScore: llmScore,
+        };
+        sessions.push(newSession);
+        return [...sessions];
+      });
+    }
+  });
+
   function handleChartZoom(event) {
     event.preventDefault();
-    
+
     if (!$clickSession || !$clickSession.sessionId) return;
-    
+
     const sessionId = $clickSession.sessionId;
     const currentTransform = zoomTransforms[sessionId] || d3.zoomIdentity;
-    
+
     const scaleFactor = event.deltaY > 0 ? 0.9 : 1.1;
     const newK = Math.max(1, Math.min(5, currentTransform.k * scaleFactor));
-    
+
     const rect = event.currentTarget.getBoundingClientRect();
     const mouseY = event.clientY - rect.top;
-    
+
     const chartHeight = height - margin.top - margin.bottom;
     const centerY = mouseY - margin.top;
-    
+
     const currentCenterY = (centerY - currentTransform.y) / currentTransform.k;
-    const newTranslateY = centerY - (currentCenterY * newK);
-    
+    const newTranslateY = centerY - currentCenterY * newK;
+
     const maxTranslateY = 0;
     const minTranslateY = -chartHeight * (newK - 1);
-    const clampedY = Math.max(minTranslateY, Math.min(newTranslateY, maxTranslateY));
-    
+    const clampedY = Math.max(
+      minTranslateY,
+      Math.min(newTranslateY, maxTranslateY),
+    );
+
     zoomTransforms[sessionId] = d3.zoomIdentity
       .translate(currentTransform.x, clampedY)
       .scale(newK);
-    
+
     zoomTransforms = { ...zoomTransforms };
   }
 
@@ -1240,10 +1297,10 @@ $: if (sortColumn || sortDirection) {}
     let textLength = wholeText.length;
 
     let newParagraph = [...wholeText.matchAll(/\n/g)].map(
-      (match) => match.index
+      (match) => match.index,
     );
     let paragraphPercentages = newParagraph.map(
-      (pos) => (pos / textLength) * 100
+      (pos) => (pos / textLength) * 100,
     );
     let mergeParagraph = [0];
     for (let i = 0; i < paragraphPercentages.length; i++) {
@@ -1260,7 +1317,7 @@ $: if (sortColumn || sortDirection) {}
         Math.abs(curr.percentage - percentage) <
         Math.abs(prev.percentage - percentage)
           ? curr
-          : prev
+          : prev,
       );
 
       return closest.time;
@@ -1296,61 +1353,72 @@ $: if (sortColumn || sortDirection) {}
     const initColor = "#FC8D62";
     currentColor = new Array(currentCharArray.length).fill(initColor);
 
-    let combinedText = data.info.reduce((acc, event) => {
-      const { name, text = "", eventSource, event_time, count = 0, pos = 0 } = event;
-      const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
-      const eventTime = new Date(event_time);
+    let combinedText = data.info.reduce(
+      (acc, event) => {
+        const {
+          name,
+          text = "",
+          eventSource,
+          event_time,
+          count = 0,
+          pos = 0,
+        } = event;
+        const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
+        const eventTime = new Date(event_time);
 
-      if (firstTime === null) {
-        firstTime = eventTime;
-        paragraphTime = [{ time: 0, pos: 0 }];
-      }
+        if (firstTime === null) {
+          firstTime = eventTime;
+          paragraphTime = [{ time: 0, pos: 0 }];
+        }
 
-      const relativeTime = (eventTime.getTime() - firstTime.getTime()) / 60000;
-      let percentage;
+        const relativeTime =
+          (eventTime.getTime() - firstTime.getTime()) / 60000;
+        let percentage;
 
-      if (name === "text-insert") {
-        const insertChars = [...text];
-        currentCharArray.splice(pos, 0, ...insertChars);
-        currentColor.splice(pos, 0, ...insertChars.map(() => textColor));
-        currentText = currentCharArray.join("");
-        insertChars.forEach((char, i) => {
-          acc.splice(pos + i, 0, { text: char, textColor });
+        if (name === "text-insert") {
+          const insertChars = [...text];
+          currentCharArray.splice(pos, 0, ...insertChars);
+          currentColor.splice(pos, 0, ...insertChars.map(() => textColor));
+          currentText = currentCharArray.join("");
+          insertChars.forEach((char, i) => {
+            acc.splice(pos + i, 0, { text: char, textColor });
+          });
+          totalInsertions++;
+          totalInsertionTime += relativeTime;
+        }
+
+        if (name === "text-delete") {
+          currentCharArray.splice(pos, count);
+          currentColor.splice(pos, count);
+          currentText = currentCharArray.join("");
+          acc.splice(pos, count);
+          totalDeletions++;
+          totalDeletionTime += relativeTime;
+        }
+
+        if (name === "suggestion-open") {
+          totalSuggestions++;
+          totalSuggestionTime += relativeTime;
+        }
+
+        percentage = (currentCharArray.length / totalTextLength) * 100;
+
+        chartData.push({
+          time: relativeTime,
+          percentage,
+          eventSource,
+          color: textColor,
+          currentText,
+          currentColor: [...currentColor],
+          opacity: 1,
+          isSuggestionOpen: name === "suggestion-open",
+          index: indexOfAct++,
         });
-        totalInsertions++;
-        totalInsertionTime += relativeTime;
-      }
 
-      if (name === "text-delete") {
-        currentCharArray.splice(pos, count);
-        currentColor.splice(pos, count);
-        currentText = currentCharArray.join("");
-        acc.splice(pos, count);
-        totalDeletions++;
-        totalDeletionTime += relativeTime;
-      }
-
-      if (name === "suggestion-open") {
-        totalSuggestions++;
-        totalSuggestionTime += relativeTime;
-      }
-
-      percentage = (currentCharArray.length / totalTextLength) * 100;
-
-      chartData.push({
-        time: relativeTime,
-        percentage,
-        eventSource,
-        color: textColor,
-        currentText,
-        currentColor: [...currentColor],
-        opacity: 1,
-        isSuggestionOpen: name === "suggestion-open",
-        index: indexOfAct++,
-      });
-
-      return acc;
-    }, [...initText].map(ch => ({ text: ch, textColor: "#FC8D62" })));
+        return acc;
+      },
+      [...initText].map((ch) => ({ text: ch, textColor: "#FC8D62" })),
+    );
 
     paragraphTime = adjustTime(currentText, chartData);
     for (let i = 0; i < paragraphTime.length - 1; i++) {
@@ -1371,7 +1439,10 @@ $: if (sortColumn || sortDirection) {}
       });
     }
 
-    if (combinedText.length && combinedText[combinedText.length - 1].text === "\n") {
+    if (
+      combinedText.length &&
+      combinedText[combinedText.length - 1].text === "\n"
+    ) {
       combinedText.pop();
       currentCharArray.pop();
       currentColor.pop();
@@ -1393,10 +1464,10 @@ $: if (sortColumn || sortDirection) {}
         totalInsertions,
         totalDeletions,
         totalSuggestions,
-      }
+      },
     };
   };
-  
+
   function handlePointSelected(e, sessionId) {
     const d = e.detail;
     clickSession.update((currentSession) => {
@@ -1441,37 +1512,37 @@ $: if (sortColumn || sortDirection) {}
   <header class="App-header">
     <nav>
       {#if !showMulti}
-      <div
-        class={`filter-container ${showFilter ? (isCollapsed ? "filter-container-close" : "") : ""} ${showFilter ? "show" : ""}`}
-      >
-        {#each filterOptions as option}
-          <label class="filter-label">
-            <span class="checkbox-wrapper">
-              <input
-                id="checkbox-n"
-                type="checkbox"
-                value={option}
-                on:change={toggleTag}
-                checked={$selectedTags.includes(option)}
-                class="filter-checkbox"
-              />
-              <span class="custom-checkbox">
-                {#if $promptFilterStatus[option] === "all"}
-                  <span class="checkbox-indicator">✓</span>
-                {:else if $promptFilterStatus[option] === "partial"}
-                  <span
-                    class="checkbox-indicator-alter"
-                    style="font-weight: bold; font-size: 24px;">-</span
-                  >
-                {:else}
-                  <span class="checkbox-indicator"></span>
-                {/if}
+        <div
+          class={`filter-container ${showFilter ? (isCollapsed ? "filter-container-close" : "") : ""} ${showFilter ? "show" : ""}`}
+        >
+          {#each filterOptions as option}
+            <label class="filter-label">
+              <span class="checkbox-wrapper">
+                <input
+                  id="checkbox-n"
+                  type="checkbox"
+                  value={option}
+                  on:change={toggleTag}
+                  checked={$selectedTags.includes(option)}
+                  class="filter-checkbox"
+                />
+                <span class="custom-checkbox">
+                  {#if $promptFilterStatus[option] === "all"}
+                    <span class="checkbox-indicator">✓</span>
+                  {:else if $promptFilterStatus[option] === "partial"}
+                    <span
+                      class="checkbox-indicator-alter"
+                      style="font-weight: bold; font-size: 24px;">-</span
+                    >
+                  {:else}
+                    <span class="checkbox-indicator"></span>
+                  {/if}
+                </span>
               </span>
-            </span>
-            {option}
-          </label>
-        {/each}
-      </div>
+              {option}
+            </label>
+          {/each}
+        </div>
       {/if}
       <div class="chart-explanation">
         <span class="triangle-text">▼</span> user open the AI suggestion
@@ -1532,21 +1603,25 @@ $: if (sortColumn || sortDirection) {}
                     <h5>Session: {sessionId.slice(0, 4)}</h5>
                     <div class="pattern-buttons">
                       <button
-                        class="delete-pattern-button"
-                        on:click={() => deletePattern(sessionId)}>Delete</button
-                      >
-                      <button
                         class="search-pattern-button"
                         on:click={() => searchPattern(sessionId)}>Search</button
+                      >
+                      <button
+                        class="delete-pattern-button"
+                        on:click={() => deletePattern(sessionId)}>Delete</button
                       >
                     </div>
                   </div>
                   <div class="pattern-details">
                     <div>
-                      Semantic Change: {pattern.dataRange.scRange.min.toFixed(2)} - {pattern.dataRange.scRange.max.toFixed(2)}
+                      Semantic Change: {pattern.dataRange.scRange.min.toFixed(
+                        2,
+                      )} - {pattern.dataRange.scRange.max.toFixed(2)}
                     </div>
                     <div>
-                      Progress Range: {pattern.dataRange.progressRange.min.toFixed(2)}% - {pattern.dataRange.progressRange.max.toFixed(2)}%
+                      Progress Range: {pattern.dataRange.progressRange.min.toFixed(
+                        2,
+                      )}% - {pattern.dataRange.progressRange.max.toFixed(2)}%
                     </div>
                     <div>
                       Counts: {pattern.count}
@@ -1567,10 +1642,15 @@ $: if (sortColumn || sortDirection) {}
                         class:dimmed={!isProgressChecked}
                         style="display: flex; align-items: center; font-size: 13px;"
                       >
-                        <input type="checkbox" bind:checked={isProgressChecked} />
+                        <input
+                          type="checkbox"
+                          bind:checked={isProgressChecked}
+                        />
                         Writing Progress
                         <div style="flex: 1;"></div>
-                        <RangeSlider range float
+                        <RangeSlider
+                          range
+                          float
                           class="rangeSlider"
                           min={0}
                           max={100}
@@ -1584,78 +1664,105 @@ $: if (sortColumn || sortDirection) {}
                         <input type="checkbox" bind:checked={isTimeChecked} />
                         Time
                         <div style="flex: 1"></div>
-                        <RangeSlider range float
+                        <RangeSlider
+                          range
+                          float
                           class="rangeSlider"
                           min={0}
                           max={$clickSession?.time100}
                           bind:values={timeRange}
                         />
                       </div>
-                      <div class:dimmed={!isSourceChecked} style="font-size: 13px;">
+                      <div
+                        class:dimmed={!isSourceChecked}
+                        style="font-size: 13px;"
+                      >
                         <input type="checkbox" bind:checked={isSourceChecked} />
                         Source(human/AI)
-                        <label class="switch" style="transform: translateY(4px);" bind:this={exactSourceButton}>
-                          <input type="checkbox" bind:checked={isExactSearchSource} disabled={!isSourceChecked}>
+                        <label
+                          class="switch"
+                          style="transform: translateY(4px);"
+                          bind:this={exactSourceButton}
+                        >
+                          <input
+                            type="checkbox"
+                            bind:checked={isExactSearchSource}
+                            disabled={!isSourceChecked}
+                          />
                           <span class="slider"></span>
                         </label>
                       </div>
                       <div style="font-size: 13px;">
                         <div class:dimmed={!isSemanticChecked}>
-                          <input type="checkbox" bind:checked={isSemanticChecked} />
+                          <input
+                            type="checkbox"
+                            bind:checked={isSemanticChecked}
+                          />
                           Semantic Expansion
                         </div>
-                          <div style="margin-left: 20px;">
-                            <div class:dimmed={!isValueRangeChecked}>
+                        <div style="margin-left: 20px;">
+                          <div class:dimmed={!isValueRangeChecked}>
+                            <input
+                              type="checkbox"
+                              bind:checked={isValueRangeChecked}
+                              disabled={!isSemanticChecked}
+                            />
+                            Value Range
+                          </div>
+                          <div class:dimmed={!isValueTrendChecked}>
+                            <input
+                              type="checkbox"
+                              bind:checked={isValueTrendChecked}
+                              disabled={!isSemanticChecked}
+                            />
+                            Value Trend
+                            <label
+                              class="switch"
+                              style="transform: translateY(4px);"
+                              bind:this={exactTrendButton}
+                            >
                               <input
                                 type="checkbox"
-                                bind:checked={isValueRangeChecked}
-                                disabled={!isSemanticChecked}
+                                bind:checked={isExactSearchTrend}
+                                disabled={!isSemanticChecked ||
+                                  !isValueTrendChecked}
                               />
-                              Value Range
-                            </div>
-                            <div class:dimmed={!isValueTrendChecked}>
-                              <input
-                                type="checkbox"
-                                bind:checked={isValueTrendChecked}
-                                disabled={!isSemanticChecked}
-                              />
-                              Value Trend
-                              <label class="switch" style="transform: translateY(4px);" bind:this={exactTrendButton}>
-                                <input type="checkbox" bind:checked={isExactSearchTrend} disabled={!isSemanticChecked || !isValueTrendChecked}>
-                                <span class="slider"></span>
-                              </label>
-                            </div>
+                              <span class="slider"></span>
+                            </label>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                   {#if $patternDataList.length > 0 && isSearch == 2}
-                    <div>
-                      Search Results
-                    </div>
+                    <div>Search Results</div>
                     {#each $patternDataList as sessionData, index}
-                      {#if index < $showResultCount} 
+                      {#if index < $showResultCount}
                         <div class="search-result-container">
-                          <div style="font-size: 13px; margin-bottom: 4px; margin-left: 8px; position: relative;">
+                          <div
+                            style="font-size: 13px; margin-bottom: 4px; margin-left: 8px; position: relative;"
+                          >
                             <strong>{sessionData.sessionId}</strong>
-                            <button class="close-button" style="position: absolute; top:0px; right:0px; background-color: initial;"
+                            <button
+                              class="close-button"
+                              style="position: absolute; top:0px; right:0px; background-color: initial;"
                               on:click={() => {
                                 removepattern();
-                              }}
-                            >×</button>
+                              }}>×</button
+                            >
                           </div>
                           <div style="display: flex; align-items: flex-start">
                             <div>
                               <PatternChartPreviewSerach
-                              sessionId={sessionData.sessionId}
-                              data={sessionData.segments}
-                              wholeData={sessionData.similarityData} 
+                                sessionId={sessionData.sessionId}
+                                data={sessionData.segments}
+                                wholeData={sessionData.similarityData}
                               />
                             </div>
                             <div>
                               <LineChartPreview
-                              bind:this={chartRefs[sessionData.sessionId]}
-                              chartData={sessionData.chartData}
+                                bind:this={chartRefs[sessionData.sessionId]}
+                                chartData={sessionData.chartData}
                               />
                             </div>
                           </div>
@@ -1663,28 +1770,32 @@ $: if (sortColumn || sortDirection) {}
                       {/if}
                     {/each}
                     {#if $showResultCount < $patternDataList.length}
-                      <div style="display: flex; justify-content: center; margin-top: 10px;">
-                        <button 
+                      <div
+                        style="display: flex; justify-content: center; margin-top: 10px;"
+                      >
+                        <button
                           class="search-pattern-button"
                           style="margin-right: 10px;"
-                          on:click={() => {
-                              const sliceToSave = $patternDataList.slice(0, $showResultCount);
-                              searchPatternSet.update(current => [...current, sliceToSave]);
-                            }}>Save NOW Pattern
+                          on:click={openSavePanel}
+                          >Save NOW Pattern
                         </button>
-                        <button class="search-pattern-button" on:click={() => {$showResultCount += 5}}>
+                        <button
+                          class="search-pattern-button"
+                          on:click={() => {
+                            $showResultCount += 5;
+                          }}
+                        >
                           More Results
                         </button>
                       </div>
                     {:else}
-                    <div style="gap: 10px"></div>
-                      <button
-                        class="search-pattern-button"
-                        on:click={() => {
-                            const sliceToSave = $patternDataList.slice(0, $showResultCount);
-                            searchPatternSet.update(current => [...current, sliceToSave]);
-                          }}>Save NOW pattern
-                      </button>
+                      <div style="text-align: center;">
+                        <button
+                          class="search-pattern-button"
+                          on:click={openSavePanel}
+                          >Save NOW pattern
+                        </button>
+                      </div>
                       <div style="text-align: center; margin-top: 10px;">
                         <span class="no-more-results">End of Results</span>
                       </div>
@@ -1694,9 +1805,7 @@ $: if (sortColumn || sortDirection) {}
                       No data found matching the search criteria.
                     </div>
                   {:else if isSearch == 1}
-                    <div class="loading-message">
-                      Searching for patterns...
-                    </div>
+                    <div class="loading-message">Searching for patterns...</div>
                   {/if}
                 </div>
               {/each}
@@ -1708,6 +1817,14 @@ $: if (sortColumn || sortDirection) {}
           {/if}
         </div>
       </div>
+    {/if}
+    {#if isSave}
+      <SavePanel
+        name={nameInput}
+        color={colorInput}
+        on:save={handleSave}
+        on:close={handleClose}
+      />
     {/if}
     <div class="container">
       {#if isOpen}
@@ -1737,7 +1854,6 @@ $: if (sortColumn || sortDirection) {}
       <div style="margin-top: 70px;" hidden={showMulti}>
         {#if $initData.length > 0}
           {#if selectedCategoryFilter}
-
             <div class="category-filter-section">
               <div class="category-filter-header">
                 <h2>
@@ -1752,19 +1868,28 @@ $: if (sortColumn || sortDirection) {}
                   <thead>
                     <tr>
                       <th>Activity</th>
-                      <th class="sortable-header" on:click={() => handleSort('topic')}>
+                      <th
+                        class="sortable-header"
+                        on:click={() => handleSort("topic")}
+                      >
                         <span>Topic</span>
-                        <span class="sort-icon">{getSortIcon('topic')}</span>
+                        <span class="sort-icon">{getSortIcon("topic")}</span>
                       </th>
-                      <th class="sortable-header" on:click={() => handleSort('score')}>
+                      <th
+                        class="sortable-header"
+                        on:click={() => handleSort("score")}
+                      >
                         <span>Score</span>
-                        <span class="sort-icon">{getSortIcon('score')}</span>
+                        <span class="sort-icon">{getSortIcon("score")}</span>
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {#each (selectedCategoryFilter ? filteredByCategory : filteredSessions) as sessionData (sessionData.sessionId + sortColumn + sortDirection)}
-                      <tr class="session-row" on:click={() => handleRowClick(sessionData)}>
+                    {#each selectedCategoryFilter ? filteredByCategory : filteredSessions as sessionData (sessionData.sessionId + sortColumn + sortDirection)}
+                      <tr
+                        class="session-row"
+                        on:click={() => handleRowClick(sessionData)}
+                      >
                         <SessionCell
                           {sessionData}
                           {chartRefs}
@@ -1780,7 +1905,6 @@ $: if (sortColumn || sortDirection) {}
               </div>
             </div>
           {:else}
-
             <div class="unified-table-container">
               <div class="unified-table-wrapper">
                 <table class="unified-sessions-table">
@@ -1788,19 +1912,25 @@ $: if (sortColumn || sortDirection) {}
                     <tr>
                       {#each Array(3) as _, colIndex}
                         <th>Activity</th>
-                        <th class="sortable-header" on:click={() => handleSort('topic')}>
+                        <th
+                          class="sortable-header"
+                          on:click={() => handleSort("topic")}
+                        >
                           <span>Topic</span>
-                          <span class="sort-icon">{getSortIcon('topic')}</span>
+                          <span class="sort-icon">{getSortIcon("topic")}</span>
                         </th>
-                        <th class="sortable-header" on:click={() => handleSort('score')}>
+                        <th
+                          class="sortable-header"
+                          on:click={() => handleSort("score")}
+                        >
                           <span>Score</span>
-                          <span class="sort-icon">{getSortIcon('score')}</span>
+                          <span class="sort-icon">{getSortIcon("score")}</span>
                         </th>
                       {/each}
                     </tr>
                   </thead>
                   <tbody>
-                    {#each Array(Math.ceil(Math.max(...getColumnGroups().map(group => group.length)))) as _, rowIndex (rowIndex + sortColumn + sortDirection)}
+                    {#each Array(Math.ceil(Math.max(...getColumnGroups().map((group) => group.length)))) as _, rowIndex (rowIndex + sortColumn + sortDirection)}
                       <tr class="unified-session-row">
                         {#each getColumnGroups() as group}
                           <SessionCell
@@ -1818,7 +1948,6 @@ $: if (sortColumn || sortDirection) {}
                 </table>
               </div>
             </div>
-
           {/if}
         {/if}
       </div>
@@ -1826,7 +1955,7 @@ $: if (sortColumn || sortDirection) {}
         {#if $clickSession}
           <div class="multi-box" style="margin-top: 70px;">
             {#if !loadedMap[$clickSession.sessionId]}
-                  <SkeletonLoading />
+              <SkeletonLoading />
             {/if}
             <div class:hide={!loadedMap[$clickSession.sessionId]}>
               <div class="display-box">
@@ -1835,7 +1964,7 @@ $: if (sortColumn || sortDirection) {}
                     <h3>
                       {#if sessions && sessions.find((s) => s.session_id === $clickSession.sessionId)}
                         {sessions.find(
-                          (s) => s.session_id === $clickSession.sessionId
+                          (s) => s.session_id === $clickSession.sessionId,
                         ).prompt_code} - {$clickSession.sessionId}
                       {:else}
                         Session: {$clickSession.sessionId}
@@ -1878,11 +2007,15 @@ $: if (sortColumn || sortDirection) {}
                           similarityData={$clickSession.similarityData}
                           {yScale}
                           {height}
-                          bind:zoomTransform={zoomTransforms[$clickSession.sessionId]}
+                          bind:zoomTransform={
+                            zoomTransforms[$clickSession.sessionId]
+                          }
                           {selectionMode}
                           on:selectionChanged={handleSelectionChanged}
                           on:selectionCleared={handleSelectionCleared}
-                          bind:this={chartRefs[$clickSession.sessionId + "-barChart"]}
+                          bind:this={
+                            chartRefs[$clickSession.sessionId + "-barChart"]
+                          }
                           on:chartLoaded={handleChartLoaded}
                         />
                       {/if}
@@ -1895,7 +2028,9 @@ $: if (sortColumn || sortDirection) {}
                             handlePointSelected(e, $clickSession.sessionId)}
                           {yScale}
                           {height}
-                          bind:zoomTransform={zoomTransforms[$clickSession.sessionId]}
+                          bind:zoomTransform={
+                            zoomTransforms[$clickSession.sessionId]
+                          }
                         />
                       </div>
                     </div>
@@ -1951,16 +2086,16 @@ $: if (sortColumn || sortDirection) {}
               <th
                 style="display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; padding-top: 10px; padding-bottom: 7px"
                 >Prompt Code
-                  <a
-                    on:click|preventDefault={toggleFilter}
-                    href=" "
-                    aria-label="Filter"
-                    bind:this={filterButton}
-                    class={showFilter
-                      ? "material-symbols--filter-alt"
-                      : "material-symbols--filter-alt-outline"}
-                  >
-                  </a>
+                <a
+                  on:click|preventDefault={toggleFilter}
+                  href=" "
+                  aria-label="Filter"
+                  bind:this={filterButton}
+                  class={showFilter
+                    ? "material-symbols--filter-alt"
+                    : "material-symbols--filter-alt-outline"}
+                >
+                </a>
               </th>
               <th
                 style="text-transform: uppercase; padding-top: 10px; padding-bottom: 7px"
@@ -2011,23 +2146,12 @@ $: if (sortColumn || sortDirection) {}
     --range-handle-focus: #137a7f;
   }
 
-  .zoom-reset-btn {
-    display: block;
-    margin: 10px auto;
-    padding: 5px 10px;
-    background-color: #137a7f;
-    color: white;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-  }
-
-  .zoom-reset-btn:hover {
-    background-color: #86cecb;
+  * {
+    font-family: "Poppins", sans-serif;
   }
 
   .container {
-    width: 100%; 
+    width: 100%;
     margin: 0 auto;
     margin-bottom: 70px;
     display: flex;
@@ -2055,7 +2179,6 @@ $: if (sortColumn || sortDirection) {}
       0px 1px 5px rgba(0, 0, 0, 0.1),
       1px 1px 5px rgba(0, 0, 0, 0.1),
       -1px 1px 5px rgba(0, 0, 0, 0.1);
-    font-family: Poppins, sans-serif;
     font-size: 14px;
     white-space: pre-wrap;
     text-align: left;
@@ -2068,7 +2191,6 @@ $: if (sortColumn || sortDirection) {}
     display: flex;
     flex-direction: column;
     height: 400px;
-    font-family: Poppins, sans-serif;
     font-size: 14px;
     white-space: pre-wrap;
     text-align: left;
@@ -2076,9 +2198,8 @@ $: if (sortColumn || sortDirection) {}
   }
 
   .content-box:first-child {
-  flex: 3; 
-}
-
+    flex: 3;
+  }
 
   .text-container {
     flex: 1;
@@ -2110,7 +2231,7 @@ $: if (sortColumn || sortDirection) {}
     text-align: center;
     top: 10%;
   }
-  
+
   .grid-item {
     display: flex;
     flex-direction: column;
@@ -2118,7 +2239,9 @@ $: if (sortColumn || sortDirection) {}
     background: white;
     border-radius: 8px;
     padding: 15px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
   progress {
@@ -2162,7 +2285,6 @@ $: if (sortColumn || sortDirection) {}
   }
 
   .session-summary {
-    font-family: Poppins, sans-serif;
     font-size: 12px;
     line-height: 1.1;
   }
@@ -2187,27 +2309,8 @@ $: if (sortColumn || sortDirection) {}
 
   .chart-explanation {
     margin-top: 5px;
-    font-family: Poppins, sans-serif;
     font-size: 12px;
     display: flex;
-  }
-
-  .triangle-text {
-    color: #ffbbcc;
-  }
-
-  .user-line {
-    color: #66c2a5;
-  }
-
-  .api-line {
-    color: #fc8d62;
-  }
-
-  .triangle-text,
-  .user-line,
-  .api-line {
-    margin-right: 3px;
   }
 
   .chart-explanation span {
@@ -2238,21 +2341,6 @@ $: if (sortColumn || sortDirection) {}
 
   .introduction h2 {
     margin-bottom: 10px;
-  }
-
-  .start-button {
-    margin-top: 15px;
-    padding: 10px 20px;
-    background: #137a7f;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-  }
-
-  .start-button:hover {
-    background: #86cecb;
   }
 
   nav {
@@ -2305,50 +2393,6 @@ $: if (sortColumn || sortDirection) {}
     top: 0;
     background: white;
     z-index: 10;
-  }
-
-  .material-symbols--info-outline-rounded {
-    display: flex;
-    width: 24px;
-    height: 24px;
-    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 17q.425 0 .713-.288T13 16v-4q0-.425-.288-.712T12 11t-.712.288T11 12v4q0 .425.288.713T12 17m0-8q.425 0 .713-.288T13 8t-.288-.712T12 7t-.712.288T11 8t.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12t-2.325-5.675T12 4T6.325 6.325T4 12t2.325 5.675T12 20m0-8'/%3E%3C/svg%3E");
-    background-color: currentColor;
-    -webkit-mask-image: var(--svg);
-    mask-image: var(--svg);
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: 100% 100%;
-    mask-size: 100% 100%;
-    margin-left: auto;
-    margin-left: 10px;
-  }
-
-  .material-symbols--filter-alt-outline {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M11 20q-.425 0-.712-.288T10 19v-6L4.2 5.6q-.375-.5-.112-1.05T5 4h14q.65 0 .913.55T19.8 5.6L14 13v6q0 .425-.288.713T13 20zm1-7.7L16.95 6h-9.9zm0 0'/%3E%3C/svg%3E");
-    background-color: currentColor;
-    -webkit-mask-image: var(--svg);
-    mask-image: var(--svg);
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: 100% 100%;
-    mask-size: 100% 100%;
-  }
-
-  .material-symbols--filter-alt {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M11 20q-.425 0-.712-.288T10 19v-6L4.2 5.6q-.375-.5-.112-1.05T5 4h14q.65 0 .913.55T19.8 5.6L14 13v6q0 .425-.288.713T13 20z'/%3E%3C/svg%3E");
-    background-color: currentColor;
-    -webkit-mask-image: var(--svg);
-    mask-image: var(--svg);
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: 100% 100%;
-    mask-size: 100% 100%;
   }
 
   .filter-container {
@@ -2452,73 +2496,6 @@ $: if (sortColumn || sortDirection) {}
     pointer-events: none;
   }
 
-  input[type="checkbox"] {
-    vertical-align: middle;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    width: 16px;
-    height: 16px;
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
-    background-color: white;
-    cursor: pointer;
-    position: relative;
-  }
-
-  input[type="checkbox"]:checked {
-    background-color: #ffbbcc;
-    border-color: #ffbbcc;
-  }
-
-  input[type="checkbox"]:checked::before {
-    content: "✔";
-    font-size: 12px;
-    color: white;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-weight: bold;
-  }
-
-  #checkbox-n:checked::before {
-    content: "";
-  }
-
-  .material-symbols--stat-1-rounded {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='m12 10.8l-3.9 3.875q-.275.275-.687.288t-.713-.288q-.275-.275-.275-.7t.275-.7l4.6-4.6q.15-.15.325-.213T12 8.4t.375.063t.325.212l4.6 4.6q.275.275.288.688t-.288.712q-.275.275-.7.275t-.7-.275z'/%3E%3C/svg%3E");
-    background-color: currentColor;
-    -webkit-mask-image: var(--svg);
-    mask-image: var(--svg);
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: 100% 100%;
-    mask-size: 100% 100%;
-  }
-
-  .material-symbols--stat-minus-1-rounded {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 14.95q-.2 0-.375-.062t-.325-.213l-4.6-4.6q-.275-.275-.288-.687t.288-.713q.275-.275.7-.275t.7.275L12 12.55l3.9-3.875q.275-.275.688-.288t.712.288q.275.275.275.7t-.275.7l-4.6 4.6q-.15.15-.325.213T12 14.95'/%3E%3C/svg%3E");
-    background-color: currentColor;
-    -webkit-mask-image: var(--svg);
-    mask-image: var(--svg);
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: 100% 100%;
-    mask-size: 100% 100%;
-  }
-
-  a:focus,
-  a:active {
-    color: #86cecb;
-  }
-
   table {
     width: 100%;
     border-collapse: collapse;
@@ -2537,20 +2514,6 @@ $: if (sortColumn || sortDirection) {}
     display: flex;
     align-items: flex-start;
     margin: 15px 0;
-  }
-
-  .material-symbols--restart-alt-rounded {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M9.825 20.7q-2.575-.725-4.2-2.837T4 13q0-1.425.475-2.713t1.35-2.362q.275-.3.675-.313t.725.313q.275.275.288.675t-.263.75q-.6.775-.925 1.7T6 13q0 2.025 1.188 3.613t3.062 2.162q.325.1.538.375t.212.6q0 .5-.35.788t-.825.162m4.35 0q-.475.125-.825-.175t-.35-.8q0-.3.213-.575t.537-.375q1.875-.6 3.063-2.175T18 13q0-2.5-1.75-4.25T12 7h-.075l.4.4q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-2.1-2.1q-.15-.15-.212-.325T8.55 6t.063-.375t.212-.325l2.1-2.1q.275-.275.7-.275t.7.275t.275.7t-.275.7l-.4.4H12q3.35 0 5.675 2.325T20 13q0 2.725-1.625 4.85t-4.2 2.85'/%3E%3C/svg%3E");
-    background-color: currentColor;
-    -webkit-mask-image: var(--svg);
-    mask-image: var(--svg);
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: 100% 100%;
-    mask-size: 100% 100%;
   }
 
   .zoomout-chart {
@@ -2575,66 +2538,6 @@ $: if (sortColumn || sortDirection) {}
     z-index: 999;
   }
 
-  .line-md--loading-twotone-loop {
-    display: inline-block;
-    width: 96px;
-    height: 96px;
-    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%23000' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'%3E%3Cpath stroke-dasharray='16' stroke-dashoffset='16' d='M12 3c4.97 0 9 4.03 9 9'%3E%3Canimate fill='freeze' attributeName='stroke-dashoffset' dur='0.3s' values='16;0'/%3E%3CanimateTransform attributeName='transform' dur='1.5s' repeatCount='indefinite' type='rotate' values='0 12 12;360 12 12'/%3E%3C/path%3E%3Cpath stroke-dasharray='64' stroke-dashoffset='64' stroke-opacity='0.3' d='M12 3c4.97 0 9 4.03 9 9c0 4.97 -4.03 9 -9 9c-4.97 0 -9 -4.03 -9 -9c0 -4.97 4.03 -9 9 -9Z'%3E%3Canimate fill='freeze' attributeName='stroke-dashoffset' dur='1.2s' values='64;0'/%3E%3C/path%3E%3C/g%3E%3C/svg%3E");
-    background-color: currentColor;
-    -webkit-mask-image: var(--svg);
-    mask-image: var(--svg);
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: 100% 100%;
-    mask-size: 100% 100%;
-    z-index: 1000;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-
-  .material-symbols--search-rounded {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l5.6 5.6q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-5.6-5.6q-.75.6-1.725.95T9.5 16m0-2q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14'/%3E%3C/svg%3E");
-    background-color: currentColor;
-    -webkit-mask-image: var(--svg);
-    mask-image: var(--svg);
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: 100% 100%;
-    mask-size: 100% 100%;
-  }
-
-  .pattern-search-button {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 16px;
-    background-color: #137a7f;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    font-weight: 500;
-    margin-left: auto;
-  }
-
-  .pattern-search-button.active {
-    background-color: #ea4335;
-  }
-
-  .pattern-search-button:hover {
-    opacity: 0.9;
-  }
-
-  .search-icon {
-    font-size: 16px;
-  }
-
   .pattern-search-panel {
     position: fixed;
     top: 70px;
@@ -2645,7 +2548,7 @@ $: if (sortColumn || sortDirection) {}
     border-radius: 8px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
     overflow: auto;
-    z-index: 1000;
+    z-index: 500;
     display: flex;
     flex-direction: column;
   }
@@ -2706,39 +2609,9 @@ $: if (sortColumn || sortDirection) {}
     color: #202124;
   }
 
-  .view-pattern-button {
-    padding: 4px 10px;
-    background-color: #137a7f;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-  }
-
   .pattern-chart-preview.small-preview {
-    width: 150px; 
+    width: 150px;
     height: 120px;
-  }
-
-  .delete-pattern-button {
-    padding: 4px 10px;
-    background-color: #921515;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-  }
-
-  .search-pattern-button {
-    padding: 4px 10px;
-    background-color: #137a7f;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
   }
 
   .pattern-details {
@@ -2755,26 +2628,6 @@ $: if (sortColumn || sortDirection) {}
     background-color: white;
   }
 
-  .close-button {
-    background: none;
-    border: none;
-    font-size: 22px;
-    cursor: pointer;
-    color: #5f6368;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    transition: background-color 0.2s;
-  }
-
-  .close-button:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-  }
-
   .no-patterns-selected {
     color: #5f6368;
     font-size: 14px;
@@ -2782,12 +2635,6 @@ $: if (sortColumn || sortDirection) {}
     text-align: center;
     background-color: #f8f9fa;
     border-radius: 6px;
-  }
-
-  .highlighted-text {
-    background-color: #ffeb3b;
-    padding: 0 1px;
-    border-radius: 2px;
   }
 
   .hide {
@@ -2799,11 +2646,11 @@ $: if (sortColumn || sortDirection) {}
     width: 100px;
   }
 
- :global(.rangeFloat) {
+  :global(.rangeFloat) {
     font-size: 12px !important;
     opacity: 1 !important;
     background-color: transparent !important;
-    color: #99A2A2 !important;
+    color: #99a2a2 !important;
     top: 0 !important;
   }
 
@@ -2824,45 +2671,14 @@ $: if (sortColumn || sortDirection) {}
     height: 0;
   }
 
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0; left: 0;
-    right: 0; bottom: 0;
-    background-color: #ccc;
-    transition: 0.2s;
-    border-radius: 28px;
-  }
-
-  .slider::before {
-    position: absolute;
-    content: "";
-    height: 11px;
-    width: 11px;
-    left: 1.5px;
-    bottom: 1.5px;
-    background-color: white;
-    transition: 0.2s;
-    border-radius: 50%;
-  }
-
-  input:checked + .slider {
-    background-color: #ffbbcc;
-  }
-
-  input:checked + .slider::before {
-    transform: translateX(11px);
-  }
-
   .search-result-container {
     transition: background-color 0.2s ease;
     border-radius: 8px;
-    margin-top: 10px; 
+    margin-top: 10px;
     margin-bottom: 10px;
   }
 
   .search-result-container:hover {
     background-color: #e0e0e0;
   }
-
 </style>

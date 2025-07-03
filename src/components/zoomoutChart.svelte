@@ -3,7 +3,7 @@
   import * as d3 from "d3";
 
   const dispatch = createEventDispatcher();
-  
+
   export let similarityData;
   let height = 10;
   const margin = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -14,7 +14,7 @@
   export let sessionId;
 
   function handleContainerClick() {
-    dispatch('containerClick', { sessionId });
+    dispatch("containerClick", { sessionId });
   }
 
   function renderCanvas() {
@@ -29,7 +29,7 @@
     }));
     const textLength = processedData[processedData.length - 1]["text_length"];
     let width = 100 * textLength;
-    
+
     const xScale = d3
       .scaleLinear()
       .domain([0, 100])
