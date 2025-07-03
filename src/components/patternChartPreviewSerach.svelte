@@ -7,14 +7,12 @@
     export let wholeData;
 
     let container;
-    let prevData;
     let height = 150;
-    let width = 186; // Parameter fine-tuned to fit the line chart
+    let width = 186;
 
     onMount(() => {
         if (data && container) {
             renderChart();
-            prevData = JSON.parse(JSON.stringify(data));
         }
     });
 
@@ -63,10 +61,10 @@
             .call(d3.axisBottom(xScale).ticks(0))
             .append("text")
             .attr("x", chartWidth / 2)
-            .attr("y", 20)
+            .attr("y", 22)
             .attr("fill", "black")
             .attr("text-anchor", "middle")
-            .style("font-size", "8px")
+            .style("font-size", "10px")
             .text("Semantic Change (%)");
 
         svg.append("g")
@@ -77,7 +75,7 @@
             .attr("x", -chartHeight / 2)
             .attr("fill", "black")
             .attr("text-anchor", "middle")
-            .style("font-size", "8px")
+            .style("font-size", "10px")
             .text("Progress (%)");
 
         svg.selectAll(".bar-whole")

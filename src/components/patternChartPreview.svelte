@@ -19,16 +19,25 @@
     }
   });
 
+  function isRangeChanged(a, b) {
+    if (!a || !b) return true;
+    return (
+      a.sc?.min !== b.sc?.min ||
+      a.sc?.max !== b.sc?.max ||
+      a.progress?.min !== b.progress?.min ||
+      a.progress?.max !== b.progress?.max
+    );
+  }
+
   afterUpdate(() => {
     if (
       data &&
       container &&
-      (JSON.stringify(prevSelectedRange) !== JSON.stringify(selectedRange) ||
-        JSON.stringify(prevData) !== JSON.stringify(data))
+      (isRangeChanged(prevSelectedRange, selectedRange) || prevData !== data)
     ) {
       renderChart();
-      prevSelectedRange = JSON.parse(JSON.stringify(selectedRange));
-      prevData = JSON.parse(JSON.stringify(data));
+      prevSelectedRange = { ...selectedRange };
+      prevData = data;
     }
   });
 
