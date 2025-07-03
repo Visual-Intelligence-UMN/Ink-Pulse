@@ -4,7 +4,7 @@
 
   export let chartData: any[] = [];
   export let paragraphColor: any[] = [];
-  
+
   type ChartEvents = {
     pointSelected: {
       time: number;
@@ -47,22 +47,29 @@
   $: if (xAxisG && yAxisG) {
     updateAxes();
   }
-  
 
   // helper code for handling zooming from outside the component
   // When getting a zoomTransform from outside the component with only y and k values,
   // x value is calculated based on the data points that have closest y value to the zoomTransform.y.
-  
+
   $: if (zoomTransform) {
     // console.log("zooming:", zoomTransform);
 
     if (ZoomTransformIsInteral.k !== zoomTransform.k) {
-      let centerY = (zoomTransform.y - ZoomTransformIsInteral.y) / (ZoomTransformIsInteral.k - zoomTransform.k);
-      let {x, y} = findPointAtY(centerY)
-      let centerX = x * (ZoomTransformIsInteral.k - zoomTransform.k) + ZoomTransformIsInteral.x;
+      let centerY =
+        (zoomTransform.y - ZoomTransformIsInteral.y) /
+        (ZoomTransformIsInteral.k - zoomTransform.k);
+      let { x, y } = findPointAtY(centerY);
+      let centerX =
+        x * (ZoomTransformIsInteral.k - zoomTransform.k) +
+        ZoomTransformIsInteral.x;
       const maxTranslateX = 0;
-      const minTranslateX = -(width - margin.left - margin.right) * (zoomTransform.k - 1);
-      const clampedY = Math.max(minTranslateX, Math.min(centerX, maxTranslateX));
+      const minTranslateX =
+        -(width - margin.left - margin.right) * (zoomTransform.k - 1);
+      const clampedY = Math.max(
+        minTranslateX,
+        Math.min(centerX, maxTranslateX),
+      );
       zoomTransform.x = clampedY;
       ZoomTransformIsInteral = zoomTransform;
       d3.select(svgContainer).call(zoom.transform, zoomTransform);
@@ -70,37 +77,34 @@
     }
   }
 
-
   afterUpdate(() => {
     if (svgContainer && zoom) {
       d3.select(svgContainer).call(zoom);
     }
   });
 
+  function findPointAtY(yCoordinate: number) {
+    let closestPoint = null;
+    let minDistance = Infinity;
 
-function findPointAtY(yCoordinate: number) {
-  let closestPoint = null;
-  let minDistance = Infinity;
+    for (const d of chartData) {
+      const scaledYValue = scaledY(d.percentage);
+      const distance = Math.abs(scaledYValue - yCoordinate);
 
-  for (const d of chartData) {
-    const scaledYValue = scaledY(d.percentage);
-    const distance = Math.abs(scaledYValue - yCoordinate);
-
-    if (distance < minDistance) {
-      minDistance = distance;
-      closestPoint = d;
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestPoint = d;
+      }
     }
+
+    if (closestPoint) {
+      const x = scaledX(closestPoint.time);
+      const y = scaledY(closestPoint.percentage);
+      return { x, y };
+    }
+
+    return null;
   }
-
-  if (closestPoint) {
-    const x = scaledX(closestPoint.time)
-    const y = scaledY(closestPoint.percentage);
-    return { x, y };
-  }
-
-  return null;
-}
-
 
   function updateAxes() {
     if (!xScale || !yScale) return;
@@ -137,13 +141,19 @@ function findPointAtY(yCoordinate: number) {
       .on("zoom", (event) => {
         let transform = event.transform;
         const maxTranslateY = 0;
-        const minTranslateY = -(height - margin.top - margin.bottom) * (transform.k - 1);
-        const clampedY = Math.max(minTranslateY, Math.min(transform.y, maxTranslateY));
-        zoomTransform = d3.zoomIdentity.translate(transform.x, clampedY).scale(transform.k);
+        const minTranslateY =
+          -(height - margin.top - margin.bottom) * (transform.k - 1);
+        const clampedY = Math.max(
+          minTranslateY,
+          Math.min(transform.y, maxTranslateY),
+        );
+        zoomTransform = d3.zoomIdentity
+          .translate(transform.x, clampedY)
+          .scale(transform.k);
         ZoomTransformIsInteral = zoomTransform;
         updateAxes();
       });
-            
+
     d3.select(svgContainer).call(zoom);
     updateAxes();
   }
@@ -160,7 +170,6 @@ function findPointAtY(yCoordinate: number) {
   function scaledY(val) {
     return yScale ? yScale(val) : 0;
   }
-
 </script>
 
 <svg bind:this={svgContainer} {width} {height} style="vertical-align: top">
@@ -196,13 +205,17 @@ function findPointAtY(yCoordinate: number) {
           />
         {/each}
       </g>
-    
+
       <g>
         {#each chartData.filter((d) => !d.isSuggestionOpen) as d (d.index)}
           <circle
             cx={zoomTransform.applyX(scaledX(d.time))}
             cy={zoomTransform.applyY(scaledY(d.percentage))}
-            r={selectedPoint?.index === d.index ? 5 : hoveredPoint?.index === d.index ? 5 : 2}
+            r={selectedPoint?.index === d.index
+              ? 5
+              : hoveredPoint?.index === d.index
+                ? 5
+                : 2}
             fill={d.color}
             opacity={selectedPoint === d || hoveredPoint === d ? 1 : d.opacity}
             on:click={() => handlePointClick(d)}
@@ -211,17 +224,17 @@ function findPointAtY(yCoordinate: number) {
             style="cursor: pointer;"
           />
         {/each}
-  
+
         {#each chartData.filter((d) => d.isSuggestionOpen) as d}
           <path
             d={d3.symbol().type(d3.symbolTriangle).size(40)()}
             fill="#FFBBCC"
             opacity={d.opacity + 0.29}
-            transform={`translate(${zoomTransform.applyX(scaledX(d.time))},${zoomTransform.applyY(scaledY((d.percentage + 6 / zoomTransform.k)))}) rotate(180)`}
+            transform={`translate(${zoomTransform.applyX(scaledX(d.time))},${zoomTransform.applyY(scaledY(d.percentage + 6 / zoomTransform.k))}) rotate(180)`}
           />
         {/each}
+      </g>
     </g>
-  </g>
 
     <!-- <g clip-path="url(#clip-text)">
       {#if paragraphColor.length < 10}

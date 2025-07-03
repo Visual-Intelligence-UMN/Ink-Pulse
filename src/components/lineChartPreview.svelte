@@ -98,7 +98,11 @@
           <circle
             cx={scaledX(d.time)}
             cy={scaledY(d.percentage)}
-            r={selectedPoint?.index === d.index ? 5 : hoveredPoint?.index === d.index ? 5 : 2}
+            r={selectedPoint?.index === d.index
+              ? 5
+              : hoveredPoint?.index === d.index
+                ? 5
+                : 2}
             fill={d.color}
             opacity={selectedPoint === d || hoveredPoint === d ? 1 : d.opacity}
           />
@@ -109,7 +113,7 @@
             d={d3.symbol().type(d3.symbolTriangle).size(40)()}
             fill="#FFBBCC"
             opacity={d.opacity + 0.29}
-            transform={`translate(${scaledX(d.time)},${scaledY((d.percentage + 6))}) rotate(180)`}
+            transform={`translate(${scaledX(d.time)},${scaledY(d.percentage + 6)}) rotate(180)`}
           />
         {/each}
       </g>

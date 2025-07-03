@@ -47,16 +47,18 @@
             .attr("height", "100%")
             .attr(
                 "viewBox",
-                `0 0 ${chartWidth + margin.left + margin.right} ${chartHeight + margin.top + margin.bottom}`
+                `0 0 ${chartWidth + margin.left + margin.right} ${chartHeight + margin.top + margin.bottom}`,
             )
             .append("g")
             .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
         const xScale = d3.scaleLinear().domain([1, 0]).range([0, chartWidth]);
-        const yScale = d3.scaleLinear().domain([100, 0]).range([0, chartHeight]);
+        const yScale = d3
+            .scaleLinear()
+            .domain([100, 0])
+            .range([0, chartHeight]);
 
-        svg
-            .append("g")
+        svg.append("g")
             .attr("transform", `translate(0, ${chartHeight})`)
             .call(d3.axisBottom(xScale).ticks(0))
             .append("text")
@@ -67,8 +69,7 @@
             .style("font-size", "8px")
             .text("Semantic Change (%)");
 
-        svg
-            .append("g")
+        svg.append("g")
             .call(d3.axisLeft(yScale).ticks(5))
             .append("text")
             .attr("transform", "rotate(-90)")
@@ -79,9 +80,7 @@
             .style("font-size", "8px")
             .text("Progress (%)");
 
-
-        svg
-            .selectAll(".bar-whole")
+        svg.selectAll(".bar-whole")
             .data(wholeProcessedData)
             .enter()
             .append("rect")
@@ -89,20 +88,21 @@
             .attr("y", (d) =>
                 yScale(d.startProgress) < yScale(d.endProgress)
                     ? yScale(d.startProgress)
-                    : yScale(d.endProgress)
+                    : yScale(d.endProgress),
             )
             .attr("x", (d) => xScale(d.residual_vector_norm))
             .attr("width", (d) => xScale(0) - xScale(d.residual_vector_norm))
             .attr("height", (d) =>
-                Math.abs(yScale(d.startProgress) - yScale(d.endProgress))
+                Math.abs(yScale(d.startProgress) - yScale(d.endProgress)),
             )
             .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
-            .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
+            .attr("stroke", (d) =>
+                d.source === "user" ? "#66C2A5" : "#FC8D62",
+            )
             .attr("stroke-width", 0.1)
             .attr("opacity", 0.2);
 
-        svg
-            .selectAll(".bar")
+        svg.selectAll(".bar")
             .data(processedData)
             .enter()
             .append("rect")
@@ -110,31 +110,33 @@
             .attr("y", (d) =>
                 yScale(d.startProgress) < yScale(d.endProgress)
                     ? yScale(d.startProgress)
-                    : yScale(d.endProgress)
+                    : yScale(d.endProgress),
             )
             .attr("x", (d) => xScale(d.residual_vector_norm))
             .attr("width", (d) => xScale(0) - xScale(d.residual_vector_norm))
             .attr("height", (d) =>
-                Math.abs(yScale(d.startProgress) - yScale(d.endProgress))
+                Math.abs(yScale(d.startProgress) - yScale(d.endProgress)),
             )
             .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
-            .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
+            .attr("stroke", (d) =>
+                d.source === "user" ? "#66C2A5" : "#FC8D62",
+            )
             .attr("stroke-width", 0.1)
             .attr("opacity", 0.9);
     }
 </script>
 
 <div
-  bind:this={container}
-  class="chart-preview-container"
-  data-session-id={sessionId}
+    bind:this={container}
+    class="chart-preview-container"
+    data-session-id={sessionId}
 ></div>
 
 <style>
-.chart-preview-container {
-    width: 100%;
-    height: 100%;
-    min-height: 150px;
-    position: relative;
-}
+    .chart-preview-container {
+        width: 100%;
+        height: 100%;
+        min-height: 150px;
+        position: relative;
+    }
 </style>

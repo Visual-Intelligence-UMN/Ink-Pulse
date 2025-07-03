@@ -25,8 +25,7 @@
     <button
       class="topic-icon-btn"
       on:click|stopPropagation={() =>
-        onCategoryIconClick(getPromptCode(sessionData.sessionId))
-      }
+        onCategoryIconClick(getPromptCode(sessionData.sessionId))}
       title={getPromptCode(sessionData.sessionId)}
       type="button"
     >
@@ -35,7 +34,7 @@
   </td>
 
   <td class="score-cell">
-    <SemanticExpansionCircle 
+    <SemanticExpansionCircle
       llmJudgeScore={sessionData.llmScore}
       size={16}
       sessionId={sessionData.sessionId}
