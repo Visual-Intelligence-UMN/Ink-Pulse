@@ -50,3 +50,11 @@
   <td class="empty-cell"></td>
   <td class="empty-cell"></td>
 {/if}
+
+<style>
+  td {
+    border-bottom: 1px solid #ccc;
+    padding: 10px;  /* This makes rows look spaced out */
+  }
+
+</style>
