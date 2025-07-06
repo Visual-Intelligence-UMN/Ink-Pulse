@@ -37,7 +37,7 @@
   <td class="score-cell">
     <SemanticExpansionCircle
       llmJudgeScore={sessionData.llmScore}
-      size={16}
+      size={50}
       sessionId={sessionData.sessionId}
     />
   </td>

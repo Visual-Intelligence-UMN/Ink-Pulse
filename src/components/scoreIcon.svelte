@@ -122,7 +122,7 @@
   $: strokeDasharray = circumference;
   $: strokeDashoffset =
     circumference - (progressPercentage / 100) * circumference;
-  $: fontSize = size * 0.25;
+  $: fontSize = size * 0.5;
 
   $: displayText = `${Math.round(qualityScore)}`;
 
@@ -181,10 +181,12 @@
     />
   </svg>
 
-  <div
+  <!-- <div
     class="score-text"
     style="font-size: {fontSize}px; color: {textColor}; text-shadow: {textShadow};"
-  >
+  > -->
+
+  <div class="score-text" style="font-size: {fontSize}px; color: 	#4f4f4f; ">
     {displayText}
   </div>
 </div>
@@ -217,8 +219,8 @@
 
   .score-text {
     position: absolute;
-    top: 50%;
-    left: 50%;
+    top: 46.5%;
+    left: 49.5%;
     transform: translate(-50%, -50%);
     font-weight: 800;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
