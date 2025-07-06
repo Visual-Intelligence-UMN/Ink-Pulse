@@ -7,7 +7,7 @@
   export let chartRefs;
   export let getPromptCode;
   export let getCategoryIcon;
-  export let colIndex;
+  export let colIndex = Infinity;
 </script>
 
 {#if sessionData}
