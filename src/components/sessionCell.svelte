@@ -7,6 +7,7 @@
   export let chartRefs;
   export let getPromptCode;
   export let getCategoryIcon;
+  export let colIndex = Infinity;
 </script>
 
 {#if sessionData}
@@ -36,12 +37,24 @@
   <td class="score-cell">
     <SemanticExpansionCircle
       llmJudgeScore={sessionData.llmScore}
-      size={16}
+      size={50}
       sessionId={sessionData.sessionId}
     />
   </td>
+  {#if colIndex < 2}
+    <td class="spacer-cell"></td>
+  {/if}
+
 {:else}
   <td class="empty-cell"></td>
   <td class="empty-cell"></td>
   <td class="empty-cell"></td>
 {/if}
+
+<style>
+  td {
+    border-bottom: 1px solid #ccc;
+    padding: 10px;  /* This makes rows look spaced out */
+  }
+
+</style>

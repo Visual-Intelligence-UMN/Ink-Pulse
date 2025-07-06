@@ -1915,6 +1915,7 @@
                         <th
                           class="sortable-header"
                           on:click={() => handleSort("topic")}
+                          style="min-width: 80px;"
                         >
                           <span>Topic</span>
                           <span class="sort-icon">{getSortIcon("topic")}</span>
@@ -1922,17 +1923,21 @@
                         <th
                           class="sortable-header"
                           on:click={() => handleSort("score")}
+                          style="min-width: 80px;"
                         >
                           <span>Score</span>
                           <span class="sort-icon">{getSortIcon("score")}</span>
                         </th>
+                        {#if colIndex < 2}
+                          <th class="spacer" style="width: 8vw;"></th>
+                        {/if}
                       {/each}
                     </tr>
                   </thead>
                   <tbody>
                     {#each Array(Math.ceil(Math.max(...getColumnGroups().map((group) => group.length)))) as _, rowIndex (rowIndex + sortColumn + sortDirection)}
                       <tr class="unified-session-row">
-                        {#each getColumnGroups() as group}
+                        {#each getColumnGroups() as group, colIndex}
                           <SessionCell
                             sessionData={group[rowIndex]}
                             {chartRefs}
@@ -1940,6 +1945,7 @@
                             onCategoryIconClick={handleCategoryIconClick}
                             {getPromptCode}
                             {getCategoryIcon}
+                            {colIndex}
                           />
                         {/each}
                       </tr>
@@ -2144,6 +2150,10 @@
     --progBackgroundColor: hsl(6, 100%, 90%);
     --range-handle: #86cecb;
     --range-handle-focus: #137a7f;
+  }
+
+  .App {
+    overflow-x: hidden;
   }
 
   * {
@@ -2681,4 +2691,9 @@
   .search-result-container:hover {
     background-color: #e0e0e0;
   }
+
+  .unified-sessions-table {
+    width: 80vw;
+  }
+
 </style>
