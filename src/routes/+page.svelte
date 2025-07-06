@@ -1926,13 +1926,16 @@
                           <span>Score</span>
                           <span class="sort-icon">{getSortIcon("score")}</span>
                         </th>
+                        {#if colIndex < 2}
+                          <th class="spacer" style="width: 8vw;"></th>
+                        {/if}
                       {/each}
                     </tr>
                   </thead>
                   <tbody>
                     {#each Array(Math.ceil(Math.max(...getColumnGroups().map((group) => group.length)))) as _, rowIndex (rowIndex + sortColumn + sortDirection)}
                       <tr class="unified-session-row">
-                        {#each getColumnGroups() as group}
+                        {#each getColumnGroups() as group, colIndex}
                           <SessionCell
                             sessionData={group[rowIndex]}
                             {chartRefs}
@@ -1940,6 +1943,7 @@
                             onCategoryIconClick={handleCategoryIconClick}
                             {getPromptCode}
                             {getCategoryIcon}
+                            {colIndex}
                           />
                         {/each}
                       </tr>
@@ -2684,6 +2688,10 @@
 
   .search-result-container:hover {
     background-color: #e0e0e0;
+  }
+
+  .unified-sessions-table {
+    width: 80vw;
   }
 
 </style>

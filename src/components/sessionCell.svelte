@@ -7,6 +7,7 @@
   export let chartRefs;
   export let getPromptCode;
   export let getCategoryIcon;
+  export let colIndex;
 </script>
 
 {#if sessionData}
@@ -40,6 +41,10 @@
       sessionId={sessionData.sessionId}
     />
   </td>
+  {#if colIndex < 2}
+    <td class="spacer-cell"></td>
+  {/if}
+
 {:else}
   <td class="empty-cell"></td>
   <td class="empty-cell"></td>
