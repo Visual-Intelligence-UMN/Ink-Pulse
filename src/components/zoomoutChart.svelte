@@ -8,6 +8,7 @@
   export let similarityData;
   export let sessionId;
 
+  let showPrompt = true;
   let height = 10;
   const margin = { top: 0, right: 0, bottom: 0, left: 0 };
 
@@ -68,13 +69,18 @@
 
     for (const d of processedData) {
       const isFirst = processedData.indexOf(d) === 0;
-      const barY = yScale(isFirst ? 0 : 1);
-      const barHeight = yScale(0) - yScale(isFirst ? 0 : 1);
+      const hideFirst = isFirst && !showPrompt;
+      const barY = yScale(hideFirst ? 0 : 1);
+      const barHeight = yScale(0) - yScale(hideFirst ? 0 : 1);
       const barX = xScale(d.startProgress);
       const barWidth = xScale(d.endProgress) - barX;
 
       context.fillStyle = d.source === "user" ? "#66C2A5" : "#FC8D62";
       context.globalAlpha = opacityScale(d.residual_vector_norm);
+      if (isFirst) {
+        context.fillStyle = "#e8e8e8";
+        context.globalAlpha = 1; 
+      }
       context.fillRect(barX, barY, barWidth, barHeight);
 
       context.strokeStyle = context.fillStyle;
