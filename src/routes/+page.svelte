@@ -1915,6 +1915,7 @@
                         <th
                           class="sortable-header"
                           on:click={() => handleSort("topic")}
+                          style="min-width: 80px;"
                         >
                           <span>Topic</span>
                           <span class="sort-icon">{getSortIcon("topic")}</span>
@@ -1922,6 +1923,7 @@
                         <th
                           class="sortable-header"
                           on:click={() => handleSort("score")}
+                          style="min-width: 80px;"
                         >
                           <span>Score</span>
                           <span class="sort-icon">{getSortIcon("score")}</span>
