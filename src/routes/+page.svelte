@@ -1869,10 +1869,10 @@
                 <table class="sessions-table">
                   <thead>
                     <tr>
-                      <th>Activity</th>
                       <th
                         class="sortable-header"
                         on:click={() => handleSort("topic")}
+                        style="min-width: 80px;"
                       >
                         <span>Topic</span>
                         <span class="sort-icon">{getSortIcon("topic")}</span>
@@ -1880,10 +1880,12 @@
                       <th
                         class="sortable-header"
                         on:click={() => handleSort("score")}
+                        style="min-width: 80px;"
                       >
                         <span>Score</span>
                         <span class="sort-icon">{getSortIcon("score")}</span>
                       </th>
+                      <th>Activity</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1913,7 +1915,7 @@
                   <thead>
                     <tr>
                       {#each Array(3) as _, colIndex}
-                        <th>Activity</th>
+                        
                         <th
                           class="sortable-header"
                           on:click={() => handleSort("topic")}
@@ -1930,6 +1932,7 @@
                           <span>Score</span>
                           <span class="sort-icon">{getSortIcon("score")}</span>
                         </th>
+                        <th>Activity</th>
                         {#if colIndex < 2}
                           <th class="spacer" style="width: 8vw;"></th>
                         {/if}

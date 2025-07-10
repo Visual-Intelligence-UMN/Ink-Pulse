@@ -11,6 +11,27 @@
 </script>
 
 {#if sessionData}
+
+<td class="topic-cell">
+  <button
+  class="topic-icon-btn"
+  on:click|stopPropagation={() =>
+        onCategoryIconClick(getPromptCode(sessionData.sessionId))}
+      title={getPromptCode(sessionData.sessionId)}
+      type="button"
+      >
+      {getCategoryIcon(getPromptCode(sessionData.sessionId))}
+    </button>
+  </td>
+  
+  <td class="score-cell">
+    <SemanticExpansionCircle
+    llmJudgeScore={sessionData.llmScore}
+    size={40}
+    sessionId={sessionData.sessionId}
+    />
+  </td>
+  
   <td class="activity-cell">
     <div class="mini-chart" on:click={() => onRowClick(sessionData)}>
       <ZoomoutChart
@@ -21,30 +42,10 @@
       />
     </div>
   </td>
-
-  <td class="topic-cell">
-    <button
-      class="topic-icon-btn"
-      on:click|stopPropagation={() =>
-        onCategoryIconClick(getPromptCode(sessionData.sessionId))}
-      title={getPromptCode(sessionData.sessionId)}
-      type="button"
-    >
-      {getCategoryIcon(getPromptCode(sessionData.sessionId))}
-    </button>
-  </td>
-
-  <td class="score-cell">
-    <SemanticExpansionCircle
-      llmJudgeScore={sessionData.llmScore}
-      size={50}
-      sessionId={sessionData.sessionId}
-    />
-  </td>
   {#if colIndex < 2}
-    <td class="spacer-cell"></td>
+  <td class="spacer-cell"></td>
   {/if}
-
+  
 {:else}
   <td class="empty-cell"></td>
   <td class="empty-cell"></td>
