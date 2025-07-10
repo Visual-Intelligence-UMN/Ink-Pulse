@@ -22,6 +22,8 @@
   import LineChartPreview from "../components/lineChartPreview.svelte";
   import SessionCell from "../components/sessionCell.svelte";
   import SavePanel from "../components/savePanel.svelte";
+  import PatternDetailView from "../components/PatternDetailView.svelte";
+  import SavedPatternsBar from "../components/SavedPatternsBar.svelte";
 
   let chartRefs = {};
   function resetZoom(sessionId) {
@@ -101,6 +103,9 @@
     const mod = await import("svelte-range-slider-pips");
     RangeSlider = mod.default;
   });
+  let currentView = 'landing'; 
+  let selectedPatternForDetail = null;
+  let activePatternId = null;
   let isProgressChecked = true;
   let isTimeChecked = true;
   let isSourceChecked = true;
@@ -163,15 +168,26 @@
   }
 
   function handleSave(event) {
-    const { name, color } = event.detail;
-    const sliceToSave = $patternDataList.slice(0, $showResultCount);
-    const itemToSave = {
-      name,
-      color,
-      pattern: sliceToSave,
-    };
-    searchPatternSet.update((current) => [...current, itemToSave]);
-    isSave = false;
+      const { name, color } = event.detail;
+      const sliceToSave = $patternDataList.slice(0, $showResultCount);
+      const processedSlice = sliceToSave.map(session => ({
+        ...session,
+        llmJudgeScore: session.llmJudgeScore || session.llmScore || 0
+      }));
+      
+      const itemToSave = {
+        id: `pattern_${Date.now()}`,
+        name,
+        color,
+        pattern: processedSlice,
+        metadata: {
+          createdAt: Date.now(),
+          totalSessions: processedSlice.length
+        }
+      };
+      
+      searchPatternSet.update((current) => [...current, itemToSave]);
+      isSave = false;
   }
 
   function handleClose() {
@@ -1506,6 +1522,78 @@
       return currentSession;
     });
   }
+  
+
+  function handlePatternClick(event) {
+    console.log('🎯 Pattern clicked!', event.detail); 
+    const { pattern } = event.detail;
+    console.log('Pattern data:', pattern); 
+    
+    selectedPatternForDetail = pattern;
+    activePatternId = pattern.id;
+    currentView = 'pattern-detail';
+    
+    console.log('New currentView:', currentView); 
+  }
+
+  function handlePatternContextMenu(event) {
+    const { pattern } = event.detail;
+    console.log('Right clicked on pattern:', pattern.name);
+  }
+
+  function handleShowMorePatterns() {
+    console.log(`Total patterns: ${$searchPatternSet.length}`);
+  }
+
+  function handleBackFromDetail() {
+    currentView = 'landing';
+    selectedPatternForDetail = null;
+    activePatternId = null;
+  }
+
+  function handleApplyPattern(event) {
+    const { pattern } = event.detail;
+    if (!selectionMode) {
+      selectionMode = true;
+      showPatternSearch = true;
+    }
+    handleBackFromDetail();
+  }
+
+  function handleEditPattern(event) {
+    const { pattern } = event.detail;
+    const newName = prompt(`Edit pattern name:`, pattern.name);
+    if (newName && newName.trim() && newName !== pattern.name) {
+      searchPatternSet.update((patterns) => 
+        patterns.map(p => 
+          p.id === pattern.id 
+            ? { ...p, name: newName.trim() }
+            : p
+        )
+      );
+      if (selectedPatternForDetail && selectedPatternForDetail.id === pattern.id) {
+        selectedPatternForDetail = { ...selectedPatternForDetail, name: newName.trim() };
+      }
+    }
+  }
+
+  function handleDeletePattern(event) {
+    const { pattern } = event.detail;
+    if (confirm(`Are you sure you want to delete pattern "${pattern.name}"?`)) {
+      searchPatternSet.update((patterns) => 
+        patterns.filter(p => p.id !== pattern.id)
+      );
+      if (currentView === 'pattern-detail') {
+        handleBackFromDetail();
+      }
+    }
+  }
+
+  function handlePatternDetailRowClick(event) {
+    const { sessionData } = event.detail;
+    handleContainerClick({ detail: { sessionId: sessionData.sessionId } });
+    handleBackFromDetail();
+  }
 </script>
 
 <div class="App">
@@ -1549,6 +1637,15 @@
         <span class="user-line">●</span> User written
         <span class="api-line">●</span> AI writing
       </div>
+      {#if !showMulti}
+        <SavedPatternsBar 
+          patterns={$searchPatternSet}
+          {activePatternId}
+          on:pattern-click={handlePatternClick}
+          on:pattern-contextmenu={handlePatternContextMenu}
+          on:show-more-patterns={handleShowMorePatterns}
+        />
+      {/if}
       <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded"
         rel="stylesheet"
@@ -1827,30 +1924,42 @@
       />
     {/if}
     <div class="container">
+       <!-- <div style="position: fixed; top: 100px; right: 10px; background: red; color: white; padding: 10px; z-index: 9999;">
+    DEBUG INFO:<br>
+    currentView: {currentView}<br>
+    selectedPatternForDetail: {selectedPatternForDetail ? selectedPatternForDetail.name : 'null'}<br>
+    showMulti: {showMulti}
+  </div> -->
       {#if isOpen}
         <div class="introduction-background">
           <div class="introduction">
             <h2>Welcome to the CoAuthor visualization!</h2>
             <p>
-              This platform allows you to explore the <b
-                >human-AI collaborative writing process</b
-              >
-              using the
-              <a href="https://coauthor.stanford.edu/" target="_blank"
-                >CoAuthor dataset</a
-              >. View how writers interacted with GPT-3, analyze AI-generated
-              suggestions, and track text evolution in real time.
+              This platform allows you to explore the <b>human-AI collaborative writing process</b>
+              using the <a href="https://coauthor.stanford.edu/" target="_blank">CoAuthor dataset</a>. 
+              View how writers interacted with GPT-3, analyze AI-generated suggestions, and track text evolution in real time.
             </p>
-            <p>
-              Discover insights into <b>human-AI collaboration</b>
-              and have fun!
-            </p>
-            <button class="start-button" on:click={open2close}
-              >Start Exploring</button
-            >
+            <p>Discover insights into <b>human-AI collaboration</b> and have fun!</p>
+            <button class="start-button" on:click={open2close}>Start Exploring</button>
           </div>
         </div>
       {/if}
+      
+      {#if currentView === 'pattern-detail' && selectedPatternForDetail}
+        <div style="margin-top: 70px;">
+          <PatternDetailView 
+            pattern={selectedPatternForDetail}
+            {sessions}
+            {chartRefs}
+            on:back={handleBackFromDetail}
+            on:apply-pattern={handleApplyPattern}
+            on:edit-pattern={handleEditPattern}
+            on:delete-pattern={handleDeletePattern}
+            on:row-click={handlePatternDetailRowClick}
+          />
+        </div>
+       {:else}
+      <!-- === 现有的landing page内容 === -->
       <div style="margin-top: 70px;" hidden={showMulti}>
         {#if $initData.length > 0}
           {#if selectedCategoryFilter}
@@ -1868,17 +1977,11 @@
                   <thead>
                     <tr>
                       <th>Activity</th>
-                      <th
-                        class="sortable-header"
-                        on:click={() => handleSort("topic")}
-                      >
+                      <th class="sortable-header" on:click={() => handleSort("topic")}>
                         <span>Topic</span>
                         <span class="sort-icon">{getSortIcon("topic")}</span>
                       </th>
-                      <th
-                        class="sortable-header"
-                        on:click={() => handleSort("score")}
-                      >
+                      <th class="sortable-header" on:click={() => handleSort("score")}>
                         <span>Score</span>
                         <span class="sort-icon">{getSortIcon("score")}</span>
                       </th>
@@ -1886,10 +1989,7 @@
                   </thead>
                   <tbody>
                     {#each selectedCategoryFilter ? filteredByCategory : filteredSessions as sessionData (sessionData.sessionId)}
-                      <tr
-                        class="session-row"
-                        on:click={() => handleRowClick(sessionData)}
-                      >
+                     <tr class="session-row" on:click={() => handleRowClick(sessionData)}>
                         <SessionCell
                           {sessionData}
                           {chartRefs}
@@ -1912,19 +2012,11 @@
                     <tr>
                       {#each Array(3) as _, colIndex}
                         <th>Activity</th>
-                        <th
-                          class="sortable-header"
-                          on:click={() => handleSort("topic")}
-                          style="min-width: 80px;"
-                        >
+                        <th class="sortable-header" on:click={() => handleSort("topic")} style="min-width: 80px;">
                           <span>Topic</span>
                           <span class="sort-icon">{getSortIcon("topic")}</span>
                         </th>
-                        <th
-                          class="sortable-header"
-                          on:click={() => handleSort("score")}
-                          style="min-width: 80px;"
-                        >
+                        <th class="sortable-header" on:click={() => handleSort("score")} style="min-width: 80px;">
                           <span>Score</span>
                           <span class="sort-icon">{getSortIcon("score")}</span>
                         </th>
@@ -1956,7 +2048,8 @@
             </div>
           {/if}
         {/if}
-      </div>
+      </div>  
+        <!-- === 现有的showMulti内容 === -->
       {#if showMulti}
         {#if $clickSession}
           <div class="multi-box" style="margin-top: 70px;">
@@ -1969,39 +2062,26 @@
                   <div class="session-identifier">
                     <h3>
                       {#if sessions && sessions.find((s) => s.session_id === $clickSession.sessionId)}
-                        {sessions.find(
-                          (s) => s.session_id === $clickSession.sessionId,
-                        ).prompt_code} - {$clickSession.sessionId}
+                        {sessions.find((s) => s.session_id === $clickSession.sessionId).prompt_code} - {$clickSession.sessionId}
                       {:else}
                         Session: {$clickSession.sessionId}
                       {/if}
                     </h3>
                   </div>
-                  <div
-                    class="session-summary"
-                    id="summary-{$clickSession.sessionId}"
-                  >
+                  <div class="session-summary" id="summary-{$clickSession.sessionId}">
                     <h3>Session Summary</h3>
                     <div class="summary-container">
                       <div class="totalText">
-                        {$clickSession.summaryData
-                          ? `Total Text: ${$clickSession.summaryData.totalProcessedCharacters} characters`
-                          : ""}
+                        {$clickSession.summaryData ? `Total Text: ${$clickSession.summaryData.totalProcessedCharacters} characters` : ""}
                       </div>
                       <div class="totalInsertions">
-                        {$clickSession.summaryData
-                          ? `Insertions: ${$clickSession.summaryData.totalInsertions}`
-                          : ""}
+                        {$clickSession.summaryData ? `Insertions: ${$clickSession.summaryData.totalInsertions}` : ""}
                       </div>
                       <div class="totalDeletions">
-                        {$clickSession.summaryData
-                          ? `Deletions: ${$clickSession.summaryData.totalDeletions}`
-                          : ""}
+                        {$clickSession.summaryData ? `Deletions: ${$clickSession.summaryData.totalDeletions}` : ""}
                       </div>
                       <div class="totalSuggestions">
-                        {$clickSession.summaryData
-                          ? `Suggestions: ${$clickSession.summaryData.totalSuggestions - 1}`
-                          : ""}
+                        {$clickSession.summaryData ? `Suggestions: ${$clickSession.summaryData.totalSuggestions - 1}` : ""}
                       </div>
                     </div>
                   </div>
@@ -2013,15 +2093,11 @@
                           similarityData={$clickSession.similarityData}
                           {yScale}
                           {height}
-                          bind:zoomTransform={
-                            zoomTransforms[$clickSession.sessionId]
-                          }
+                            bind:zoomTransform={zoomTransforms[$clickSession.sessionId]}
                           {selectionMode}
                           on:selectionChanged={handleSelectionChanged}
                           on:selectionCleared={handleSelectionCleared}
-                          bind:this={
-                            chartRefs[$clickSession.sessionId + "-barChart"]
-                          }
+                          bind:this={chartRefs[$clickSession.sessionId + "-barChart"]}
                           on:chartLoaded={handleChartLoaded}
                         />
                       {/if}
@@ -2030,33 +2106,22 @@
                           bind:this={chartRefs[$clickSession.sessionId]}
                           chartData={$clickSession.chartData}
                           paragraphColor={$clickSession.paragraphColor}
-                          on:pointSelected={(e) =>
-                            handlePointSelected(e, $clickSession.sessionId)}
+                          on:pointSelected={(e) => handlePointSelected(e, $clickSession.sessionId)}
                           {yScale}
                           {height}
-                          bind:zoomTransform={
-                            zoomTransforms[$clickSession.sessionId]
-                          }
+                            bind:zoomTransform={zoomTransforms[$clickSession.sessionId]}
                         />
                       </div>
                     </div>
-                    <button
-                      on:click={() => resetZoom($clickSession.sessionId)}
-                      class="zoom-reset-btn"
-                    >
+                    <button on:click={() => resetZoom($clickSession.sessionId)} class="zoom-reset-btn">
                       Reset Zoom
                     </button>
                   </div>
                 </div>
                 <div class="content-box">
                   <div class="progress-container">
-                    <span
-                      >{($clickSession?.currentTime || 0).toFixed(2)} mins</span
-                    >
-                    <progress
-                      value={$clickSession?.currentTime || 0}
-                      max={$clickSession?.time100 || 1}
-                    ></progress>
+                    <span>{($clickSession?.currentTime || 0).toFixed(2)} mins</span>
+                    <progress value={$clickSession?.currentTime || 0} max={$clickSession?.time100 || 1}></progress>
                   </div>
                   <div class="scale-container">
                     <div class="scale" id="scale"></div>
@@ -2064,10 +2129,7 @@
                   <div class="text-container">
                     {#if $clickSession.textElements && $clickSession.textElements.length > 0}
                       {#each $clickSession.textElements as element, index}
-                        <span
-                          class="text-span"
-                          style="color: {element.textColor}"
-                        >
+                        <span class="text-span" style="color: {element.textColor}">
                           {element.text}
                         </span>
                       {/each}
@@ -2077,6 +2139,7 @@
               </div>
             </div>
           </div>
+        {/if}
         {/if}
       {/if}
     </div>
