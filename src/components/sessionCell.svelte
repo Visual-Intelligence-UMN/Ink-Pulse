@@ -3,8 +3,7 @@
   import ZoomoutChart from "../components/zoomoutChart.svelte";
   import PatternIconSmall from "./PatternIconSmall.svelte";
   import { createEventDispatcher } from 'svelte';
-  
-  // 原有的 props
+
   export let sessionData;
   export let onRowClick;
   export let onCategoryIconClick;
