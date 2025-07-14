@@ -106,8 +106,8 @@
   let currentView = 'landing'; 
   let selectedPatternForDetail = null;
   let activePatternId = null;
-  let isProgressChecked = true;
-  let isTimeChecked = true;
+  let isProgressChecked = false;
+  let isTimeChecked = false;
   let isSourceChecked = true;
   let isSemanticChecked = true;
   let isValueRangeChecked = true;
@@ -116,7 +116,6 @@
     isValueRangeChecked = false;
     isValueTrendChecked = false;
   }
-  // let patternDataList = [];
   export const patternDataList = writable([]);
   export const initData = writable([]);
   let currentResults = {};
@@ -152,7 +151,10 @@
   }
 
   export const searchPatternSet = writable([]);
-  const removepattern = () => {
+  const removepattern = (segmentId) => {
+    patternDataList.update((patternList) =>
+      patternList.filter((pattern) => pattern.segmentId !== segmentId)
+    );
     showResultCount.update((count) => count - 1);
   };
 
@@ -168,50 +170,46 @@
   }
 
   function handleSave(event) {
-      const { name, color } = event.detail;
-      
-      const allPatternData = get(patternDataList); 
-      // console.log('Total pattern data length:', allPatternData.length); 
-      const seenSessionIds = new Set();
-      const deduplicatedData = allPatternData.filter(session => {
-        if (seenSessionIds.has(session.sessionId)) {
-          // console.log('Filtering duplicate session:', session.sessionId);
-          return false;
-        }
-        seenSessionIds.add(session.sessionId);
-        return true;
-      });
-      
-      
-      const processedSlice = deduplicatedData.map(session => ({
-        ...session,
-        llmScore: session.similarityData[0].score || 0
-      }));
-      
-      const itemToSave = {
-        id: `pattern_${Date.now()}`,
-        name,
-        color,
-        pattern: processedSlice,
-        metadata: {
-          createdAt: Date.now(),
-          totalSessions: processedSlice.length,
-          originalMatches: allPatternData.length
-        }
-      };
-      
-      searchPatternSet.update((current) => [...current, itemToSave]);
-      isSave = false;
+    const { name, color } = event.detail;
+    const allPatternData = get(patternDataList).slice(0, get(showResultCount));
+    const seenSessionIds = new Set();
+    const deduplicatedData = allPatternData.filter(session => {
+      if (seenSessionIds.has(session.sessionId)) {
+        return false;
+      }
+      seenSessionIds.add(session.sessionId);
+      return true;
+    });
+    
+    const processedSlice = deduplicatedData.map(session => ({
+      ...session,
+      llmScore: session.similarityData[0].score || 0
+    }));
+    
+    const itemToSave = {
+      id: `pattern_${Date.now()}`,
+      name,
+      color,
+      pattern: processedSlice,
+      metadata: {
+        createdAt: Date.now(),
+        totalSessions: processedSlice.length,
+        originalMatches: allPatternData.length
+      }
+    };
+    
+    searchPatternSet.update((current) => [...current, itemToSave]);
+    isSave = false;
 
-      tick().then(() => {
-        // Method1:  update showPatternColumn
-        //const currentPatterns = get(searchPatternSet);
-        //showPatternColumn = currentPatterns && currentPatterns.length > 0;
-        // Method2: refresh patternDataList
-        initData.update(data => [...data]);
-        // Mathod3: update patternDataList
-        //displaySessions.update(sessions => [...sessions]);
-      });
+    tick().then(() => {
+      // Method1:  update showPatternColumn
+      //const currentPatterns = get(searchPatternSet);
+      //showPatternColumn = currentPatterns && currentPatterns.length > 0;
+      // Method2: refresh patternDataList
+      initData.update(data => [...data]);
+      // Mathod3: update patternDataList
+      //displaySessions.update(sessions => [...sessions]);
+    });
   }
 
   function handleClose() {
@@ -582,19 +580,38 @@
     selectedPatterns = newSelectedPatterns;
   }
 
-  function isDataValid(item, checks) {
+  function isDataValid(item, checks, minCount) {
     const fieldMap = {
       progress: (d) => d.end_progress * 100,
       time: (d) => d.end_time / 60,
       semantic: (d) => d.residual_vector_norm,
     };
 
+    const relaxRatioMap = {
+      progress: 0.3,
+    };
+
     for (const [key, [checked, range]] of Object.entries(checks)) {
       if (!checked || !(key in fieldMap)) continue;
       const value = fieldMap[key](item);
-      if (value < range[0] || value > range[1]) return false;
-    }
+      if (value == null || isNaN(value)) return false;
 
+      if (minCount === 1) {
+        if (key === "semantic") {
+          const relaxedMin = range[0] - 0.05;
+          const relaxedMax = range[1] + 0.05;
+          if (value < relaxedMin || value > relaxedMax) return false;
+        } else {
+          const relaxRatio = relaxRatioMap[key] ?? 0.2;
+          const delta = (range[1] - range[0]) * relaxRatio;
+          const relaxedMin = range[0] - delta;
+          const relaxedMax = range[1] + delta;
+          if (value < relaxedMin || value > relaxedMax) return false;
+        }
+      } else {
+        if (value < range[0] || value > range[1]) return false;
+      }
+    }
     return true;
   }
 
@@ -616,7 +633,7 @@
     const segments = [];
     for (let i = 0; i <= data.length - minCount; i++) {
       const window = data.slice(i, i + minCount);
-      const allValid = window.every((item) => isDataValid(item, checks));
+      const allValid = window.every((item) => isDataValid(item, checks, minCount));
       if (!allValid) continue;
       if (isExactSearchSource && checks.source && checks.source[1]) {
         const expectedSources = checks.source[1];
@@ -628,7 +645,7 @@
         );
         if (!matches) continue;
       }
-      if (isExactSearchTrend && checks.trend && checks.trend[1]) {
+      if (isExactSearchTrend && checks.trend && checks.trend[1] && minCount > 1) {
         const values = window.map((item) => item.residual_vector_norm);
         if (!matchesTrend(values, checks.trend[1])) continue;
       }
@@ -701,18 +718,13 @@
         const y2 = item.end_progress ?? 0;
         vector.p.push(y2 - y1);
       }
-      if (checks.trend[0]) {
-        if (i > 0) {
-          const trend = getTrend(
-            segment[i - 1].residual_vector_norm,
-            item.residual_vector_norm,
-          );
-          vector.tr.push(trend);
-        }
-      }
       if (checks.semantic[0]) {
         vector.sem.push(item.residual_vector_norm ?? null);
       }
+    }
+    if (checks.trend[0]) {
+      const values = segment.map(d => d.residual_vector_norm ?? 0);
+      vector.tr = getTrendPattern(values);
     }
     return vector;
   }
@@ -836,6 +848,7 @@
             return {
               ...sessionData,
               segments: group,
+              segmentId: group[0]?.segmentId,
             };
           }
           return null;
@@ -863,16 +876,10 @@
     currentResults = {};
   }
 
-  function getTrend(a, b) {
-    if (a < b) return 1; // up is 1, down is -1
-    if (a > b) return -1;
-    return 0;
-  }
-
   function handleSelectionChanged(event) {
     showResultCount.set(5);
-    isProgressChecked = true;
-    isTimeChecked = true;
+    isProgressChecked = false;
+    isTimeChecked = false;
     isSourceChecked = true;
     isSemanticChecked = true;
     isValueRangeChecked = true;
@@ -894,9 +901,7 @@
     sourceRange = sources;
     semanticRange = [dataRange.scRange.min, dataRange.scRange.max];
     semanticData = dataRange.sc.sc;
-    for (let i = 1; i < semanticData.length; i++) {
-      semanticTrend.push(getTrend(semanticData[i - 1], semanticData[i]));
-    }
+    semanticTrend = getTrendPattern(semanticData);
     currentResults = data;
 
     selectedPatterns[sessionId] = {
@@ -1855,7 +1860,7 @@
                   </div>
                   {#if $patternDataList.length > 0 && isSearch == 2}
                     <div>Search Results</div>
-                    {#each $patternDataList as sessionData, index}
+                    {#each $patternDataList as sessionData, index (sessionData.segmentId)}
                       {#if index < $showResultCount}
                         <div class="search-result-container">
                           <div
@@ -1865,9 +1870,7 @@
                             <button
                               class="close-button"
                               style="position: absolute; top:0px; right:0px; background-color: initial;"
-                              on:click={() => {
-                                removepattern();
-                              }}>×</button
+                              on:click={() => removepattern(sessionData.segmentId)}>×</button
                             >
                           </div>
                           <div style="display: flex; align-items: flex-start">
@@ -1998,10 +2001,6 @@
                 <table class="sessions-table">
                   <thead>
                     <tr>
-                      {#if showPatternColumn}
-                        <th>Pattern</th>
-                      {/if}
-                      <th>Activity</th>
                       <th class="sortable-header" on:click={() => handleSort("topic")}>
                         <span>Topic</span>
                         <span class="sort-icon">{getSortIcon("topic")}</span>
@@ -2010,6 +2009,10 @@
                         <span>Score</span>
                         <span class="sort-icon">{getSortIcon("score")}</span>
                       </th>
+                      {#if showPatternColumn}
+                        <th>Pattern</th>
+                      {/if}
+                      <th>Activity</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2041,10 +2044,6 @@
                   <thead>
                     <tr>
                       {#each Array(3) as _, colIndex}
-                        {#if showPatternColumn}
-                          <th>Pattern</th>
-                        {/if}
-                        <th>Activity</th>
                         <th class="sortable-header" on:click={() => handleSort("topic")} style="min-width: 80px;">
                           <span>Topic</span>
                           <span class="sort-icon">{getSortIcon("topic")}</span>
@@ -2053,6 +2052,10 @@
                           <span>Score</span>
                           <span class="sort-icon">{getSortIcon("score")}</span>
                         </th>
+                        {#if showPatternColumn}
+                          <th>Pattern</th>
+                        {/if}
+                        <th>Activity</th>
                         {#if colIndex < 2}
                           <th class="spacer" style="width: 8vw;"></th>
                         {/if}
@@ -2151,9 +2154,9 @@
                         />
                       </div>
                     </div>
-                    <button on:click={() => resetZoom($clickSession.sessionId)} class="zoom-reset-btn">
+                    <!-- <button on:click={() => resetZoom($clickSession.sessionId)} class="zoom-reset-btn">
                       Reset Zoom
-                    </button>
+                    </button> -->
                   </div>
                 </div>
                 <div class="content-box">

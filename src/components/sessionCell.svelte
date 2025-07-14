@@ -38,32 +38,6 @@
 </script>
 
 {#if sessionData}
-  {#if showPatterns}
-    <td class="pattern-cell">
-      <div class="pattern-icons-container">
-        {#each sessionPatterns as pattern (pattern.id)}
-          <PatternIconSmall 
-            {pattern}
-            isActive={activePatternId === pattern.id}
-            on:click={handlePatternClick}
-            on:contextmenu={handlePatternContextMenu}
-          />
-        {/each}
-      </div>
-    </td>
-  {/if}
-
-  <td class="activity-cell">
-    <div class="mini-chart" on:click={() => onRowClick(sessionData)}>
-      <ZoomoutChart
-        bind:this={chartRefs[sessionData.sessionId]}
-        sessionId={sessionData.sessionId}
-        similarityData={sessionData.similarityData}
-        on:containerClick={() => {}}
-      />
-    </div>
-  </td>
-
   <td class="topic-cell">
     <button
       class="topic-icon-btn"
@@ -84,16 +58,42 @@
     />
   </td>
 
+  {#if showPatterns}
+    <td class="pattern-cell">
+      <div class="pattern-icons-container">
+        {#each sessionPatterns as pattern (pattern.id)}
+          <PatternIconSmall 
+            {pattern}
+            isActive={activePatternId === pattern.id}
+            on:click={handlePatternClick}
+            on:contextmenu={handlePatternContextMenu}
+          />
+        {/each}
+      </div>
+    </td>
+  {/if}
+
+  <td class="activity-cell" class:add-right-border={colIndex === 0 || colIndex === 1}>
+    <div class="mini-chart" on:click={() => onRowClick(sessionData)}>
+      <ZoomoutChart
+        bind:this={chartRefs[sessionData.sessionId]}
+        sessionId={sessionData.sessionId}
+        similarityData={sessionData.similarityData}
+        on:containerClick={() => {}}
+      />
+    </div>
+  </td>
+
   {#if colIndex < 2}
     <td class="spacer-cell"></td>
   {/if}
 
 {:else}
+  <td class="empty-cell"></td>
+  <td class="empty-cell"></td>
   {#if showPatterns}
     <td class="empty-cell"></td>
   {/if}
-  <td class="empty-cell"></td>
-  <td class="empty-cell"></td>
   <td class="empty-cell"></td>
 {/if}
 
@@ -123,6 +123,10 @@
 
   .activity-cell:hover {
     background-color: rgba(0, 0, 0, 0.02);
+  }
+
+  .activity-cell.add-right-border {
+    border-right: 1px solid #ddd;
   }
 
   .topic-cell {
