@@ -22,6 +22,8 @@
   import LineChartPreview from "../components/lineChartPreview.svelte";
   import SessionCell from "../components/sessionCell.svelte";
   import SavePanel from "../components/savePanel.svelte";
+  import PatternDetailView from "../components/PatternDetailView.svelte";
+  import SavedPatternsBar from "../components/SavedPatternsBar.svelte";
 
   let chartRefs = {};
   function resetZoom(sessionId) {
@@ -101,6 +103,9 @@
     const mod = await import("svelte-range-slider-pips");
     RangeSlider = mod.default;
   });
+  let currentView = 'landing'; 
+  let selectedPatternForDetail = null;
+  let activePatternId = null;
   let isProgressChecked = true;
   let isTimeChecked = true;
   let isSourceChecked = true;
@@ -163,15 +168,50 @@
   }
 
   function handleSave(event) {
-    const { name, color } = event.detail;
-    const sliceToSave = $patternDataList.slice(0, $showResultCount);
-    const itemToSave = {
-      name,
-      color,
-      pattern: sliceToSave,
-    };
-    searchPatternSet.update((current) => [...current, itemToSave]);
-    isSave = false;
+      const { name, color } = event.detail;
+      
+      const allPatternData = get(patternDataList); 
+      // console.log('Total pattern data length:', allPatternData.length); 
+      const seenSessionIds = new Set();
+      const deduplicatedData = allPatternData.filter(session => {
+        if (seenSessionIds.has(session.sessionId)) {
+          // console.log('Filtering duplicate session:', session.sessionId);
+          return false;
+        }
+        seenSessionIds.add(session.sessionId);
+        return true;
+      });
+      
+      
+      const processedSlice = deduplicatedData.map(session => ({
+        ...session,
+        llmScore: session.similarityData[0].score || 0
+      }));
+      
+      const itemToSave = {
+        id: `pattern_${Date.now()}`,
+        name,
+        color,
+        pattern: processedSlice,
+        metadata: {
+          createdAt: Date.now(),
+          totalSessions: processedSlice.length,
+          originalMatches: allPatternData.length
+        }
+      };
+      
+      searchPatternSet.update((current) => [...current, itemToSave]);
+      isSave = false;
+
+      tick().then(() => {
+        // Method1:  update showPatternColumn
+        //const currentPatterns = get(searchPatternSet);
+        //showPatternColumn = currentPatterns && currentPatterns.length > 0;
+        // Method2: refresh patternDataList
+        initData.update(data => [...data]);
+        // Mathod3: update patternDataList
+        //displaySessions.update(sessions => [...sessions]);
+      });
   }
 
   function handleClose() {
@@ -542,42 +582,23 @@
     selectedPatterns = newSelectedPatterns;
   }
 
-  function isDataValid(item, checks, minCount) {
+  function isDataValid(item, checks) {
     const fieldMap = {
       progress: (d) => d.end_progress * 100,
       time: (d) => d.end_time / 60,
       semantic: (d) => d.residual_vector_norm,
     };
-    const relaxRatioMap = {
-      progress: 0.3,
-    };
+
     for (const [key, [checked, range]] of Object.entries(checks)) {
       if (!checked || !(key in fieldMap)) continue;
       const value = fieldMap[key](item);
-
-      if (value == null || isNaN(value)) return false;
-
-      if (minCount === 1) {
-        if (key === "semantic") {
-          const relaxedMin = range[0] - 0.05;
-          const relaxedMax = range[1] + 0.05;
-          if (value < relaxedMin || value > relaxedMax) return false;
-        } else {
-          const relaxRatio = relaxRatioMap[key] ?? 0.2;
-          const delta = (range[1] - range[0]) * relaxRatio;
-          const relaxedMin = range[0] - delta;
-          const relaxedMax = range[1] + delta;
-          if (value < relaxedMin || value > relaxedMax) return false;
-        }
-      } else {
-        if (value < range[0] || value > range[1]) return false;
-      }
+      if (value < range[0] || value > range[1]) return false;
     }
+
     return true;
   }
 
   function getTrendPattern(values) {
-    if (values.length < 2) return [0];
     const pattern = [];
     for (let i = 1; i < values.length; i++) {
       if (values[i] > values[i - 1]) pattern.push(1);
@@ -595,7 +616,7 @@
     const segments = [];
     for (let i = 0; i <= data.length - minCount; i++) {
       const window = data.slice(i, i + minCount);
-      const allValid = window.every((item) => isDataValid(item, checks, minCount));
+      const allValid = window.every((item) => isDataValid(item, checks));
       if (!allValid) continue;
       if (isExactSearchSource && checks.source && checks.source[1]) {
         const expectedSources = checks.source[1];
@@ -607,12 +628,13 @@
         );
         if (!matches) continue;
       }
-      if (isExactSearchTrend && checks.trend && checks.trend[1] && minCount > 1) {
+      if (isExactSearchTrend && checks.trend && checks.trend[1]) {
         const values = window.map((item) => item.residual_vector_norm);
         if (!matchesTrend(values, checks.trend[1])) continue;
       }
       segments.push([...window]);
     }
+
     return segments;
   }
 
@@ -645,9 +667,11 @@
         currentVector.sem.push(currentItem.residual_vector_norm);
       }
     }
+
     if (checks.trend[0]) {
       currentVector.tr = semanticTrend;
     }
+
     return currentVector;
   }
 
@@ -677,13 +701,18 @@
         const y2 = item.end_progress ?? 0;
         vector.p.push(y2 - y1);
       }
+      if (checks.trend[0]) {
+        if (i > 0) {
+          const trend = getTrend(
+            segment[i - 1].residual_vector_norm,
+            item.residual_vector_norm,
+          );
+          vector.tr.push(trend);
+        }
+      }
       if (checks.semantic[0]) {
         vector.sem.push(item.residual_vector_norm ?? null);
       }
-    }
-    if (checks.trend[0]) {
-      const values = segment.map(d => d.residual_vector_norm ?? 0);
-      vector.tr = getTrendPattern(values);
     }
     return vector;
   }
@@ -727,6 +756,7 @@
             segmentId: `${extractedFileName}_${index}`,
           })),
         );
+
         for (const segment of taggedSegments) {
           const vector = buildVectorFromSegment(segment, checks);
           vector.id = segment[0]?.id ?? null;
@@ -806,7 +836,6 @@
             return {
               ...sessionData,
               segments: group,
-              segmentId: group[0]?.segmentId,
             };
           }
           return null;
@@ -834,6 +863,12 @@
     currentResults = {};
   }
 
+  function getTrend(a, b) {
+    if (a < b) return 1; // up is 1, down is -1
+    if (a > b) return -1;
+    return 0;
+  }
+
   function handleSelectionChanged(event) {
     showResultCount.set(5);
     isProgressChecked = true;
@@ -859,7 +894,9 @@
     sourceRange = sources;
     semanticRange = [dataRange.scRange.min, dataRange.scRange.max];
     semanticData = dataRange.sc.sc;
-    semanticTrend = getTrendPattern(semanticData);
+    for (let i = 1; i < semanticData.length; i++) {
+      semanticTrend.push(getTrend(semanticData[i - 1], semanticData[i]));
+    }
     currentResults = data;
 
     selectedPatterns[sessionId] = {
@@ -1509,6 +1546,76 @@
       return currentSession;
     });
   }
+
+  function handlePatternClick(event) {
+    const { pattern } = event.detail;
+    
+    selectedPatternForDetail = pattern;
+    activePatternId = pattern.id;
+    currentView = 'pattern-detail';
+  }
+
+  function handlePatternContextMenu(event) {
+    const { pattern } = event.detail;
+    console.log('Right clicked on pattern from table:', pattern.name);
+
+  }
+
+  $: showPatternColumn = $searchPatternSet && $searchPatternSet.length > 0;
+
+  function handleShowMorePatterns() {
+    console.log(`Total patterns: ${$searchPatternSet.length}`);
+  }
+
+  function handleBackFromDetail() {
+    currentView = 'landing';
+    selectedPatternForDetail = null;
+    activePatternId = null;
+  }
+
+  function handleApplyPattern(event) {
+    const { pattern } = event.detail;
+    if (!selectionMode) {
+      selectionMode = true;
+      showPatternSearch = true;
+    }
+    handleBackFromDetail();
+  }
+
+  function handleEditPattern(event) {
+    const { pattern } = event.detail;
+    const newName = prompt(`Edit pattern name:`, pattern.name);
+    if (newName && newName.trim() && newName !== pattern.name) {
+      searchPatternSet.update((patterns) => 
+        patterns.map(p => 
+          p.id === pattern.id 
+            ? { ...p, name: newName.trim() }
+            : p
+        )
+      );
+      if (selectedPatternForDetail && selectedPatternForDetail.id === pattern.id) {
+        selectedPatternForDetail = { ...selectedPatternForDetail, name: newName.trim() };
+      }
+    }
+  }
+
+  function handleDeletePattern(event) {
+    const { pattern } = event.detail;
+    if (confirm(`Are you sure you want to delete pattern "${pattern.name}"?`)) {
+      searchPatternSet.update((patterns) => 
+        patterns.filter(p => p.id !== pattern.id)
+      );
+      if (currentView === 'pattern-detail') {
+        handleBackFromDetail();
+      }
+    }
+  }
+
+  function handlePatternDetailRowClick(event) {
+    const { sessionData } = event.detail;
+    handleContainerClick({ detail: { sessionId: sessionData.sessionId } });
+    handleBackFromDetail();
+  }
 </script>
 
 <div class="App">
@@ -1552,6 +1659,15 @@
         <span class="user-line">●</span> User written
         <span class="api-line">●</span> AI writing
       </div>
+      {#if !showMulti}
+        <SavedPatternsBar 
+          patterns={$searchPatternSet}
+          {activePatternId}
+          on:pattern-click={handlePatternClick}
+          on:pattern-contextmenu={handlePatternContextMenu}
+          on:show-more-patterns={handleShowMorePatterns}
+        />
+      {/if}
       <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded"
         rel="stylesheet"
@@ -1562,7 +1678,8 @@
           href=" "
           aria-label="Toggle View"
           class="material-symbols-rounded"
-        >swap_horiz
+        >
+          swap_horiz
         </a>
       {/if}
       <button
@@ -1738,7 +1855,7 @@
                   </div>
                   {#if $patternDataList.length > 0 && isSearch == 2}
                     <div>Search Results</div>
-                    {#each $patternDataList as sessionData, index (sessionData.segmentId)}
+                    {#each $patternDataList as sessionData, index}
                       {#if index < $showResultCount}
                         <div class="search-result-container">
                           <div
@@ -1829,30 +1946,42 @@
       />
     {/if}
     <div class="container">
+       <!-- <div style="position: fixed; top: 100px; right: 10px; background: red; color: white; padding: 10px; z-index: 9999;">
+    DEBUG INFO:<br>
+    currentView: {currentView}<br>
+    selectedPatternForDetail: {selectedPatternForDetail ? selectedPatternForDetail.name : 'null'}<br>
+    showMulti: {showMulti}
+  </div> -->
       {#if isOpen}
         <div class="introduction-background">
           <div class="introduction">
             <h2>Welcome to the CoAuthor visualization!</h2>
             <p>
-              This platform allows you to explore the <b
-                >human-AI collaborative writing process</b
-              >
-              using the
-              <a href="https://coauthor.stanford.edu/" target="_blank"
-                >CoAuthor dataset</a
-              >. View how writers interacted with GPT-3, analyze AI-generated
-              suggestions, and track text evolution in real time.
+              This platform allows you to explore the <b>human-AI collaborative writing process</b>
+              using the <a href="https://coauthor.stanford.edu/" target="_blank">CoAuthor dataset</a>. 
+              View how writers interacted with GPT-3, analyze AI-generated suggestions, and track text evolution in real time.
             </p>
-            <p>
-              Discover insights into <b>human-AI collaboration</b>
-              and have fun!
-            </p>
-            <button class="start-button" on:click={open2close}
-              >Start Exploring</button
-            >
+            <p>Discover insights into <b>human-AI collaboration</b> and have fun!</p>
+            <button class="start-button" on:click={open2close}>Start Exploring</button>
           </div>
         </div>
       {/if}
+      
+      {#if currentView === 'pattern-detail' && selectedPatternForDetail}
+        <div style="margin-top: 70px;">
+          <PatternDetailView 
+            pattern={selectedPatternForDetail}
+            {sessions}
+            {chartRefs}
+            on:back={handleBackFromDetail}
+            on:apply-pattern={handleApplyPattern}
+            on:edit-pattern={handleEditPattern}
+            on:delete-pattern={handleDeletePattern}
+            on:row-click={handlePatternDetailRowClick}
+          />
+        </div>
+       {:else}
+
       <div style="margin-top: 70px;" hidden={showMulti}>
         {#if $initData.length > 0}
           {#if selectedCategoryFilter}
@@ -1869,31 +1998,23 @@
                 <table class="sessions-table">
                   <thead>
                     <tr>
-                      <th
-                        class="sortable-header"
-                        on:click={() => handleSort("topic")}
-                        style="min-width: 80px;"
-                      >
+                      {#if showPatternColumn}
+                        <th>Pattern</th>
+                      {/if}
+                      <th>Activity</th>
+                      <th class="sortable-header" on:click={() => handleSort("topic")}>
                         <span>Topic</span>
                         <span class="sort-icon">{getSortIcon("topic")}</span>
                       </th>
-                      <th
-                        class="sortable-header"
-                        on:click={() => handleSort("score")}
-                        style="min-width: 80px;"
-                      >
+                      <th class="sortable-header" on:click={() => handleSort("score")}>
                         <span>Score</span>
                         <span class="sort-icon">{getSortIcon("score")}</span>
                       </th>
-                      <th>Activity</th>
                     </tr>
                   </thead>
                   <tbody>
                     {#each selectedCategoryFilter ? filteredByCategory : filteredSessions as sessionData (sessionData.sessionId)}
-                      <tr
-                        class="session-row"
-                        on:click={() => handleRowClick(sessionData)}
-                      >
+                    <tr class="session-row" on:click={() => handleRowClick(sessionData)}>
                         <SessionCell
                           {sessionData}
                           {chartRefs}
@@ -1901,6 +2022,11 @@
                           onCategoryIconClick={handleCategoryIconClick}
                           {getPromptCode}
                           {getCategoryIcon}
+                          showPatterns={showPatternColumn}
+                          patterns={$searchPatternSet}
+                          {activePatternId}
+                          on:pattern-click={handlePatternClick}
+                          on:pattern-contextmenu={handlePatternContextMenu}
                         />
                       </tr>
                     {/each}
@@ -1915,24 +2041,18 @@
                   <thead>
                     <tr>
                       {#each Array(3) as _, colIndex}
-                        
-                        <th
-                          class="sortable-header"
-                          on:click={() => handleSort("topic")}
-                          style="min-width: 80px;"
-                        >
+                        {#if showPatternColumn}
+                          <th>Pattern</th>
+                        {/if}
+                        <th>Activity</th>
+                        <th class="sortable-header" on:click={() => handleSort("topic")} style="min-width: 80px;">
                           <span>Topic</span>
                           <span class="sort-icon">{getSortIcon("topic")}</span>
                         </th>
-                        <th
-                          class="sortable-header"
-                          on:click={() => handleSort("score")}
-                          style="min-width: 80px;"
-                        >
+                        <th class="sortable-header" on:click={() => handleSort("score")} style="min-width: 80px;">
                           <span>Score</span>
                           <span class="sort-icon">{getSortIcon("score")}</span>
                         </th>
-                        <th>Activity</th>
                         {#if colIndex < 2}
                           <th class="spacer" style="width: 8vw;"></th>
                         {/if}
@@ -1951,6 +2071,11 @@
                             {getPromptCode}
                             {getCategoryIcon}
                             {colIndex}
+                            showPatterns={showPatternColumn}
+                            patterns={$searchPatternSet}
+                            {activePatternId}
+                            on:pattern-click={handlePatternClick}
+                            on:pattern-contextmenu={handlePatternContextMenu}
                           />
                         {/each}
                       </tr>
@@ -1961,7 +2086,8 @@
             </div>
           {/if}
         {/if}
-      </div>
+      </div>  
+
       {#if showMulti}
         {#if $clickSession}
           <div class="multi-box" style="margin-top: 70px;">
@@ -1974,39 +2100,26 @@
                   <div class="session-identifier">
                     <h3>
                       {#if sessions && sessions.find((s) => s.session_id === $clickSession.sessionId)}
-                        {sessions.find(
-                          (s) => s.session_id === $clickSession.sessionId,
-                        ).prompt_code} - {$clickSession.sessionId}
+                        {sessions.find((s) => s.session_id === $clickSession.sessionId).prompt_code} - {$clickSession.sessionId}
                       {:else}
                         Session: {$clickSession.sessionId}
                       {/if}
                     </h3>
                   </div>
-                  <div
-                    class="session-summary"
-                    id="summary-{$clickSession.sessionId}"
-                  >
+                  <div class="session-summary" id="summary-{$clickSession.sessionId}">
                     <h3>Session Summary</h3>
                     <div class="summary-container">
                       <div class="totalText">
-                        {$clickSession.summaryData
-                          ? `Total Text: ${$clickSession.summaryData.totalProcessedCharacters} characters`
-                          : ""}
+                        {$clickSession.summaryData ? `Total Text: ${$clickSession.summaryData.totalProcessedCharacters} characters` : ""}
                       </div>
                       <div class="totalInsertions">
-                        {$clickSession.summaryData
-                          ? `Insertions: ${$clickSession.summaryData.totalInsertions}`
-                          : ""}
+                        {$clickSession.summaryData ? `Insertions: ${$clickSession.summaryData.totalInsertions}` : ""}
                       </div>
                       <div class="totalDeletions">
-                        {$clickSession.summaryData
-                          ? `Deletions: ${$clickSession.summaryData.totalDeletions}`
-                          : ""}
+                        {$clickSession.summaryData ? `Deletions: ${$clickSession.summaryData.totalDeletions}` : ""}
                       </div>
                       <div class="totalSuggestions">
-                        {$clickSession.summaryData
-                          ? `Suggestions: ${$clickSession.summaryData.totalSuggestions - 1}`
-                          : ""}
+                        {$clickSession.summaryData ? `Suggestions: ${$clickSession.summaryData.totalSuggestions - 1}` : ""}
                       </div>
                     </div>
                   </div>
@@ -2018,15 +2131,11 @@
                           similarityData={$clickSession.similarityData}
                           {yScale}
                           {height}
-                          bind:zoomTransform={
-                            zoomTransforms[$clickSession.sessionId]
-                          }
+                            bind:zoomTransform={zoomTransforms[$clickSession.sessionId]}
                           {selectionMode}
                           on:selectionChanged={handleSelectionChanged}
                           on:selectionCleared={handleSelectionCleared}
-                          bind:this={
-                            chartRefs[$clickSession.sessionId + "-barChart"]
-                          }
+                          bind:this={chartRefs[$clickSession.sessionId + "-barChart"]}
                           on:chartLoaded={handleChartLoaded}
                         />
                       {/if}
@@ -2035,33 +2144,22 @@
                           bind:this={chartRefs[$clickSession.sessionId]}
                           chartData={$clickSession.chartData}
                           paragraphColor={$clickSession.paragraphColor}
-                          on:pointSelected={(e) =>
-                            handlePointSelected(e, $clickSession.sessionId)}
+                          on:pointSelected={(e) => handlePointSelected(e, $clickSession.sessionId)}
                           {yScale}
                           {height}
-                          bind:zoomTransform={
-                            zoomTransforms[$clickSession.sessionId]
-                          }
+                            bind:zoomTransform={zoomTransforms[$clickSession.sessionId]}
                         />
                       </div>
                     </div>
-                    <button
-                      on:click={() => resetZoom($clickSession.sessionId)}
-                      class="zoom-reset-btn"
-                    >
+                    <button on:click={() => resetZoom($clickSession.sessionId)} class="zoom-reset-btn">
                       Reset Zoom
                     </button>
                   </div>
                 </div>
                 <div class="content-box">
                   <div class="progress-container">
-                    <span
-                      >{($clickSession?.currentTime || 0).toFixed(2)} mins</span
-                    >
-                    <progress
-                      value={$clickSession?.currentTime || 0}
-                      max={$clickSession?.time100 || 1}
-                    ></progress>
+                    <span>{($clickSession?.currentTime || 0).toFixed(2)} mins</span>
+                    <progress value={$clickSession?.currentTime || 0} max={$clickSession?.time100 || 1}></progress>
                   </div>
                   <div class="scale-container">
                     <div class="scale" id="scale"></div>
@@ -2069,10 +2167,7 @@
                   <div class="text-container">
                     {#if $clickSession.textElements && $clickSession.textElements.length > 0}
                       {#each $clickSession.textElements as element, index}
-                        <span
-                          class="text-span"
-                          style="color: {element.textColor}"
-                        >
+                        <span class="text-span" style="color: {element.textColor}">
                           {element.text}
                         </span>
                       {/each}
@@ -2082,6 +2177,7 @@
               </div>
             </div>
           </div>
+        {/if}
         {/if}
       {/if}
     </div>
