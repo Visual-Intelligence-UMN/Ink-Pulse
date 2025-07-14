@@ -171,11 +171,11 @@
       const { name, color } = event.detail;
       
       const allPatternData = get(patternDataList); 
-      console.log('Total pattern data length:', allPatternData.length); 
+      // console.log('Total pattern data length:', allPatternData.length); 
       const seenSessionIds = new Set();
       const deduplicatedData = allPatternData.filter(session => {
         if (seenSessionIds.has(session.sessionId)) {
-          console.log('Filtering duplicate session:', session.sessionId);
+          // console.log('Filtering duplicate session:', session.sessionId);
           return false;
         }
         seenSessionIds.add(session.sessionId);
@@ -185,7 +185,7 @@
       
       const processedSlice = deduplicatedData.map(session => ({
         ...session,
-        llmJudgeScore: session.llmJudgeScore || session.llmScore || 0
+        llmScore: session.similarityData[0].score || 0
       }));
       
       const itemToSave = {
@@ -1981,7 +1981,7 @@
           />
         </div>
        {:else}
-      <!-- === 现有的landing page内容 === -->
+
       <div style="margin-top: 70px;" hidden={showMulti}>
         {#if $initData.length > 0}
           {#if selectedCategoryFilter}
@@ -2087,7 +2087,7 @@
           {/if}
         {/if}
       </div>  
-        <!-- === 现有的showMulti内容 === -->
+
       {#if showMulti}
         {#if $clickSession}
           <div class="multi-box" style="margin-top: 70px;">

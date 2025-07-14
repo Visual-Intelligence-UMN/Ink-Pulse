@@ -1,4 +1,3 @@
-<!-- PatternDetailView.svelte -->
 <script>
   import { createEventDispatcher } from 'svelte';
   import SessionCell from './sessionCell.svelte';
@@ -45,7 +44,6 @@
 </script>
 
 <div class="pattern-detail-container">
-  <!-- Header -->
   <div class="pattern-detail-header">
     <button class="back-button" on:click={handleBack}>
       ← Back
@@ -54,7 +52,6 @@
     <button class="close-button" on:click={handleBack}>✕</button>
   </div>
   
-  <!-- Pattern Info -->
   <div class="pattern-info">
     <div class="pattern-icon-large" style="background-color: {pattern?.color}">
       {pattern?.name?.slice(0, 2).toUpperCase() || '?'}
@@ -65,7 +62,6 @@
     </div>
   </div>
   
-  <!-- Sessions Table -->
   <div class="table-container">
     <table class="pattern-sessions-table">
       <thead>
@@ -101,7 +97,6 @@
     </table>
   </div>
   
-  <!-- Action Buttons -->
   <div class="action-buttons">
     <button class="btn btn-primary" on:click={handleApplyPattern}>
       Apply This Pattern

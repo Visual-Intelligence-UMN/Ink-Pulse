@@ -12,15 +12,12 @@
   export let getPromptCode;
   export let getCategoryIcon;
   export let colIndex = Infinity;
-  
-  // 新增的 pattern 相关 props（带默认值）
   export let showPatterns = false;
   export let patterns = [];
   export let activePatternId = null;
 
   const dispatch = createEventDispatcher();
-
-  // 查找该session属于哪些patterns
+  
   function getSessionPatterns(sessionId) {
     if (!patterns || patterns.length === 0) return [];
     
@@ -42,7 +39,6 @@
 </script>
 
 {#if sessionData}
-  <!-- Pattern列 - 新增 -->
   {#if showPatterns}
     <td class="pattern-cell">
       <div class="pattern-icons-container">
@@ -58,7 +54,6 @@
     </td>
   {/if}
 
-  <!-- Activity列 - 原有 -->
   <td class="activity-cell">
     <div class="mini-chart" on:click={() => onRowClick(sessionData)}>
       <ZoomoutChart
@@ -70,7 +65,6 @@
     </div>
   </td>
 
-  <!-- Topic列 - 原有 -->
   <td class="topic-cell">
     <button
       class="topic-icon-btn"
@@ -83,22 +77,19 @@
     </button>
   </td>
 
-  <!-- Score列 - 原有 -->
   <td class="score-cell">
     <SemanticExpansionCircle
       llmJudgeScore={sessionData.llmScore}
-      size={50}
+      size={40}
       sessionId={sessionData.sessionId}
     />
   </td>
-  
-  <!-- 间距列 - 原有 -->
+
   {#if colIndex < 2}
     <td class="spacer-cell"></td>
   {/if}
 
 {:else}
-  <!-- 空状态 -->
   {#if showPatterns}
     <td class="empty-cell"></td>
   {/if}
@@ -110,7 +101,7 @@
 <style>
   td {
     border-bottom: 1px solid #ccc;
-    padding: 10px;  /* This makes rows look spaced out */
+    padding: 10px;
   }
 
   .pattern-cell {
@@ -160,10 +151,10 @@
   }
 
   .empty-cell {
-    /* 保持空单元格的结构 */
+
   }
 
   .spacer-cell {
-    /* 保持原有的间距单元格 */
+
   }
 </style>
