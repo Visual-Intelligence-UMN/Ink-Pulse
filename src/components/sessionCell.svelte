@@ -11,6 +11,7 @@
   export let getPromptCode;
   export let getCategoryIcon;
   export let colIndex = Infinity;
+
   export let showPatterns = false;
   export let patterns = [];
   export let activePatternId = null;
@@ -38,6 +39,29 @@
 </script>
 
 {#if sessionData}
+  <!-- Topic-->
+  <td class="topic-cell">
+    <button
+      class="topic-icon-btn"
+      on:click|stopPropagation={() =>
+        onCategoryIconClick(getPromptCode(sessionData.sessionId))}
+      title={getPromptCode(sessionData.sessionId)}
+      type="button"
+    >
+      {getCategoryIcon(getPromptCode(sessionData.sessionId))}
+    </button>
+  </td>
+
+  <!-- Score -->
+  <td class="score-cell">
+    <SemanticExpansionCircle
+      llmJudgeScore={sessionData.llmScore}
+      size={50}
+      sessionId={sessionData.sessionId}
+    />
+  </td>
+
+  <!-- Pattern -->
   {#if showPatterns}
     <td class="pattern-cell">
       <div class="pattern-icons-container">
@@ -53,7 +77,8 @@
     </td>
   {/if}
 
-  <td class="activity-cell">
+  <!-- Activity-->
+  <td class="activity-cell" class:add-right-border={colIndex === 0 || colIndex === 1}>
     <div class="mini-chart" on:click={() => onRowClick(sessionData)}>
       <ZoomoutChart
         bind:this={chartRefs[sessionData.sessionId]}
@@ -64,37 +89,17 @@
     </div>
   </td>
 
-  <td class="topic-cell">
-    <button
-      class="topic-icon-btn"
-      on:click|stopPropagation={() =>
-        onCategoryIconClick(getPromptCode(sessionData.sessionId))}
-      title={getPromptCode(sessionData.sessionId)}
-      type="button"
-    >
-      {getCategoryIcon(getPromptCode(sessionData.sessionId))}
-    </button>
-  </td>
-
-  <td class="score-cell">
-    <SemanticExpansionCircle
-      llmJudgeScore={sessionData.llmScore}
-      size={40}
-      sessionId={sessionData.sessionId}
-    />
-  </td>
-
   {#if colIndex < 2}
     <td class="spacer-cell"></td>
   {/if}
 
 {:else}
+  <td class="empty-cell"></td>  <!-- Topic -->
+  <td class="empty-cell"></td>  <!-- Score -->
   {#if showPatterns}
-    <td class="empty-cell"></td>
+    <td class="empty-cell"></td>  <!-- Pattern -->
   {/if}
-  <td class="empty-cell"></td>
-  <td class="empty-cell"></td>
-  <td class="empty-cell"></td>
+  <td class="empty-cell"></td>  <!-- Activity -->
 {/if}
 
 <style>
@@ -123,6 +128,10 @@
 
   .activity-cell:hover {
     background-color: rgba(0, 0, 0, 0.02);
+  }
+
+  .activity-cell.add-right-border {
+    border-right: 1px solid #ddd;
   }
 
   .topic-cell {
