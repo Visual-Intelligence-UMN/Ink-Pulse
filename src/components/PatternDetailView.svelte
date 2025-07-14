@@ -121,6 +121,8 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+    min-height: 100vh;
+    overflow: visible;
   }
   
   .pattern-detail-header {
@@ -185,9 +187,10 @@
   .table-container {
     background: white;
     border-radius: 8px;
-    overflow: hidden;
+    overflow: visible;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     margin-bottom: 25px;
+    max-height: none;
   }
   
   .pattern-sessions-table {
@@ -205,6 +208,11 @@
     font-weight: 600;
     color: #333;
     border-bottom: 2px solid #e0e0e0;
+  }
+  
+  .pattern-sessions-table tbody {
+    max-height: none;
+    overflow: visible;
   }
   
   .session-row {

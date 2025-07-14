@@ -169,8 +169,21 @@
 
   function handleSave(event) {
       const { name, color } = event.detail;
-      const sliceToSave = $patternDataList.slice(0, $showResultCount);
-      const processedSlice = sliceToSave.map(session => ({
+      
+      const allPatternData = get(patternDataList); 
+      console.log('Total pattern data length:', allPatternData.length); 
+      const seenSessionIds = new Set();
+      const deduplicatedData = allPatternData.filter(session => {
+        if (seenSessionIds.has(session.sessionId)) {
+          console.log('Filtering duplicate session:', session.sessionId);
+          return false;
+        }
+        seenSessionIds.add(session.sessionId);
+        return true;
+      });
+      
+      
+      const processedSlice = deduplicatedData.map(session => ({
         ...session,
         llmJudgeScore: session.llmJudgeScore || session.llmScore || 0
       }));
@@ -182,12 +195,23 @@
         pattern: processedSlice,
         metadata: {
           createdAt: Date.now(),
-          totalSessions: processedSlice.length
+          totalSessions: processedSlice.length,
+          originalMatches: allPatternData.length
         }
       };
       
       searchPatternSet.update((current) => [...current, itemToSave]);
       isSave = false;
+
+      tick().then(() => {
+        // Method1:  update showPatternColumn
+        //const currentPatterns = get(searchPatternSet);
+        //showPatternColumn = currentPatterns && currentPatterns.length > 0;
+        // Method2: refresh patternDataList
+        initData.update(data => [...data]);
+        // Mathod3: update patternDataList
+        //displaySessions.update(sessions => [...sessions]);
+      });
   }
 
   function handleClose() {
@@ -1522,24 +1546,22 @@
       return currentSession;
     });
   }
-  
 
   function handlePatternClick(event) {
-    console.log('🎯 Pattern clicked!', event.detail); 
     const { pattern } = event.detail;
-    console.log('Pattern data:', pattern); 
     
     selectedPatternForDetail = pattern;
     activePatternId = pattern.id;
     currentView = 'pattern-detail';
-    
-    console.log('New currentView:', currentView); 
   }
 
   function handlePatternContextMenu(event) {
     const { pattern } = event.detail;
-    console.log('Right clicked on pattern:', pattern.name);
+    console.log('Right clicked on pattern from table:', pattern.name);
+
   }
+
+  $: showPatternColumn = $searchPatternSet && $searchPatternSet.length > 0;
 
   function handleShowMorePatterns() {
     console.log(`Total patterns: ${$searchPatternSet.length}`);
@@ -1976,6 +1998,9 @@
                 <table class="sessions-table">
                   <thead>
                     <tr>
+                      {#if showPatternColumn}
+                        <th>Pattern</th>
+                      {/if}
                       <th>Activity</th>
                       <th class="sortable-header" on:click={() => handleSort("topic")}>
                         <span>Topic</span>
@@ -1989,7 +2014,7 @@
                   </thead>
                   <tbody>
                     {#each selectedCategoryFilter ? filteredByCategory : filteredSessions as sessionData (sessionData.sessionId)}
-                     <tr class="session-row" on:click={() => handleRowClick(sessionData)}>
+                    <tr class="session-row" on:click={() => handleRowClick(sessionData)}>
                         <SessionCell
                           {sessionData}
                           {chartRefs}
@@ -1997,6 +2022,11 @@
                           onCategoryIconClick={handleCategoryIconClick}
                           {getPromptCode}
                           {getCategoryIcon}
+                          showPatterns={showPatternColumn}
+                          patterns={$searchPatternSet}
+                          {activePatternId}
+                          on:pattern-click={handlePatternClick}
+                          on:pattern-contextmenu={handlePatternContextMenu}
                         />
                       </tr>
                     {/each}
@@ -2011,6 +2041,9 @@
                   <thead>
                     <tr>
                       {#each Array(3) as _, colIndex}
+                        {#if showPatternColumn}
+                          <th>Pattern</th>
+                        {/if}
                         <th>Activity</th>
                         <th class="sortable-header" on:click={() => handleSort("topic")} style="min-width: 80px;">
                           <span>Topic</span>
@@ -2038,6 +2071,11 @@
                             {getPromptCode}
                             {getCategoryIcon}
                             {colIndex}
+                            showPatterns={showPatternColumn}
+                            patterns={$searchPatternSet}
+                            {activePatternId}
+                            on:pattern-click={handlePatternClick}
+                            on:pattern-contextmenu={handlePatternContextMenu}
                           />
                         {/each}
                       </tr>

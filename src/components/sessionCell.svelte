@@ -1,6 +1,10 @@
 <script>
   import SemanticExpansionCircle from "../components/scoreIcon.svelte";
   import ZoomoutChart from "../components/zoomoutChart.svelte";
+  import PatternIconSmall from "./PatternIconSmall.svelte";
+  import { createEventDispatcher } from 'svelte';
+  
+  // 原有的 props
   export let sessionData;
   export let onRowClick;
   export let onCategoryIconClick;
@@ -8,9 +12,53 @@
   export let getPromptCode;
   export let getCategoryIcon;
   export let colIndex = Infinity;
+  
+  // 新增的 pattern 相关 props（带默认值）
+  export let showPatterns = false;
+  export let patterns = [];
+  export let activePatternId = null;
+
+  const dispatch = createEventDispatcher();
+
+  // 查找该session属于哪些patterns
+  function getSessionPatterns(sessionId) {
+    if (!patterns || patterns.length === 0) return [];
+    
+    return patterns.filter(pattern => {
+      if (!pattern.pattern || pattern.pattern.length === 0) return false;
+      return pattern.pattern.some(session => session.sessionId === sessionId);
+    });
+  }
+
+  function handlePatternClick(event) {
+    dispatch('pattern-click', event.detail);
+  }
+
+  function handlePatternContextMenu(event) {
+    dispatch('pattern-contextmenu', event.detail);
+  }
+
+  $: sessionPatterns = sessionData ? getSessionPatterns(sessionData.sessionId) : [];
 </script>
 
 {#if sessionData}
+  <!-- Pattern列 - 新增 -->
+  {#if showPatterns}
+    <td class="pattern-cell">
+      <div class="pattern-icons-container">
+        {#each sessionPatterns as pattern (pattern.id)}
+          <PatternIconSmall 
+            {pattern}
+            isActive={activePatternId === pattern.id}
+            on:click={handlePatternClick}
+            on:contextmenu={handlePatternContextMenu}
+          />
+        {/each}
+      </div>
+    </td>
+  {/if}
+
+  <!-- Activity列 - 原有 -->
   <td class="activity-cell">
     <div class="mini-chart" on:click={() => onRowClick(sessionData)}>
       <ZoomoutChart
@@ -22,6 +70,7 @@
     </div>
   </td>
 
+  <!-- Topic列 - 原有 -->
   <td class="topic-cell">
     <button
       class="topic-icon-btn"
@@ -34,6 +83,7 @@
     </button>
   </td>
 
+  <!-- Score列 - 原有 -->
   <td class="score-cell">
     <SemanticExpansionCircle
       llmJudgeScore={sessionData.llmScore}
@@ -41,11 +91,17 @@
       sessionId={sessionData.sessionId}
     />
   </td>
+  
+  <!-- 间距列 - 原有 -->
   {#if colIndex < 2}
     <td class="spacer-cell"></td>
   {/if}
 
 {:else}
+  <!-- 空状态 -->
+  {#if showPatterns}
+    <td class="empty-cell"></td>
+  {/if}
   <td class="empty-cell"></td>
   <td class="empty-cell"></td>
   <td class="empty-cell"></td>
@@ -57,4 +113,57 @@
     padding: 10px;  /* This makes rows look spaced out */
   }
 
+  .pattern-cell {
+    width: 80px;
+    min-width: 60px;
+    vertical-align: middle;
+  }
+
+  .pattern-icons-container {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-wrap: wrap;
+  }
+
+  .activity-cell {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .activity-cell:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+
+  .topic-cell {
+    text-align: center;
+  }
+
+  .topic-icon-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+  }
+
+  .topic-icon-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    transform: scale(1.1);
+  }
+
+  .score-cell {
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .empty-cell {
+    /* 保持空单元格的结构 */
+  }
+
+  .spacer-cell {
+    /* 保持原有的间距单元格 */
+  }
 </style>

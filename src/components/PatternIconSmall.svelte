@@ -15,6 +15,7 @@
     dispatch('contextmenu', { pattern, event });
   }
   
+
   function getDisplayText(name) {
     if (!name) return '?';
     return name.length <= 2 ? name.toUpperCase() : name.slice(0, 2).toUpperCase();
@@ -29,7 +30,7 @@
 </script>
 
 <div 
-  class="pattern-icon" 
+  class="pattern-icon-small" 
   class:active={isActive}
   style="background-color: {pattern.color}"
   on:click={handleClick}
@@ -40,29 +41,29 @@
 </div>
 
 <style>
-  .pattern-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
+  .pattern-icon-small {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    font-size: 12px;
+    font-size: 9px;
     color: white;
-    margin-right: 8px;
+    margin-right: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
     user-select: none;
   }
   
-  .pattern-icon:hover {
+  .pattern-icon-small:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
   
-  .pattern-icon.active {
-    box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--pattern-color);
+  .pattern-icon-small.active {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 2px var(--pattern-color);
     transform: scale(1.05);
   }
 </style>
