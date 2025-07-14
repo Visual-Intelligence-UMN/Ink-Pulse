@@ -793,6 +793,7 @@
       const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
 
       // showResultCount = 5; // Initialize to show 5 results
+      console.log(fullData)
       searchCount = fullData.length;
       patternDataLoad(fullData);
     } catch (error) {
@@ -844,14 +845,19 @@
         .map((group) => {
           const id = group[0]?.id;
           const sessionData = sessionDataMap.get(id);
-          if (sessionData) {
-            return {
-              ...sessionData,
-              segments: group,
-              segmentId: group[0]?.segmentId,
-            };
+          if (!sessionData) return null;
+          const cleanSessionData = { ...sessionData };
+          if (Array.isArray(cleanSessionData.chartData)) {
+            cleanSessionData.chartData = cleanSessionData.chartData.map(({ currentText, ...rest }) => rest);
           }
-          return null;
+          delete cleanSessionData.paragraphColor;
+          delete cleanSessionData.textElements;
+
+          return {
+            ...cleanSessionData,
+            segments: group,
+            segmentId: group[0]?.segmentId,
+          };
         })
         .filter(Boolean),
     );
