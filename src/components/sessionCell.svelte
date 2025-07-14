@@ -11,7 +11,6 @@
   export let getPromptCode;
   export let getCategoryIcon;
   export let colIndex = Infinity;
-
   export let showPatterns = false;
   export let patterns = [];
   export let activePatternId = null;
@@ -39,7 +38,6 @@
 </script>
 
 {#if sessionData}
-  <!-- Topic-->
   <td class="topic-cell">
     <button
       class="topic-icon-btn"
@@ -52,16 +50,14 @@
     </button>
   </td>
 
-  <!-- Score -->
   <td class="score-cell">
     <SemanticExpansionCircle
       llmJudgeScore={sessionData.llmScore}
-      size={50}
+      size={40}
       sessionId={sessionData.sessionId}
     />
   </td>
 
-  <!-- Pattern -->
   {#if showPatterns}
     <td class="pattern-cell">
       <div class="pattern-icons-container">
@@ -77,7 +73,6 @@
     </td>
   {/if}
 
-  <!-- Activity-->
   <td class="activity-cell" class:add-right-border={colIndex === 0 || colIndex === 1}>
     <div class="mini-chart" on:click={() => onRowClick(sessionData)}>
       <ZoomoutChart
@@ -94,12 +89,12 @@
   {/if}
 
 {:else}
-  <td class="empty-cell"></td>  <!-- Topic -->
-  <td class="empty-cell"></td>  <!-- Score -->
+  <td class="empty-cell"></td>
+  <td class="empty-cell"></td>
   {#if showPatterns}
-    <td class="empty-cell"></td>  <!-- Pattern -->
+    <td class="empty-cell"></td>
   {/if}
-  <td class="empty-cell"></td>  <!-- Activity -->
+  <td class="empty-cell"></td>
 {/if}
 
 <style>
