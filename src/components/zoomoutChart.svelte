@@ -9,7 +9,7 @@
   export let sessionId;
 
   let showPrompt = true;
-  let height = 10;
+  let height = 20;
   const margin = { top: 0, right: 0, bottom: 0, left: 0 };
 
   let canvasEl: HTMLCanvasElement;
@@ -42,7 +42,7 @@
       text_length: item.sentence,
       startProgress: item.start_progress * 100,
       endProgress: item.end_progress * 100,
-      residual_vector_norm: item.residual_vector_norm,
+      residual_vector_norm: item.residual_vector_norm ?? 0,
       source: item.source,
     }));
 
@@ -51,7 +51,7 @@
     const width = 100 * textLength;
 
     const xScale = d3.scaleLinear().domain([0, 100]).range([0, width]);
-    const yScale = d3.scaleLinear().domain([1, 0]).range([0, height]);
+    const yScale = d3.scaleLinear().domain([0, 1]).range([0, height]);
     const opacityScale = d3.scaleLinear().domain([0, 1]).range([0.3, 1]);
 
     const dpr = window.devicePixelRatio || 1;
@@ -71,7 +71,7 @@
       const isFirst = processedData.indexOf(d) === 0;
       const hideFirst = isFirst && !showPrompt;
       const barY = yScale(hideFirst ? 0 : 1);
-      const barHeight = yScale(0) - yScale(hideFirst ? 0 : 1);
+      const barHeight = yScale(0) - yScale(hideFirst ? 0 : d.residual_vector_norm);
       const barX = xScale(d.startProgress);
       const barWidth = xScale(d.endProgress) - barX;
 
