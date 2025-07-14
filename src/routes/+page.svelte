@@ -1998,10 +1998,6 @@
                 <table class="sessions-table">
                   <thead>
                     <tr>
-                      {#if showPatternColumn}
-                        <th>Pattern</th>
-                      {/if}
-                      <th>Activity</th>
                       <th class="sortable-header" on:click={() => handleSort("topic")}>
                         <span>Topic</span>
                         <span class="sort-icon">{getSortIcon("topic")}</span>
@@ -2010,6 +2006,10 @@
                         <span>Score</span>
                         <span class="sort-icon">{getSortIcon("score")}</span>
                       </th>
+                      {#if showPatternColumn}
+                        <th>Pattern</th>
+                      {/if}
+                      <th>Activity</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2041,10 +2041,6 @@
                   <thead>
                     <tr>
                       {#each Array(3) as _, colIndex}
-                        {#if showPatternColumn}
-                          <th>Pattern</th>
-                        {/if}
-                        <th>Activity</th>
                         <th class="sortable-header" on:click={() => handleSort("topic")} style="min-width: 80px;">
                           <span>Topic</span>
                           <span class="sort-icon">{getSortIcon("topic")}</span>
@@ -2053,6 +2049,10 @@
                           <span>Score</span>
                           <span class="sort-icon">{getSortIcon("score")}</span>
                         </th>
+                        {#if showPatternColumn}
+                          <th>Pattern</th>
+                        {/if}
+                        <th>Activity</th>
                         {#if colIndex < 2}
                           <th class="spacer" style="width: 8vw;"></th>
                         {/if}
@@ -2462,7 +2462,7 @@
     padding: 1em 0;
     margin: 0px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    z-index: 2;
+    z-index: 600;
     left: 0;
     display: flex;
   }
