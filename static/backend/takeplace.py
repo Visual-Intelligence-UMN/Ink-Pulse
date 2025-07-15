@@ -428,4 +428,346 @@ function findSegments(data, checks, minCount) {
     });
   }
 
+  // *Table* related
+      {#if !showMulti}
+      <div class="table" class:collapsed={isCollapsed}>
+        <table>
+          <thead>
+            <tr>
+              <th
+                style="text-transform: uppercase; padding-top: 10px; padding-bottom: 7px"
+                >Session ID</th
+              >
+              <th
+                style="display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; padding-top: 10px; padding-bottom: 7px"
+                >Prompt Code
+                <a
+                  on:click|preventDefault={toggleFilter}
+                  href=" "
+                  aria-label="Filter"
+                  bind:this={filterButton}
+                  class={showFilter
+                    ? "material-symbols--filter-alt"
+                    : "material-symbols--filter-alt-outline"}
+                >
+                </a>
+              </th>
+              <th
+                style="text-transform: uppercase; padding-top: 10px; padding-bottom: 7px"
+                >Selected</th
+              >
+              <th>
+                <a
+                  on:click|preventDefault={toggleTableCollapse}
+                  href=" "
+                  aria-label="Collapse"
+                  bind:this={collapseButton}
+                  class={isCollapsed
+                    ? "material-symbols--stat-1-rounded"
+                    : "material-symbols--stat-minus-1-rounded"}
+                >
+                </a>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each $filterTableData as row, index}
+              <tr>
+                <td>{row.session_id}</td>
+                <td>{row.prompt_code}</td>
+                <td style="padding-left: 230px">
+                  <input
+                    type="checkbox"
+                    checked={row.selected}
+                    on:change={() => handleSelectChange(index)}
+                  />
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
+
+    <!-- <button on:click={() => resetZoom($clickSession.sessionId)} class="zoom-reset-btn">
+                      Reset Zoom
+    </button> -->
+
+    function resetZoom(sessionId) {
+    chartRefs[sessionId]?.resetZoom();
+  }
+
+    function toggleTableCollapse() {
+    isCollapsed = !isCollapsed;
+  }
+
+  const toggleFilter = () => {
+    showFilter = !showFilter;
+  };
+
+  function handleSelectChange(index) {
+    handleSessionChange($filterTableData[index].session_id);
+  }
+
+  const handleSessionChange = (sessionId) => {
+    let isCurrentlySelected = $filterTableData.find(
+      (row) => row.session_id == sessionId,
+    )?.selected;
+
+    filterTableData.set(
+      $filterTableData.map((row) => {
+        if (row.session_id == sessionId) {
+          return { ...row, selected: !row.selected };
+        }
+        return row;
+      }),
+    );
+
+    if (!isCurrentlySelected) {
+      for (let i = 0; i < selectedSession.length; i++) {
+        selectedSession[i] = sessionId;
+        fetchInitData(sessionId, false, true);
+      }
+    } else {
+      fetchInitData(sessionId, true, true);
+    }
+
+    for (let i = 0; i < selectedSession.length; i++) {
+      fetchSimilarityData(sessionId).then((similarityData) => {
+        if (similarityData) {
+          storeSessionData.update((sessionsMap) => {
+            selectedSession.forEach((sessionId) => {
+              if (sessionsMap.has(sessionId)) {
+                const session = sessionsMap.get(sessionId);
+                sessionsMap.set(sessionId, {
+                  ...session,
+                  similarityData: similarityData,
+                  totalSimilarityData: similarityData,
+                });
+              }
+            });
+            return new Map(sessionsMap);
+          });
+          initData.update((sessions) => {
+            if (!sessions.find((s) => s.sessionId === sessionId)) {
+              const newSession = {
+                sessionId: sessionId,
+                similarityData: similarityData,
+                totalSimilarityData: similarityData,
+              };
+              sessions.push(newSession);
+            }
+            return [...sessions];
+          });
+        }
+      });
+    }
+
+    let nowSelectTag = new Set(
+      $filterTableData.filter((f) => f.selected).map((f) => f.prompt_code),
+    );
+    selectedTags.update((selected) => {
+      selected = selected.filter((tag) => nowSelectTag.has(tag));
+      return selected;
+    });
+    updatePromptFilterStatus();
+  };
+
+        {#if !showMulti}
+        <div
+          class={`filter-container ${showFilter ? (isCollapsed ? "filter-container-close" : "") : ""} ${showFilter ? "show" : ""}`}
+        >
+          {#each filterOptions as option}
+            <label class="filter-label">
+              <span class="checkbox-wrapper">
+                <input
+                  id="checkbox-n"
+                  type="checkbox"
+                  value={option}
+                  on:change={toggleTag}
+                  checked={$selectedTags.includes(option)}
+                  class="filter-checkbox"
+                />
+                <span class="custom-checkbox">
+                  {#if $promptFilterStatus[option] === "all"}
+                    <span class="checkbox-indicator">✓</span>
+                  {:else if $promptFilterStatus[option] === "partial"}
+                    <span
+                      class="checkbox-indicator-alter"
+                      style="font-weight: bold; font-size: 24px;">-</span
+                    >
+                  {:else}
+                    <span class="checkbox-indicator"></span>
+                  {/if}
+                </span>
+              </span>
+              {option}
+            </label>
+          {/each}
+        </div>
+      {/if}
+
+      .grid-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .table,
+  .collapsed {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: white;
+    margin: 0px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    transition: height 0.2s ease;
+  }
+
+  .table {
+    height: 225px;
+  }
+
+  .collapsed {
+    height: 40px;
+  }
+
+  .filter-container {
+    position: absolute;
+    top: 195px;
+    left: 750px;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 12px;
+    display: none;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    width: 200px;
+    text-align: left;
+    border-radius: 8px;
+    transition: top 0.2s ease;
+  }
+
+  .filter-container-close {
+    position: absolute;
+    top: 370px;
+    left: 750px;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 12px;
+    display: none;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    width: 200px;
+    text-align: left;
+    border-radius: 8px;
+    transition: top 0.2s ease;
+  }
+
+  .filter-container.show {
+    display: block;
+  }
+
+  .filter-container label {
+    display: block;
+    cursor: pointer;
+    margin-bottom: 8px;
+  }
+
+  .filter-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: 8px;
+    position: relative;
+    font-weight: normal;
+  }
+
+  .checkbox-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+  }
+
+  .filter-checkbox {
+    vertical-align: middle;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    position: relative;
+    margin: 0;
+  }
+
+  .custom-checkbox {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+  }
+
+  .checkbox-indicator {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, 25%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    pointer-events: none;
+  }
+
+  .checkbox-indicator-alter {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, -20%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    pointer-events: none;
+  }
+
+  td {
+    padding: 12px 16px;
+  }
+
+  .zoomout-chart {
+    display: flex;
+    margin-left: 3vw;
+    margin-right: 3vw;
+    height: 30px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+  }
+
 '''

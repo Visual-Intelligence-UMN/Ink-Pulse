@@ -41,6 +41,14 @@
   }
   
   $: patternSessions = pattern?.pattern || [];
+  $: scoreCount = {};
+  $: {
+    scoreCount = {};
+    for (const session of patternSessions) {
+      const score = session.llmScore;
+      scoreCount[score] = (scoreCount[score] || 0) + 1;
+    }
+  }
 </script>
 
 <div class="pattern-detail-container">
@@ -59,14 +67,20 @@
     <div class="pattern-stats">
       <span>📊 {patternSessions.length} sessions</span>
       <span>📅 Created: {pattern?.metadata?.createdAt ? new Date(pattern.metadata.createdAt).toLocaleDateString() : 'Recently'}</span>
+      <span></span>
     </div>
   </div>
   
   <div class="table-container">
+    <!-- {#each Object.entries(scoreCount) as [score, count]}
+      <span>{score} appears {count} time(s)</span><br>
+    {/each} -->
     <table class="pattern-sessions-table">
       <thead>
         <tr>
           <th style="width: 100%">Activity</th>
+        </tr>
+        <tr>
         </tr>
       </thead>
       <tbody>
