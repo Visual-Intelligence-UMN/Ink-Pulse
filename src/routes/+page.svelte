@@ -20,6 +20,7 @@
   import SavePanel from "../components/savePanel.svelte";
   import PatternDetailView from "../components/PatternDetailView.svelte";
   import SavedPatternsBar from "../components/SavedPatternsBar.svelte";
+  import { searchPatternSet } from '../components/cache.js';
 
   let chartRefs = {};
   let filterButton;
@@ -141,7 +142,7 @@
     displaySessions.set(newDisplaySessions);
   }
 
-  export const searchPatternSet = writable([]);
+
   const removepattern = (segmentId) => {
     patternDataList.update((patternList) =>
       patternList.filter((pattern) => pattern.segmentId !== segmentId)
