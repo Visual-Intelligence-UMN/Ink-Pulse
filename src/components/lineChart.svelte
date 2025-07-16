@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher, afterUpdate, onMount } from "svelte";
+  import { createEventDispatcher, afterUpdate } from "svelte";
   import * as d3 from "d3";
 
   export let chartData: any[] = [];

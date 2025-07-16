@@ -1035,6 +1035,23 @@
     }
   }
 
+  const fetchScoreSummaryData = async (sessionFile) => {
+    try {
+      const response = await fetch(
+        `${base}/chi2022-coauthor-v1.0/score_summary.json`,
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch summary data: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error when reading the data file:", error);
+      return null;
+    }
+  };
+
   async function fetchInitData(sessionId, isDelete, isPrompt) {
     if (isDelete) {
       initData.update((data) =>
@@ -1194,8 +1211,10 @@
     }
   };
 
+  let scoreSummary  = []
   onMount(async () => {
     document.title = "Ink-Pulse";
+    scoreSummary = await fetchScoreSummaryData();
     await fetchSessions();
     for (let i = 0; i < selectedSession.length; i++) {
       const sessionId = selectedSession[i];
@@ -1860,6 +1879,7 @@
             pattern={selectedPatternForDetail}
             {sessions}
             {chartRefs}
+            {scoreSummary}
             on:back={handleBackFromDetail}
             on:apply-pattern={handleApplyPattern}
             on:edit-pattern={handleEditPattern}
