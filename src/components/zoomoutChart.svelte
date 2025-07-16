@@ -10,7 +10,6 @@
 
   let showPrompt = true;
   let height = 20;
-  const margin = { top: 0, right: 0, bottom: 0, left: 0 };
 
   let canvasEl: HTMLCanvasElement;
   let context: CanvasRenderingContext2D | null = null;

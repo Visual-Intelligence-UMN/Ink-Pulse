@@ -2,10 +2,12 @@
   import { createEventDispatcher } from 'svelte';
   import SessionCell from './sessionCell.svelte';
   import { getCategoryIcon } from './topicIcons.js';
+  import ScoreSummaryChart from './scoreSummaryChart.svelte';
   
   export let pattern;
   export let sessions;
   export let chartRefs = {};
+  export let scoreSummary;
   
   const dispatch = createEventDispatcher();
   
@@ -43,11 +45,14 @@
   $: patternSessions = pattern?.pattern || [];
   $: scoreCount = {};
   $: {
-    scoreCount = {};
+    const temp = {};
     for (const session of patternSessions) {
-      const score = session.llmScore;
-      scoreCount[score] = (scoreCount[score] || 0) + 1;
+      const score = Number(session.llmScore);
+      temp[score] = (temp[score] || 0) + 1;
     }
+    scoreCount = Object.fromEntries(
+      Object.entries(temp).map(([k, v]) => [Number(k), v])
+    );
   }
 </script>
 
@@ -70,11 +75,15 @@
       <span></span>
     </div>
   </div>
+
+  <div style="width: 100%; display: flex; justify-content: center;">
+    <ScoreSummaryChart 
+      rawData = {scoreSummary}
+      nowData = {scoreCount}
+    />
+  </div>
   
   <div class="table-container">
-    <!-- {#each Object.entries(scoreCount) as [score, count]}
-      <span>{score} appears {count} time(s)</span><br>
-    {/each} -->
     <table class="pattern-sessions-table">
       <thead>
         <tr>
@@ -84,7 +93,7 @@
         </tr>
       </thead>
       <tbody>
-        {#each patternSessions as sessionData, index (sessionData.sessionId)}
+        {#each patternSessions as sessionData, _ (sessionData.sessionId)}
           <tr class="session-row" on:click={() => handleRowClick(sessionData)}>
             <td class="activity-cell">
               <SessionCell
