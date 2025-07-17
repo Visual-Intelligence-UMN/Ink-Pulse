@@ -118,19 +118,20 @@ export function triggerImport() {
 
 export const searchPatternSet = writable([]);
 
-// Load initial value from IndexedDB
+// Load initial value from IndexedDB and then start subscribing to changes
 getFromDB(CACHE_KEY)
   .then(data => {
     searchPatternSet.set(data);
     console.log('Loaded from IndexedDB:', data);
+
+    // Start subscribing to changes after initial load
+    searchPatternSet.subscribe(value => {
+      saveToDB(CACHE_KEY, value)
+        .then(() => console.log('Saved to IndexedDB:', value))
+        .catch(err => console.warn('Failed to save to IndexedDB:', err));
+    });
   })
   .catch(err => {
     console.warn('Failed to load from IndexedDB:', err);
   });
 
-// Subscribe to changes and save to IndexedDB
-searchPatternSet.subscribe(value => {
-  saveToDB(CACHE_KEY, value)
-    .then(() => console.log('Saved to IndexedDB:', value))
-    .catch(err => console.warn('Failed to save to IndexedDB:', err));
-});
