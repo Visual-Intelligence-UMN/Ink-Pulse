@@ -74,24 +74,58 @@ export async function exportDB() {
   });
 }
 
-// ✅ Import DB from a .bin file
+// ✅ Import and merge DB from a .bin file
 async function importDBFromFile(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = async () => {
       try {
         const raw = reader.result;
-        const items = JSON.parse(new TextDecoder().decode(raw));
+        const importedItems = JSON.parse(new TextDecoder().decode(raw));
 
         const db = await openDB();
         const tx = db.transaction(STORE_NAME, 'readwrite');
         const store = tx.objectStore(STORE_NAME);
-        for (const { key, value } of items) {
-          store.put(value, key);
+
+        for (const { key, value: newValue } of importedItems) {
+          const getRequest = store.get(key);
+
+          getRequest.onsuccess = () => {
+            const existingValue = getRequest.result;
+
+            let mergedValue;
+
+            if (key === 'searchPatternSet') {
+              const existingList = Array.isArray(existingValue) ? existingValue : [];
+              const importedList = Array.isArray(newValue) ? newValue : [];
+
+              const existingIds = new Set(existingList.map(item => item.id));
+              const filteredNew = importedList.filter(item => !existingIds.has(item.id));
+
+              mergedValue = [...existingList, ...filteredNew];
+              console.log(`Merged ${filteredNew.length} new patterns into ${key}`);
+            } else if (Array.isArray(existingValue) && Array.isArray(newValue)) {
+              mergedValue = [...existingValue, ...newValue];
+            } else if (
+              existingValue && newValue &&
+              typeof existingValue === 'object' &&
+              typeof newValue === 'object'
+            ) {
+              mergedValue = { ...existingValue, ...newValue };
+            } else {
+              mergedValue = newValue;
+            }
+
+            store.put(mergedValue, key);
+          };
+
+          getRequest.onerror = () => {
+            store.put(newValue, key);
+          };
         }
 
         tx.oncomplete = () => {
-          console.log('Import complete');
+          console.log('Import (with id-filter merge) complete');
           resolve();
         };
         tx.onerror = () => reject(tx.error);
@@ -116,15 +150,15 @@ export function triggerImport() {
   input.click();
 }
 
+// ✅ Svelte store setup
 export const searchPatternSet = writable([]);
 
-// Load initial value from IndexedDB and then start subscribing to changes
+// Load initial value from IndexedDB and then subscribe to save changes
 getFromDB(CACHE_KEY)
   .then(data => {
     searchPatternSet.set(data);
     console.log('Loaded from IndexedDB:', data);
 
-    // Start subscribing to changes after initial load
     searchPatternSet.subscribe(value => {
       saveToDB(CACHE_KEY, value)
         .then(() => console.log('Saved to IndexedDB:', value))
@@ -135,3 +169,15 @@ getFromDB(CACHE_KEY)
     console.warn('Failed to load from IndexedDB:', err);
   });
 
+/*
+Console Tool Usage:
+
+  Export the database in console:
+  import('/src/components/cache.js').then(mod => mod.exportDB())
+
+  Import a .bin file and merge it:
+  import('/src/components/cache.js').then(mod => mod.triggerImport())
+
+  Clear the cache:
+  indexedDB.deleteDatabase('myCacheDB')
+*/
