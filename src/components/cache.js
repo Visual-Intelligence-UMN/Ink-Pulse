@@ -44,6 +44,78 @@ async function saveToDB(key, value) {
   });
 }
 
+// ✅ Export entire DB to a file
+export async function exportDB() {
+  const db = await openDB();
+  const tx = db.transaction(STORE_NAME, 'readonly');
+  const store = tx.objectStore(STORE_NAME);
+  const data = [];
+
+  return new Promise((resolve, reject) => {
+    const cursor = store.openCursor();
+    cursor.onsuccess = (e) => {
+      const cur = e.target.result;
+      if (cur) {
+        data.push({ key: cur.key, value: cur.value });
+        cur.continue();
+      } else {
+        const blob = new Blob([JSON.stringify(data)], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${DB_NAME}.bin`;
+        a.click();
+        URL.revokeObjectURL(url);
+        console.log('Export complete');
+        resolve();
+      }
+    };
+    cursor.onerror = () => reject(cursor.error);
+  });
+}
+
+// ✅ Import DB from a .bin file
+async function importDBFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const raw = reader.result;
+        const items = JSON.parse(new TextDecoder().decode(raw));
+
+        const db = await openDB();
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        for (const { key, value } of items) {
+          store.put(value, key);
+        }
+
+        tx.oncomplete = () => {
+          console.log('Import complete');
+          resolve();
+        };
+        tx.onerror = () => reject(tx.error);
+      } catch (e) {
+        reject(e);
+      }
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+// ✅ Trigger file input to start import
+export function triggerImport() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.bin';
+  input.onchange = () => {
+    const file = input.files[0];
+    if (file) importDBFromFile(file);
+  };
+  input.click();
+}
+
 export const searchPatternSet = writable([]);
 
 // Load initial value from IndexedDB
@@ -62,63 +134,3 @@ searchPatternSet.subscribe(value => {
     .then(() => console.log('Saved to IndexedDB:', value))
     .catch(err => console.warn('Failed to save to IndexedDB:', err));
 });
-
-
-// Import & Export the store
-
-// Export cache to JSON file (triggered from console)
-export async function exportCacheToJson() {
-  try {
-    const data = await getFromDB(CACHE_KEY);
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'cache_export.json';
-    a.click();
-
-    URL.revokeObjectURL(url);
-    console.log('✅ Cache exported as JSON');
-  } catch (err) {
-    console.error('❌ Failed to export cache:', err);
-  }
-}
-
-// Import cache from JSON file (triggered from console, handles file picker)
-export async function importCacheFromJson() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json';
-
-  input.onchange = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    try {
-      const text = await file.text();
-      const json = JSON.parse(text);
-      if (!Array.isArray(json)) throw new Error('Invalid format: expected an array.');
-
-      await saveToDB(CACHE_KEY, json);
-      searchPatternSet.set(json);
-      console.log('✅ Cache imported successfully:', json);
-    } catch (err) {
-      console.error('❌ Failed to import cache:', err);
-    }
-  };
-
-  input.click();
-}
-
-
-// console commands for testing
-
-// export: 
-// import('/src/components/cache.js').then(m => m.exportCacheToJson());
-
-// import: 
-// import('/src/components/cache.js').then(m => m.importCacheFromJson());
-
-// Clear cache
-// indexedDB.deleteDatabase('myCacheDB');
