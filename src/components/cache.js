@@ -62,3 +62,63 @@ searchPatternSet.subscribe(value => {
     .then(() => console.log('Saved to IndexedDB:', value))
     .catch(err => console.warn('Failed to save to IndexedDB:', err));
 });
+
+
+// Import & Export the store
+
+// Export cache to JSON file (triggered from console)
+export async function exportCacheToJson() {
+  try {
+    const data = await getFromDB(CACHE_KEY);
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'cache_export.json';
+    a.click();
+
+    URL.revokeObjectURL(url);
+    console.log('✅ Cache exported as JSON');
+  } catch (err) {
+    console.error('❌ Failed to export cache:', err);
+  }
+}
+
+// Import cache from JSON file (triggered from console, handles file picker)
+export async function importCacheFromJson() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+
+  input.onchange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const json = JSON.parse(text);
+      if (!Array.isArray(json)) throw new Error('Invalid format: expected an array.');
+
+      await saveToDB(CACHE_KEY, json);
+      searchPatternSet.set(json);
+      console.log('✅ Cache imported successfully:', json);
+    } catch (err) {
+      console.error('❌ Failed to import cache:', err);
+    }
+  };
+
+  input.click();
+}
+
+
+// console commands for testing
+
+// export: 
+// import('/src/components/cache.js').then(m => m.exportCacheToJson());
+
+// import: 
+// import('/src/components/cache.js').then(m => m.importCacheFromJson());
+
+// Clear cache
+// indexedDB.deleteDatabase('myCacheDB');
