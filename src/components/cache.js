@@ -7,14 +7,12 @@ const CACHE_KEY = 'searchPatternSet';
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, 1);
-
     request.onupgradeneeded = () => {
       const db = request.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME);
       }
     };
-
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
@@ -26,7 +24,6 @@ async function getFromDB(key) {
     const tx = db.transaction(STORE_NAME, 'readonly');
     const store = tx.objectStore(STORE_NAME);
     const req = store.get(key);
-
     req.onsuccess = () => resolve(req.result || []);
     req.onerror = () => reject(req.error);
   });
@@ -38,28 +35,26 @@ async function saveToDB(key, value) {
     const tx = db.transaction(STORE_NAME, 'readwrite');
     const store = tx.objectStore(STORE_NAME);
     const req = store.put(value, key);
-
     req.onsuccess = () => resolve();
     req.onerror = () => reject(req.error);
   });
 }
 
-// ✅ Export entire DB to a file
 export async function exportDB() {
   const db = await openDB();
   const tx = db.transaction(STORE_NAME, 'readonly');
   const store = tx.objectStore(STORE_NAME);
-  const data = [];
+  const entries = [];
 
   return new Promise((resolve, reject) => {
     const cursor = store.openCursor();
     cursor.onsuccess = (e) => {
       const cur = e.target.result;
       if (cur) {
-        data.push({ key: cur.key, value: cur.value });
+        entries.push({ key: cur.key, value: cur.value });
         cur.continue();
       } else {
-        const blob = new Blob([JSON.stringify(data)], { type: 'application/octet-stream' });
+        const blob = new Blob([JSON.stringify(entries)], { type: 'application/octet-stream' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -74,7 +69,6 @@ export async function exportDB() {
   });
 }
 
-// ✅ Import and merge DB from a .bin file
 async function importDBFromFile(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -87,45 +81,44 @@ async function importDBFromFile(file) {
         const tx = db.transaction(STORE_NAME, 'readwrite');
         const store = tx.objectStore(STORE_NAME);
 
-        for (const { key, value: newValue } of importedItems) {
+        for (const { key, value: importedValue } of importedItems) {
           const getRequest = store.get(key);
 
           getRequest.onsuccess = () => {
             const existingValue = getRequest.result;
-
             let mergedValue;
 
-            if (key === 'searchPatternSet') {
-              const existingList = Array.isArray(existingValue) ? existingValue : [];
-              const importedList = Array.isArray(newValue) ? newValue : [];
+            if (key === CACHE_KEY) {
+              const existingItems = Array.isArray(existingValue) ? existingValue : [];
+              const incomingItems = Array.isArray(importedValue) ? importedValue : [];
 
-              const existingIds = new Set(existingList.map(item => item.id));
-              const filteredNew = importedList.filter(item => !existingIds.has(item.id));
+              const existingIds = new Set(existingItems.map(item => item.id));
+              const newItems = incomingItems.filter(item => !existingIds.has(item.id));
+              mergedValue = [...existingItems, ...newItems];
 
-              mergedValue = [...existingList, ...filteredNew];
-              console.log(`Merged ${filteredNew.length} new patterns into ${key}`);
-            } else if (Array.isArray(existingValue) && Array.isArray(newValue)) {
-              mergedValue = [...existingValue, ...newValue];
+              console.log(`Merged ${newItems.length} new items into ${key}`);
+            } else if (Array.isArray(existingValue) && Array.isArray(importedValue)) {
+              mergedValue = [...existingValue, ...importedValue];
             } else if (
-              existingValue && newValue &&
+              existingValue && importedValue &&
               typeof existingValue === 'object' &&
-              typeof newValue === 'object'
+              typeof importedValue === 'object'
             ) {
-              mergedValue = { ...existingValue, ...newValue };
+              mergedValue = { ...existingValue, ...importedValue };
             } else {
-              mergedValue = newValue;
+              mergedValue = importedValue;
             }
 
             store.put(mergedValue, key);
           };
 
           getRequest.onerror = () => {
-            store.put(newValue, key);
+            store.put(importedValue, key);
           };
         }
 
         tx.oncomplete = () => {
-          console.log('Import (with id-filter merge) complete');
+          console.log('Import complete');
           resolve();
         };
         tx.onerror = () => reject(tx.error);
@@ -138,7 +131,6 @@ async function importDBFromFile(file) {
   });
 }
 
-// ✅ Trigger file input to start import
 export function triggerImport() {
   const input = document.createElement('input');
   input.type = 'file';
@@ -150,18 +142,17 @@ export function triggerImport() {
   input.click();
 }
 
-// ✅ Svelte store setup
+// Svelte writable store synced to IndexedDB
 export const searchPatternSet = writable([]);
 
-// Load initial value from IndexedDB and then subscribe to save changes
 getFromDB(CACHE_KEY)
-  .then(data => {
-    searchPatternSet.set(data);
-    console.log('Loaded from IndexedDB:', data);
+  .then(initialValue => {
+    searchPatternSet.set(initialValue);
+    // console.log('Loaded from IndexedDB:', initialValue);
 
     searchPatternSet.subscribe(value => {
       saveToDB(CACHE_KEY, value)
-        .then(() => console.log('Saved to IndexedDB:', value))
+        // .then(() => console.log('Saved to IndexedDB:', value))
         .catch(err => console.warn('Failed to save to IndexedDB:', err));
     });
   })
@@ -170,14 +161,14 @@ getFromDB(CACHE_KEY)
   });
 
 /*
-Console Tool Usage:
+✅ Console Tool Usage:
 
-  Export the database in console:
-  import('/src/components/cache.js').then(mod => mod.exportDB())
+  Export DB:
+    import('/src/components/cache.js').then(mod => mod.exportDB())
 
-  Import a .bin file and merge it:
-  import('/src/components/cache.js').then(mod => mod.triggerImport())
+  Import & merge:
+    import('/src/components/cache.js').then(mod => mod.triggerImport())
 
-  Clear the cache:
-  indexedDB.deleteDatabase('myCacheDB')
+  Clear DB:
+    indexedDB.deleteDatabase('myCacheDB')
 */
