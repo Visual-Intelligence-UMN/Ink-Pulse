@@ -53,7 +53,6 @@
     info: [], // insert, delete and suggestion-open operation
     end_time: [],
   };
-  let textElements = []; // text data
   let chartData = []; // chart data
   let currentTime = 0;
   let paragraphTime = [];
@@ -64,7 +63,6 @@
   let time100 = null; // process bar's end time
   let endTime = null; // last paragraph time
   let isOpen = false;
-  let showFilter = false;
   export const selectedTags = writable([]);
   let filterOptions = [];
   let showMulti = false;
@@ -72,7 +70,6 @@
   let tableData = [];
   let firstSession = true;
   export const filterTableData = writable([]);
-  let isCollapsed = false;
   // store to track filter states
   const promptFilterStatus = writable({});
   const margin = { top: 20, right: 0, bottom: 30, left: 50 };
@@ -242,6 +239,7 @@
     }
     return sortDirection === "asc" ? "↑" : "↓";
   }
+
   // FETCH SCORES
   const fetchLLMScore = async (sessionFile) => {
     const url = `${base}/chi2022-coauthor-v1.0/eval_results/${sessionFile}.json`;
@@ -331,73 +329,73 @@
   let sortedSessions = [];
   let filteredSessions = [];
 
-  function groupSessionsByAttribute(attribute, specificValue = null) {
-    const grouped = {};
-    $initData.forEach((sessionData) => {
-      const sessionInfo = sessions.find(
-        (s) => s.session_id === sessionData.sessionId,
-      );
-      if (sessionInfo) {
-        const key = sessionInfo[attribute] || "unknown";
-        if (specificValue && key !== specificValue) {
-          return;
-        }
+  // function groupSessionsByAttribute(attribute, specificValue = null) {
+  //   const grouped = {};
+  //   $initData.forEach((sessionData) => {
+  //     const sessionInfo = sessions.find(
+  //       (s) => s.session_id === sessionData.sessionId,
+  //     );
+  //     if (sessionInfo) {
+  //       const key = sessionInfo[attribute] || "unknown";
+  //       if (specificValue && key !== specificValue) {
+  //         return;
+  //       }
 
-        if (!grouped[key]) {
-          grouped[key] = [];
-        }
-        grouped[key].push(sessionData);
-      }
-    });
+  //       if (!grouped[key]) {
+  //         grouped[key] = [];
+  //       }
+  //       grouped[key].push(sessionData);
+  //     }
+  //   });
 
-    return grouped;
-  }
+  //   return grouped;
+  // }
 
-  function filterSessionsByCategory(category) {
-    return $initData.filter((sessionData) => {
-      const sessionInfo = sessions.find(
-        (s) => s.session_id === sessionData.sessionId,
-      );
-      return sessionInfo && sessionInfo.prompt_code === category;
-    });
-  }
+  // function filterSessionsByCategory(category) {
+  //   return $initData.filter((sessionData) => {
+  //     const sessionInfo = sessions.find(
+  //       (s) => s.session_id === sessionData.sessionId,
+  //     );
+  //     return sessionInfo && sessionInfo.prompt_code === category;
+  //   });
+  // }
 
-  function rankSessionsByAttribute(attribute, sessionsData) {
-    const sessionsCopy = [...sessionsData];
+  // function rankSessionsByAttribute(attribute, sessionsData) {
+  //   const sessionsCopy = [...sessionsData];
 
-    switch (attribute) {
-      case "prompt_code":
-        return sessionsCopy.sort((a, b) => {
-          const aCode = getPromptCode(a.sessionId);
-          const bCode = getPromptCode(b.sessionId);
-          return aCode.localeCompare(bCode);
-        });
+  //   switch (attribute) {
+  //     case "prompt_code":
+  //       return sessionsCopy.sort((a, b) => {
+  //         const aCode = getPromptCode(a.sessionId);
+  //         const bCode = getPromptCode(b.sessionId);
+  //         return aCode.localeCompare(bCode);
+  //       });
 
-      case "writing_time":
-        return sessionsCopy.sort((a, b) => {
-          const aTime = a.time100 || 0;
-          const bTime = b.time100 || 0;
-          return bTime - aTime;
-        });
+  //     case "writing_time":
+  //       return sessionsCopy.sort((a, b) => {
+  //         const aTime = a.time100 || 0;
+  //         const bTime = b.time100 || 0;
+  //         return bTime - aTime;
+  //       });
 
-      case "text_length":
-        return sessionsCopy.sort((a, b) => {
-          const aLength = a.summaryData?.totalProcessedCharacters || 0;
-          const bLength = b.summaryData?.totalProcessedCharacters || 0;
-          return bLength - aLength;
-        });
+  //     case "text_length":
+  //       return sessionsCopy.sort((a, b) => {
+  //         const aLength = a.summaryData?.totalProcessedCharacters || 0;
+  //         const bLength = b.summaryData?.totalProcessedCharacters || 0;
+  //         return bLength - aLength;
+  //       });
 
-      case "suggestions_count":
-        return sessionsCopy.sort((a, b) => {
-          const aSuggestions = a.summaryData?.totalSuggestions || 0;
-          const bSuggestions = b.summaryData?.totalSuggestions || 0;
-          return bSuggestions - aSuggestions;
-        });
+  //     case "suggestions_count":
+  //       return sessionsCopy.sort((a, b) => {
+  //         const aSuggestions = a.summaryData?.totalSuggestions || 0;
+  //         const bSuggestions = b.summaryData?.totalSuggestions || 0;
+  //         return bSuggestions - aSuggestions;
+  //       });
 
-      default:
-        return sessionsCopy;
-    }
-  }
+  //     default:
+  //       return sessionsCopy;
+  //   }
+  // }
 
   // function handleIconClick(attribute, mode = "group", specificValue = null) {
   //   if (selectedCategoryFilter === specificValue && specificValue) {
@@ -484,7 +482,7 @@
       );
 
       categoryTableRows.forEach((row) => {
-        fetchInitData(row.session_id, false, true);
+        fetchInitData(row.session_id, false);
       });
     }
   }
@@ -531,7 +529,7 @@
     };
     showMulti = true;
     try {
-      await fetchData(sessionId, false, true);
+      await fetchData(sessionId, false);
       const data = await waitForSessionData(sessionId);
       clickSession.set(data);
     } catch (error) {
@@ -623,29 +621,28 @@
 
   function findSegments(data, checks, minCount) {
     const segments = [];
+    const isSourceCheckRequired = isExactSearchSource && checks.source && checks.source[1];
+    const isTrendCheckRequired = isExactSearchTrend && checks.trend && checks.trend[1] && minCount > 1;
+
     for (let i = 0; i <= data.length - minCount; i++) {
       const window = data.slice(i, i + minCount);
-      const allValid = window.every((item) => isDataValid(item, checks, minCount));
-      if (!allValid) continue;
-      if (isExactSearchSource && checks.source && checks.source[1]) {
-        const expectedSources = checks.source[1];
-        if (expectedSources.length !== minCount) continue;
+      if (!window.every(item => isDataValid(item, checks, minCount))) continue;
+      if (isSourceCheckRequired) {
+          const expectedSources = checks.source[1];
+          if (expectedSources.length !== minCount) continue;
 
-        const actualSources = window.map((item) => item.source);
-        const matches = actualSources.every(
-          (src, idx) => src === expectedSources[idx],
-        );
-        if (!matches) continue;
+          const actualSources = window.map(item => item.source);
+          if (!expectedSources.every((src, idx) => src === actualSources[idx])) continue;
       }
-      if (isExactSearchTrend && checks.trend && checks.trend[1] && minCount > 1) {
-        const values = window.map((item) => item.residual_vector_norm);
-        if (!matchesTrend(values, checks.trend[1])) continue;
+      if (isTrendCheckRequired) {
+          const values = window.map(item => item.residual_vector_norm);
+          if (!matchesTrend(values, checks.trend[1])) continue;
       }
-      segments.push([...window]);
+      segments.push(window);
     }
-
     return segments;
   }
+
 
   function buildVectorForCurrentSegment(currentResults, checks) {
     const currentVector = {};
@@ -748,6 +745,12 @@
           `${base}/chi2022-coauthor-v1.0/similarity_results/${fileName}`,
         );
         const data = await dataResponse.json();
+        if (Array.isArray(data.chartData)) {
+          data.chartData = data.chartData.map(({ currentText, ...rest }) => rest);
+        }
+        delete data.paragraphColor;
+        delete data.textElements;
+
         const segments = findSegments(data, checks, count);
         const extractedFileName = fileName
           .split(".")[0]
@@ -823,7 +826,7 @@
 
   async function patternDataLoad(results) {
     const ids = results.map((group) => group[0]?.id).filter(Boolean);
-    const fetchPromises = ids.map((id) => fetchData(id, false, false));
+    const fetchPromises = ids.map((id) => fetchData(id, false));
     await Promise.all(fetchPromises);
 
     const sessionDataMap = get(storeSessionData);
@@ -833,15 +836,9 @@
           const id = group[0]?.id;
           const sessionData = sessionDataMap.get(id);
           if (!sessionData) return null;
-          const cleanSessionData = { ...sessionData };
-          if (Array.isArray(cleanSessionData.chartData)) {
-            cleanSessionData.chartData = cleanSessionData.chartData.map(({ currentText, ...rest }) => rest);
-          }
-          delete cleanSessionData.paragraphColor;
-          delete cleanSessionData.textElements;
 
           return {
-            ...cleanSessionData,
+            ...sessionData,
             segments: group,
             segmentId: group[0]?.segmentId,
           };
@@ -854,19 +851,19 @@
   function closePatternSearch() {
     showPatternSearch = false;
     selectionMode = false;
-    isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
+    // isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
 
-    Object.keys(selectedPatterns).forEach((sessionId) => {
-      const chartRef = chartRefs[sessionId + "-barChart"];
-      if (chartRef && chartRef.clearSelection) {
-        chartRef.clearSelection();
-      }
-    });
+    // Object.keys(selectedPatterns).forEach((sessionId) => {
+    //   const chartRef = chartRefs[sessionId + "-barChart"];
+    //   if (chartRef && chartRef.clearSelection) {
+    //     chartRef.clearSelection();
+    //   }
+    // });
 
-    selectedPatterns = {};
-    patternData = [];
-    patternDataList.set([]);
-    currentResults = {};
+    // selectedPatterns = {};
+    // patternData = [];
+    // patternDataList.set([]);
+    // currentResults = {};
   }
 
   function handleSelectionChanged(event) {
@@ -922,120 +919,7 @@
     clickSession.set([]);
   }
 
-  function updatePromptFilterStatus() {
-    const allSessions = tableData || [];
-    const promptGroups = {};
-
-    allSessions.forEach((session) => {
-      if (!promptGroups[session.prompt_code]) {
-        promptGroups[session.prompt_code] = [];
-      }
-      promptGroups[session.prompt_code].push(session);
-    });
-
-    const statusMap = {};
-    Object.entries(promptGroups).forEach(([promptCode, sessions]) => {
-      const totalSessions = sessions.length;
-      const selectedSessions = sessions.filter((session) =>
-        $filterTableData.find(
-          (item) => item.session_id === session.session_id && item.selected,
-        ),
-      ).length;
-
-      if (selectedSessions === 0) {
-        statusMap[promptCode] = "none";
-      } else if (selectedSessions === totalSessions) {
-        statusMap[promptCode] = "all";
-      } else {
-        statusMap[promptCode] = "partial";
-      }
-    });
-    promptFilterStatus.set(statusMap);
-  }
-
-  async function toggleTag(event) {
-    const tag = event.target.value;
-
-    selectedTags.update((selected) => {
-      if (event.target.checked) {
-        if (!selected.includes(tag)) {
-          selected.push(tag);
-        }
-      } else {
-        const index = selected.indexOf(tag);
-        if (index !== -1) {
-          selected.splice(index, 1);
-        }
-      }
-      return selected;
-    });
-    filterSessions();
-    if (event.target.checked) {
-      for (const newSession of $filterTableData) {
-        await fetchInitData(newSession.session_id, false, true);
-      }
-    } else {
-      const sessionsToRemove = tableData.filter(
-        (item) => item.prompt_code === tag,
-      );
-      for (const sessionToRemove of sessionsToRemove) {
-        await fetchInitData(sessionToRemove.session_id, true, true);
-      }
-    }
-
-    const selectedSessionsMap = get(storeSessionData);
-    const selectedSessions = Array.from(selectedSessionsMap.values());
-    const selectedTagsList = get(selectedTags);
-    if (selectedTagsList.length > 1) {
-      const tagSessionCount = selectedSessions.filter((session) =>
-        selectedTagsList.some((tag) =>
-          tableData.some(
-            (item) =>
-              item.session_id === session.sessionId && item.prompt_code === tag,
-          ),
-        ),
-      ).length;
-      if (tagSessionCount === 1) {
-        const allSessionsForTag = tableData.filter((item) =>
-          selectedTagsList.includes(item.prompt_code),
-        );
-        for (const session of allSessionsForTag) {
-          await fetchInitData(session.session_id, false, true);
-        }
-      }
-    } else {
-      const allSessionsForTag = tableData.filter((item) =>
-        selectedTagsList.includes(item.prompt_code),
-      );
-      for (const session of allSessionsForTag) {
-        await fetchInitData(session.session_id, false, true);
-      }
-    }
-    updatePromptFilterStatus();
-  }
-
-  function filterSessions() {
-    if ($selectedTags.length === 0) {
-      filterTableData.set([]);
-      storeSessionData.set(new Map());
-    } else {
-      const filteredData = tableData.filter((session) =>
-        $selectedTags.includes(session.prompt_code),
-      );
-      const sessionArray = Array.from($storeSessionData.values());
-      const updatedData = filteredData.map((row) => ({
-        ...row,
-        selected:
-          sessionArray.some((item) => item.sessionId === row.session_id) ||
-          true,
-      }));
-
-      filterTableData.set(updatedData);
-      updatePromptFilterStatus();
-    }
-  }
-
-  const fetchScoreSummaryData = async (sessionFile) => {
+  const fetchScoreSummaryData = async () => {
     try {
       const response = await fetch(
         `${base}/chi2022-coauthor-v1.0/score_summary.json`,
@@ -1052,7 +936,7 @@
     }
   };
 
-  async function fetchInitData(sessionId, isDelete, isPrompt) {
+  async function fetchInitData(sessionId, isDelete) {
     if (isDelete) {
       initData.update((data) =>
         data.filter((item) => item.sessionId !== sessionId),
@@ -1083,9 +967,6 @@
         }
         return [...sessions];
       });
-    }
-    if (isPrompt) {
-      updatePromptFilterStatus();
     }
   }
 
@@ -1118,7 +999,6 @@
           "shapeshifter",
           "isolation",
         ]);
-        filterSessions();
 
         $filterTableData = tableData.filter((session) =>
           $selectedTags.includes(session.prompt_code),
@@ -1127,15 +1007,13 @@
         filterOptions = Array.from(
           new Set(tableData.map((row) => row.prompt_code)),
         );
-
-        updatePromptFilterStatus();
       }
     } catch (error) {
       console.error("Error when fetching sessions:", error);
     }
   };
 
-  const fetchData = async (sessionFile, isDelete, isPrompt) => {
+  const fetchData = async (sessionFile, isDelete) => {
     if (!firstSession && isDelete) {
       storeSessionData.update((map) => {
         const newMap = new Map(map);
@@ -1158,8 +1036,7 @@
       time100 = (time100.getTime() - time0.getTime()) / (1000 * 60);
       currentTime = time100;
 
-      const { chartData, textElements, paragraphColor, summaryData } =
-        handleEvents(data, sessionFile);
+      const { chartData, textElements, paragraphColor, summaryData } = handleEvents(data, sessionFile);
       const similarityData = await fetchSimilarityData(sessionFile);
       let updatedSession = {
         sessionId: sessionFile,
@@ -1187,10 +1064,6 @@
       });
     } catch (error) {
       console.error("Error when reading the data file:", error);
-    }
-
-    if (isPrompt) {
-      updatePromptFilterStatus();
     }
   };
 
@@ -1293,6 +1166,7 @@
         mergeParagraph.push(current);
       }
     }
+
     const getTimeFromPercentage = (percentage, chartData) => {
       let closest = chartData.reduce((prev, curr) =>
         Math.abs(curr.percentage - percentage) <
@@ -1452,39 +1326,30 @@
   function handlePointSelected(e, sessionId) {
     const d = e.detail;
     clickSession.update((currentSession) => {
-      if (currentSession.sessionId === sessionId) {
-        const updatedSession = {
-          ...currentSession,
-          textElements: d.currentText.split("").map((char, index) => ({
-            text: char,
-            textColor: d.currentColor[index],
-          })),
-          currentTime: d.time,
-          chartData: currentSession.chartData.map((point) => ({
-            ...point,
-            opacity: point.index > d.index ? 0.01 : 1,
-          })),
-        };
+      if (currentSession.sessionId !== sessionId) return currentSession;
+      const textElements = d.currentText.split("").map((char, index) => ({
+        text: char,
+        textColor: d.currentColor?.[index] ?? "#000",
+      }));
+      const chartData = currentSession.chartData.map((point) => ({
+        ...point,
+        opacity: point.index > d.index ? 0.01 : 1,
+      }));
+      const similarityData = currentSession.totalSimilarityData;
+      const endIndex = similarityData.findIndex(
+        (item) => d.percentage < item.end_progress * 100
+      );
+      const selectedData = endIndex === -1 
+        ? similarityData 
+        : similarityData.slice(0, endIndex);
 
-        const similarityData = currentSession.totalSimilarityData;
-        let selectedData = [];
-        for (let i = 0; i < similarityData.length; i++) {
-          const currentItem = similarityData[i];
-          if (d.percentage < currentItem.end_progress * 100) {
-            selectedData = similarityData.slice(0, i);
-            break;
-          }
-        }
-        if (selectedData.length === 0 && similarityData.length > 0) {
-          selectedData = similarityData;
-        }
-
-        return {
-          ...updatedSession,
-          similarityData: selectedData,
-        };
-      }
-      return currentSession;
+      return {
+        ...currentSession,
+        textElements,
+        currentTime: d.time,
+        chartData,
+        similarityData: selectedData,
+      };
     });
   }
 
@@ -2071,7 +1936,7 @@
                   </div>
                   <div class="text-container">
                     {#if $clickSession.textElements && $clickSession.textElements.length > 0}
-                      {#each $clickSession.textElements as element, index}
+                      {#each $clickSession.textElements as element, _}
                         <span class="text-span" style="color: {element.textColor}">
                           {element.text}
                         </span>

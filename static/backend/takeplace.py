@@ -770,4 +770,117 @@ function findSegments(data, checks, minCount) {
     z-index: 999;
   }
 
+  function updatePromptFilterStatus() {
+    const allSessions = tableData || [];
+    const promptGroups = {};
+
+    allSessions.forEach((session) => {
+      if (!promptGroups[session.prompt_code]) {
+        promptGroups[session.prompt_code] = [];
+      }
+      promptGroups[session.prompt_code].push(session);
+    });
+
+    const statusMap = {};
+    Object.entries(promptGroups).forEach(([promptCode, sessions]) => {
+      const totalSessions = sessions.length;
+      const selectedSessions = sessions.filter((session) =>
+        $filterTableData.find(
+          (item) => item.session_id === session.session_id && item.selected,
+        ),
+      ).length;
+
+      if (selectedSessions === 0) {
+        statusMap[promptCode] = "none";
+      } else if (selectedSessions === totalSessions) {
+        statusMap[promptCode] = "all";
+      } else {
+        statusMap[promptCode] = "partial";
+      }
+    });
+    promptFilterStatus.set(statusMap);
+  }
+
+  async function toggleTag(event) {
+    const tag = event.target.value;
+
+    selectedTags.update((selected) => {
+      if (event.target.checked) {
+        if (!selected.includes(tag)) {
+          selected.push(tag);
+        }
+      } else {
+        const index = selected.indexOf(tag);
+        if (index !== -1) {
+          selected.splice(index, 1);
+        }
+      }
+      return selected;
+    });
+    filterSessions();
+    if (event.target.checked) {
+      for (const newSession of $filterTableData) {
+        await fetchInitData(newSession.session_id, false, true);
+      }
+    } else {
+      const sessionsToRemove = tableData.filter(
+        (item) => item.prompt_code === tag,
+      );
+      for (const sessionToRemove of sessionsToRemove) {
+        await fetchInitData(sessionToRemove.session_id, true, true);
+      }
+    }
+
+    const selectedSessionsMap = get(storeSessionData);
+    const selectedSessions = Array.from(selectedSessionsMap.values());
+    const selectedTagsList = get(selectedTags);
+    if (selectedTagsList.length > 1) {
+      const tagSessionCount = selectedSessions.filter((session) =>
+        selectedTagsList.some((tag) =>
+          tableData.some(
+            (item) =>
+              item.session_id === session.sessionId && item.prompt_code === tag,
+          ),
+        ),
+      ).length;
+      if (tagSessionCount === 1) {
+        const allSessionsForTag = tableData.filter((item) =>
+          selectedTagsList.includes(item.prompt_code),
+        );
+        for (const session of allSessionsForTag) {
+          await fetchInitData(session.session_id, false, true);
+        }
+      }
+    } else {
+      const allSessionsForTag = tableData.filter((item) =>
+        selectedTagsList.includes(item.prompt_code),
+      );
+      for (const session of allSessionsForTag) {
+        await fetchInitData(session.session_id, false, true);
+      }
+    }
+    updatePromptFilterStatus();
+  }
+
+  function filterSessions() {
+    if ($selectedTags.length === 0) {
+      filterTableData.set([]);
+      storeSessionData.set(new Map());
+    } else {
+      const filteredData = tableData.filter((session) =>
+        $selectedTags.includes(session.prompt_code),
+      );
+      const sessionArray = Array.from($storeSessionData.values());
+      const updatedData = filteredData.map((row) => ({
+        ...row,
+        selected:
+          sessionArray.some((item) => item.sessionId === row.session_id) ||
+          true,
+      }));
+
+      filterTableData.set(updatedData);
+      updatePromptFilterStatus();
+    }
+  }
+
 '''
