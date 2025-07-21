@@ -1432,7 +1432,7 @@
         <span class="user-line">●</span> User written
         <span class="api-line">●</span> AI writing
       </div>
-      {#if !showMulti}
+      <!-- {#if !showMulti}
         <SavedPatternsBar 
           patterns={$searchPatternSet}
           {activePatternId}
@@ -1440,7 +1440,7 @@
           on:pattern-contextmenu={handlePatternContextMenu}
           on:show-more-patterns={handleShowMorePatterns}
         />
-      {/if}
+      {/if} -->
       <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded"
         rel="stylesheet"
@@ -1485,6 +1485,20 @@
               behavior.
             </p>
           </div>
+          {#if $searchPatternSet && $searchPatternSet.length > 0}
+          <div class="saved-patterns-section">
+            <h4>Saved Patterns</h4>
+            <div class="saved-patterns-list">
+              <SavedPatternsBar 
+                patterns={$searchPatternSet}
+                {activePatternId}
+                on:pattern-click={handlePatternClick}
+                on:pattern-contextmenu={handlePatternContextMenu}
+                on:show-more-patterns={handleShowMorePatterns}
+              />
+            </div>
+          </div>
+      {/if}
 
           {#if Object.keys(selectedPatterns).length > 0}
             <div class="pattern-results-summary">

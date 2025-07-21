@@ -25,7 +25,7 @@
 </script>
 
 <div class="saved-patterns-bar">
-  <span class="patterns-label">📌 Saved Patterns:</span>
+  <!-- <span class="patterns-label">📌 Saved Patterns:</span> -->
   
   {#if patterns.length === 0}
     <span class="no-patterns">No saved patterns yet</span>
