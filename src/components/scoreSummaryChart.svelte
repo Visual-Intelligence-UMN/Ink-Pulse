@@ -14,7 +14,9 @@
 
   let labels = [];
 
-  onMount(() => {
+  function drawChart() {
+    if (!canvas) return;
+
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, width, height);
 
@@ -53,7 +55,7 @@
       ctx.fillText(i + '%', padding - 35, y);
     }
 
-    const xStep = (width - 2 * padding) / (labels.length - 1);
+    const xStep = (width - 2 * padding) / (labels.length - 1 || 1);
     labels.forEach((label, i) => {
       const x = padding + i * xStep;
       ctx.beginPath();
@@ -80,7 +82,7 @@
     drawLine(nowPercent, NOWColor);
 
     drawLegend(ctx);
-  });
+  }
 
   function drawLegend(ctx) {
     const legendItems = [
@@ -101,6 +103,14 @@
       ctx.fillStyle = '#333';
       ctx.fillText(text, startX + 34, y + 7);
     });
+  }
+
+  onMount(() => {
+    drawChart();
+  });
+
+  $: if (rawData && nowData) {
+    drawChart();
   }
 </script>
 

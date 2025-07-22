@@ -41,9 +41,9 @@
     const stars = '⭐'.repeat(Math.floor(score / 20)) + '☆'.repeat(5 - Math.floor(score / 20));
     return `${score.toFixed(1)} ${stars}`;
   }
-  
+
   $: patternSessions = pattern?.pattern || [];
-  $: scoreCount = {};
+  let scoreCount = {};
   $: {
     const temp = {};
     for (const session of patternSessions) {
@@ -54,6 +54,7 @@
       Object.entries(temp).map(([k, v]) => [Number(k), v])
     );
   }
+
 </script>
 
 <div class="pattern-detail-container">
@@ -77,7 +78,7 @@
   </div>
 
   <div style="width: 100%; display: flex; justify-content: center;">
-    <ScoreSummaryChart 
+    <ScoreSummaryChart
       rawData = {scoreSummary}
       nowData = {scoreCount}
     />
