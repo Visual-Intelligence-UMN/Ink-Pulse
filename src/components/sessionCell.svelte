@@ -152,12 +152,4 @@
     text-align: center;
     vertical-align: middle;
   }
-
-  .empty-cell {
-
-  }
-
-  .spacer-cell {
-
-  }
 </style>

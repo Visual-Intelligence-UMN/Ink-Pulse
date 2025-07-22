@@ -1432,15 +1432,6 @@
         <span class="user-line">●</span> User written
         <span class="api-line">●</span> AI writing
       </div>
-      <!-- {#if !showMulti}
-        <SavedPatternsBar 
-          patterns={$searchPatternSet}
-          {activePatternId}
-          on:pattern-click={handlePatternClick}
-          on:pattern-contextmenu={handlePatternContextMenu}
-          on:show-more-patterns={handleShowMorePatterns}
-        />
-      {/if} -->
       <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded"
         rel="stylesheet"
@@ -1730,7 +1721,7 @@
         on:close={handleClose}
       />
     {/if}
-    <div class="container" style="margin-bottom: {showMulti ? '30px' : '70px'}">
+    <div class="container" style="margin-bottom: {showMulti ? '30px' : '70px'}; width: {showMulti ? '' : '100%'};">
       {#if isOpen}
         <div class="introduction-background">
           <div class="introduction">
@@ -1981,7 +1972,7 @@
   }
 
   .container {
-    width: 100%;
+    /* width: 100%; */
     margin: 0 5px;
     display: flex;
     justify-content: center;
