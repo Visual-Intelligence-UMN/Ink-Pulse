@@ -21,6 +21,7 @@
   import PatternDetailView from "../components/PatternDetailView.svelte";
   import SavedPatternsBar from "../components/SavedPatternsBar.svelte";
   import { searchPatternSet } from '../components/cache.js';
+  import RankWorker from '../workers/rankWorker.js?worker';
 
   let chartRefs = {};
   let filterButton;
@@ -67,6 +68,7 @@
   let filterOptions = [];
   let showMulti = false;
   export const storeSessionData = writable(new Map());
+  export const storeSessionSummaryData = writable(new Map());
   let tableData = [];
   let firstSession = true;
   export const filterTableData = writable([]);
@@ -138,7 +140,6 @@
 
     displaySessions.set(newDisplaySessions);
   }
-
 
   const removepattern = (segmentId) => {
     patternDataList.update((patternList) =>
@@ -779,7 +780,8 @@
       );
 
       patternData = results;
-      const finalScore = calculateRank(patternVectors, currentVector);
+      console.log(patternVectors.length)
+      const finalScore = await calculateRankAuto(patternVectors, currentVector);
       const idToData = Object.fromEntries(
         patternData.map((d) => [d[0].segmentId, d]),
       );
@@ -795,19 +797,29 @@
   function l2(arr1, arr2) {
     let sum = 0;
     for (let i = 0; i < arr1.length; i++) {
-      sum += (arr1[i] - arr2[i]) ** 2;
+      const d = arr1[i] - arr2[i];
+      sum += d * d;
     }
-    return Math.sqrt(sum);
+    return sum;
+  }
+  
+  const weights = {
+    s: 1.5, // user 1, api 0
+    t: 0.01, // 1s
+    p: 1, // 1% -> 0.01
+    tr: 2.5, // up 1, down -1
+    sem: 2, // 1% -> 0.01
+  };
+
+  export async function calculateRankAuto(patternVectors, currentVector, threadCount = 4, threshold = 100) {
+    if (patternVectors.length <= threshold) {
+      return calculateRank(patternVectors, currentVector);
+    } else {
+      return calculateRankWorkers(patternVectors, currentVector, threadCount);
+    }
   }
 
   function calculateRank(patternVectors, currentVector) {
-    const weights = {
-      s: 1.5, // user 1, api 0
-      t: 0.01, // 1s
-      p: 1, // 1% -> 0.01
-      tr: 2.5, // up 1, down -1
-      sem: 2, // 1% -> 0.01
-    };
     let finalScore = [];
     for (const item of patternVectors) {
       let score = 0;
@@ -824,21 +836,63 @@
     return finalScore;
   }
 
+  async function calculateRankWorkers(patternVectors, currentVector, threadCount = 4) {
+    const chunkSize = Math.ceil(patternVectors.length / threadCount);
+    let completed = 0;
+    const allResults = [];
+
+    return new Promise((resolve, reject) => {
+      for (let i = 0; i < threadCount; i++) {
+        const chunk = patternVectors.slice(i * chunkSize, (i + 1) * chunkSize);
+        if (chunk.length === 0) {
+          completed++;
+          continue;
+        }
+        const worker = new RankWorker();
+        worker.postMessage({ patternVectors: chunk, currentVector, weights });
+        worker.onmessage = (e) => {
+          allResults.push(...e.data);
+          completed++;
+          worker.terminate();
+          if (completed === threadCount) {
+            allResults.sort((a, b) => a[1] - b[1]);
+            resolve(allResults);
+          }
+        };
+        worker.onerror = (err) => {
+          reject(err);
+        };
+      }
+    });
+  }
+
   async function patternDataLoad(results) {
     const ids = results.map((group) => group[0]?.id).filter(Boolean);
-    const fetchPromises = ids.map((id) => fetchData(id, false));
+    const fetchPromises = ids.map((id) => fetchDataSummary(id));
     await Promise.all(fetchPromises);
 
-    const sessionDataMap = get(storeSessionData);
+    const sessionDataMap = get(storeSessionSummaryData);
     patternDataList.set(
       results
         .map((group) => {
           const id = group[0]?.id;
           const sessionData = sessionDataMap.get(id);
           if (!sessionData) return null;
+          const newSessionData = { ...sessionData };
+          delete newSessionData.paragraphColor;
+          delete newSessionData.summaryData;
+          delete newSessionData.textElements;
 
+          if (Array.isArray(newSessionData.chartData)) {
+            newSessionData.chartData = newSessionData.chartData.map(item => {
+              const newItem = { ...item };
+              delete newItem.currentText;
+              delete newItem.currentColor;
+              return newItem;
+            });
+          }
           return {
-            ...sessionData,
+            ...newSessionData,
             segments: group,
             segmentId: group[0]?.segmentId,
           };
@@ -1013,6 +1067,48 @@
     }
   };
 
+  const fetchDataSummary = async (sessionFile) => {
+    try {
+      const response = await fetch(
+        `${base}/chi2022-coauthor-v1.0/coauthor-json/${sessionFile}.jsonl`,
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch session data: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const time0 = new Date(data.init_time);
+      const time100 = new Date(data.end_time);
+      const currentTime = (time100.getTime() - time0.getTime()) / (1000 * 60); // in minutes
+      const chartData = handleEventsSummary(data);
+      const similarityData = await fetchSimilarityData(sessionFile);
+      let updatedSession = {
+        sessionId: sessionFile,
+        time0,
+        time100: currentTime,
+        currentTime,
+        chartData,
+        similarityData: similarityData || undefined,
+        totalSimilarityData: similarityData || undefined,
+      };
+
+      storeSessionSummaryData.update((sessionMap) => {
+        const newMap = new Map(sessionMap);
+        const existing = newMap.get(sessionFile);
+
+        if (existing) {
+          newMap.set(sessionFile, { ...existing, ...updatedSession });
+        } else {
+          newMap.set(sessionFile, updatedSession);
+        }
+
+        return newMap;
+      });
+    } catch (error) {
+      console.error("Error when reading the data file (summary only):", error);
+    }
+  };
+
   const fetchData = async (sessionFile, isDelete) => {
     if (!firstSession && isDelete) {
       storeSessionData.update((map) => {
@@ -1184,6 +1280,41 @@
 
     return newParagraphTime;
   }
+
+  const handleEventsSummary = (data) => {
+    const chartData = [];
+    let firstTime = null;
+    let index = 0;
+    const totalTextLength = data.text[0].slice(0, -1).length;
+    let currentCharCount = data.init_text.join("").length;
+
+    data.info.forEach((event) => {
+      const { name, event_time, eventSource, text = "", count = 0, pos = 0 } = event;
+      const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
+      const eventTime = new Date(event_time);
+      if (!firstTime) firstTime = eventTime;
+      const relativeTime = (eventTime.getTime() - firstTime.getTime()) / 60000;
+
+      if (name === "text-insert") {
+        currentCharCount += text.length;
+      } else if (name === "text-delete") {
+        currentCharCount -= count;
+      }
+
+      const percentage = (currentCharCount / totalTextLength) * 100;
+
+      chartData.push({
+        time: relativeTime,
+        percentage,
+        eventSource,
+        color: textColor,
+        isSuggestionOpen: name === "suggestion-open",
+        index: index++,
+      });
+    });
+
+    return chartData;
+  };
 
   const handleEvents = (data, _) => {
     const initText = data.init_text.join("");
