@@ -1730,13 +1730,7 @@
         on:close={handleClose}
       />
     {/if}
-    <div class="container">
-       <!-- <div style="position: fixed; top: 100px; right: 10px; background: red; color: white; padding: 10px; z-index: 9999;">
-    DEBUG INFO:<br>
-    currentView: {currentView}<br>
-    selectedPatternForDetail: {selectedPatternForDetail ? selectedPatternForDetail.name : 'null'}<br>
-    showMulti: {showMulti}
-  </div> -->
+    <div class="container" style="margin-bottom: {showMulti ? '30px' : '70px'}">
       {#if isOpen}
         <div class="introduction-background">
           <div class="introduction">
@@ -1876,7 +1870,7 @@
 
       {#if showMulti}
         {#if $clickSession}
-          <div class="multi-box" style="margin-top: 70px;">
+          <div style="margin-top: 70px;">
             {#if !loadedMap[$clickSession.sessionId]}
               <SkeletonLoading />
             {/if}
@@ -1988,20 +1982,10 @@
 
   .container {
     width: 100%;
-    margin: 0 auto;
-    margin-bottom: 70px;
+    margin: 0 5px;
     display: flex;
     justify-content: center;
     padding: 0 10px;
-  }
-
-  .multi-box {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    align-items: stretch;
-    width: 100%;
-    max-width: 1200px;
   }
 
   .display-box {
@@ -2019,7 +2003,8 @@
     white-space: pre-wrap;
     text-align: left;
     width: 100%;
-    margin-top: 50px;
+    margin-top: 40px;
+    box-sizing: border-box;
   }
 
   .content-box {
@@ -2031,10 +2016,6 @@
     white-space: pre-wrap;
     text-align: left;
     padding: 15px;
-  }
-
-  .content-box:first-child {
-    flex: 3;
   }
 
   .text-container {
