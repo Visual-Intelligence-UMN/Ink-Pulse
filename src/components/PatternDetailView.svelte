@@ -104,7 +104,7 @@
                 onCategoryIconClick={() => {}}
                 {getPromptCode}
                 {getCategoryIcon}
-                colIndex={0}
+
               />
             </td>
           </tr>
