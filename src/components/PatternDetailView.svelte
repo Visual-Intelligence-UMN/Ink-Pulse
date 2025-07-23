@@ -96,7 +96,7 @@
       <tbody>
         {#each patternSessions as sessionData, _ (sessionData.sessionId)}
           <tr class="session-row" on:click={() => handleRowClick(sessionData)}>
-            <td class="activity-cell" style="justify-content: center;">
+            <td class="activity-cell">
               <SessionCell
                 {sessionData}
                 {chartRefs}
