@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
 
   let canvas;
+  
 
   export let rawData = {};
   export let nowData = {};
@@ -11,13 +12,21 @@
   const padding = 50;
   const overallColor = '#015dc6';
   const NOWColor = "#bf1818";
+  const dpr = 3;
+  const displayWidth = width;
+  const displayHeight = height;
 
   let labels = [];
 
   function drawChart() {
     if (!canvas) return;
+    canvas.width = displayWidth * dpr;
+    canvas.height = displayHeight * dpr;
+    canvas.style.width = `${displayWidth}px`;
+    canvas.style.height = `${displayHeight}px`;
 
     const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);  // scale everything
     ctx.clearRect(0, 0, width, height);
 
     labels = Array.from(
@@ -114,4 +123,5 @@
   }
 </script>
 
-<canvas bind:this={canvas} width={width} height={height}></canvas>
+<canvas bind:this={canvas}></canvas>
+

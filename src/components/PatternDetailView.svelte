@@ -104,7 +104,7 @@
                 onCategoryIconClick={() => {}}
                 {getPromptCode}
                 {getCategoryIcon}
-                colIndex={0}
+
               />
             </td>
           </tr>
@@ -237,6 +237,7 @@
   .session-row {
     cursor: pointer;
     transition: background-color 0.2s ease;
+    margin-bottom: 0px;
   }
   
   .session-row:hover {
@@ -248,7 +249,6 @@
   }
   
   .activity-cell {
-    padding: 10px 15px;
     vertical-align: top;
   }
   
