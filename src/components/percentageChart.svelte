@@ -12,7 +12,7 @@
 
   function drawChart() {
     if (!canvasEl) return;
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = 3;
 
     const width = 300;
     const height = 200;
