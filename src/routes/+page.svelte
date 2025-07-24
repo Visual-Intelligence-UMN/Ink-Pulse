@@ -973,6 +973,108 @@
     clickSession.set([]);
   }
 
+  const fetchLengthData = async () => {
+    try {
+      const response = await fetch(
+        `${base}/chi2022-coauthor-v1.0/length.json`,
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch summary data: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error when reading the data file:", error);
+      return null;
+    }
+  };
+
+  const fetchOverallSemScoreSummaryData = async () => {
+    try {
+      const response = await fetch(
+        `${base}/chi2022-coauthor-v1.0/overall_sem_score_summary.json`,
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch summary data: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error when reading the data file:", error);
+      return null;
+    }
+  };
+
+  const fetchOverallSemScoreData = async () => {
+    try {
+      const response = await fetch(
+        `${base}/chi2022-coauthor-v1.0/overall_sem_score.json`,
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch summary data: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error when reading the data file:", error);
+      return null;
+    }
+  };
+
+  const fetchLengthSummaryData = async () => {
+    try {
+      const response = await fetch(
+        `${base}/chi2022-coauthor-v1.0/length_summary.json`,
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch summary data: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error when reading the data file:", error);
+      return null;
+    }
+  };
+
+  const fetchPercentageSummaryData = async () => {
+    try {
+      const response = await fetch(
+        `${base}/chi2022-coauthor-v1.0/percentage_summary.json`,
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch summary data: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error when reading the data file:", error);
+      return null;
+    }
+  };
+
+  const fetchPercentageData = async () => {
+    try {
+      const response = await fetch(
+        `${base}/chi2022-coauthor-v1.0/percentage.json`,
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch summary data: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error when reading the data file:", error);
+      return null;
+    }
+  };
+
   const fetchScoreSummaryData = async () => {
     try {
       const response = await fetch(
@@ -1180,10 +1282,22 @@
     }
   };
 
-  let scoreSummary  = []
+  let scoreSummary  = [];
+  let percentageData = [];
+  let percentageSummaryData = [];
+  let lengthData = [];
+  let lengthSummaryData = [];
+  let overallSemScoreData = [];
+  let overallSemScoreSummaryData = [];
   onMount(async () => {
     document.title = "Ink-Pulse";
     scoreSummary = await fetchScoreSummaryData();
+    percentageData = await fetchPercentageData();
+    percentageSummaryData = await fetchPercentageSummaryData();
+    lengthData = await fetchLengthData();
+    lengthSummaryData = await fetchLengthSummaryData();
+    overallSemScoreData = await fetchOverallSemScoreData();
+    overallSemScoreSummaryData = await fetchOverallSemScoreSummaryData();
     await fetchSessions();
     for (let i = 0; i < selectedSession.length; i++) {
       const sessionId = selectedSession[i];
@@ -1875,6 +1989,12 @@
             {sessions}
             {chartRefs}
             {scoreSummary}
+            {percentageSummaryData}
+            {percentageData}
+            {lengthData}
+            {lengthSummaryData}
+            {overallSemScoreData}
+            {overallSemScoreSummaryData}
             on:back={handleBackFromDetail}
             on:apply-pattern={handleApplyPattern}
             on:edit-pattern={handleEditPattern}
