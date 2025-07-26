@@ -557,7 +557,7 @@
   }
 
   function togglePatternSearch() {
-    if (!selectionMode) {
+    if (!showPatternSearch) {
       selectionMode = true;
       showPatternSearch = true;
     } else {
@@ -909,7 +909,7 @@
 
   function closePatternSearch() {
     showPatternSearch = false;
-    selectionMode = false;
+    // selectionMode = false;
 
     // Object.keys(selectedPatterns).forEach((sessionId) => {
     //   const chartRef = chartRefs[sessionId + "-barChart"];
@@ -1583,12 +1583,12 @@
       {/if}
       <button
         class="pattern-search-button"
-        class:active={selectionMode}
+        class:active={showPatternSearch}
         on:click={togglePatternSearch}
         aria-label="Pattern Search"
       >
         <span class="search-icon">🔍</span>
-        {selectionMode ? "Exit Search" : "Pattern Search"}
+        {showPatternSearch ? "Exit Search" : "Pattern Search"}
       </button>
       <a
         on:click={open2close}
@@ -1840,7 +1840,7 @@
                 </div>
               {/each}
             </div>
-          {:else if selectionMode}
+          {:else}
             <div class="no-patterns-selected">
               <p>No patterns selected.</p>
             </div>
