@@ -174,8 +174,8 @@
     function brushed(event) {
       if (!event.selection) {
         resetBars();
-        currentSelection = null;
-        dispatch("selectionCleared", { sessionId });
+        // currentSelection = null;
+        // dispatch("selectionCleared", { sessionId });
         return;
       }
 

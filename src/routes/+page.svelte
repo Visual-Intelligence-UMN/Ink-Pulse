@@ -33,7 +33,7 @@
   let exactTrendButton;
 
   $: if(selectedPatterns) {
-    console.log("selectedPatterns", selectedPatterns);
+    // console.log("selectedPatterns", selectedPatterns);
     isSearch = 0 // reset search state; 0: not searching, 1: searching, 2: search done
   }
 
@@ -909,7 +909,7 @@
 
   function closePatternSearch() {
     showPatternSearch = false;
-    // selectionMode = false;
+    selectionMode = false;
 
     // Object.keys(selectedPatterns).forEach((sessionId) => {
     //   const chartRef = chartRefs[sessionId + "-barChart"];
