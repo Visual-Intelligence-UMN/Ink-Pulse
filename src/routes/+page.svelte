@@ -114,6 +114,8 @@
     isValueRangeChecked = false;
     isValueTrendChecked = false;
   }
+  let lastSession = null;
+
   export const patternDataList = writable([]);
   export const initData = writable([]);
   let currentResults = {};
@@ -954,6 +956,7 @@
     semanticData = dataRange.sc.sc;
     semanticTrend = getTrendPattern(semanticData);
     currentResults = data;
+    lastSession = $clickSession
 
     selectedPatterns[sessionId] = {
       range,
@@ -1818,7 +1821,7 @@
                           float
                           class="rangeSlider"
                           min={0}
-                          max={$clickSession?.time100}
+                          max={lastSession?.time100}
                           bind:values={timeRange}
                         />
                       </div>
