@@ -160,6 +160,34 @@ getFromDB(CACHE_KEY)
     console.warn('Failed to load from IndexedDB:', err);
   });
 
+
+export async function loadPattern(path = 'static/patterns/load') {
+  try {
+    const response = await fetch(path);
+    if (!response.ok) throw new Error(`Failed to load directory listing from ${path}`);
+
+    const html = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const links = Array.from(doc.querySelectorAll('a'))
+      .map(a => a.getAttribute('href'))
+      .filter(href => href && !href.startsWith('?') && !href.startsWith('/'))
+      .filter(href => href.endsWith('.bin') || href.endsWith('.json'));
+
+    for (const file of links) {
+      const fileUrl = `${path}/${file}`;
+      const res = await fetch(fileUrl);
+      const blob = await res.blob();
+      await importDBFromFile(blob);
+    }
+
+    console.log(`Successfully imported ${links.length} pattern files from ${path}`);
+  } catch (err) {
+    console.error('loadPattern failed:', err);
+  }
+}
+
+
 /*
 ✅ Console Tool Usage:
 

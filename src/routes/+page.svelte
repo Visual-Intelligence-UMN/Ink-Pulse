@@ -46,6 +46,13 @@
     initTippy(exactSourceButton, "Open/Close exact search");
   $: exactTrendButton && initTippy(exactTrendButton, "Open/Close exact search");
 
+
+  import { loadPattern } from '../components/cache.js'; // or adjust import path if different
+
+  onMount(() => {
+    loadPattern('patterns/load');
+  });
+
   let dataDict = {
     init_text: [], // Initial text
     init_time: [], // Start time
