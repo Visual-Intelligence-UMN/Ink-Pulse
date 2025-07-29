@@ -238,25 +238,49 @@
   let sortDirection = "none";
 
   function handleSort(column) {
-    if (sortColumn === column) {
-      if (sortDirection === "none") {
-        sortDirection = "asc";
-      } else if (sortDirection === "asc") {
-        sortDirection = "desc";
-      } else {
+    if (column === "pattern") {
+      // Special logic for pattern sorting: toggle between sorted and original order
+      if (sortColumn === "pattern") {
+        // If already sorting by pattern, revert to original order
+        sortColumn = null;
         sortDirection = "none";
+      } else {
+        // First click: sort by pattern (show sessions with patterns first)
+        sortColumn = "pattern";
+        sortDirection = "asc";
       }
     } else {
-      sortColumn = column;
-      sortDirection = "asc";
+      // Original logic for other columns
+      if (sortColumn === column) {
+        if (sortDirection === "none") {
+          sortDirection = "asc";
+        } else if (sortDirection === "asc") {
+          sortDirection = "desc";
+        } else {
+          sortDirection = "none";
+        }
+      } else {
+        sortColumn = column;
+        sortDirection = "asc";
+      }
     }
   }
 
   function getSortIcon(column) {
-    if (sortColumn !== column || sortDirection === "none") {
-      return "↕️";
+    if (column === "pattern") {
+      // Special icon for pattern column
+      if (sortColumn === "pattern") {
+        return "✓"; // Show checkmark when patterns are sorted to front
+      } else {
+        return "🔄"; // Show refresh icon when not sorted
+      }
+    } else {
+      // Original logic for other columns
+      if (sortColumn !== column || sortDirection === "none") {
+        return "↕️";
+      }
+      return sortDirection === "asc" ? "↑" : "↓";
     }
-    return sortDirection === "asc" ? "↑" : "↓";
   }
 
   // FETCH SCORES
@@ -302,6 +326,25 @@
           return aScore - bScore;
         } else {
           return bScore - aScore;
+        }
+      });
+    }
+    // Pattern
+    if (sortColumn === "pattern" && sortDirection !== "none") {
+      sessions = [...sessions].sort((a, b) => {
+        const aHasPattern = hasPattern(a.sessionId);
+        const bHasPattern = hasPattern(b.sessionId);
+
+        if (sortDirection === "asc") {
+          // Show sessions with patterns first
+          if (aHasPattern && !bHasPattern) return -1;
+          if (!aHasPattern && bHasPattern) return 1;
+          return 0;
+        } else {
+          // Show sessions without patterns first
+          if (aHasPattern && !bHasPattern) return 1;
+          if (!aHasPattern && bHasPattern) return -1;
+          return 0;
         }
       });
     }
@@ -524,6 +567,15 @@
     }
 
     return $initData;
+  }
+
+  function hasPattern(sessionId) {
+    if (!$searchPatternSet || $searchPatternSet.length === 0) return false;
+
+    return $searchPatternSet.some((pattern) => {
+      if (!pattern.pattern || pattern.pattern.length === 0) return false;
+      return pattern.pattern.some((session) => session.sessionId === sessionId);
+    });
   }
 
   // function isIconActive(promptCode) {
@@ -2110,7 +2162,15 @@
                           <span class="sort-icon">{getSortIcon("score")}</span>
                         </th>
                         {#if showPatternColumn}
-                          <th>Pattern</th>
+                          <th
+                            class="sortable-header"
+                            on:click={() => handleSort("pattern")}
+                          >
+                            <span>Pattern</span>
+                            <span class="sort-icon"
+                              >{getSortIcon("pattern")}</span
+                            >
+                          </th>
                         {/if}
                         <th>Activity</th>
                       </tr>
@@ -2166,7 +2226,15 @@
                             >
                           </th>
                           {#if showPatternColumn}
-                            <th>Pattern</th>
+                            <th
+                              class="sortable-header"
+                              on:click={() => handleSort("pattern")}
+                            >
+                              <span>Pattern</span>
+                              <span class="sort-icon"
+                                >{getSortIcon("pattern")}</span
+                              >
+                            </th>
                           {/if}
                           <th>Activity</th>
                           {#if colIndex < 2}
