@@ -160,6 +160,33 @@ getFromDB(CACHE_KEY)
     console.warn('Failed to load from IndexedDB:', err);
   });
 
+  export async function loadPattern(dir = '/static/patterns/load') {
+  try {
+    const listRes = await fetch(`${dir}/filelist.json`);
+    if (!listRes.ok)
+      throw new Error(`Cannot read ${dir}/filelist.json — status ${listRes.status}`);
+    const fileNames = await listRes.json();
+
+    for (const name of fileNames) {
+      const fileRes = await fetch(`${dir}/${name}`);
+      if (!fileRes.ok) {
+        console.warn(`Skip ${name}: HTTP ${fileRes.status}`);
+        continue;
+      }
+      const blob = await fileRes.blob();
+      const file = new File([blob], name, { type: blob.type || 'application/octet-stream' });
+      await importDBFromFile(file);  
+      console.info(`✔ Imported ${name}`);
+    }
+
+    console.info(`loadPattern(): finished — ${fileNames.length} file(s) processed.`);
+  } catch (err) {
+    console.error('loadPattern(): failed →', err);
+    throw err;   
+  }
+}
+
+
 /*
 ✅ Console Tool Usage:
 
