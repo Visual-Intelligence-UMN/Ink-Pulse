@@ -33,6 +33,7 @@
   let showPatternSearch = false;
   let exactSourceButton;
   let exactTrendButton;
+  let searchDetail = null;
 
   $: if(selectedPatterns) {
     // console.log("selectedPatterns", selectedPatterns);
@@ -209,6 +210,7 @@
         totalSessions: processedSlice.length,
         originalMatches: allPatternData.length,
       },
+      searchDetail
     };
 
     searchPatternSet.update((current) => [...current, itemToSave]);
@@ -801,6 +803,13 @@
     isSearch = 1; // 0: not searching, 1: searching, 2: search done
     const sessionData = selectedPatterns[sessionId];
     const count = sessionData.count;
+    searchDetail = {
+      sessionId,
+      data: sessionData.data,
+      count,
+      wholeData: sessionData.wholeData,
+      range: sessionData.range,
+    }
     let results = [];
     let patternVectors = [];
     const checks = {

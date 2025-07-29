@@ -6,6 +6,7 @@
   import PercentageChart from './percentageChart.svelte'
   import LengthChart from './lengthChart.svelte';
   import OverallSemScoreChart from './overallSemScoreChart.svelte';
+  import PatternChartPreview from './patternChartPreview.svelte';
   
   export let pattern;
   export let sessions;
@@ -83,6 +84,16 @@
       <span>📅 Created: {pattern?.metadata?.createdAt ? new Date(pattern.metadata.createdAt).toLocaleDateString() : 'Recently'}</span>
       <span></span>
     </div>
+  </div>
+
+  <div style="display: flex; justify-content: center;">
+    <PatternChartPreview
+    sessionId = {pattern.searchDetail.sessionId}
+    data={pattern.searchDetail.data}
+    wholeData={pattern.searchDetail.wholeData}
+    selectedRange={pattern.searchDetail.range}
+    bind:this={chartRefs[pattern.searchDetail.sessionId]}
+    />
   </div>
 
   <div style="display: flex; justify-content: center;">
