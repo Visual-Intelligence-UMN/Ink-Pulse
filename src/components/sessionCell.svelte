@@ -99,7 +99,7 @@
 
 <style>
   td {
-    border-bottom: 1px solid #ccc;
+
     padding: 10px;
   }
 

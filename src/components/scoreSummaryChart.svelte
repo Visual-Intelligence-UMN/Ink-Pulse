@@ -3,26 +3,34 @@
 
   let canvas;
 
-  export let rawData = {};
-  export let nowData = {};
+  export let rawData;
+  export let nowData;
 
-  const width = 400;
+  const width = 300;
   const height = 200;
-  const padding = 50;
+  const padding = 0;
   const overallColor = '#015dc6';
   const NOWColor = "#bf1818";
+  const dpr = 3;
+  const displayWidth = width;
+  const displayHeight = height;
 
   let labels = [];
 
   function drawChart() {
     if (!canvas) return;
+    canvas.width = displayWidth * dpr;
+    canvas.height = displayHeight * dpr;
+    canvas.style.width = `${displayWidth}px`;
+    canvas.style.height = `${displayHeight}px`;
 
     const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
     labels = Array.from(
       new Set([...Object.keys(rawData), ...Object.keys(nowData)].map(Number))
-    ).sort((a, b) => a - b);
+    ).sort((a, b) => b - a);
 
     const getPercentages = (data) => {
       const values = labels.map(label => data[label] || 0);
@@ -33,75 +41,83 @@
     const rawPercent = getPercentages(rawData);
     const nowPercent = getPercentages(nowData);
 
-    ctx.beginPath();
-    ctx.moveTo(padding, padding);
-    ctx.lineTo(padding, height - padding);
-    ctx.lineTo(width - padding, height - padding);
+    const tickLength = 6;
+    const leftMargin = 50;
+    const bottomMargin = 40;
+
+    const violinHeight = (height - padding - bottomMargin) / labels.length;
+    const chartBottomY = padding + labels.length * violinHeight;
+
+    const xPoints = [
+      leftMargin + (width - leftMargin) / 3,
+      leftMargin + 2 * (width - leftMargin) / 3,
+    ];
+    
     ctx.strokeStyle = '#333';
     ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(leftMargin, padding);
+    ctx.lineTo(leftMargin, chartBottomY);
     ctx.stroke();
 
-    const yStep = 20;
     ctx.font = '12px sans-serif';
-    ctx.fillStyle = '#333';
     ctx.textBaseline = 'middle';
-
-    for (let i = 0; i <= 100; i += yStep) {
-      const y = height - padding - (i / 100) * (height - 2 * padding);
-      ctx.beginPath();
-      ctx.moveTo(padding - 5, y);
-      ctx.lineTo(padding, y);
-      ctx.stroke();
-      ctx.fillText(i + '%', padding - 35, y);
-    }
-
-    const xStep = (width - 2 * padding) / (labels.length - 1 || 1);
+    ctx.textAlign = 'right';
     labels.forEach((label, i) => {
-      const x = padding + i * xStep;
+      const y = padding + i * violinHeight + violinHeight / 2;
       ctx.beginPath();
-      ctx.moveTo(x, height - padding);
-      ctx.lineTo(x, height - padding + 5);
+      ctx.moveTo(leftMargin - tickLength, y);
+      ctx.lineTo(leftMargin, y);
       ctx.stroke();
-      ctx.fillText(label, x - 6, height - padding + 15);
+      ctx.fillText(label, leftMargin - tickLength - 5, y);
     });
 
-    function drawLine(percentages, color) {
+    ctx.beginPath();
+    ctx.moveTo(leftMargin, chartBottomY);
+    ctx.lineTo(width, chartBottomY);
+    ctx.stroke();
+
+    ctx.textBaseline = 'top';
+    ctx.textAlign = 'center';
+    const xLabels = ['Overall', 'Now'];
+    xPoints.forEach((x, i) => {
       ctx.beginPath();
-      percentages.forEach((p, i) => {
-        const x = padding + i * xStep;
-        const y = height - padding - (p / 100) * (height - 2 * padding);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
+      ctx.moveTo(x, chartBottomY);
+      ctx.lineTo(x, chartBottomY + tickLength);
       ctx.stroke();
+      ctx.fillText(xLabels[i], x, chartBottomY + tickLength + 3);
+    });
+
+    function drawViolin(y, percent, xPos, color) {
+      const maxWidth = violinHeight / 2;
+      const heightSteps = 50;
+      const density = [];
+      for (let i = 0; i <= heightSteps; i++) {
+        const t = i / heightSteps;
+        const bell = Math.exp(-((t - 0.5) ** 2) * 8);
+        density.push((percent / 100) * maxWidth * bell);
+      }
+      ctx.beginPath();
+      ctx.moveTo(xPos, y);
+      for (let i = 0; i <= heightSteps; i++) {
+        const dy = (i / heightSteps) * violinHeight;
+        const dx = -density[i];
+        ctx.lineTo(xPos + dx, y + dy);
+      }
+      for (let i = heightSteps; i >= 0; i--) {
+        const dy = (i / heightSteps) * violinHeight;
+        const dx = density[i];
+        ctx.lineTo(xPos + dx, y + dy);
+      }
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
     }
 
-    drawLine(rawPercent, overallColor);
-    drawLine(nowPercent, NOWColor);
-
-    drawLegend(ctx);
-  }
-
-  function drawLegend(ctx) {
-    const legendItems = [
-      { color: NOWColor, text: 'NOW pattern distribution' },
-      { color: overallColor, text: 'Overall pattern distribution' }
-    ];
-
-    ctx.font = '14px sans-serif';
-    ctx.textBaseline = 'middle';
-    const legendWidth = 180;
-    const startX = width - padding - legendWidth;
-    const startY = padding - 30;
-
-    legendItems.forEach(({ color, text }, i) => {
-      const y = startY + i * 28;
-      ctx.fillStyle = color;
-      ctx.fillRect(startX, y, 24, 14);
-      ctx.fillStyle = '#333';
-      ctx.fillText(text, startX + 34, y + 7);
+    labels.forEach((_, i) => {
+      const y = padding + i * violinHeight;
+      drawViolin(y, rawPercent[i], xPoints[0], overallColor);
+      drawViolin(y, nowPercent[i], xPoints[1], NOWColor);
     });
   }
 
@@ -114,4 +130,5 @@
   }
 </script>
 
-<canvas bind:this={canvas} width={width} height={height}></canvas>
+<canvas bind:this={canvas}></canvas>
+

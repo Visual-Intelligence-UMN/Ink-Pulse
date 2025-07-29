@@ -3,11 +3,20 @@
   import SessionCell from './sessionCell.svelte';
   import { getCategoryIcon } from './topicIcons.js';
   import ScoreSummaryChart from './scoreSummaryChart.svelte';
+  import PercentageChart from './percentageChart.svelte'
+  import LengthChart from './lengthChart.svelte';
+  import OverallSemScoreChart from './overallSemScoreChart.svelte';
   
   export let pattern;
   export let sessions;
   export let chartRefs = {};
   export let scoreSummary;
+  export let percentageSummaryData;
+  export let percentageData;
+  export let lengthData;
+  export let lengthSummaryData;
+  export let overallSemScoreData;
+  export let overallSemScoreSummaryData;
   
   const dispatch = createEventDispatcher();
   
@@ -54,7 +63,6 @@
       Object.entries(temp).map(([k, v]) => [Number(k), v])
     );
   }
-
 </script>
 
 <div class="pattern-detail-container">
@@ -77,10 +85,31 @@
     </div>
   </div>
 
-  <div style="width: 100%; display: flex; justify-content: center;">
+  <div style="display: flex; justify-content: center;">
     <ScoreSummaryChart
       rawData = {scoreSummary}
       nowData = {scoreCount}
+    />
+  </div>
+  <div style="display: flex; justify-content: center;">
+    <PercentageChart
+      {patternSessions}
+      {percentageSummaryData}
+      {percentageData}
+    />
+  </div>
+  <div style="display: flex; justify-content: center;">
+    <LengthChart
+      {patternSessions}
+      {lengthData}
+      {lengthSummaryData}
+    />
+  </div>
+  <div style="display: flex; justify-content: center;">
+    <OverallSemScoreChart
+      {patternSessions}
+      {overallSemScoreData}
+      {overallSemScoreSummaryData}
     />
   </div>
   
@@ -104,7 +133,7 @@
                 onCategoryIconClick={() => {}}
                 {getPromptCode}
                 {getCategoryIcon}
-                colIndex={0}
+
               />
             </td>
           </tr>
@@ -237,6 +266,7 @@
   .session-row {
     cursor: pointer;
     transition: background-color 0.2s ease;
+    margin-bottom: 0px;
   }
   
   .session-row:hover {
@@ -248,7 +278,6 @@
   }
   
   .activity-cell {
-    padding: 10px 15px;
     vertical-align: top;
   }
   
