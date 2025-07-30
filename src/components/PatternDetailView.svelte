@@ -149,7 +149,7 @@
           Time
           <div style="flex: 1"></div>
         </div>
-        <!-- <div
+        <div
           class:dimmed={!pattern.searchDetail.flag.isSourceChecked}
           style="font-size: 13px;"
         >
@@ -164,49 +164,48 @@
               checked={pattern.searchDetail.flag.isExactSearchSource}
               disabled
             />
-            <span class="slider"></span>
+
           </label>
         </div>
         <div style="font-size: 13px;">
-          <div class:dimmed={!isSemanticChecked}>
+          <div>
             <input
               type="checkbox"
-              bind:checked={isSemanticChecked}
+              checked={pattern.searchDetail.flag.isSemanticChecked}
+              disabled
             />
             Semantic Expansion
           </div>
           <div style="margin-left: 20px;">
-            <div class:dimmed={!isValueRangeChecked}>
+            <div>
               <input
                 type="checkbox"
-                bind:checked={isValueRangeChecked}
-                disabled={!isSemanticChecked}
+                checked={pattern.searchDetail.flag.isValueRangeChecked}
+                disabled
               />
               Value Range
             </div>
-            <div class:dimmed={!isValueTrendChecked}>
+            <div>
               <input
                 type="checkbox"
-                bind:checked={isValueTrendChecked}
-                disabled={!isSemanticChecked}
+                checked={pattern.searchDetail.flag.isValueTrendChecked}
+                disabled
               />
               Value Trend
               <label
                 class="switch"
                 style="transform: translateY(4px);"
-                bind:this={exactTrendButton}
               >
                 <input
                   type="checkbox"
-                  bind:checked={isExactSearchTrend}
-                  disabled={!isSemanticChecked ||
-                    !isValueTrendChecked}
+                  checked={pattern.searchDetail.flag.isExactSearchTrend}
+                  disabled
                 />
-                <span class="slider"></span>
+
               </label>
             </div>
           </div>
-        </div> -->
+        </div>
       </div>
     </div>
   </div>
