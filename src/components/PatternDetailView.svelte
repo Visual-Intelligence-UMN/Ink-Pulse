@@ -11,13 +11,17 @@
   export let pattern;
   export let sessions;
   export let chartRefs = {};
-  export let scoreSummary;
-  export let percentageSummaryData;
   export let percentageData;
   export let lengthData;
-  export let lengthSummaryData;
-  export let overallSemScoreData;
-  export let overallSemScoreSummaryData;
+  export let searchPatternSet;
+  const init = searchPatternSet.find(p => p.id === "pattern_0");
+  let scoreSummary = init.scoreSummary;
+  let percentageSummaryData = init.percentageSummaryData;
+  let lengthSummaryData = init.lengthSummaryData;
+  let overallSemScoreData = init.overallSemScoreData;
+  let overallSemScoreSummaryData = init.overallSemScoreSummaryData;
+  let flag = "overall";
+  let title = [];
   
   const dispatch = createEventDispatcher();
   
@@ -52,6 +56,37 @@
     return `${score.toFixed(1)} ${stars}`;
   }
 
+  function handleSelectChange(event) {
+    const selectedValue = event.target.value;
+    if (selectedValue == "pattern_0") {
+      flag = "overall";
+      title = [pattern.name, searchPatternSet.find(p => p.id === selectedValue).name];
+      scoreSummary = init.scoreSummary;
+      percentageSummaryData = init.percentageSummaryData;
+      lengthSummaryData = init.lengthSummaryData;
+      overallSemScoreData = init.overallSemScoreData;
+      overallSemScoreSummaryData = init.overallSemScoreSummaryData;
+    } 
+    else {
+      flag = selectedValue;
+      title = [pattern.name, searchPatternSet.find(p => p.id === selectedValue).name]
+      let select = searchPatternSet.find(p => p.id === selectedValue);
+      const patternSessions = select.pattern || [];
+      const temp = {};
+      for (const session of patternSessions) {
+        const score = Number(session.llmScore);
+        temp[score] = (temp[score] || 0) + 1;
+      }
+      scoreSummary = Object.fromEntries(
+        Object.entries(temp).map(([k, v]) => [Number(k), v])
+      );
+      percentageSummaryData = select.pattern;
+      lengthSummaryData = select.pattern;
+      overallSemScoreSummaryData = select.pattern;
+    }
+    
+  }
+
   $: patternSessions = pattern?.pattern || [];
   let scoreCount = {};
   $: {
@@ -64,6 +99,7 @@
       Object.entries(temp).map(([k, v]) => [Number(k), v])
     );
   }
+  let selectedId = "pattern_0";
 </script>
 
 <div class="pattern-detail-container">
@@ -82,10 +118,21 @@
     <div class="pattern-stats">
       <span>📊 {patternSessions.length} sessions</span>
       <span>📅 Created: {pattern?.metadata?.createdAt ? new Date(pattern.metadata.createdAt).toLocaleDateString() : 'Recently'}</span>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span>⚖️ 
+          <span style="width: 10px; height: 10px; background-color: {pattern.color}; border-radius: 50%; display: inline-block;"
+          aria-label="color dot"></span>
+          {pattern.name}</span>
+        <span>VS</span>
+        <select id="pattern-select" bind:value={selectedId} on:change={handleSelectChange}>
+          {#each searchPatternSet as pattern}
+            <option value={pattern.id}>{pattern.name}</option>
+          {/each}
+        </select>
+      </div>
       <span></span>
     </div>
   </div>
-
 
   <div class="pattern-item" >
     <div class="pattern-header">
@@ -216,6 +263,7 @@
     <ScoreSummaryChart
       rawData = {scoreSummary}
       nowData = {scoreCount}
+      {title}
     />
   </div>
   <div style="display: flex; justify-content: center;">
@@ -223,6 +271,8 @@
       {patternSessions}
       {percentageSummaryData}
       {percentageData}
+      {flag}
+      {title}
     />
   </div>
   <div style="display: flex; justify-content: center;">
@@ -230,6 +280,8 @@
       {patternSessions}
       {lengthData}
       {lengthSummaryData}
+      {flag}
+      {title}
     />
   </div>
   <div style="display: flex; justify-content: center;">
@@ -237,6 +289,8 @@
       {patternSessions}
       {overallSemScoreData}
       {overallSemScoreSummaryData}
+      {flag}
+      {title}
     />
   </div>
   
@@ -487,8 +541,8 @@
     background-color: #c82333;
     transform: translateY(-1px);
   }
-  
-    .pattern-item {
+
+   .pattern-item {
     background-color: #f8f9fa;
     border-radius: 6px;
     padding: 20px;
@@ -561,5 +615,6 @@ input:checked+.slider::before {
   height: 14px;
   margin-left: 3px;
 }
-
+  
+  
 </style>

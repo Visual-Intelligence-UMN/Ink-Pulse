@@ -99,7 +99,9 @@
   let patternData = [];
   let RangeSlider = null;
   let writingProgressRange = [];
+  let writingProgressRangeSlider = [];
   let timeRange = [];
+  let timeRangeSlider = [];
   let sourceRange = [];
   let semanticRange = [];
   let semanticData = [];
@@ -650,8 +652,8 @@
 
   function isDataValid(item, checks, minCount) {
     const fieldMap = {
-      progress: (d) => d.end_progress * 100,
-      time: (d) => d.end_time / 60,
+      progress: (d) => (d.end_progress - d.start_progress) * 100,
+      time: (d) => (d.end_time - d.start_time) / 60,
       semantic: (d) => d.residual_vector_norm,
     };
 
@@ -704,7 +706,7 @@
     const isTrendCheckRequired =
       isExactSearchTrend && checks.trend && checks.trend[1] && minCount > 1;
 
-    for (let i = 0; i <= data.length - minCount; i++) {
+    for (let i = 1; i <= data.length - minCount; i++) {
       const window = data.slice(i, i + minCount);
       if (!window.every((item) => isDataValid(item, checks, minCount)))
         continue;
@@ -728,8 +730,8 @@
   function buildVectorForCurrentSegment(currentResults, checks) {
     const currentVector = {};
     if (checks.source[0]) currentVector.s = [];
-    if (checks.time[0]) currentVector.t = [];
-    if (checks.progress[0]) currentVector.p = [];
+    if (checks.time[0]) currentVector.t = []; // n min
+    if (checks.progress[0]) currentVector.p = []; // n
     if (checks.trend[0]) currentVector.tr = [];
     if (checks.semantic[0]) currentVector.sem = [];
     for (let i = 0; i < currentResults.length; i++) {
@@ -746,7 +748,7 @@
 
       if (checks.progress[0]) {
         currentVector.p.push(
-          currentItem.endProgress / 100 - currentItem.startProgress / 100
+          currentItem.endProgress - currentItem.startProgress
         );
       }
 
@@ -764,10 +766,9 @@
 
   function buildVectorFromSegment(segment, checks) {
     const vector = {};
-
     if (checks.source[0]) vector.s = [];
-    if (checks.time[0]) vector.t = [];
-    if (checks.progress[0]) vector.p = [];
+    if (checks.time[0]) vector.t = []; // n s
+    if (checks.progress[0]) vector.p = []; // 0.n
     if (checks.trend[0]) vector.tr = [];
     if (checks.semantic[0]) vector.sem = [];
 
@@ -779,21 +780,21 @@
         vector.s.push(source === "user" ? 1 : 0); // user is 1, api is 0
       }
       if (checks.time[0]) {
-        const tStart = item.start_time ?? 0;
-        const tEnd = item.end_time ?? 0;
+        const tStart = item.start_time;
+        const tEnd = item.end_time;
         vector.t.push(tEnd - tStart);
       }
       if (checks.progress[0]) {
-        const y1 = item.start_progress ?? 0;
-        const y2 = item.end_progress ?? 0;
+        const y1 = item.start_progress * 100;
+        const y2 = item.end_progress * 100;
         vector.p.push(y2 - y1);
       }
       if (checks.semantic[0]) {
-        vector.sem.push(item.residual_vector_norm ?? null);
+        vector.sem.push(item.residual_vector_norm);
       }
     }
     if (checks.trend[0]) {
-      const values = segment.map((d) => d.residual_vector_norm ?? 0);
+      const values = segment.map((d) => d.residual_vector_norm);
       vector.tr = getTrendPattern(values);
     }
     return vector;
@@ -877,9 +878,7 @@
         currentResults,
         checks
       );
-
       patternData = results;
-      console.log(patternVectors.length);
       const finalScore = await calculateRankAuto(patternVectors, currentVector);
       const idToData = Object.fromEntries(
         patternData.map((d) => [d[0].segmentId, d])
@@ -1044,11 +1043,21 @@
     currentResults = {};
     const { sessionId, range, dataRange, data, wholeData, sources } =
       event.detail;
-    writingProgressRange = [
+    writingProgressRangeSlider = [
       dataRange.progressRange.min,
       dataRange.progressRange.max,
     ];
-    timeRange = [dataRange.timeRange.min, dataRange.timeRange.max];
+    timeRangeSlider = [dataRange.timeRange.min, dataRange.timeRange.max];
+    const progressDiffs = data.map(d => (d.end_progress - d.start_progress) * 100);
+    writingProgressRange = [
+      Math.min(...progressDiffs),
+      Math.max(...progressDiffs)
+    ];
+    const timeDiffs = data.map(d => (d.end_time - d.start_time) / 60);
+    timeRange = [
+      Math.min(...timeDiffs),
+      Math.max(...timeDiffs)
+    ];
     sourceRange = sources;
     semanticRange = [dataRange.scRange.min, dataRange.scRange.max];
     semanticData = dataRange.sc.sc;
@@ -1396,6 +1405,7 @@
   let lengthSummaryData = [];
   let overallSemScoreData = [];
   let overallSemScoreSummaryData = [];
+  let isLoadOverallData = false
   onMount(async () => {
     document.title = "Ink-Pulse";
     scoreSummary = await fetchScoreSummaryData();
@@ -1405,6 +1415,26 @@
     lengthSummaryData = await fetchLengthSummaryData();
     overallSemScoreData = await fetchOverallSemScoreData();
     overallSemScoreSummaryData = await fetchOverallSemScoreSummaryData();
+    if (isLoadOverallData == false) {
+      const itemToSave = {
+      id: `pattern_0`,
+      name: "Overall",
+      pattern: [],
+      metadata: {},
+      scoreSummary,
+      percentageSummaryData,
+      lengthSummaryData,
+      overallSemScoreData,
+      overallSemScoreSummaryData
+    };
+      searchPatternSet.update(current => {
+        if (!current.find(p => p.id === "pattern_0")) {
+          return [...current, itemToSave];
+        }
+        return current;
+      });
+      isLoadOverallData = true;
+    }
     await fetchSessions();
     for (let i = 0; i < selectedSession.length; i++) {
       const sessionId = selectedSession[i];
@@ -1932,7 +1962,7 @@
                           class="rangeSlider"
                           min={0}
                           max={100}
-                          bind:values={writingProgressRange}
+                          bind:values={writingProgressRangeSlider}
                         />
                       </div>
                       <div
@@ -1948,7 +1978,7 @@
                           class="rangeSlider"
                           min={0}
                           max={lastSession?.time100}
-                          bind:values={timeRange}
+                          bind:values={timeRangeSlider}
                         />
                       </div>
                       <div
@@ -2137,15 +2167,11 @@
         <div style="margin-top: 70px;">
           <PatternDetailView
             pattern={selectedPatternForDetail}
+            searchPatternSet={$searchPatternSet}
             {sessions}
             {chartRefs}
-            {scoreSummary}
-            {percentageSummaryData}
             {percentageData}
             {lengthData}
-            {lengthSummaryData}
-            {overallSemScoreData}
-            {overallSemScoreSummaryData}
             on:back={handleBackFromDetail}
             on:apply-pattern={handleApplyPattern}
             on:edit-pattern={handleEditPattern}
