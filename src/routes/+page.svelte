@@ -1012,7 +1012,6 @@
   function closePatternSearch() {
     showPatternSearch = false;
     selectionMode = false;
-    // isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
 
     // Object.keys(selectedPatterns).forEach((sessionId) => {
     //   const chartRef = chartRefs[sessionId + "-barChart"];
