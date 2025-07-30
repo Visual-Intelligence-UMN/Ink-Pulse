@@ -116,7 +116,7 @@
         bind:this={chartRefs[pattern.searchDetail.sessionId]}
         />
       </div>
-      <div style="margin-top: 5px; width: 60%">
+      <div style="margin-top: 15px; margin-left:10px; width: 40%">
         <div
           style="display: flex; align-items: center; font-size: 13px; color: #5f6368;"
         >
@@ -491,7 +491,7 @@
     .pattern-item {
     background-color: #f8f9fa;
     border-radius: 6px;
-    padding: 12px;
+    padding: 20px;
     margin-bottom: 12px;
   }
   
