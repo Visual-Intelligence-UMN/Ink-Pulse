@@ -33,6 +33,12 @@
   let showPatternSearch = false;
   let exactSourceButton;
   let exactTrendButton;
+  let searchDetail = null;
+
+  $: if(selectedPatterns) {
+    // console.log("selectedPatterns", selectedPatterns);
+    isSearch = 0 // reset search state; 0: not searching, 1: searching, 2: search done
+  }
 
   function initTippy(el, content) {
     if (!el._tippy) {
@@ -206,6 +212,7 @@
         totalSessions: processedSlice.length,
         originalMatches: allPatternData.length,
       },
+      searchDetail
     };
 
     searchPatternSet.update((current) => [...current, itemToSave]);
@@ -624,7 +631,7 @@
   }
 
   function togglePatternSearch() {
-    if (!selectionMode) {
+    if (!showPatternSearch) {
       selectionMode = true;
       showPatternSearch = true;
     } else {
@@ -797,6 +804,23 @@
     isSearch = 1; // 0: not searching, 1: searching, 2: search done
     const sessionData = selectedPatterns[sessionId];
     const count = sessionData.count;
+    searchDetail = {
+      sessionId,
+      data: sessionData.data,
+      dataRange: sessionData.dataRange,
+      count,
+      wholeData: sessionData.wholeData,
+      range: sessionData.range,
+      flag:{
+        isProgressChecked,
+        isTimeChecked,
+        isSourceChecked,
+        isValueRangeChecked,
+        isValueTrendChecked,
+        isExactSearchSource,
+        isExactSearchTrend,
+      },
+    }
     let results = [];
     let patternVectors = [];
     const checks = {
@@ -1382,6 +1406,7 @@
   let lengthSummaryData = [];
   let overallSemScoreData = [];
   let overallSemScoreSummaryData = [];
+  let isLoadOverallData = false
   onMount(async () => {
     document.title = "Ink-Pulse";
     scoreSummary = await fetchScoreSummaryData();
@@ -1391,6 +1416,26 @@
     lengthSummaryData = await fetchLengthSummaryData();
     overallSemScoreData = await fetchOverallSemScoreData();
     overallSemScoreSummaryData = await fetchOverallSemScoreSummaryData();
+    if (isLoadOverallData == false) {
+      const itemToSave = {
+      id: `pattern_0`,
+      name: "Overall",
+      pattern: [],
+      metadata: {},
+      scoreSummary,
+      percentageSummaryData,
+      lengthSummaryData,
+      overallSemScoreData,
+      overallSemScoreSummaryData
+    };
+      searchPatternSet.update(current => {
+        if (!current.find(p => p.id === "pattern_0")) {
+          return [...current, itemToSave];
+        }
+        return current;
+      });
+      isLoadOverallData = true;
+    }
     await fetchSessions();
     for (let i = 0; i < selectedSession.length; i++) {
       const sessionId = selectedSession[i];
@@ -1815,12 +1860,12 @@
       {/if}
       <button
         class="pattern-search-button"
-        class:active={selectionMode}
+        class:active={showPatternSearch}
         on:click={togglePatternSearch}
         aria-label="Pattern Search"
       >
         <span class="search-icon">🔍</span>
-        {selectionMode ? "Exit Search" : "Pattern Search"}
+        {showPatternSearch ? "Exit Search" : "Pattern Search"}
       </button>
       <a
         on:click={open2close}
@@ -2073,7 +2118,7 @@
                 </div>
               {/each}
             </div>
-          {:else if selectionMode}
+          {:else}
             <div class="no-patterns-selected">
               <p>No patterns selected.</p>
             </div>
@@ -2123,15 +2168,11 @@
         <div style="margin-top: 70px;">
           <PatternDetailView
             pattern={selectedPatternForDetail}
+            searchPatternSet={$searchPatternSet}
             {sessions}
             {chartRefs}
-            {scoreSummary}
-            {percentageSummaryData}
             {percentageData}
             {lengthData}
-            {lengthSummaryData}
-            {overallSemScoreData}
-            {overallSemScoreSummaryData}
             on:back={handleBackFromDetail}
             on:apply-pattern={handleApplyPattern}
             on:edit-pattern={handleEditPattern}

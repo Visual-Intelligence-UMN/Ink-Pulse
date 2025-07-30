@@ -5,12 +5,13 @@
 
   export let rawData;
   export let nowData;
+  export let title;
 
   const width = 300;
   const height = 200;
   const padding = 0;
-  const overallColor = '#015dc6';
-  const NOWColor = "#bf1818";
+  const overallColor = '#bf1818';
+  const NOWColor = "#015dc6";
   const dpr = 3;
   const displayWidth = width;
   const displayHeight = height;
@@ -32,14 +33,13 @@
       new Set([...Object.keys(rawData), ...Object.keys(nowData)].map(Number))
     ).sort((a, b) => b - a);
 
-    const getPercentages = (data) => {
-      const values = labels.map(label => data[label] || 0);
-      const total = values.reduce((a, b) => a + b, 0) || 1;
-      return values.map(v => (v / total) * 100);
-    };
+    const allValues = [
+      ...Object.entries(rawData).flatMap(([val, cnt]) => Array(cnt).fill(Number(val))),
+      ...Object.entries(nowData).flatMap(([val, cnt]) => Array(cnt).fill(Number(val)))
+    ];
 
-    const rawPercent = getPercentages(rawData);
-    const nowPercent = getPercentages(nowData);
+    const globalMin = Math.min(...allValues);
+    const globalMax = Math.max(...allValues);
 
     const tickLength = 6;
     const leftMargin = 50;
@@ -52,7 +52,7 @@
       leftMargin + (width - leftMargin) / 3,
       leftMargin + 2 * (width - leftMargin) / 3,
     ];
-    
+
     ctx.strokeStyle = '#333';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -79,7 +79,7 @@
 
     ctx.textBaseline = 'top';
     ctx.textAlign = 'center';
-    const xLabels = ['Overall', 'Now'];
+    const xLabels = [title[0], title[1]];
     xPoints.forEach((x, i) => {
       ctx.beginPath();
       ctx.moveTo(x, chartBottomY);
@@ -88,36 +88,81 @@
       ctx.fillText(xLabels[i], x, chartBottomY + tickLength + 3);
     });
 
-    function drawViolin(y, percent, xPos, color) {
-      const maxWidth = violinHeight / 2;
-      const heightSteps = 50;
-      const density = [];
-      for (let i = 0; i <= heightSteps; i++) {
-        const t = i / heightSteps;
-        const bell = Math.exp(-((t - 0.5) ** 2) * 8);
-        density.push((percent / 100) * maxWidth * bell);
-      }
+    const scaleY = (val) => {
+      const top = padding;
+      const bottom = chartBottomY;
+      const ratio = (val - globalMin) / (globalMax - globalMin || 1);
+      return bottom - ratio * (bottom - top);
+    };
+
+    function drawBoxPlot(y, dataValue, xPos, color) {
+      const values = Object.entries(dataValue).flatMap(([label, count]) => {
+        return Array(count).fill(Number(label));
+      }).sort((a, b) => a - b);
+
+      const getQuantile = (arr, q) => {
+        const pos = (arr.length - 1) * q;
+        const base = Math.floor(pos);
+        const rest = pos - base;
+        if (arr.length === 0) return 0;
+        if ((arr[base + 1] !== undefined)) {
+          return arr[base] + rest * (arr[base + 1] - arr[base]);
+        } else {
+          return arr[base];
+        }
+      };
+
+      const min = values[0] ?? 0;
+      const max = values[values.length - 1] ?? 0;
+      const q1 = getQuantile(values, 0.25);
+      const median = getQuantile(values, 0.5);
+      const q3 = getQuantile(values, 0.75);
+
+      const boxTop = scaleY(q3);
+      const boxBottom = scaleY(q1);
+      const boxHeight = boxBottom - boxTop;
+
+      const lineY = scaleY(median);
+      const whiskerTop = scaleY(max);
+      const whiskerBottom = scaleY(min);
+      const boxWidth = violinHeight / 2;
+
+      ctx.fillStyle = color + '33';
+      ctx.fillRect(xPos - boxWidth / 2, boxTop, boxWidth, boxHeight);
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(xPos - boxWidth / 2, boxTop, boxWidth, boxHeight);
+
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(xPos, y);
-      for (let i = 0; i <= heightSteps; i++) {
-        const dy = (i / heightSteps) * violinHeight;
-        const dx = -density[i];
-        ctx.lineTo(xPos + dx, y + dy);
-      }
-      for (let i = heightSteps; i >= 0; i--) {
-        const dy = (i / heightSteps) * violinHeight;
-        const dx = density[i];
-        ctx.lineTo(xPos + dx, y + dy);
-      }
-      ctx.closePath();
-      ctx.fillStyle = color;
-      ctx.fill();
+      ctx.moveTo(xPos - boxWidth / 2, lineY);
+      ctx.lineTo(xPos + boxWidth / 2, lineY);
+      ctx.stroke();
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(xPos, boxTop);
+      ctx.lineTo(xPos, whiskerTop);
+      ctx.moveTo(xPos, boxBottom);
+      ctx.lineTo(xPos, whiskerBottom);
+      ctx.stroke();
+
+      const capWidth = boxWidth / 2.5;
+      ctx.beginPath();
+      ctx.moveTo(xPos - capWidth, whiskerTop);
+      ctx.lineTo(xPos + capWidth, whiskerTop);
+      ctx.moveTo(xPos - capWidth, whiskerBottom);
+      ctx.lineTo(xPos + capWidth, whiskerBottom);
+      ctx.stroke();
     }
 
     labels.forEach((_, i) => {
       const y = padding + i * violinHeight;
-      drawViolin(y, rawPercent[i], xPoints[0], overallColor);
-      drawViolin(y, nowPercent[i], xPoints[1], NOWColor);
+      drawBoxPlot(y, nowData, xPoints[0], NOWColor);
+      drawBoxPlot(y, rawData, xPoints[1], overallColor);
     });
   }
 
@@ -131,4 +176,3 @@
 </script>
 
 <canvas bind:this={canvas}></canvas>
-
