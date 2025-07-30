@@ -86,15 +86,6 @@
     </div>
   </div>
 
-  <!-- <div style="display: flex; justify-content: center;">
-    <PatternChartPreview
-    sessionId = {pattern.searchDetail.sessionId}
-    data={pattern.searchDetail.data}
-    wholeData={pattern.searchDetail.wholeData}
-    selectedRange={pattern.searchDetail.range}
-    bind:this={chartRefs[pattern.searchDetail.sessionId]}
-    />
-  </div> -->
 
   <div class="pattern-item" >
     <div class="pattern-header">
@@ -132,6 +123,7 @@
         >
           <input
             type="checkbox"
+            class="readonly-checkbox"
             checked={pattern.searchDetail.flag.isProgressChecked}
             disabled
           />
@@ -144,6 +136,7 @@
         >
           <input
             type="checkbox"
+            class="readonly-checkbox"
             checked={pattern.searchDetail.flag.isTimeChecked}
             disabled />
           Time
@@ -153,7 +146,11 @@
           class:dimmed={!pattern.searchDetail.flag.isSourceChecked}
           style="font-size: 13px;"
         >
-          <input type="checkbox" checked={pattern.searchDetail.flag.isSourceChecked} />
+          <input
+            type="checkbox"
+            class="readonly-checkbox"
+            checked={pattern.searchDetail.flag.isSourceChecked}
+          />
           Source(human/AI)
           <label
             class="switch"
@@ -161,16 +158,19 @@
           >
             <input
               type="checkbox"
+              class="readonly-checkbox"
               checked={pattern.searchDetail.flag.isExactSearchSource}
               disabled
+              hidden
             />
-
+            <span class="slider"></span>
           </label>
         </div>
         <div style="font-size: 13px;">
           <div>
             <input
               type="checkbox"
+              class="readonly-checkbox"
               checked={pattern.searchDetail.flag.isSemanticChecked}
               disabled
             />
@@ -180,6 +180,7 @@
             <div>
               <input
                 type="checkbox"
+                class="readonly-checkbox"
                 checked={pattern.searchDetail.flag.isValueRangeChecked}
                 disabled
               />
@@ -188,6 +189,7 @@
             <div>
               <input
                 type="checkbox"
+                class="readonly-checkbox"
                 checked={pattern.searchDetail.flag.isValueTrendChecked}
                 disabled
               />
@@ -198,10 +200,12 @@
               >
                 <input
                   type="checkbox"
+                  class="readonly-checkbox"
                   checked={pattern.searchDetail.flag.isExactSearchTrend}
                   disabled
+                  hidden
                 />
-
+                <span class="slider"></span> 
               </label>
             </div>
           </div>
@@ -209,19 +213,6 @@
       </div>
     </div>
   </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   <div style="display: flex; justify-content: center;">
     <ScoreSummaryChart
@@ -528,6 +519,49 @@
     background-color: white;
   }
 
+  .readonly-checkbox {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
 
+  input:checked+.slider {
+  background-color: #ffbbcc;
+}
+
+input:checked+.slider::before {
+  transform: translateX(11px);
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.2s;
+  border-radius: 28px;
+}
+
+.slider::before {
+  position: absolute;
+  content: "";
+  height: 11px;
+  width: 11px;
+  left: 1.5px;
+  bottom: 1.5px;
+  background-color: white;
+  transition: 0.2s;
+  border-radius: 50%;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;  /* or inline-flex */
+  width: 26px;             /* or whatever width you need */
+  height: 14px;
+  margin-left: 3px;
+}
 
 </style>
