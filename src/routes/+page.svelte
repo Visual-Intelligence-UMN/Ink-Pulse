@@ -806,9 +806,19 @@
     searchDetail = {
       sessionId,
       data: sessionData.data,
+      dataRange: sessionData.dataRange,
       count,
       wholeData: sessionData.wholeData,
       range: sessionData.range,
+      flag:{
+        isProgressChecked,
+        isTimeChecked,
+        isSourceChecked,
+        isValueRangeChecked,
+        isValueTrendChecked,
+        isExactSearchSource,
+        isExactSearchTrend,
+      },
     }
     let results = [];
     let patternVectors = [];

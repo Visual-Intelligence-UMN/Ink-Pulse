@@ -86,7 +86,7 @@
     </div>
   </div>
 
-  <div style="display: flex; justify-content: center;">
+  <!-- <div style="display: flex; justify-content: center;">
     <PatternChartPreview
     sessionId = {pattern.searchDetail.sessionId}
     data={pattern.searchDetail.data}
@@ -94,7 +94,135 @@
     selectedRange={pattern.searchDetail.range}
     bind:this={chartRefs[pattern.searchDetail.sessionId]}
     />
+  </div> -->
+
+  <div class="pattern-item" >
+    <div class="pattern-header">
+      <h5>Session: {pattern.searchDetail.sessionId.slice(0, 4)}</h5>
+    </div>
+    <div class="pattern-details">
+      <div>
+        Semantic Change: {pattern.searchDetail.dataRange.scRange.min.toFixed(
+          2
+        )} - {pattern.searchDetail.dataRange.scRange.max.toFixed(2)}
+      </div>
+      <div>
+        Progress Range: {pattern.searchDetail.dataRange.progressRange.min.toFixed(
+          2
+        )}% - {pattern.searchDetail.dataRange.progressRange.max.toFixed(2)}%
+      </div>
+      <div>
+        Counts: {pattern.searchDetail.count}
+      </div>
+    </div>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <div class="pattern-chart-preview small-preview">
+        <PatternChartPreview
+        sessionId = {pattern.searchDetail.sessionId}
+        data={pattern.searchDetail.data}
+        wholeData={pattern.searchDetail.wholeData}
+        selectedRange={pattern.searchDetail.range}
+        bind:this={chartRefs[pattern.searchDetail.sessionId]}
+        />
+      </div>
+      <div style="margin-top: 5px; width: 60%">
+        <div
+          class:dimmed={!pattern.searchDetail.flag.isProgressChecked}
+          style="display: flex; align-items: center; font-size: 13px;"
+        >
+          <input
+            type="checkbox"
+            checked={pattern.searchDetail.flag.isProgressChecked}
+            disabled
+          />
+          Writing Progress
+          <div style="flex: 1;"></div>
+        </div>
+        <div
+          class:dimmed={!pattern.searchDetail.flag.isTimeChecked}
+          style="display: flex; align-items: center; font-size: 13px;"
+        >
+          <input
+            type="checkbox"
+            checked={pattern.searchDetail.flag.isTimeChecked}
+            disabled />
+          Time
+          <div style="flex: 1"></div>
+        </div>
+        <!-- <div
+          class:dimmed={!pattern.searchDetail.flag.isSourceChecked}
+          style="font-size: 13px;"
+        >
+          <input type="checkbox" checked={pattern.searchDetail.flag.isSourceChecked} />
+          Source(human/AI)
+          <label
+            class="switch"
+            style="transform: translateY(4px);"
+          >
+            <input
+              type="checkbox"
+              checked={pattern.searchDetail.flag.isExactSearchSource}
+              disabled
+            />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div style="font-size: 13px;">
+          <div class:dimmed={!isSemanticChecked}>
+            <input
+              type="checkbox"
+              bind:checked={isSemanticChecked}
+            />
+            Semantic Expansion
+          </div>
+          <div style="margin-left: 20px;">
+            <div class:dimmed={!isValueRangeChecked}>
+              <input
+                type="checkbox"
+                bind:checked={isValueRangeChecked}
+                disabled={!isSemanticChecked}
+              />
+              Value Range
+            </div>
+            <div class:dimmed={!isValueTrendChecked}>
+              <input
+                type="checkbox"
+                bind:checked={isValueTrendChecked}
+                disabled={!isSemanticChecked}
+              />
+              Value Trend
+              <label
+                class="switch"
+                style="transform: translateY(4px);"
+                bind:this={exactTrendButton}
+              >
+                <input
+                  type="checkbox"
+                  bind:checked={isExactSearchTrend}
+                  disabled={!isSemanticChecked ||
+                    !isValueTrendChecked}
+                />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div> -->
+      </div>
+    </div>
   </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   <div style="display: flex; justify-content: center;">
     <ScoreSummaryChart
@@ -372,5 +500,35 @@
     transform: translateY(-1px);
   }
   
+    .pattern-item {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
   
+   .pattern-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+    .pattern-details {
+    font-size: 13px;
+    color: #5f6368;
+    margin-bottom: 10px;
+  }
+
+    .pattern-chart-preview {
+    width: 240px;
+    height: 192px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin-top: 10px;
+    background-color: white;
+  }
+
+
+
 </style>
