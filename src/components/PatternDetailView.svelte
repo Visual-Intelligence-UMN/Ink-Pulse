@@ -118,12 +118,11 @@
       </div>
       <div style="margin-top: 5px; width: 60%">
         <div
-          class:dimmed={!pattern.searchDetail.flag.isProgressChecked}
-          style="display: flex; align-items: center; font-size: 13px;"
+          style="display: flex; align-items: center; font-size: 13px; color: #5f6368;"
         >
           <input
             type="checkbox"
-            class="readonly-checkbox"
+            class="readonly"
             checked={pattern.searchDetail.flag.isProgressChecked}
             disabled
           />
@@ -131,25 +130,24 @@
           <div style="flex: 1;"></div>
         </div>
         <div
-          class:dimmed={!pattern.searchDetail.flag.isTimeChecked}
-          style="display: flex; align-items: center; font-size: 13px;"
+          style="display: flex; align-items: center; font-size: 13px; color: #5f6368;"
         >
           <input
             type="checkbox"
-            class="readonly-checkbox"
+            class="readonly"
             checked={pattern.searchDetail.flag.isTimeChecked}
             disabled />
           Time
           <div style="flex: 1"></div>
         </div>
         <div
-          class:dimmed={!pattern.searchDetail.flag.isSourceChecked}
-          style="font-size: 13px;"
+          style="font-size: 13px; color: #5f6368;"
         >
           <input
             type="checkbox"
-            class="readonly-checkbox"
+            class="readonly"
             checked={pattern.searchDetail.flag.isSourceChecked}
+            disabled
           />
           Source(human/AI)
           <label
@@ -158,29 +156,29 @@
           >
             <input
               type="checkbox"
-              class="readonly-checkbox"
+              class="readonly"
               checked={pattern.searchDetail.flag.isExactSearchSource}
               disabled
               hidden
             />
-            <span class="slider"></span>
+            <span class="slider readonly"></span>
           </label>
         </div>
-        <div style="font-size: 13px;">
+        <div style="font-size: 13px; color: #5f6368;">
           <div>
             <input
               type="checkbox"
-              class="readonly-checkbox"
+              class="readonly"
               checked={pattern.searchDetail.flag.isSemanticChecked}
               disabled
             />
             Semantic Expansion
           </div>
-          <div style="margin-left: 20px;">
+          <div style="margin-left: 20px; color: #5f6368;">
             <div>
               <input
                 type="checkbox"
-                class="readonly-checkbox"
+                class="readonly"
                 checked={pattern.searchDetail.flag.isValueRangeChecked}
                 disabled
               />
@@ -189,7 +187,7 @@
             <div>
               <input
                 type="checkbox"
-                class="readonly-checkbox"
+                class="readonly"
                 checked={pattern.searchDetail.flag.isValueTrendChecked}
                 disabled
               />
@@ -200,12 +198,12 @@
               >
                 <input
                   type="checkbox"
-                  class="readonly-checkbox"
+                  class="readonly"
                   checked={pattern.searchDetail.flag.isExactSearchTrend}
                   disabled
                   hidden
                 />
-                <span class="slider"></span> 
+                <span class="slider readonly"></span>
               </label>
             </div>
           </div>
@@ -519,9 +517,9 @@
     background-color: white;
   }
 
-  .readonly-checkbox {
-    cursor: not-allowed;
+  .readonly {
     opacity: 0.5;
+
   }
 
   input:checked+.slider {
