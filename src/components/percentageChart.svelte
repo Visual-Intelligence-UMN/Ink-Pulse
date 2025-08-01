@@ -85,12 +85,10 @@
     for (let i = 0; i <= ySteps; i++) {
       const y = height - paddingBottom - (i * (height - paddingTop - paddingBottom) / ySteps);
       const percent = (i * 100 / ySteps).toFixed(0) + "%";
-
       ctx.beginPath();
       ctx.moveTo(paddingLeft - tickLength, y);
       ctx.lineTo(paddingLeft, y);
       ctx.stroke();
-
       ctx.fillText(percent, paddingLeft - tickLength - 5, y);
     }
 
@@ -125,7 +123,7 @@
       if (highlightCounts[i] === 0) continue;
       const freq = highlightCounts[i] / highlightTotal;
       const barHeight = freq * (height - paddingTop - paddingBottom);
-      const x = paddingLeft + i * barWidth + barWidth * 0.15;
+      const x = paddingLeft + i * barWidth + barWidth * 0.25;
       const y = height - paddingBottom - barHeight;
 
       ctx.fillStyle = NOWColor;
