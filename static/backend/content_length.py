@@ -30,7 +30,7 @@ def convert_format():
     data = load_json(note_dir)
     bin_counts = Counter()
     bin_size = 500
-    for _, length in data:
+    for length in data:
         bin_start = int(length // bin_size) * bin_size
         bin_end = bin_start + bin_size
         bin_label = f"{bin_start}-{bin_end}"
@@ -45,4 +45,4 @@ def convert_format():
 
 if __name__ == "__main__":    
     main()
-    # convert_format()
+    convert_format()
