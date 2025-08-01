@@ -4,7 +4,7 @@
   
   export let patterns = [];
   export let activePatternId = null;
-  export let maxVisible = 5;
+  export let maxVisible = 8;
   
   const dispatch = createEventDispatcher();
   
@@ -20,7 +20,7 @@
     dispatch('show-more-patterns');
   }
   
-  $: visiblePatterns = patterns.slice(0, maxVisible);
+  $: visiblePatterns = patterns.slice(1, maxVisible + 1); // 1st pattern is overall, which is not displayed
   $: remainingCount = Math.max(0, patterns.length - maxVisible);
 </script>
 

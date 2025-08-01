@@ -1755,7 +1755,7 @@
   }
 
   $: showPatternColumn = $searchPatternSet && $searchPatternSet.length > 0;
-  let maxVisible = 5;
+  let maxVisible = 8;
   function handleShowMorePatterns() {
     maxVisible = $searchPatternSet.length;
     console.log(`Total patterns: ${$searchPatternSet.length}`);
