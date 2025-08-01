@@ -21,7 +21,8 @@
   let overallSemScoreData = init.overallSemScoreData;
   let overallSemScoreSummaryData = init.overallSemScoreSummaryData;
   let flag = "overall";
-  let title = [];
+  let selectedId = "pattern_0";
+  let title = [pattern.name, searchPatternSet.find(p => p.id === selectedId).name];
   
   const dispatch = createEventDispatcher();
   
@@ -99,7 +100,6 @@
       Object.entries(temp).map(([k, v]) => [Number(k), v])
     );
   }
-  let selectedId = "pattern_0";
 </script>
 
 <div class="pattern-detail-container">

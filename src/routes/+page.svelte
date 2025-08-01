@@ -1755,8 +1755,9 @@
   }
 
   $: showPatternColumn = $searchPatternSet && $searchPatternSet.length > 0;
-
+  let maxVisible = 5;
   function handleShowMorePatterns() {
+    maxVisible = $searchPatternSet.length;
     console.log(`Total patterns: ${$searchPatternSet.length}`);
   }
 
@@ -1897,6 +1898,7 @@
                   on:pattern-click={handlePatternClick}
                   on:pattern-contextmenu={handlePatternContextMenu}
                   on:show-more-patterns={handleShowMorePatterns}
+                  {maxVisible}
                 />
               </div>
             </div>

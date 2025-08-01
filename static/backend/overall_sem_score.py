@@ -47,4 +47,4 @@ def convert_format():
 
 if __name__ == "__main__":    
     main()
-    # convert_format()
+    convert_format()

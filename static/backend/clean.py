@@ -17,17 +17,22 @@ def load_json(json_path):
 #             cleaned.append(eval_data)
 #     return cleaned
 
+# def clean(data):
+#     cleaned = []
+#     for item in data:
+#         score = item.get("idea_score", 0) + item.get("coherence_score", 0)
+#         cleaned.append(score)
+#     return cleaned
+
 def clean(data):
-    cleaned = []
-    for item in data:
-        score = item.get("idea_score", 0) + item.get("coherence_score", 0)
-        cleaned.append(score)
-    return cleaned
+    return [d for d in data if d["residual_vector_norm"] != 0]
+
 
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     static_dir = os.path.dirname(script_dir)
-    note_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", "eval_results")
+    # note_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", "eval_results")
+    note_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", "similarity_results")
     for file_name in os.listdir(note_dir):
         if file_name.endswith(".json"):
             file_path = os.path.join(note_dir, file_name)
