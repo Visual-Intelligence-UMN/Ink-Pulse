@@ -1755,7 +1755,7 @@
   }
 
   $: showPatternColumn = $searchPatternSet && $searchPatternSet.length > 0;
-  let maxVisible = 5;
+  let maxVisible = 8;
   function handleShowMorePatterns() {
     maxVisible = $searchPatternSet.length;
     console.log(`Total patterns: ${$searchPatternSet.length}`);
@@ -1874,7 +1874,7 @@
         class="material-symbols--info-outline-rounded"
       ></a>
     </nav>
-    {#if showPatternSearch}
+    <div class:hidden={!showPatternSearch}>
       <div class="pattern-search-panel">
         <div class="pattern-panel-header">
           <h3>Pattern Search</h3>
@@ -2126,7 +2126,7 @@
           {/if}
         </div>
       </div>
-    {/if}
+    </div>
     {#if isSave}
       <SavePanel
         name={nameInput}
@@ -2843,4 +2843,9 @@
   .unified-sessions-table {
     width: 80vw;
   }
+
+  .hidden {
+    display: none;
+  }
+
 </style>
