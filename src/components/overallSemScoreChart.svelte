@@ -9,8 +9,6 @@
 
   const overallColor = "#bf1818";
   const NOWColor = '#015dc6';
-  const overallPoint = '#b20000';
-  const NOWPoint = '#4d6aca'
 
   let canvasEl: HTMLCanvasElement;
 
@@ -117,8 +115,12 @@
     const ySteps = 5;
     for (let i = 0; i <= ySteps; i++) {
       const y = height - paddingBottom - (i * (height - paddingTop - paddingBottom) / ySteps);
-      const percentLabel = (i * 100 / ySteps) + "%";
-      ctx.fillText(percentLabel, paddingLeft - 10, y);
+      const percent = (i * 100 / ySteps) + "%";
+      ctx.fillText(percent, paddingLeft - 10, y);
+      ctx.beginPath();
+      ctx.moveTo(paddingLeft - 6, y);
+      ctx.lineTo(paddingLeft, y);
+      ctx.stroke();
     }
 
     ctx.font = "10px sans-serif";
@@ -162,67 +164,22 @@
       const bw = barWidth * 0.2;
       ctx.fillRect(x, y, bw, barHeight);
     });
-    if (flag === 'overall') {
-      ctx.globalAlpha = 0.3;
-      ctx.fillStyle = overallPoint;
-      overallSemScoreData.forEach(([_, score]) => {
-        if (score === undefined || score === null) return;
-        const binIndex = bins.findIndex(b => score >= b.min && score < b.max);
-        if (binIndex === -1) return;
-        const x = paddingLeft + binIndex * barWidth + Math.random() * barWidth;
-        const y = height - paddingBottom - (score / maxScore) * (height - paddingTop - paddingBottom);
-        ctx.beginPath();
-        ctx.arc(x, y, 3, 0, 2 * Math.PI);
-        ctx.fill();
-      });
-      ctx.globalAlpha = 1;
-    } else {
-      ctx.fillStyle = overallPoint;
-      overallSemScoreSummaryData.forEach(session => {
-        const Id = session.sessionId;
-        const scoreEntry = overallSemScoreData.find(([id, _]) => id === Id);
-        if (!scoreEntry) return;
-        const score = scoreEntry[1];
-        const binIndex = bins.findIndex(b => score >= b.min && score < b.max);
-        if (binIndex === -1) return;
-        const x = paddingLeft + binIndex * barWidth + Math.random() * barWidth;
-        const y = height - paddingBottom - (score / maxScore) * (height - paddingTop - paddingBottom);
-        ctx.beginPath();
-        ctx.arc(x, y, 3, 0, 2 * Math.PI);
-        ctx.fill();
-      });
-    }
 
-    ctx.fillStyle = NOWPoint;
-    patternSessions.forEach(session => {
-      const Id = session.sessionId;
-      const scoreEntry = overallSemScoreData.find(([id, _]) => id === Id);
-      if (!scoreEntry) return;
-      const score = scoreEntry[1];
-      const binIndex = bins.findIndex(b => score >= b.min && score < b.max);
-      if (binIndex === -1) return;
-      const x = paddingLeft + binIndex * barWidth + Math.random() * barWidth;
-      const y = height - paddingBottom - (score / maxScore) * (height - paddingTop - paddingBottom);
-      ctx.beginPath();
-      ctx.arc(x, y, 3, 0, 2 * Math.PI);
-      ctx.fill();
-    });
-
-    const legendX = 125;
+    const legendX = 85;
     const legendY = 25;
     const legendBoxSize = 12;
     const legendSpacing = 5;
     ctx.font = "12px sans-serif";
     ctx.textBaseline = "middle";
-    ctx.textAlign = "right";
+    ctx.textAlign = "left";
     ctx.fillStyle = NOWColor;
     ctx.fillRect(legendX - legendBoxSize, legendY, legendBoxSize, legendBoxSize);
     ctx.fillStyle = "#000";
-    ctx.fillText(title[0], legendX - legendBoxSize - legendSpacing, legendY + legendBoxSize / 2);
+    ctx.fillText(title[0], legendX + legendBoxSize - legendSpacing, legendY + legendBoxSize / 2);
     ctx.fillStyle = overallColor;
     ctx.fillRect(legendX - legendBoxSize, legendY + legendBoxSize + legendSpacing, legendBoxSize, legendBoxSize);
     ctx.fillStyle = "#000";
-    ctx.fillText(title[1], legendX - legendBoxSize - legendSpacing, legendY + legendBoxSize + legendSpacing + legendBoxSize / 2);
+    ctx.fillText(title[1], legendX + legendBoxSize - legendSpacing, legendY + legendBoxSize + legendSpacing + legendBoxSize / 2);
   }
 
   onMount(() => {
