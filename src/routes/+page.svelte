@@ -1879,7 +1879,6 @@
           class:active={showPatternSearch}
           on:click={togglePatternSearch}
           aria-label="Pattern Search"
-          style="min-width: 155px;"
         >
           <span class="search-icon">🔍</span>
           {showPatternSearch ? "Exit Search" : "Pattern Search"}
