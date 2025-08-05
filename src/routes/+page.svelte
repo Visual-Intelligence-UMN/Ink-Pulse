@@ -1865,7 +1865,6 @@
           on:click={exportDB}
           aria-label="Save Pattern"
         >
-          <span class="search-icon"></span>
           Save Pattern
         </button>
         <button
@@ -1873,7 +1872,6 @@
           on:click={triggerImport}
           aria-label="Load Pattern"
         >
-          <span class="search-icon"></span>
           Load Pattern
         </button>
         <button
@@ -1881,6 +1879,7 @@
           class:active={showPatternSearch}
           on:click={togglePatternSearch}
           aria-label="Pattern Search"
+          style="min-width: 155px;"
         >
           <span class="search-icon">🔍</span>
           {showPatternSearch ? "Exit Search" : "Pattern Search"}
