@@ -22,7 +22,7 @@
   import SavedPatternsBar from "../components/SavedPatternsBar.svelte";
   import ConfirmDialog from "../components/ConfirmDialog.svelte";
   import EditPatternDialog from "../components/EditPatternDialog.svelte";
-  import { searchPatternSet } from "../components/cache.js";
+  import { searchPatternSet, exportDB, triggerImport} from "../components/cache.js";
   import RankWorker from "../workers/rankWorker.js?worker";
 
   let chartRefs = {};
@@ -1840,8 +1840,8 @@
   <header class="App-header">
     <nav>
       <div class="chart-explanation">
-        <span class="triangle-text">▼</span> user open the AI suggestion
-        <span class="user-line">●</span> User written
+        <span class="triangle-text">▼</span> user open the AI suggestion &nbsp;
+        <span class="user-line">●</span> User written&nbsp;
         <span class="api-line">●</span> AI writing
       </div>
       <link
@@ -1858,21 +1858,40 @@
           swap_horiz
         </a>
       {/if}
-      <button
-        class="pattern-search-button"
-        class:active={showPatternSearch}
-        on:click={togglePatternSearch}
-        aria-label="Pattern Search"
-      >
-        <span class="search-icon">🔍</span>
-        {showPatternSearch ? "Exit Search" : "Pattern Search"}
-      </button>
-      <a
-        on:click={open2close}
-        href=" "
-        aria-label="Instruction"
-        class="material-symbols--info-outline-rounded"
-      ></a>
+      <div style="flex: 1;"></div>
+      <div style="display: flex; gap: 0.5em; align-items: right;">
+        <button
+          class="pattern-search-button"
+          on:click={exportDB}
+          aria-label="Save Pattern"
+        >
+          <span class="search-icon"></span>
+          Save Pattern
+        </button>
+        <button
+          class="pattern-search-button"
+          on:click={triggerImport}
+          aria-label="Load Pattern"
+        >
+          <span class="search-icon"></span>
+          Load Pattern
+        </button>
+        <button
+          class="pattern-search-button"
+          class:active={showPatternSearch}
+          on:click={togglePatternSearch}
+          aria-label="Pattern Search"
+        >
+          <span class="search-icon">🔍</span>
+          {showPatternSearch ? "Exit Search" : "Pattern Search"}
+        </button>
+        <a
+          on:click={open2close}
+          href=" "
+          aria-label="Instruction"
+          class="material-symbols--info-outline-rounded"
+        ></a>
+      </div>
     </nav>
     <div class:hidden={!showPatternSearch}>
       <div class="pattern-search-panel">
@@ -1888,7 +1907,7 @@
               behavior.
             </p>
           </div>
-          {#if $searchPatternSet && $searchPatternSet.length > 0}
+          {#if $searchPatternSet && $searchPatternSet.length > 1} 
             <div class="saved-patterns-section">
               <h4>Saved Patterns</h4>
               <div class="saved-patterns-list">
