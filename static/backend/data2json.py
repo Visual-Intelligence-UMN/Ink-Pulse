@@ -9,7 +9,8 @@ def load_json(file_path):
     return data
 
 def write_json(data, file_path, session):
-    actual_session = session['session_id']+'.jsonl'
+    # actual_session = session['session_id']+'.jsonl'
+    actual_session = session+'.jsonl'
     new_file_path = os.path.join(file_path, actual_session)
     with open(new_file_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
@@ -239,15 +240,18 @@ def combine_text(text, sentence_with_source):
     return insert_data
 
 def get_sentence(session_id, static_dir):
-    json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-sentence")
+    # json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-sentence")
+    json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-sentence-new")
     sentence_with_source = {"text": [], "source": [], "time": [], "last_event_time": []}
     for session in session_id:
         extracted_data = {'init_text': [], 'init_time': [], 'json': [], 'text': [], 'info': [], 'end_time': []}
         sentence_source = []
         extra_time = []
         extra_process = []
-        file_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-v1.0")
-        actual_session = session['session_id'] + '.jsonl'
+        # file_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-v1.0")
+        file_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/legislation_formal_study")
+        # actual_session = session['session_id'] + '.jsonl'
+        actual_session = session + '.jsonl'
         new_file_path = os.path.join(file_path, actual_session)
         with open(new_file_path, 'r', encoding='utf-8') as file:
             for line_number, line in enumerate(file, start=1):
@@ -349,10 +353,9 @@ def get_sentence(session_id, static_dir):
         sentence_with_source['source'] = flatten(sentence_with_source['source'])
         sentence_with_source['time'] = flatten(sentence_with_source['time'])
         sentence_with_source['last_event_time'] = last_event_time
-        # sentence_data = split_text(text, sentence_source, extra_time, extra_process)
-        # sentence_data = combine_text(text, sentence_with_source)
-        # write_json(sentence_data, json_path, session)
-
+        sentence_data = split_text(text, sentence_source, extra_time, extra_process)
+        sentence_data = combine_text(text, sentence_with_source)
+        write_json(sentence_data, json_path, session)
 
 def flatten(data):
     new_data = []
@@ -364,13 +367,15 @@ def flatten(data):
 
     return new_data
 
-
 def get_data(session_id, static_dir):
-    json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-sentence")
+    # json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-sentence")
+    json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-sentence-new")
+    # json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-json-new")
     for session in session_id:
         extracted_data = {'init_text': [], 'init_time': [], 'json': [], 'text': [], 'info': [], 'end_time': []}
-        file_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-v1.0")
-        actual_session = session['session_id'] + '.jsonl'
+        file_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/legislation_formal_study")
+        # actual_session = session['session_id'] + '.jsonl'
+        actual_session = session + '.jsonl'
         new_file_path = os.path.join(file_path, actual_session)
         with open(new_file_path, 'r', encoding='utf-8') as file:
             for line_number, line in enumerate(file, start=1):
@@ -396,6 +401,7 @@ def get_data(session_id, static_dir):
         extracted_data['init_text'].append(init_text)
         text = ''.join(extracted_data['init_text'])
         last_pos = len(text)
+        previous_event_name = None
         for entry in extracted_data['json']:
             text_delta = entry['textDelta']
             event_source = entry.get('eventSource', 'unknown')
@@ -426,6 +432,8 @@ def get_data(session_id, static_dir):
                         inserts = op['insert']
                         insert_pos = min(retain_pos, len(text))
                         last_pos = max(last_pos, insert_pos + len(inserts))
+                        if previous_event_name == "suggestion-close" and len(inserts) > 1:
+                            event_source = "api"
                         if len(inserts) > 1:
                             for i, char in enumerate(inserts):
                                 current_insert_pos = insert_pos + i
@@ -484,12 +492,13 @@ def get_data(session_id, static_dir):
                             'count': '',
                             'pos': '',
                     })
+            previous_event_name = event_name
         data = collect_data(extracted_data['info'], init_text, init_time, text, last_event_time)
         extracted_data['text'].append(text)
         extracted_data['end_time'] = last_event_time
+        extracted_data.pop('json', None)
         # write_json(extracted_data, json_path, session)
-        write_json(data, json_path, session)
-
+        # write_json(data, json_path, session)
 
 def collect_data(extracted_data, init_text, init_time, whole_text, last_event_time):
     data = []
@@ -597,7 +606,6 @@ def collect_data(extracted_data, init_text, init_time, whole_text, last_event_ti
 
     return final_data
 
-
 def deal_sentence(data, suggestion_data, whole_text):
     last_event_time = data[0]["last_event_time"]
     text_length = len(whole_text)
@@ -694,10 +702,31 @@ def deal_sentence(data, suggestion_data, whole_text):
 
     return final_result
 
+def add_fine(session_id, static_dir):
+    json_path = os.path.join(static_dir, "fine-new.json")
+    fine = load_json(json_path)
+    data = []
+    for session in session_id:
+        data.append({
+            "session_id": session,
+            "prompt_code": "cat",
+        })
+    fine.extend(data)
+    with open(json_path, 'w', encoding='utf-8') as f:
+        json.dump(fine, f, ensure_ascii=False, indent=4)
+    print(f"Data written to {json_path}")
+
 if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.abspath(__file__))  
     static_dir = os.path.dirname(script_dir)
-    json_path = os.path.join(static_dir, "fine.json")
-    session_id = load_json(json_path)
-    get_data(session_id, static_dir)
+    # json_path = os.path.join(static_dir, "fine.json")
+    json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0", "legislation_formal_study")
+    # session_id = load_json(json_path)
+    session_id = []
+    for filename in os.listdir(json_path): 
+        filename = filename.removesuffix(".jsonl")
+        session_id.append(filename)
+        print(filename)
     # get_sentence(session_id, static_dir)
+    get_data(session_id, static_dir)
+    # add_fine(session_id, static_dir)

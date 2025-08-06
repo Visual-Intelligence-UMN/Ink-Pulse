@@ -31,7 +31,7 @@
 
     labels = Array.from(
       new Set([...Object.keys(rawData), ...Object.keys(nowData)].map(Number))
-    ).sort((a, b) => b - a);
+    ).sort((a, b) => a - b);
     const rawTotal = Object.values(rawData).reduce((a, b) => a + b, 0);
     const nowTotal = Object.values(nowData).reduce((a, b) => a + b, 0);
     const ySteps = 5;
@@ -71,6 +71,12 @@
       const x = paddingLeft + i * barGroupWidth + barGroupWidth / 2;
       ctx.fillText(label.toString(), x, height - paddingBottom + 5);
     });
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.font = "10px sans-serif";
+    ctx.fillStyle = "#000";
+    ctx.fillText("Score", paddingLeft + (width - paddingLeft) / 2, height - paddingBottom + 15);
 
     labels.forEach((label, i) => {
       const rawCount = rawData[label] ?? 0;

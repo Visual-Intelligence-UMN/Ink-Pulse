@@ -24,6 +24,7 @@
   import EditPatternDialog from "../components/EditPatternDialog.svelte";
   import { searchPatternSet } from "../components/cache.js";
   import RankWorker from "../workers/rankWorker.js?worker";
+  import WeightPanel from "../components/weightPanel.svelte";
 
   let chartRefs = {};
   let filterButton;
@@ -233,6 +234,15 @@
     isSave = false;
   }
 
+  function handleWeightsClose() {
+    isWeights = false;
+  }
+
+  function handleWeightsSave(event) {
+    weights.set(event.detail.weights);
+    isWeights = false;
+  }
+
   function getPromptCode(sessionId) {
     const found = sessions.find((s) => s.session_id === sessionId);
     return found?.prompt_code ?? "";
@@ -303,7 +313,7 @@
       }
 
       const data = await response.json();
-      const totalScore = data[0];
+      const totalScore = data[0] || 0;
       return totalScore;
     } catch (error) {
       console.error("Error when reading LLM score file:", error);
@@ -901,14 +911,17 @@
     return sum;
   }
 
-  const weights = {
+  let isWeights = false;
+  function setWeight() {
+    isWeights = !isWeights;
+  }
+  let weights = writable({
     s: 1.5, // user 1, api 0
     t: 0.01, // 1s
     p: 1, // 1% -> 0.01
     tr: 2.5, // up 1, down -1
     sem: 2, // 1% -> 0.01
-  };
-
+  });
   export async function calculateRankAuto(
     patternVectors,
     currentVector,
@@ -1269,6 +1282,7 @@
           "mattdamon",
           "shapeshifter",
           "isolation",
+          "cat"
         ]);
 
         $filterTableData = tableData.filter((session) =>
@@ -1390,7 +1404,7 @@
         throw new Error(`Failed to fetch session data: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() || [];
       return data;
     } catch (error) {
       console.error("Error when reading the data file:", error);
@@ -1913,6 +1927,10 @@
                     <h5>Session: {sessionId.slice(0, 4)}</h5>
                     <div class="pattern-buttons">
                       <button
+                        class="weight-button"
+                        on:click={setWeight}>Weight</button
+                      >
+                      <button
                         class="search-pattern-button"
                         on:click={() => searchPattern(sessionId)}>Search</button
                       >
@@ -1962,8 +1980,8 @@
                           range
                           float
                           class="rangeSlider"
-                          min={0}
-                          max={100}
+                          min={-5}
+                          max={5}
                           bind:values={writingProgressRangeSlider}
                         />
                       </div>
@@ -2133,6 +2151,13 @@
         color={colorInput}
         on:save={handleSave}
         on:close={handleClose}
+      />
+    {/if}
+    {#if isWeights}
+      <WeightPanel
+        {weights}
+        on:save={handleWeightsSave}
+        on:close={handleWeightsClose}
       />
     {/if}
     <div
