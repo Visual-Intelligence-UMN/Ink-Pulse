@@ -2,6 +2,21 @@ import json
 import os
 import csv
 
+def rewrite(filename):
+    with open(filename, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    for item in data:
+        issue_line = item.get("issue line", "")
+        if isinstance(issue_line, str):
+            try:
+                issue_line = issue_line.strip()
+                item["issue line"] = json.loads(issue_line)
+            except json.JSONDecodeError as e:
+                print(f"Fail: {e}")
+                print(f"origin issue line: {issue_line}")
+    with open(filename, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+
 def create_json(json_files):
     issue_collector = []
     for json_file in json_files:
@@ -25,6 +40,7 @@ def create_json(json_files):
                                 output_file_path = os.path.join(output_path, f"issue-new.json")
                                 with open(output_file_path, 'w', encoding='utf-8') as output_file:
                                     json.dump(issue_collector, output_file, ensure_ascii=False, indent=4)
+    rewrite(output_file_path)
     print("Done.")
 
 def check_unique(issue_file, json_files):

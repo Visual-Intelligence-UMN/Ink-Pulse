@@ -35,6 +35,8 @@
   let exactSourceButton;
   let exactTrendButton;
   let searchDetail = null;
+  let exactProgressButton;
+  let exactTimeButton;
 
   $: if(selectedPatterns) {
     // console.log("selectedPatterns", selectedPatterns);
@@ -54,6 +56,8 @@
   $: exactSourceButton &&
     initTippy(exactSourceButton, "Open/Close exact search");
   $: exactTrendButton && initTippy(exactTrendButton, "Open/Close exact search");
+  $: exactProgressButton && initTippy(exactProgressButton, "Open/Close exact search");
+  $: exactTimeButton && initTippy(exactTimeButton, "Open/Close exact search");
 
   import { loadPattern } from "../components/cache.js"; // or adjust import path if different
 
@@ -100,9 +104,7 @@
   let patternData = [];
   let RangeSlider = null;
   let writingProgressRange = [];
-  let writingProgressRangeSlider = [];
   let timeRange = [];
-  let timeRangeSlider = [];
   let sourceRange = [];
   let semanticRange = [];
   let semanticData = [];
@@ -143,11 +145,19 @@
 
   let isExactSearchSource = true;
   let isExactSearchTrend = true;
+  let isExactSearchProgress = false;
+  let isExactSearchTime = false;
   $: if (!isSemanticChecked || !isValueTrendChecked) {
     isExactSearchTrend = false;
   }
   $: if (!isSourceChecked) {
     isExactSearchSource = false;
+  }
+  $: if (!isProgressChecked) {
+    isExactSearchProgress = false;
+  }
+  $: if (!isTimeChecked) {
+    isExactSearchTime = false;
   }
 
   export const displaySessions = writable([]);
@@ -220,13 +230,7 @@
     isSave = false;
 
     tick().then(() => {
-      // Method1:  update showPatternColumn
-      //const currentPatterns = get(searchPatternSet);
-      //showPatternColumn = currentPatterns && currentPatterns.length > 0;
-      // Method2: refresh patternDataList
       initData.update((data) => [...data]);
-      // Mathod3: update patternDataList
-      //displaySessions.update(sessions => [...sessions]);
     });
   }
 
@@ -379,16 +383,6 @@
   $: if (sortColumn || sortDirection) {
   }
 
-  // function calculateAccumulatedSemanticScore(data) {
-  //   if (!data || data.length === 0) return 0;
-
-  //   const totalScore = data.reduce((sum, item) => {
-  //     return sum + (item.residual_vector_norm || 0);
-  //   }, 0);
-
-  //   return totalScore;
-  // }
-
   function waitForSessionData(sessionId) {
     return new Promise((resolve) => {
       let _unsubscribe;
@@ -409,125 +403,6 @@
   let groupedSessions = {};
   let sortedSessions = [];
   let filteredSessions = [];
-
-  // function groupSessionsByAttribute(attribute, specificValue = null) {
-  //   const grouped = {};
-  //   $initData.forEach((sessionData) => {
-  //     const sessionInfo = sessions.find(
-  //       (s) => s.session_id === sessionData.sessionId,
-  //     );
-  //     if (sessionInfo) {
-  //       const key = sessionInfo[attribute] || "unknown";
-  //       if (specificValue && key !== specificValue) {
-  //         return;
-  //       }
-
-  //       if (!grouped[key]) {
-  //         grouped[key] = [];
-  //       }
-  //       grouped[key].push(sessionData);
-  //     }
-  //   });
-
-  //   return grouped;
-  // }
-
-  // function filterSessionsByCategory(category) {
-  //   return $initData.filter((sessionData) => {
-  //     const sessionInfo = sessions.find(
-  //       (s) => s.session_id === sessionData.sessionId,
-  //     );
-  //     return sessionInfo && sessionInfo.prompt_code === category;
-  //   });
-  // }
-
-  // function rankSessionsByAttribute(attribute, sessionsData) {
-  //   const sessionsCopy = [...sessionsData];
-
-  //   switch (attribute) {
-  //     case "prompt_code":
-  //       return sessionsCopy.sort((a, b) => {
-  //         const aCode = getPromptCode(a.sessionId);
-  //         const bCode = getPromptCode(b.sessionId);
-  //         return aCode.localeCompare(bCode);
-  //       });
-
-  //     case "writing_time":
-  //       return sessionsCopy.sort((a, b) => {
-  //         const aTime = a.time100 || 0;
-  //         const bTime = b.time100 || 0;
-  //         return bTime - aTime;
-  //       });
-
-  //     case "text_length":
-  //       return sessionsCopy.sort((a, b) => {
-  //         const aLength = a.summaryData?.totalProcessedCharacters || 0;
-  //         const bLength = b.summaryData?.totalProcessedCharacters || 0;
-  //         return bLength - aLength;
-  //       });
-
-  //     case "suggestions_count":
-  //       return sessionsCopy.sort((a, b) => {
-  //         const aSuggestions = a.summaryData?.totalSuggestions || 0;
-  //         const bSuggestions = b.summaryData?.totalSuggestions || 0;
-  //         return bSuggestions - aSuggestions;
-  //       });
-
-  //     default:
-  //       return sessionsCopy;
-  //   }
-  // }
-
-  // function handleIconClick(attribute, mode = "group", specificValue = null) {
-  //   if (selectedCategoryFilter === specificValue && specificValue) {
-  //     groupingMode = false;
-  //     selectedGroupAttribute = null;
-  //     selectedCategoryFilter = null;
-  //     groupedSessions = {};
-  //     sortedSessions = [];
-  //     filteredSessions = [];
-  //     return;
-  //   }
-
-  //   if (specificValue) {
-  //     groupingMode = true;
-  //     selectedGroupAttribute = attribute;
-  //     selectedCategoryFilter = specificValue;
-
-  //     filteredSessions = filterSessionsByCategory(specificValue);
-  //     groupedSessions = {};
-  //     sortedSessions = [];
-  //     return;
-  //   }
-
-  //   if (
-  //     groupingMode &&
-  //     selectedGroupAttribute === attribute &&
-  //     !selectedCategoryFilter
-  //   ) {
-  //     groupingMode = false;
-  //     selectedGroupAttribute = null;
-  //     selectedCategoryFilter = null;
-  //     groupedSessions = {};
-  //     sortedSessions = [];
-  //     filteredSessions = [];
-  //   } else {
-  //     groupingMode = true;
-  //     selectedGroupAttribute = attribute;
-  //     selectedCategoryFilter = null;
-
-  //     if (mode === "group") {
-  //       groupedSessions = groupSessionsByAttribute(attribute);
-  //       sortedSessions = [];
-  //       filteredSessions = [];
-  //     } else if (mode === "rank") {
-  //       sortedSessions = rankSessionsByAttribute(attribute, $initData);
-  //       groupedSessions = {};
-  //       filteredSessions = [];
-  //     }
-  //   }
-  // }
-
   let filteredByCategory = [];
   function handleCategoryIconClick(category) {
     if (selectedCategoryFilter === category) {
@@ -597,20 +472,6 @@
     });
   }
 
-  // function isIconActive(promptCode) {
-  //   return selectedCategoryFilter === promptCode;
-  // }
-
-  // function getGridItemClass(sessionId) {
-  //   if (!groupingMode) return "";
-
-  //   const sessionInfo = sessions.find((s) => s.session_id === sessionId);
-  //   if (!sessionInfo) return "";
-
-  //   const attributeValue = sessionInfo[selectedGroupAttribute];
-  //   return `grouped-${attributeValue}`;
-  // }
-
   async function handleContainerClick(event) {
     const sessionId = event.detail.sessionId;
     loadedMap = {
@@ -660,41 +521,6 @@
     selectedPatterns = newSelectedPatterns;
   }
 
-  function isDataValid(item, checks, minCount) {
-    const fieldMap = {
-      progress: (d) => (d.end_progress - d.start_progress) * 100,
-      time: (d) => (d.end_time - d.start_time) / 60,
-      semantic: (d) => d.residual_vector_norm,
-    };
-
-    const relaxRatioMap = {
-      progress: 0.3,
-    };
-
-    for (const [key, [checked, range]] of Object.entries(checks)) {
-      if (!checked || !(key in fieldMap)) continue;
-      const value = fieldMap[key](item);
-      if (value == null || isNaN(value)) return false;
-
-      if (minCount === 1) {
-        if (key === "semantic") {
-          const relaxedMin = range[0] - 0.05;
-          const relaxedMax = range[1] + 0.05;
-          if (value < relaxedMin || value > relaxedMax) return false;
-        } else {
-          const relaxRatio = relaxRatioMap[key] ?? 0.2;
-          const delta = (range[1] - range[0]) * relaxRatio;
-          const relaxedMin = range[0] - delta;
-          const relaxedMax = range[1] + delta;
-          if (value < relaxedMin || value > relaxedMax) return false;
-        }
-      } else {
-        if (value < range[0] || value > range[1]) return false;
-      }
-    }
-    return true;
-  }
-
   function getTrendPattern(values) {
     const pattern = [];
     for (let i = 1; i < values.length; i++) {
@@ -715,19 +541,83 @@
       isExactSearchSource && checks.source && checks.source[1];
     const isTrendCheckRequired =
       isExactSearchTrend && checks.trend && checks.trend[1] && minCount > 1;
+    const isProgressCheckRequired =
+      isExactSearchProgress && checks.progress && checks.progress[1];
+    const isTimeCheckRequired= 
+      isExactSearchTime && checks.time && checks.time[1]
 
     for (let i = 1; i <= data.length - minCount; i++) {
       const window = data.slice(i, i + minCount);
-      if (!window.every((item) => isDataValid(item, checks, minCount)))
-        continue;
+      if (checks.progress && checks.progress[1]) {
+        const [min, max] = checks.progress[1];
+        const deltaTarget = max - min;
+        const relax = deltaTarget * 0.1;
+        const start = window[0].start_progress * 100;
+        const end = window[window.length - 1].end_progress * 100;
+        const delta = end - start;
+        const relaxedStartMin = min - relax;
+        const relaxedStartMax = min + relax;
+        const relaxedEndMin = max - relax;
+        const relaxedEndMax = max + relax;
+        const relaxedDeltaMin = deltaTarget - relax;
+        const relaxedDeltaMax = deltaTarget + relax;
+        if (isProgressCheckRequired) {
+          if (
+            start < relaxedStartMin || start > relaxedStartMax ||
+            end < relaxedEndMin || end > relaxedEndMax ||
+            delta < relaxedDeltaMin || delta > relaxedDeltaMax
+          ) {
+            continue;
+          }
+        } else {
+          if (delta < relaxedDeltaMin || delta > relaxedDeltaMax) continue;
+        }
+      }
+
+      if (checks.time && checks.time[1]) {
+        const [minTime, maxTime] = checks.time[1];
+        const deltaTarget = maxTime - minTime;
+        const relax = deltaTarget * 0.1;
+        const startTime = window[0].start_time;
+        const endTime = window[window.length - 1].end_time;
+        const deltaTime = endTime - startTime;
+        const relaxedStartMin = minTime - relax;
+        const relaxedStartMax = minTime + relax;
+        const relaxedEndMin = maxTime - relax;
+        const relaxedEndMax = maxTime + relax;
+        const relaxedDeltaMin = deltaTarget - relax;
+        const relaxedDeltaMax = deltaTarget + relax;
+        if (isTimeCheckRequired) {
+          if (
+            startTime < relaxedStartMin || startTime > relaxedStartMax ||
+            endTime < relaxedEndMin || endTime > relaxedEndMax ||
+            deltaTime < relaxedDeltaMin || deltaTime > relaxedDeltaMax
+          ) {
+            continue;
+          }
+        } else {
+          if (deltaTime < relaxedDeltaMin || deltaTime > relaxedDeltaMax) continue;
+        }
+      }
+
       if (isSourceCheckRequired) {
         const expectedSources = checks.source[1];
         if (expectedSources.length !== minCount) continue;
 
         const actualSources = window.map((item) => item.source);
-        if (!expectedSources.every((src, idx) => src === actualSources[idx]))
-          continue;
+        if (!expectedSources.every((src, idx) => src === actualSources[idx])) continue;
       }
+
+      if (checks.semantic && checks.semantic[1]) {
+        const [minScore, maxScore] = checks.semantic[1];
+        const relax = (maxScore - minScore) * 0.1;
+        const relaxedMin = minScore - relax;
+        const relaxedMax = maxScore + relax;
+        const allScores = window.map(item => item.residual_vector_norm); 
+        const isScoreValid = allScores.every(score => score >= relaxedMin && score <= relaxedMax);
+        if (!isScoreValid) continue;
+      }
+      
       if (isTrendCheckRequired) {
         const values = window.map((item) => item.residual_vector_norm);
         if (!matchesTrend(values, checks.trend[1])) continue;
@@ -795,8 +685,8 @@
         vector.t.push(tEnd - tStart);
       }
       if (checks.progress[0]) {
-        const y1 = item.start_progress * 100;
-        const y2 = item.end_progress * 100;
+        const y1 = item.start_progress;
+        const y2 = item.end_progress;
         vector.p.push(y2 - y1);
       }
       if (checks.semantic[0]) {
@@ -829,6 +719,8 @@
         isValueTrendChecked,
         isExactSearchSource,
         isExactSearchTrend,
+        isExactSearchProgress,
+        isExactSearchTime,
       },
     }
     let results = [];
@@ -969,7 +861,7 @@
           continue;
         }
         const worker = new RankWorker();
-        worker.postMessage({ patternVectors: chunk, currentVector, weights });
+        worker.postMessage({ patternVectors: chunk, currentVector, weights: get(weights) });
         worker.onmessage = (e) => {
           allResults.push(...e.data);
           completed++;
@@ -1025,18 +917,6 @@
   function closePatternSearch() {
     showPatternSearch = false;
     selectionMode = false;
-
-    // Object.keys(selectedPatterns).forEach((sessionId) => {
-    //   const chartRef = chartRefs[sessionId + "-barChart"];
-    //   if (chartRef && chartRef.clearSelection) {
-    //     chartRef.clearSelection();
-    //   }
-    // });
-
-    // selectedPatterns = {};
-    // patternData = [];
-    // patternDataList.set([]);
-    // currentResults = {};
   }
 
   function handleSelectionChanged(event) {
@@ -1048,6 +928,8 @@
     isValueRangeChecked = true;
     isValueTrendChecked = true;
     isExactSearchSource = true;
+    isExactSearchProgress = false;
+    isExactSearchTime = false;
     isExactSearchTrend = true;
     semanticTrend = [];
     selectedPatterns = {};
@@ -1056,21 +938,11 @@
     currentResults = {};
     const { sessionId, range, dataRange, data, wholeData, sources } =
       event.detail;
-    writingProgressRangeSlider = [
+    writingProgressRange = [
       dataRange.progressRange.min,
       dataRange.progressRange.max,
     ];
-    timeRangeSlider = [dataRange.timeRange.min, dataRange.timeRange.max];
-    const progressDiffs = data.map(d => (d.end_progress - d.start_progress) * 100);
-    writingProgressRange = [
-      Math.min(...progressDiffs),
-      Math.max(...progressDiffs)
-    ];
-    const timeDiffs = data.map(d => (d.end_time - d.start_time) / 60);
-    timeRange = [
-      Math.min(...timeDiffs),
-      Math.max(...timeDiffs)
-    ];
+    timeRange = [dataRange.timeRange, dataRange.timeRange.max];
     sourceRange = sources;
     semanticRange = [dataRange.scRange.min, dataRange.scRange.max];
     semanticData = dataRange.sc.sc;
@@ -1968,38 +1840,44 @@
                     <div style="margin-top: 5px; width: 60%">
                       <div
                         class:dimmed={!isProgressChecked}
-                        style="display: flex; align-items: center; font-size: 13px;"
+                        style="font-size: 13px;"
                       >
                         <input
                           type="checkbox"
                           bind:checked={isProgressChecked}
                         />
                         Writing Progress
-                        <div style="flex: 1;"></div>
-                        <RangeSlider
-                          range
-                          float
-                          class="rangeSlider"
-                          min={-5}
-                          max={5}
-                          bind:values={writingProgressRangeSlider}
-                        />
+                        <label
+                          class="switch"
+                          style="transform: translateY(4px);"
+                          bind:this={exactProgressButton}
+                        >
+                          <input
+                            type="checkbox"
+                            bind:checked={isExactSearchProgress}
+                            disabled={!isProgressChecked}
+                          />
+                          <span class="slider"></span>
+                        </label>
                       </div>
                       <div
                         class:dimmed={!isTimeChecked}
-                        style="display: flex; align-items: center; font-size: 13px;"
+                        style="font-size: 13px;"
                       >
                         <input type="checkbox" bind:checked={isTimeChecked} />
                         Time
-                        <div style="flex: 1"></div>
-                        <RangeSlider
-                          range
-                          float
-                          class="rangeSlider"
-                          min={0}
-                          max={lastSession?.time100}
-                          bind:values={timeRangeSlider}
-                        />
+                        <label
+                          class="switch"
+                          style="transform: translateY(4px);"
+                          bind:this={exactTimeButton}
+                        >
+                          <input
+                            type="checkbox"
+                            bind:checked={isExactSearchTime}
+                            disabled={!isTimeChecked}
+                          />
+                          <span class="slider"></span>
+                        </label>
                       </div>
                       <div
                         class:dimmed={!isSourceChecked}
