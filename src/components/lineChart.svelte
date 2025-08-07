@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher, afterUpdate } from "svelte";
+  import { createEventDispatcher, afterUpdate, onMount} from "svelte";
   import * as d3 from "d3";
 
   export let chartData: any[] = [];
@@ -35,24 +35,30 @@
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
   let brushGroup: any = null;
-  afterUpdate(() => {
-    let brush = d3
-    .brushY()
-    .extent([
-      [0, 0],
+  let brush: any = null;
+  onMount(() => {
+    brush = d3
+      .brushY()
+      .extent([
+        [0, 0],
       [chartWidth, chartHeight],
     ])
+
     .on("end", brushed);
 
     brushGroup = d3.select(svgContainer).append("g").attr("class", "brush");
     brushGroup.call(brush);
   })
 
-
-
-    function brushed(event) {
-      console.log("brushed", event);
+  function clearBrush() {
+    if (brushGroup) {
+      d3.select(brushGroup).call(brush.move, null);
     }
+  }
+
+  function brushed(event) {
+    console.log("brushed", event);
+  }
 
   export function resetZoom() {
     d3.select(svgContainer)
