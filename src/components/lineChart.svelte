@@ -32,6 +32,28 @@
   let xAxisG: SVGGElement;
   let yAxisG: SVGGElement;
 
+  const chartWidth = width - margin.left - margin.right;
+  const chartHeight = height - margin.top - margin.bottom;
+  let brushGroup: any = null;
+  afterUpdate(() => {
+    let brush = d3
+    .brushY()
+    .extent([
+      [0, 0],
+      [chartWidth, chartHeight],
+    ])
+    .on("end", brushed);
+
+    brushGroup = d3.select(svgContainer).append("g").attr("class", "brush");
+    brushGroup.call(brush);
+  })
+
+
+
+    function brushed(event) {
+      console.log("brushed", event);
+    }
+
   export function resetZoom() {
     d3.select(svgContainer)
       .transition()
