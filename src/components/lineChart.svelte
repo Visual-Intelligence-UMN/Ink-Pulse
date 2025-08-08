@@ -44,19 +44,15 @@
         [0, 0],
       [chartWidth, chartHeight],
     ])
-
     .on("end", brushed);
-
     brushGroup = d3.select(svgContainer).append("g").attr("class", "brush");
+    brushGroup.call(brush);
   })
 
   $: {
     if (brushGroup && brush) {
       if (!selectionMode) {
         brushGroup.call(brush.move, null);
-        brushGroup.selectAll("*").remove();
-      } else {
-        brushGroup.call(brush);
       }
     }
   }
