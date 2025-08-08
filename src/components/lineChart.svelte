@@ -4,6 +4,7 @@
 
   export let chartData: any[] = [];
   export let paragraphColor: any[] = [];
+  export let selectionMode: boolean = false;
 
   type ChartEvents = {
     pointSelected: {
@@ -47,14 +48,19 @@
     .on("end", brushed);
 
     brushGroup = d3.select(svgContainer).append("g").attr("class", "brush");
-    brushGroup.call(brush);
   })
 
-  function clearBrush() {
-    if (brushGroup) {
-      d3.select(brushGroup).call(brush.move, null);
+  $: {
+    if (brushGroup && brush) {
+      if (!selectionMode) {
+        brushGroup.call(brush.move, null);
+        brushGroup.selectAll("*").remove();
+      } else {
+        brushGroup.call(brush);
+      }
     }
   }
+
 
   function brushed(event) {
     console.log("brushed", event);
@@ -76,7 +82,7 @@
     updateAxes();
   }
 
-  // $: if (zoomTransform) {
+  // $: if (zoom) {
   //   console.log("zoomTransform:", zoomTransform);
   // }
 

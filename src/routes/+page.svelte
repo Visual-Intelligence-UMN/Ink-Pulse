@@ -2421,6 +2421,7 @@
                             bind:zoomTransform={
                               zoomTransforms[$clickSession.sessionId]
                             }
+                            {selectionMode}
                           />
                         </div>
                       </div>
