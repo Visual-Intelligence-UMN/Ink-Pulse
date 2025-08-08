@@ -76,9 +76,9 @@
     updateAxes();
   }
 
-  $: if (zoomTransform) {
-    console.log("zoomTransform:", zoomTransform);
-  }
+  // $: if (zoomTransform) {
+  //   console.log("zoomTransform:", zoomTransform);
+  // }
 
   // helper code for handling zooming from outside the component
   // When getting a zoomTransform from outside the component with only y and k values,
