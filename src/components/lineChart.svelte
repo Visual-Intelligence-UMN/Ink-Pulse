@@ -76,11 +76,15 @@
     updateAxes();
   }
 
+  $: if (zoomTransform) {
+    console.log("zoomTransform:", zoomTransform);
+  }
+
   // helper code for handling zooming from outside the component
   // When getting a zoomTransform from outside the component with only y and k values,
   // x value is calculated based on the data points that have closest y value to the zoomTransform.y.
 
-  $: if (zoomTransform) {
+  $: if (zoomTransform && ZoomTransformIsInteral.k !== zoomTransform.k) {
     // console.log("zooming:", zoomTransform);
 
     if (ZoomTransformIsInteral.k !== zoomTransform.k) {
