@@ -58,14 +58,38 @@
     if (brushGroup && brush) {
       if (!selectionMode) {
         brushGroup.call(brush.move, null);
+        brushGroup.select(".overlay").style("pointer-events", "none");
+      }
+      else {
+        brushGroup.select(".overlay").style("pointer-events", "all");
       }
     }
   }
 
+function getCircleOpacity(d) {
+  if (!selectionMode) {
+    // original logic
+    return selectedPoint === d || hoveredPoint === d ? 1 : d.opacity;
+  }
+
+  if (!sharedSelection || !sharedSelection.progressMin || !sharedSelection.progressMax) {
+    // selectionMode active but no brush yet
+    return 1;
+  }
+
+  const { progressMin, progressMax } = sharedSelection;
+  const inRange = d.percentage >= progressMin && d.percentage <= progressMax;
+  return inRange ? 1 : 0.01;
+}
+
 
   function brushedY(event) {
-    const [y0, y1] = event.selection || [];
+    if (!event.selection) {
+      sharedSelection = null;
+      return;
+    }
 
+    const [y0, y1] = event.selection || [];
     const progressMin = yScale.invert(y1);
     const progressMax = yScale.invert(y0);
     sharedSelection = { progressMin, progressMax, selectionSource: "lineChart_y" };
@@ -260,7 +284,7 @@
                 ? 5
                 : 2}
             fill={d.color}
-            opacity={selectedPoint === d || hoveredPoint === d ? 1 : d.opacity}
+            opacity={getCircleOpacity(d)}
             on:click={() => handlePointClick(d)}
             on:mouseover={() => (hoveredPoint = d)}
             on:mouseout={() => (hoveredPoint = null)}

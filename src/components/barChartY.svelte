@@ -81,6 +81,8 @@
     if (!xScale) return;
 
     function highlightBars(filteredData) {
+      if (!sharedSelection || !sharedSelection.progressMin || !sharedSelection.progressMax) return;
+
       const selectedIds = new Set(filteredData.map((d) => d.id));
       bars.attr("opacity", (d) => (selectedIds.has(d.id) ? 0.9 : 0.1));
     }
@@ -238,6 +240,7 @@
     function brushed(event) {
       if (!event.selection) {
         resetBars();
+        sharedSelection = null;
         // currentSelection = null;
         // dispatch("selectionCleared", { sessionId });
         return;
