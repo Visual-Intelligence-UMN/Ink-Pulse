@@ -34,6 +34,7 @@
   let exactSourceButton;
   let exactTrendButton;
   let searchDetail = null;
+  let sharedSelection;
 
   $: if(selectedPatterns) {
     // console.log("selectedPatterns", selectedPatterns);
@@ -2401,6 +2402,7 @@
                               zoomTransforms[$clickSession.sessionId]
                             }
                             {selectionMode}
+                            bind:sharedSelection={sharedSelection}
                             on:selectionChanged={handleSelectionChanged}
                             on:selectionCleared={handleSelectionCleared}
                             bind:this={
@@ -2422,6 +2424,7 @@
                               zoomTransforms[$clickSession.sessionId]
                             }
                             {selectionMode}
+                            bind:sharedSelection={sharedSelection}
                           />
                         </div>
                       </div>

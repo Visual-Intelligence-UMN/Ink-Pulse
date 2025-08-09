@@ -5,6 +5,7 @@
   export let chartData: any[] = [];
   export let paragraphColor: any[] = [];
   export let selectionMode: boolean = false;
+  export let sharedSelection
 
   type ChartEvents = {
     pointSelected: {
@@ -48,7 +49,7 @@
     .on('start brush end', (event: any) => {
       if (event.sourceEvent) event.sourceEvent.stopPropagation();
     })
-    .on("end", brushed);
+    .on("end", brushedY);
     brushGroup = d3.select(svgContainer).append("g").attr("class", "brush");
     brushGroup.call(brush);
   })
@@ -62,8 +63,12 @@
   }
 
 
-  function brushed(event) {
-    console.log("brushed", event);
+  function brushedY(event) {
+    const [y0, y1] = event.selection || [];
+
+    const progressMin = yScale.invert(y1);
+    const progressMax = yScale.invert(y0);
+    sharedSelection = { progressMin, progressMax, selectionSource: "lineChart_y" };
   }
 
   export function resetZoom() {
