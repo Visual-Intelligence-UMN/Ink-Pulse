@@ -44,6 +44,10 @@
         [0, 0],
       [chartWidth, chartHeight],
     ])
+    .extent([[0, 0], [chartWidth, chartHeight]])
+    .on('start brush end', (event: any) => {
+      if (event.sourceEvent) event.sourceEvent.stopPropagation();
+    })
     .on("end", brushed);
     brushGroup = d3.select(svgContainer).append("g").attr("class", "brush");
     brushGroup.call(brush);
