@@ -1029,8 +1029,19 @@
 
   function handleSelectionChanged(event) {
     showResultCount.set(5);
-    isProgressChecked = false;
-    isTimeChecked = false;
+    if (sharedSelection && sharedSelection.selectionSource === "lineChart_x") {
+      isProgressChecked = false;
+      isTimeChecked = true;
+    }
+    else if (sharedSelection && sharedSelection.selectionSource === "lineChart_y" || sharedSelection.selectionSource === "barChart_y") {
+      isProgressChecked = true;
+      isTimeChecked = false;
+    }
+    else {
+      isProgressChecked = false;
+      isTimeChecked = false;
+    }
+
     isSourceChecked = true;
     isSemanticChecked = true;
     isValueRangeChecked = true;
