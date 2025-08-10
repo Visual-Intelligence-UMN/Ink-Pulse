@@ -39,6 +39,13 @@
 
   $: if (svg && brushGroup) {
     if (selectionMode) {
+      if (sharedSelection && sharedSelection.selectionSource != "barChart_y") {
+        brushGroup.select(".selection").style("display", "none");
+      }
+      else {
+        brushGroup.select(".selection").style("display", null);
+      }
+
       if (!brushGroup.select(".overlay").node()) {
         brushGroup.call(brush);
       }

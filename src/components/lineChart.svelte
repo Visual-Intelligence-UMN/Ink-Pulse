@@ -62,6 +62,12 @@
       }
       else {
         brushGroup.select(".overlay").style("pointer-events", "all");
+        if (sharedSelection && sharedSelection.selectionSource != "lineChart_y") {
+          brushGroup.select(".selection").style("display", "none");
+        }
+        else {
+          brushGroup.select(".selection").style("display", null);
+        }
       }
     }
   }
