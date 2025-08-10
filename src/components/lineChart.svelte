@@ -106,45 +106,49 @@ function getCircleOpacity(d) {
       return;
     }
 
-    const [y0, y1] = event.selection || [];
-    const progressMin = yScale.invert(y1);
-    const progressMax = yScale.invert(y0);
+    const zy = zoomTransform.rescaleY(yScale);
+
+    const [y0, y1] = event.selection;
+    const progressMin = zy.invert(y1);
+    const progressMax = zy.invert(y0);
     sharedSelection = { progressMin, progressMax, selectionSource: "lineChart_y" };
   }
 
-function brushedX(event) {
-  if (!event.selection) {
-    sharedSelection = null;
-    return;
+  function brushedX(event) {
+    if (!event.selection) {
+      sharedSelection = null;
+      return;
+    }
+
+    const zx = zoomTransform.rescaleX(xScale);
+
+    const [x0, x1] = event.selection;
+    const t0 = zx.invert(x0);
+    const t1 = zx.invert(x1);
+
+    // Filter points that are inside the selected time range
+    const insidePoints = chartData.filter(p => p.time >= t0 && p.time <= t1);
+
+    if (!insidePoints.length) {
+      // No points inside selection — clear or fallback
+      sharedSelection = null;
+      return;
+    }
+
+    // First and last points inside the selection
+    const left = insidePoints[0];
+    const right = insidePoints[insidePoints.length - 1];
+
+    // Map to their percentage/progress
+    const progressMin = Math.min(left.percentage, right.percentage);
+    const progressMax = Math.max(left.percentage, right.percentage);
+
+    sharedSelection = {
+      progressMin,
+      progressMax,
+      selectionSource: "lineChart_x"
+    };
   }
-
-  const [x0, x1] = event.selection;
-  const t0 = xScale.invert(x0);
-  const t1 = xScale.invert(x1);
-
-  // Filter points that are inside the selected time range
-  const insidePoints = chartData.filter(p => p.time >= t0 && p.time <= t1);
-
-  if (!insidePoints.length) {
-    // No points inside selection — clear or fallback
-    sharedSelection = null;
-    return;
-  }
-
-  // First and last points inside the selection
-  const left = insidePoints[0];
-  const right = insidePoints[insidePoints.length - 1];
-
-  // Map to their percentage/progress
-  const progressMin = Math.min(left.percentage, right.percentage);
-  const progressMax = Math.max(left.percentage, right.percentage);
-
-  sharedSelection = {
-    progressMin,
-    progressMax,
-    selectionSource: "lineChart_x"
-  };
-}
 
 
   export function resetZoom() {
