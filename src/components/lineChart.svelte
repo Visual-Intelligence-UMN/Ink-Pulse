@@ -41,16 +41,17 @@
   onMount(() => {
     brush = d3
       .brushY()
-      .extent([
-        [0, 0],
-      [chartWidth, chartHeight],
-    ])
-    .extent([[0, 0], [chartWidth, chartHeight]])
-    .on('start brush end', (event: any) => {
-      if (event.sourceEvent) event.sourceEvent.stopPropagation();
-    })
-    .on("end", brushedY);
-    brushGroup = d3.select(svgContainer).append("g").attr("class", "brush");
+      .extent([[0, 0], [chartWidth, chartHeight]])
+      .on('start brush end', (event: any) => {
+        if (event.sourceEvent) event.sourceEvent.stopPropagation();
+      })
+      .on("end", brushedY);
+
+    const plot = d3.select(svgContainer)
+      .select('g') // 外层 translate(margin.left, margin.top)
+      .select('g[clip-path="url(#clip)"]');
+
+    brushGroup = plot.append("g").attr("class", "brush");
     brushGroup.call(brush);
   })
 
