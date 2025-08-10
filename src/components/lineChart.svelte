@@ -37,33 +37,43 @@
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
   let brushGroup: any = null;
-  let brush: any = null;
+  let brushY: any = null;
+  let brushX: any = null;
   onMount(() => {
-    brush = d3
+    brushY = d3
       .brushY()
       .extent([[0, 0], [chartWidth, chartHeight]])
       .on('start brush end', (event: any) => {
         if (event.sourceEvent) event.sourceEvent.stopPropagation();
       })
       .on("end", brushedY);
+    
+    brushX = d3
+      .brushX()
+      .extent([[0, 0], [chartWidth, chartHeight]])
+      .on('start brush end', (event: any) => {
+        if (event.sourceEvent) event.sourceEvent.stopPropagation();
+      })
+      .on("end", brushedX);
 
     const plot = d3.select(svgContainer)
       .select('g')
       .select('g[clip-path="url(#clip)"]');
 
     brushGroup = plot.append("g").attr("class", "brush");
-    brushGroup.call(brush);
+    brushGroup.call(brushX);
   })
 
   $: {
-    if (brushGroup && brush) {
+    if (brushGroup && brushX) {
       if (!selectionMode) {
-        brushGroup.call(brush.move, null);
+        brushGroup.call(brushX.move, null);
+        brushGroup.call(brushY.move, null);
         brushGroup.select(".overlay").style("pointer-events", "none");
       }
       else {
         brushGroup.select(".overlay").style("pointer-events", "all");
-        if (sharedSelection && sharedSelection.selectionSource != "lineChart_y") {
+        if (sharedSelection && sharedSelection.selectionSource != "lineChart_y" && sharedSelection.selectionSource != "lineChart_x") {
           brushGroup.select(".selection").style("display", "none");
         }
         else {
@@ -101,6 +111,41 @@ function getCircleOpacity(d) {
     const progressMax = yScale.invert(y0);
     sharedSelection = { progressMin, progressMax, selectionSource: "lineChart_y" };
   }
+
+function brushedX(event) {
+  if (!event.selection) {
+    sharedSelection = null;
+    return;
+  }
+
+  const [x0, x1] = event.selection;
+  const t0 = xScale.invert(x0);
+  const t1 = xScale.invert(x1);
+
+  // Filter points that are inside the selected time range
+  const insidePoints = chartData.filter(p => p.time >= t0 && p.time <= t1);
+
+  if (!insidePoints.length) {
+    // No points inside selection — clear or fallback
+    sharedSelection = null;
+    return;
+  }
+
+  // First and last points inside the selection
+  const left = insidePoints[0];
+  const right = insidePoints[insidePoints.length - 1];
+
+  // Map to their percentage/progress
+  const progressMin = Math.min(left.percentage, right.percentage);
+  const progressMax = Math.max(left.percentage, right.percentage);
+
+  sharedSelection = {
+    progressMin,
+    progressMax,
+    selectionSource: "lineChart_x"
+  };
+}
+
 
   export function resetZoom() {
     d3.select(svgContainer)
