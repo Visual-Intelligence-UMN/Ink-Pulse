@@ -75,9 +75,22 @@
     }
   }
 
-    $: if (sharedSelection) {
-    sharedSelectionChanged();
+$: if (sharedSelection) {
+  sharedSelectionChanged();
+} else {
+  // Only run if svg, brushGroup, brush exist
+  if (svg && brushGroup && brush) {
+    if (bars) {
+      bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
+    }
+
+    if (currentSelection) {
+      brushGroup.call(brush.move, null);
+      currentSelection = null;
+    }
   }
+}
+
 
   function sharedSelectionChanged() {
     console.log("Shared selection changed:", sharedSelection);
