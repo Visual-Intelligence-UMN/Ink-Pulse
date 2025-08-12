@@ -1050,7 +1050,7 @@
       sharedSelection &&
       sharedSelection.selectionSource === "lineChart_y"
     ) {
-      // 在线图的Y轴选择（进度轴） - 只勾选 Progress
+      // In line chart y axis
       isProgressChecked = true;
       isTimeChecked = false;
       isSourceChecked = false;
@@ -1061,7 +1061,7 @@
       sharedSelection &&
       sharedSelection.selectionSource === "barChart_y"
     ) {
-      // 在柱状图选择 - 自动勾选 Semantic Score 和 Source
+      // in bar chart y axis
       isProgressChecked = false;
       isTimeChecked = false;
       isSourceChecked = true;
@@ -1069,7 +1069,7 @@
       isValueRangeChecked = true;
       isValueTrendChecked = true;
     } else {
-      // 默认情况
+      // default
       isProgressChecked = false;
       isTimeChecked = false;
       isSourceChecked = true;
@@ -1078,13 +1078,10 @@
       isValueTrendChecked = true;
     }
 
-    // 根据选择来源设置精确搜索开关
     if (sharedSelection && sharedSelection.selectionSource === "barChart_y") {
-      // 柱状图选择时启用精确搜索
       isExactSearchSource = true;
       isExactSearchTrend = true;
     } else {
-      // 线图选择时关闭精确搜索
       isExactSearchSource = false;
       isExactSearchTrend = false;
     }
