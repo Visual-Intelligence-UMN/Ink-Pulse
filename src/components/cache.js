@@ -199,3 +199,28 @@ getFromDB(CACHE_KEY)
   Clear DB:
     indexedDB.deleteDatabase('myCacheDB')
 */
+
+export async function clearAllPatterns() {
+  try {
+    // 清空内存中的store
+    searchPatternSet.set([]);
+    
+    // 清空IndexedDB中的数据
+    const db = await openDB();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    
+    // 删除searchPatternSet的数据
+    await new Promise((resolve, reject) => {
+      const deleteRequest = store.delete(CACHE_KEY);
+      deleteRequest.onsuccess = () => resolve();
+      deleteRequest.onerror = () => reject(deleteRequest.error);
+    });
+    
+    console.log('All saved patterns cleared successfully');
+    return true;
+  } catch (error) {
+    console.error('Failed to clear saved patterns:', error);
+    return false;
+  }
+}

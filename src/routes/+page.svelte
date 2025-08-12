@@ -1804,10 +1804,20 @@
   }
 
   $: showPatternColumn = $searchPatternSet && $searchPatternSet.length > 0;
-  let maxVisible = 8;
+  let maxVisible = 20; // 增加初始值以显示更多模式
   function handleShowMorePatterns() {
     maxVisible = $searchPatternSet.length;
     console.log(`Total patterns: ${$searchPatternSet.length}`);
+  }
+
+  function handlePatternsCleared() {
+    // 当所有patterns被清空后，重置相关状态
+    activePatternId = null;
+    selectedPatternForDetail = null;
+    currentView = "landing";
+    maxVisible = 20;
+    showPatternSearch = false; // 关闭pattern search面板
+    console.log("All patterns cleared, resetting state");
   }
 
   function handleBackFromDetail() {
@@ -1964,6 +1974,7 @@
                   on:pattern-click={handlePatternClick}
                   on:pattern-contextmenu={handlePatternContextMenu}
                   on:show-more-patterns={handleShowMorePatterns}
+                  on:patterns-cleared={handlePatternsCleared}
                   {maxVisible}
                 />
               </div>
