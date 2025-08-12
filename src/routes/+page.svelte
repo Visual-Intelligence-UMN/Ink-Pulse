@@ -1014,7 +1014,7 @@
         })
         .filter(Boolean)
     );
-    isSearch = 2; // reset search state; 0: not searching, 1: searching, 2: search done
+    isSearch = 2; // reset search state: 0: not searching, 1: searching, 2: search done
   }
 
   function closePatternSearch() {
@@ -1106,7 +1106,14 @@
       Math.max(...progressDiffs),
     ];
     const timeDiffs = data.map((d) => (d.end_time - d.start_time) / 60);
-    timeRange = [Math.min(...timeDiffs), Math.max(...timeDiffs)];
+    const minTime = Math.min(...timeDiffs);
+    const maxTime = Math.max(...timeDiffs);
+
+    if (minTime === 0 && maxTime === 0) {
+      timeRange = [0, 0.01]; // set a very small non-zero range
+    } else {
+      timeRange = [minTime, maxTime];
+    }
     sourceRange = sources;
     semanticRange = [dataRange.scRange.min, dataRange.scRange.max];
     semanticData = dataRange.sc.sc;
@@ -1885,7 +1892,6 @@
   function confirmClearAllPatterns() {
     searchPatternSet.set([]);
     showClearAllConfirm = false;
-    // 重置相关状态
     if (currentView === "pattern-detail") {
       handleBackFromDetail();
     }
