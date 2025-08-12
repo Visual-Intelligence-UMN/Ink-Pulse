@@ -35,8 +35,8 @@
     }
   }
 
-  $: visiblePatterns = patterns.slice(1, patterns.length); // 显示所有用户保存的模式（跳过Overall模式）
-  $: remainingCount = 0; // 由于我们显示所有模式，不需要remaining count
+  $: visiblePatterns = patterns.slice(1, patterns.length);
+  $: remainingCount = 0;
 </script>
 
 <div class="saved-patterns-bar">

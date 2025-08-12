@@ -202,15 +202,13 @@ getFromDB(CACHE_KEY)
 
 export async function clearAllPatterns() {
   try {
-    // 清空内存中的store
     searchPatternSet.set([]);
     
-    // 清空IndexedDB中的数据
+
     const db = await openDB();
     const tx = db.transaction(STORE_NAME, 'readwrite');
     const store = tx.objectStore(STORE_NAME);
     
-    // 删除searchPatternSet的数据
     await new Promise((resolve, reject) => {
       const deleteRequest = store.delete(CACHE_KEY);
       deleteRequest.onsuccess = () => resolve();
