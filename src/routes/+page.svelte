@@ -1804,10 +1804,19 @@
   }
 
   $: showPatternColumn = $searchPatternSet && $searchPatternSet.length > 0;
-  let maxVisible = 8;
+  let maxVisible = 20;
   function handleShowMorePatterns() {
     maxVisible = $searchPatternSet.length;
     console.log(`Total patterns: ${$searchPatternSet.length}`);
+  }
+
+  function handlePatternsCleared() {
+    activePatternId = null;
+    selectedPatternForDetail = null;
+    currentView = "landing";
+    maxVisible = 20;
+    showPatternSearch = false;
+    console.log("All patterns cleared, resetting state");
   }
 
   function handleBackFromDetail() {
@@ -1964,6 +1973,7 @@
                   on:pattern-click={handlePatternClick}
                   on:pattern-contextmenu={handlePatternContextMenu}
                   on:show-more-patterns={handleShowMorePatterns}
+                  on:patterns-cleared={handlePatternsCleared}
                   {maxVisible}
                 />
               </div>
