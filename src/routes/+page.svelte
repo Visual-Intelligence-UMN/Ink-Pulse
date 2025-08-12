@@ -22,7 +22,11 @@
   import SavedPatternsBar from "../components/SavedPatternsBar.svelte";
   import ConfirmDialog from "../components/ConfirmDialog.svelte";
   import EditPatternDialog from "../components/EditPatternDialog.svelte";
-  import { searchPatternSet, exportDB, triggerImport} from "../components/cache.js";
+  import {
+    searchPatternSet,
+    exportDB,
+    triggerImport,
+  } from "../components/cache.js";
   import RankWorker from "../workers/rankWorker.js?worker";
 
   let chartRefs = {};
@@ -36,9 +40,9 @@
   let searchDetail = null;
   let sharedSelection;
 
-  $: if(selectedPatterns) {
+  $: if (selectedPatterns) {
     // console.log("selectedPatterns", selectedPatterns);
-    isSearch = 0 // reset search state; 0: not searching, 1: searching, 2: search done
+    isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
   }
 
   function initTippy(el, content) {
@@ -213,7 +217,7 @@
         totalSessions: processedSlice.length,
         originalMatches: allPatternData.length,
       },
-      searchDetail
+      searchDetail,
     };
 
     searchPatternSet.update((current) => [...current, itemToSave]);
@@ -812,7 +816,7 @@
       count,
       wholeData: sessionData.wholeData,
       range: sessionData.range,
-      flag:{
+      flag: {
         isProgressChecked,
         isTimeChecked,
         isSourceChecked,
@@ -821,7 +825,7 @@
         isExactSearchSource,
         isExactSearchTrend,
       },
-    }
+    };
     let results = [];
     let patternVectors = [];
     const checks = {
@@ -1029,25 +1033,51 @@
 
   function handleSelectionChanged(event) {
     showResultCount.set(5);
+
     if (sharedSelection && sharedSelection.selectionSource === "lineChart_x") {
       isProgressChecked = false;
       isTimeChecked = true;
-    }
-    else if (sharedSelection && sharedSelection.selectionSource === "lineChart_y" || sharedSelection.selectionSource === "barChart_y") {
+      isSourceChecked = false;
+      isSemanticChecked = false;
+      isValueRangeChecked = false;
+      isValueTrendChecked = false;
+    } else if (
+      sharedSelection &&
+      sharedSelection.selectionSource === "lineChart_y"
+    ) {
       isProgressChecked = true;
       isTimeChecked = false;
-    }
-    else {
+      isSourceChecked = false;
+      isSemanticChecked = false;
+      isValueRangeChecked = false;
+      isValueTrendChecked = false;
+    } else if (
+      sharedSelection &&
+      sharedSelection.selectionSource === "barChart_y"
+    ) {
       isProgressChecked = false;
       isTimeChecked = false;
+      isSourceChecked = true;
+      isSemanticChecked = true;
+      isValueRangeChecked = true;
+      isValueTrendChecked = true;
+    } else {
+      isProgressChecked = false;
+      isTimeChecked = false;
+      isSourceChecked = true;
+      isSemanticChecked = true;
+      isValueRangeChecked = true;
+      isValueTrendChecked = true;
     }
 
-    isSourceChecked = true;
-    isSemanticChecked = true;
-    isValueRangeChecked = true;
-    isValueTrendChecked = true;
-    isExactSearchSource = true;
-    isExactSearchTrend = true;
+    if (sharedSelection && sharedSelection.selectionSource === "barChart_y") {
+      isExactSearchSource = true;
+      isExactSearchTrend = true;
+    } else {
+      isExactSearchSource = false;
+      isExactSearchTrend = false;
+    }
+
     semanticTrend = [];
     selectedPatterns = {};
     patternData = [];
@@ -1060,16 +1090,23 @@
       dataRange.progressRange.max,
     ];
     timeRangeSlider = [dataRange.timeRange.min, dataRange.timeRange.max];
-    const progressDiffs = data.map(d => (d.end_progress - d.start_progress) * 100);
+    const progressDiffs = data.map(
+      (d) => (d.end_progress - d.start_progress) * 100
+    );
     writingProgressRange = [
       Math.min(...progressDiffs),
-      Math.max(...progressDiffs)
+      Math.max(...progressDiffs),
     ];
-    const timeDiffs = data.map(d => (d.end_time - d.start_time) / 60);
-    timeRange = [
-      Math.min(...timeDiffs),
-      Math.max(...timeDiffs)
-    ];
+    const timeDiffs = data.map((d) => (d.end_time - d.start_time) / 60);
+
+    const minTime = Math.min(...timeDiffs);
+    const maxTime = Math.max(...timeDiffs);
+    if (minTime === 0 && maxTime === 0) {
+      timeRange = [0, 0.01];
+    } else {
+      timeRange = [minTime, maxTime];
+    }
+
     sourceRange = sources;
     semanticRange = [dataRange.scRange.min, dataRange.scRange.max];
     semanticData = dataRange.sc.sc;
@@ -1417,7 +1454,7 @@
   let lengthSummaryData = [];
   let overallSemScoreData = [];
   let overallSemScoreSummaryData = [];
-  let isLoadOverallData = false
+  let isLoadOverallData = false;
   onMount(async () => {
     document.title = "Ink-Pulse";
     scoreSummary = await fetchScoreSummaryData();
@@ -1429,18 +1466,18 @@
     overallSemScoreSummaryData = await fetchOverallSemScoreSummaryData();
     if (isLoadOverallData == false) {
       const itemToSave = {
-      id: `pattern_0`,
-      name: "Overall",
-      pattern: [],
-      metadata: {},
-      scoreSummary,
-      percentageSummaryData,
-      lengthSummaryData,
-      overallSemScoreData,
-      overallSemScoreSummaryData
-    };
-      searchPatternSet.update(current => {
-        if (!current.find(p => p.id === "pattern_0")) {
+        id: `pattern_0`,
+        name: "Overall",
+        pattern: [],
+        metadata: {},
+        scoreSummary,
+        percentageSummaryData,
+        lengthSummaryData,
+        overallSemScoreData,
+        overallSemScoreSummaryData,
+      };
+      searchPatternSet.update((current) => {
+        if (!current.find((p) => p.id === "pattern_0")) {
           return [...current, itemToSave];
         }
         return current;
@@ -1917,7 +1954,7 @@
               behavior.
             </p>
           </div>
-          {#if $searchPatternSet && $searchPatternSet.length > 1} 
+          {#if $searchPatternSet && $searchPatternSet.length > 1}
             <div class="saved-patterns-section">
               <h4>Saved Patterns</h4>
               <div class="saved-patterns-list">
@@ -2413,7 +2450,7 @@
                               zoomTransforms[$clickSession.sessionId]
                             }
                             {selectionMode}
-                            bind:sharedSelection={sharedSelection}
+                            bind:sharedSelection
                             on:selectionChanged={handleSelectionChanged}
                             on:selectionCleared={handleSelectionCleared}
                             bind:this={
@@ -2429,13 +2466,15 @@
                             paragraphColor={$clickSession.paragraphColor}
                             on:pointSelected={(e) =>
                               handlePointSelected(e, $clickSession.sessionId)}
+                            on:selectionChanged={handleSelectionChanged}
+                            on:selectionCleared={handleSelectionCleared}
                             {yScale}
                             {height}
                             bind:zoomTransform={
                               zoomTransforms[$clickSession.sessionId]
                             }
                             {selectionMode}
-                            bind:sharedSelection={sharedSelection}
+                            bind:sharedSelection
                           />
                         </div>
                       </div>
@@ -2880,5 +2919,4 @@
   .hidden {
     display: none;
   }
-
 </style>
