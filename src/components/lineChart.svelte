@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { createEventDispatcher, afterUpdate, onMount} from "svelte";
+  import { createEventDispatcher, afterUpdate, onMount } from "svelte";
   import * as d3 from "d3";
 
   export let chartData: any[] = [];
   export let paragraphColor: any[] = [];
   export let selectionMode: boolean = false;
-  export let sharedSelection
+  export let sharedSelection;
 
   type ChartEvents = {
     pointSelected: {
@@ -13,6 +13,25 @@
       percentage: number;
       currentText: string;
       currentColor: string[];
+    };
+    selectionChanged: {
+      range: {
+        sc: { min: number; max: number };
+        progress: { min: number; max: number };
+      };
+      dataRange: {
+        scRange: { min: number; max: number };
+        progressRange: { min: number; max: number };
+        timeRange: { min: number; max: number };
+        sc: { sc: number[] };
+      };
+      data: any[];
+      wholeData: any[];
+      sessionId: string | null;
+      sources: string[];
+    };
+    selectionCleared: {
+      sessionId: string | null;
     };
   };
   const dispatch = createEventDispatcher<ChartEvents>();
@@ -41,7 +60,7 @@
   let brushX: any = null;
   let brushIsX: boolean = false;
 
-  $: if(brushGroup && brushX && brushY) {
+  $: if (brushGroup && brushX && brushY) {
     if (brushIsX) {
       brushGroup.call(brushY.move, null);
       brushGroup.call(brushX);
@@ -54,27 +73,34 @@
   onMount(() => {
     brushY = d3
       .brushY()
-      .extent([[0, 0], [chartWidth, chartHeight]])
-      .on('start brush end', (event: any) => {
+      .extent([
+        [0, 0],
+        [chartWidth, chartHeight],
+      ])
+      .on("start brush end", (event: any) => {
         if (event.sourceEvent) event.sourceEvent.stopPropagation();
       })
       .on("end", brushedY);
-    
+
     brushX = d3
       .brushX()
-      .extent([[0, 0], [chartWidth, chartHeight]])
-      .on('start brush end', (event: any) => {
+      .extent([
+        [0, 0],
+        [chartWidth, chartHeight],
+      ])
+      .on("start brush end", (event: any) => {
         if (event.sourceEvent) event.sourceEvent.stopPropagation();
       })
       .on("end", brushedX);
 
-    const plot = d3.select(svgContainer)
-      .select('g')
+    const plot = d3
+      .select(svgContainer)
+      .select("g")
       .select('g[clip-path="url(#clip)"]');
 
     brushGroup = plot.append("g").attr("class", "brush");
     brushGroup.call(brushX);
-  })
+  });
 
   $: {
     if (brushGroup && brushX) {
@@ -82,39 +108,46 @@
         brushGroup.call(brushX.move, null);
         brushGroup.call(brushY.move, null);
         brushGroup.select(".overlay").style("pointer-events", "none");
-      }
-      else {
+      } else {
         brushGroup.select(".overlay").style("pointer-events", "all");
-        if (sharedSelection && sharedSelection.selectionSource != "lineChart_y" && sharedSelection.selectionSource != "lineChart_x") {
+        if (
+          sharedSelection &&
+          sharedSelection.selectionSource != "lineChart_y" &&
+          sharedSelection.selectionSource != "lineChart_x"
+        ) {
           brushGroup.select(".selection").style("display", "none");
-        }
-        else {
+        } else {
           brushGroup.select(".selection").style("display", null);
         }
       }
     }
   }
 
-function getCircleOpacity(d) {
-  if (!selectionMode) {
-    // original logic
-    return selectedPoint === d || hoveredPoint === d ? 1 : d.opacity;
+  function getCircleOpacity(d) {
+    if (!selectionMode) {
+      // original logic
+      return selectedPoint === d || hoveredPoint === d ? 1 : d.opacity;
+    }
+
+    if (
+      !sharedSelection ||
+      !sharedSelection.progressMin ||
+      !sharedSelection.progressMax
+    ) {
+      // selectionMode active but no brush yet
+      return 1;
+    }
+
+    const { progressMin, progressMax } = sharedSelection;
+    const inRange = d.percentage >= progressMin && d.percentage <= progressMax;
+    return inRange ? 1 : 0.01;
   }
-
-  if (!sharedSelection || !sharedSelection.progressMin || !sharedSelection.progressMax) {
-    // selectionMode active but no brush yet
-    return 1;
-  }
-
-  const { progressMin, progressMax } = sharedSelection;
-  const inRange = d.percentage >= progressMin && d.percentage <= progressMax;
-  return inRange ? 1 : 0.01;
-}
-
 
   function brushedY(event) {
     if (!event.selection) {
       sharedSelection = null;
+      // 触发选择清除事件
+      dispatch("selectionCleared", { sessionId: null });
       return;
     }
 
@@ -123,12 +156,38 @@ function getCircleOpacity(d) {
     const [y0, y1] = event.selection;
     const progressMin = zy.invert(y1);
     const progressMax = zy.invert(y0);
-    sharedSelection = { progressMin, progressMax, selectionSource: "lineChart_y" };
+    sharedSelection = {
+      progressMin,
+      progressMax,
+      selectionSource: "lineChart_y",
+    };
+
+    // 触发选择事件，让主页面能够自动设置搜索条件
+    dispatch("selectionChanged", {
+      range: {
+        sc: { min: 0, max: 1 },
+        progress: { min: progressMin, max: progressMax },
+      },
+      dataRange: {
+        scRange: { min: 0, max: 1 },
+        progressRange: { min: progressMin, max: progressMax },
+        timeRange: { min: 0, max: d3.max(chartData, (d) => d.time) },
+        sc: { sc: [] },
+      },
+      data: chartData.filter(
+        (p) => p.percentage >= progressMin && p.percentage <= progressMax
+      ),
+      wholeData: chartData,
+      sessionId: null,
+      sources: [],
+    });
   }
 
   function brushedX(event) {
     if (!event.selection) {
       sharedSelection = null;
+      // 触发选择清除事件
+      dispatch("selectionCleared", { sessionId: null });
       return;
     }
 
@@ -139,7 +198,7 @@ function getCircleOpacity(d) {
     const t1 = zx.invert(x1);
 
     // Filter points that are inside the selected time range
-    const insidePoints = chartData.filter(p => p.time >= t0 && p.time <= t1);
+    const insidePoints = chartData.filter((p) => p.time >= t0 && p.time <= t1);
 
     if (!insidePoints.length) {
       // No points inside selection — clear or fallback
@@ -158,10 +217,27 @@ function getCircleOpacity(d) {
     sharedSelection = {
       progressMin,
       progressMax,
-      selectionSource: "lineChart_x"
+      selectionSource: "lineChart_x",
     };
-  }
 
+    // 触发选择事件，让主页面能够自动设置搜索条件
+    dispatch("selectionChanged", {
+      range: {
+        sc: { min: 0, max: 1 },
+        progress: { min: progressMin, max: progressMax },
+      },
+      dataRange: {
+        scRange: { min: 0, max: 1 },
+        progressRange: { min: progressMin, max: progressMax },
+        timeRange: { min: t0, max: t1 },
+        sc: { sc: [] },
+      },
+      data: insidePoints,
+      wholeData: chartData,
+      sessionId: null,
+      sources: [],
+    });
+  }
 
   export function resetZoom() {
     d3.select(svgContainer)
@@ -203,7 +279,7 @@ function getCircleOpacity(d) {
         -(width - margin.left - margin.right) * (zoomTransform.k - 1);
       const clampedY = Math.max(
         minTranslateX,
-        Math.min(centerX, maxTranslateX),
+        Math.min(centerX, maxTranslateX)
       );
       zoomTransform.x = clampedY;
       ZoomTransformIsInteral = zoomTransform;
@@ -280,7 +356,7 @@ function getCircleOpacity(d) {
           -(height - margin.top - margin.bottom) * (transform.k - 1);
         const clampedY = Math.max(
           minTranslateY,
-          Math.min(transform.y, maxTranslateY),
+          Math.min(transform.y, maxTranslateY)
         );
         zoomTransform = d3.zoomIdentity
           .translate(transform.x, clampedY)
@@ -419,7 +495,10 @@ function getCircleOpacity(d) {
 </svg>
 
 {#if selectionMode}
-  <div class="brush-toggle" style={`width:${width}px; margin-top: 20px; translate: -15px`}>
+  <div
+    class="brush-toggle"
+    style={`width:${width}px; margin-top: 20px; translate: -15px`}
+  >
     <span class="label" class:active={!brushIsX}>Progress</span>
     <label class="switch" aria-label="Toggle brush axis">
       <input type="checkbox" bind:checked={brushIsX} />
@@ -429,75 +508,73 @@ function getCircleOpacity(d) {
   </div>
 {/if}
 
-
 <style>
-.brush-toggle {
-  display: flex;
-  justify-content: center;   /* centers horizontally */
-  align-items: center;
-  gap: 10px;                 /* space between labels and switch */
-  margin: 10px auto 0;       /* sits right under the chart */
-}
+  .brush-toggle {
+    display: flex;
+    justify-content: center; /* centers horizontally */
+    align-items: center;
+    gap: 10px; /* space between labels and switch */
+    margin: 10px auto 0; /* sits right under the chart */
+  }
 
-.brush-toggle .label {
-  font-size: 15px;           /* smaller text */
-  color: #555;
-  user-select: none;
-}
+  .brush-toggle .label {
+    font-size: 15px; /* smaller text */
+    color: #555;
+    user-select: none;
+  }
 
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 48px;               /* larger switch */
-  height: 26px;              /* larger switch */
-}
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 48px; /* larger switch */
+    height: 26px; /* larger switch */
+  }
 
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
 
-input:checked + .slider {
-  background-color: #ffbbcc;
-}
+  input:checked + .slider {
+    background-color: #ffbbcc;
+  }
 
-input:checked + .slider::before {
-  transform: translateX(22px);  /* 48 - 22 - 2*2 = 22 */
-}
+  input:checked + .slider::before {
+    transform: translateX(22px); /* 48 - 22 - 2*2 = 22 */
+  }
 
-.slider {
-  position: absolute;
-  cursor: pointer;
-  inset: 0;
-  background-color: #ffbbcc;
-  transition: 0.2s;
-  border-radius: 30px;
-}
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: #ffbbcc;
+    transition: 0.2s;
+    border-radius: 30px;
+  }
 
-.slider::before {
-  position: absolute;
-  content: "";
-  height: 22px;               /* larger knob */
-  width: 22px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  transition: 0.2s;
-  border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
-}
+  .slider::before {
+    position: absolute;
+    content: "";
+    height: 22px; /* larger knob */
+    width: 22px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: 0.2s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  }
 
-.brush-toggle .label {
-  font-size: 15px;
-  color: #777;         /* default grey */
-  user-select: none;
-  font-weight: normal; /* default weight */
-}
+  .brush-toggle .label {
+    font-size: 15px;
+    color: #777; /* default grey */
+    user-select: none;
+    font-weight: normal; /* default weight */
+  }
 
-.brush-toggle .label.active {
-  color: black;        /* highlight color */
-  font-weight: bold;   /* highlight bold */
-}
-
+  .brush-toggle .label.active {
+    color: black; /* highlight color */
+    font-weight: bold; /* highlight bold */
+  }
 </style>
