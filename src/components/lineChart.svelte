@@ -146,7 +146,6 @@
   function brushedY(event) {
     if (!event.selection) {
       sharedSelection = null;
-      // 触发选择清除事件
       dispatch("selectionCleared", { sessionId: null });
       return;
     }
@@ -162,7 +161,6 @@
       selectionSource: "lineChart_y",
     };
 
-    // 触发选择事件，让主页面能够自动设置搜索条件
     dispatch("selectionChanged", {
       range: {
         sc: { min: 0, max: 1 },
@@ -186,7 +184,6 @@
   function brushedX(event) {
     if (!event.selection) {
       sharedSelection = null;
-      // 触发选择清除事件
       dispatch("selectionCleared", { sessionId: null });
       return;
     }
@@ -220,7 +217,6 @@
       selectionSource: "lineChart_x",
     };
 
-    // 触发选择事件，让主页面能够自动设置搜索条件
     dispatch("selectionChanged", {
       range: {
         sc: { min: 0, max: 1 },

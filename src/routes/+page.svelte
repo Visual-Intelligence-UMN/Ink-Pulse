@@ -1034,9 +1034,7 @@
   function handleSelectionChanged(event) {
     showResultCount.set(5);
 
-    // 根据选择来源自动设置搜索条件
     if (sharedSelection && sharedSelection.selectionSource === "lineChart_x") {
-      // 在线图的X轴选择（时间轴） - 只勾选 Time
       isProgressChecked = false;
       isTimeChecked = true;
       isSourceChecked = false;
@@ -1047,7 +1045,6 @@
       sharedSelection &&
       sharedSelection.selectionSource === "lineChart_y"
     ) {
-      // 在线图的Y轴选择（进度轴） - 只勾选 Progress
       isProgressChecked = true;
       isTimeChecked = false;
       isSourceChecked = false;
@@ -1058,7 +1055,6 @@
       sharedSelection &&
       sharedSelection.selectionSource === "barChart_y"
     ) {
-      // 在柱状图选择 - 自动勾选 Semantic Score 和 Source
       isProgressChecked = false;
       isTimeChecked = false;
       isSourceChecked = true;
@@ -1066,7 +1062,6 @@
       isValueRangeChecked = true;
       isValueTrendChecked = true;
     } else {
-      // 默认情况
       isProgressChecked = false;
       isTimeChecked = false;
       isSourceChecked = true;
@@ -1075,13 +1070,10 @@
       isValueTrendChecked = true;
     }
 
-    // 根据选择来源设置精确搜索开关
     if (sharedSelection && sharedSelection.selectionSource === "barChart_y") {
-      // 柱状图选择时启用精确搜索
       isExactSearchSource = true;
       isExactSearchTrend = true;
     } else {
-      // 线图选择时关闭精确搜索
       isExactSearchSource = false;
       isExactSearchTrend = false;
     }
@@ -1107,11 +1099,10 @@
     ];
     const timeDiffs = data.map((d) => (d.end_time - d.start_time) / 60);
 
-    // 避免timeRange为[0, 0]的情况，这会导致搜索无结果
     const minTime = Math.min(...timeDiffs);
     const maxTime = Math.max(...timeDiffs);
     if (minTime === 0 && maxTime === 0) {
-      timeRange = [0, 0.01]; // 设置为一个很小的非零范围
+      timeRange = [0, 0.01];
     } else {
       timeRange = [minTime, maxTime];
     }
