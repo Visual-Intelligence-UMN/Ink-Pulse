@@ -1036,26 +1036,59 @@
 
   function handleSelectionChanged(event) {
     showResultCount.set(5);
+
+    // 根据选择来源自动设置搜索条件
     if (sharedSelection && sharedSelection.selectionSource === "lineChart_x") {
+      // 在线图的X轴选择（时间轴） - 只勾选 Time
       isProgressChecked = false;
       isTimeChecked = true;
+      isSourceChecked = false;
+      isSemanticChecked = false;
+      isValueRangeChecked = false;
+      isValueTrendChecked = false;
     } else if (
-      (sharedSelection && sharedSelection.selectionSource === "lineChart_y") ||
-      sharedSelection.selectionSource === "barChart_y"
+      sharedSelection &&
+      sharedSelection.selectionSource === "lineChart_y"
     ) {
+      // 在线图的Y轴选择（进度轴） - 只勾选 Progress
       isProgressChecked = true;
       isTimeChecked = false;
-    } else {
+      isSourceChecked = false;
+      isSemanticChecked = false;
+      isValueRangeChecked = false;
+      isValueTrendChecked = false;
+    } else if (
+      sharedSelection &&
+      sharedSelection.selectionSource === "barChart_y"
+    ) {
+      // 在柱状图选择 - 自动勾选 Semantic Score 和 Source
       isProgressChecked = false;
       isTimeChecked = false;
+      isSourceChecked = true;
+      isSemanticChecked = true;
+      isValueRangeChecked = true;
+      isValueTrendChecked = true;
+    } else {
+      // 默认情况
+      isProgressChecked = false;
+      isTimeChecked = false;
+      isSourceChecked = true;
+      isSemanticChecked = true;
+      isValueRangeChecked = true;
+      isValueTrendChecked = true;
     }
 
-    isSourceChecked = true;
-    isSemanticChecked = true;
-    isValueRangeChecked = true;
-    isValueTrendChecked = true;
-    isExactSearchSource = true;
-    isExactSearchTrend = true;
+    // 根据选择来源设置精确搜索开关
+    if (sharedSelection && sharedSelection.selectionSource === "barChart_y") {
+      // 柱状图选择时启用精确搜索
+      isExactSearchSource = true;
+      isExactSearchTrend = true;
+    } else {
+      // 线图选择时关闭精确搜索
+      isExactSearchSource = false;
+      isExactSearchTrend = false;
+    }
+
     semanticTrend = [];
     selectedPatterns = {};
     patternData = [];
@@ -2461,6 +2494,8 @@
                             paragraphColor={$clickSession.paragraphColor}
                             on:pointSelected={(e) =>
                               handlePointSelected(e, $clickSession.sessionId)}
+                            on:selectionChanged={handleSelectionChanged}
+                            on:selectionCleared={handleSelectionCleared}
                             {yScale}
                             {height}
                             bind:zoomTransform={
