@@ -883,4 +883,38 @@ function findSegments(data, checks, minCount) {
     }
   }
 
+    function isDataValid(item, checks, minCount) {
+    // const fieldMap = {
+    //   progress: (d) => (d.end_progress - d.start_progress) * 100,
+    //   time: (d) => (d.end_time - d.start_time) / 60,
+    //   semantic: (d) => d.residual_vector_norm,
+    // };
+
+    // const relaxRatioMap = {
+    //   progress: 0.1,
+    //   time: 0.1,
+    // };
+
+    // for (const [key, [checked, range]] of Object.entries(checks)) {
+    //   if (!checked || !(key in fieldMap)) continue;
+    //   const value = fieldMap[key](item);
+    //   if (value == null || isNaN(value)) return false;
+
+    //   if (minCount === 1) {
+    //     if (key === "semantic") {
+    //       const relaxedMin = range[0] - 0.05;
+    //       const relaxedMax = range[1] + 0.05;
+    //       if (value < relaxedMin || value > relaxedMax) return false;
+    //     } else {
+    //       const relaxRatio = relaxRatioMap[key] ?? 0;
+    //       const delta = (range[1] - range[0]) * relaxRatio;
+    //       const relaxedMin = range[0] - delta;
+    //       const relaxedMax = range[1] + delta;
+    //       if (value < relaxedMin || value > relaxedMax) return false;
+    //     }
+    //   }
+    // }
+    return true;
+  }
+
 '''

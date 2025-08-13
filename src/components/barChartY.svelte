@@ -7,6 +7,7 @@
   export let height;
   export let yScale;
   export let selectionMode = false;
+  export let sharedSelection = null;
 
   let container;
   const dispatch = createEventDispatcher();
@@ -16,6 +17,10 @@
   let bars;
   let currentSelection = null;
   export let zoomTransform = d3.zoomIdentity;
+
+  let processedData = [];
+  let xScale;
+  let newyScale;
 
   onMount(() => {
     if (similarityData && container) {
@@ -34,6 +39,13 @@
 
   $: if (svg && brushGroup) {
     if (selectionMode) {
+      if (sharedSelection && sharedSelection.selectionSource != "barChart_y") {
+        brushGroup.select(".selection").style("display", "none");
+      }
+      else {
+        brushGroup.select(".selection").style("display", null);
+      }
+
       if (!brushGroup.select(".overlay").node()) {
         brushGroup.call(brush);
       }
@@ -63,10 +75,84 @@
     }
   }
 
+$: if (sharedSelection) {
+  sharedSelectionChanged();
+} else {
+  // Only run if svg, brushGroup, brush exist
+  if (svg && brushGroup && brush) {
+    if (bars) {
+      bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
+    }
+
+    if (currentSelection) {
+      brushGroup.call(brush.move, null);
+      currentSelection = null;
+    }
+  }
+}
+
+
+  function sharedSelectionChanged() {
+    console.log("Shared selection changed:", sharedSelection);
+    if (!sharedSelection) return;
+    if (!processedData) return;
+    if (!bars) return;
+    if (!newyScale) return;
+    if (!xScale) return;
+
+    function highlightBars(filteredData) {
+      if (!sharedSelection || !sharedSelection.progressMin || !sharedSelection.progressMax) return;
+
+      const selectedIds = new Set(filteredData.map((d) => d.id));
+      bars.attr("opacity", (d) => (selectedIds.has(d.id) ? 0.9 : 0.1));
+    }
+    const { progressMin, progressMax } = sharedSelection;
+    const y0 = newyScale(progressMax);
+    const y1 = newyScale(progressMin);
+
+    const filteredData = processedData.filter((d) => {
+      const barY = newyScale(d.endProgress);
+      const barHeight = newyScale(d.startProgress) - newyScale(d.endProgress);
+      return barY + barHeight >= y0 && barY <= y1;
+    });
+    const scMin = d3.min(filteredData, (d) => d.residual_vector_norm) ?? 0;
+    const scMax = d3.max(filteredData, (d) => d.residual_vector_norm) ?? 0;
+
+    highlightBars(filteredData);
+
+    dispatch("selectionChanged", {
+      range: {
+        sc: { min: scMin, max: scMax },
+        progress: { min: progressMin, max: progressMax },
+      },
+      dataRange: {
+        scRange: {
+          min: d3.min(filteredData, (d) => d.residual_vector_norm),
+          max: d3.max(filteredData, (d) => d.residual_vector_norm),
+        },
+        progressRange: {
+          min: d3.min(filteredData, (d) => d.startProgress),
+          max: d3.max(filteredData, (d) => d.endProgress),
+        },
+        timeRange: {
+          min: filteredData[0].startTime,
+          max: filteredData[filteredData.length - 1].endTime,
+        },
+        sc: {
+          sc: filteredData.map((d) => d.residual_vector_norm),
+        },
+      },
+      data: filteredData,
+      wholeData: processedData,
+      sessionId: sessionId,
+      sources: filteredData.map((d) => d.source),
+    });
+  }
+
   function renderChart() {
     d3.select(container).selectAll("svg").remove();
 
-    const processedData = similarityData.map((item, i) => ({
+    processedData = similarityData.map((item, i) => ({
       id: i,
       startProgress: item.start_progress * 100,
       endProgress: item.end_progress * 100,
@@ -94,8 +180,8 @@
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-    const xScale = d3.scaleLinear().domain([1, 0]).range([0, chartWidth]);
-    const newyScale = zoomTransform.rescaleY(yScale.copy());
+    xScale = d3.scaleLinear().domain([1, 0]).range([0, chartWidth]);
+    newyScale = zoomTransform.rescaleY(yScale.copy());
 
     svg
       .append("defs")
@@ -174,6 +260,7 @@
     function brushed(event) {
       if (!event.selection) {
         resetBars();
+        sharedSelection = null;
         // currentSelection = null;
         // dispatch("selectionCleared", { sessionId });
         return;
@@ -185,52 +272,11 @@
       const progressMin = newyScale.invert(y1);
       const progressMax = newyScale.invert(y0);
 
-      const filteredData = processedData.filter((d) => {
-        const barY = newyScale(d.endProgress);
-        const barHeight = newyScale(d.startProgress) - newyScale(d.endProgress);
-        return barY + barHeight >= y0 && barY <= y1;
-      });
-      const scMin = d3.min(filteredData, (d) => d.residual_vector_norm) ?? 0;
-      const scMax = d3.max(filteredData, (d) => d.residual_vector_norm) ?? 0;
-
-      highlightBars(filteredData);
-
-      dispatch("selectionChanged", {
-        range: {
-          sc: { min: scMin, max: scMax },
-          progress: { min: progressMin, max: progressMax },
-        },
-        dataRange: {
-          scRange: {
-            min: d3.min(filteredData, (d) => d.residual_vector_norm),
-            max: d3.max(filteredData, (d) => d.residual_vector_norm),
-          },
-          progressRange: {
-            min: d3.min(filteredData, (d) => d.startProgress),
-            max: d3.max(filteredData, (d) => d.endProgress),
-          },
-          timeRange: {
-            min: filteredData[0].startTime,
-            max: filteredData[filteredData.length - 1].endTime,
-          },
-          sc: {
-            sc: filteredData.map((d) => d.residual_vector_norm),
-          },
-        },
-        data: filteredData,
-        wholeData: processedData,
-        sessionId: sessionId,
-        sources: filteredData.map((d) => d.source),
-      });
+      sharedSelection = { progressMin, progressMax, selectionSource: "barChart_y" };
     }
 
     function resetBars() {
       bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
-    }
-
-    function highlightBars(filteredData) {
-      const selectedIds = new Set(filteredData.map((d) => d.id));
-      bars.attr("opacity", (d) => (selectedIds.has(d.id) ? 0.9 : 0.1));
     }
 
     if (!selectionMode) {

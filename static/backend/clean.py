@@ -40,6 +40,5 @@ def main():
             with open(file_path, "w", encoding="utf-8") as f:
                 json.dump(cleaned_data, f, ensure_ascii=False, indent=4)
 
-
 if __name__ == "__main__":    
-    main()
+    # main()

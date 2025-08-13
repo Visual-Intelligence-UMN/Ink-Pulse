@@ -76,10 +76,10 @@
 
       context.fillStyle = d.source === "user" ? "#66C2A5" : "#FC8D62";
       context.globalAlpha = opacityScale(d.residual_vector_norm);
-      if (isFirst) {
-        context.fillStyle = "#e8e8e8";
-        context.globalAlpha = 1; 
-      }
+      // if (isFirst) {
+      //   context.fillStyle = "#e8e8e8";
+      //   context.globalAlpha = 1; 
+      // }
       context.fillRect(barX, barY, barWidth, barHeight);
 
       context.strokeStyle = context.fillStyle;

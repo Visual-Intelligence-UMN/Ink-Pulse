@@ -455,6 +455,20 @@
   opacity: 0.9;
 }
 
+.weight-button {
+  padding: 4px 10px;
+  background-color: #000000;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.weight-button:hover {
+  opacity: 0.9;
+}
+
 .search-pattern-button {
   padding: 4px 10px;
   background-color: #137a7f;

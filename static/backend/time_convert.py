@@ -36,5 +36,6 @@ def process_files(base_path):
 
 script_dir = os.path.dirname(os.path.abspath(__file__)) 
 static_dir = os.path.dirname(script_dir)
-json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-sentence")
+# json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-sentence")
+json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-sentence-new")
 process_files(json_path)

@@ -37,16 +37,25 @@ def compute_vector_norm(residual_vector):
 
 def analyze_residuals(sentences):
     results = []
+    first_is_empty = sentences[0]["text"].strip() == ""
     for i, sentence in enumerate(sentences):
-        sentence["embedding"] = get_openai_embedding(sentence["text"])
+        text = sentence.get("text", "").strip()
+        if first_is_empty:
+            if i == 0:
+                sentence["residual_vector"] = 0.0
+                continue
+            elif i == 1:
+                sentence["embedding"] = get_openai_embedding(text)
+                sentence["residual_vector"] = 1.0
+                continue
+        sentence["embedding"] = get_openai_embedding(text)
         if i == 0:
             sentence["residual_vector"] = 0.0
         else:
             prev_embedding = sentences[i - 1]["embedding"]
             curr_embedding = sentence["embedding"]
             residual_vector = curr_embedding - prev_embedding
-            residual_vector = compute_vector_norm(residual_vector)
-            sentence["residual_vector"] = residual_vector
+            sentence["residual_vector"] = compute_vector_norm(residual_vector)
 
     norms = [s["residual_vector"] for s in sentences]
     min_norm = min(norms)
@@ -103,15 +112,15 @@ if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
     static_dir = os.path.dirname(script_dir)
 
-    session_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", "coauthor-sentence")
-    output_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", "similarity_results")
+    session_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", "coauthor-sentence-new")
+    output_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", "similarity_results_new")
     os.makedirs(output_dir, exist_ok=True)
 
     for file_name in os.listdir(session_dir):
         if file_name.endswith(".jsonl"):
             file_path = os.path.join(session_dir, file_name)
             session_id = os.path.splitext(file_name)[0]
-
+            print(session_id)
             sentences = read_sentences(file_path)
             results = analyze_residuals(sentences)
 
