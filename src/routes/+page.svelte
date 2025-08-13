@@ -22,7 +22,11 @@
   import SavedPatternsBar from "../components/SavedPatternsBar.svelte";
   import ConfirmDialog from "../components/ConfirmDialog.svelte";
   import EditPatternDialog from "../components/EditPatternDialog.svelte";
-  import { searchPatternSet } from "../components/cache.js";
+  import {
+    searchPatternSet,
+    exportDB,
+    triggerImport,
+  } from "../components/cache.js";
   import RankWorker from "../workers/rankWorker.js?worker";
   import WeightPanel from "../components/weightPanel.svelte";
 
@@ -35,6 +39,7 @@
   let exactSourceButton;
   let exactTrendButton;
   let searchDetail = null;
+  let sharedSelection;
   let exactProgressButton;
   let exactTimeButton;
 
@@ -223,7 +228,7 @@
         totalSessions: processedSlice.length,
         originalMatches: allPatternData.length,
       },
-      searchDetail
+      searchDetail,
     };
 
     searchPatternSet.update((current) => [...current, itemToSave]);
@@ -711,7 +716,7 @@
       count,
       wholeData: sessionData.wholeData,
       range: sessionData.range,
-      flag:{
+      flag: {
         isProgressChecked,
         isTimeChecked,
         isSourceChecked,
@@ -722,7 +727,7 @@
         isExactSearchProgress,
         isExactSearchTime,
       },
-    }
+    };
     let results = [];
     let patternVectors = [];
     const checks = {
@@ -921,16 +926,52 @@
 
   function handleSelectionChanged(event) {
     showResultCount.set(5);
-    isProgressChecked = false;
-    isTimeChecked = false;
-    isSourceChecked = true;
-    isSemanticChecked = true;
-    isValueRangeChecked = true;
-    isValueTrendChecked = true;
-    isExactSearchSource = true;
-    isExactSearchProgress = false;
-    isExactSearchTime = false;
-    isExactSearchTrend = true;
+
+    if (sharedSelection && sharedSelection.selectionSource === "lineChart_x") {
+      isProgressChecked = false;
+      isTimeChecked = true;
+      isSourceChecked = false;
+      isSemanticChecked = false;
+      isValueRangeChecked = false;
+      isValueTrendChecked = false;
+      isExactSearchTime = true;
+    } else if (
+      sharedSelection &&
+      sharedSelection.selectionSource === "lineChart_y"
+    ) {
+      isProgressChecked = true;
+      isTimeChecked = false;
+      isSourceChecked = false;
+      isSemanticChecked = false;
+      isValueRangeChecked = false;
+      isValueTrendChecked = false;
+      isExactSearchProgress = true;
+    } else if (
+      sharedSelection &&
+      sharedSelection.selectionSource === "barChart_y"
+    ) {
+      isProgressChecked = false;
+      isTimeChecked = false;
+      isSourceChecked = true;
+      isSemanticChecked = true;
+      isValueRangeChecked = true;
+      isValueTrendChecked = true;
+    } else {
+      isProgressChecked = false;
+      isTimeChecked = false;
+      isSourceChecked = true;
+      isSemanticChecked = true;
+      isValueRangeChecked = true;
+      isValueTrendChecked = true;
+    }
+
+    if (sharedSelection && sharedSelection.selectionSource === "barChart_y") {
+      isExactSearchSource = true;
+      isExactSearchTrend = true;
+    } else {
+      isExactSearchSource = false;
+      isExactSearchTrend = false;
+    }
     semanticTrend = [];
     selectedPatterns = {};
     patternData = [];
@@ -1726,8 +1767,8 @@
   <header class="App-header">
     <nav>
       <div class="chart-explanation">
-        <span class="triangle-text">▼</span> user open the AI suggestion
-        <span class="user-line">●</span> User written
+        <span class="triangle-text">▼</span> user open the AI suggestion &nbsp;
+        <span class="user-line">●</span> User written &nbsp;
         <span class="api-line">●</span> AI writing
       </div>
       <link
@@ -1744,21 +1785,38 @@
           swap_horiz
         </a>
       {/if}
-      <button
-        class="pattern-search-button"
-        class:active={showPatternSearch}
-        on:click={togglePatternSearch}
-        aria-label="Pattern Search"
-      >
-        <span class="search-icon">🔍</span>
-        {showPatternSearch ? "Exit Search" : "Pattern Search"}
-      </button>
-      <a
-        on:click={open2close}
-        href=" "
-        aria-label="Instruction"
-        class="material-symbols--info-outline-rounded"
-      ></a>
+      <div style="flex: 1;"></div>
+      <div style="display: flex; gap: 0.5em; align-items: right;">
+        <button
+          class="pattern-search-button"
+          on:click={exportDB}
+          aria-label="Save Pattern"
+        >
+          Save Pattern
+        </button>
+        <button
+          class="pattern-search-button"
+          on:click={triggerImport}
+          aria-label="Load Pattern"
+        >
+          Load Pattern
+        </button>
+        <button
+          class="pattern-search-button"
+          class:active={showPatternSearch}
+          on:click={togglePatternSearch}
+          aria-label="Pattern Search"
+        >
+          <span class="search-icon">🔍</span>
+          {showPatternSearch ? "Exit Search" : "Pattern Search"}
+        </button>
+        <a
+          on:click={open2close}
+          href=" "
+          aria-label="Instruction"
+          class="material-symbols--info-outline-rounded"
+        ></a>
+      </div>
     </nav>
     <div class:hidden={!showPatternSearch}>
       <div class="pattern-search-panel">
@@ -1774,7 +1832,7 @@
               behavior.
             </p>
           </div>
-          {#if $searchPatternSet && $searchPatternSet.length > 0}
+          {#if $searchPatternSet && $searchPatternSet.length > 1}
             <div class="saved-patterns-section">
               <h4>Saved Patterns</h4>
               <div class="saved-patterns-list">
@@ -2164,7 +2222,7 @@
                           <th
                             class="sortable-header"
                             on:click={() => handleSort("topic")}
-                            style="min-width: 80px;"
+                            style="min-width: 70px;"
                           >
                             <span>Topic</span>
                             <span class="sort-icon">{getSortIcon("topic")}</span
@@ -2173,7 +2231,7 @@
                           <th
                             class="sortable-header"
                             on:click={() => handleSort("score")}
-                            style="min-width: 80px;"
+                            style="min-width: 90px;"
                           >
                             <span>Score</span>
                             <span class="sort-icon">{getSortIcon("score")}</span
@@ -2183,6 +2241,7 @@
                             <th
                               class="sortable-header"
                               on:click={() => handleSort("pattern")}
+                              style="min-width: 100px;"
                             >
                               <span>Pattern</span>
                               <span class="sort-icon"
@@ -2286,6 +2345,7 @@
                               zoomTransforms[$clickSession.sessionId]
                             }
                             {selectionMode}
+                            bind:sharedSelection={sharedSelection}
                             on:selectionChanged={handleSelectionChanged}
                             on:selectionCleared={handleSelectionCleared}
                             bind:this={
@@ -2306,6 +2366,8 @@
                             bind:zoomTransform={
                               zoomTransforms[$clickSession.sessionId]
                             }
+                            {selectionMode}
+                            bind:sharedSelection={sharedSelection}
                           />
                         </div>
                       </div>
