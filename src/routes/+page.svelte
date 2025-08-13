@@ -819,6 +819,25 @@
     tr: 2.5, // up 1, down -1
     sem: 2, // 1% -> 0.01
   });
+  const initialWeights = get(weights);
+
+  $: if (zoomTransforms && $clickSession?.sessionId) {
+    const scale = zoomTransforms[$clickSession.sessionId]?.k ?? 1;
+
+    console.debug("Zoom scale:", scale);
+    console.debug("Before update weights:", get(weights));
+
+    weights.update((w) => {
+      const updated = {
+        ...w,
+        t: Math.round((initialWeights.t * scale + Number.EPSILON) * 1e4) / 1e4,
+        p: Math.round((initialWeights.p * scale + Number.EPSILON) * 100) / 100,
+      };
+      console.debug("Updated weights:", updated);
+      return updated;
+    });
+  }
+
   export async function calculateRankAuto(
     patternVectors,
     currentVector,

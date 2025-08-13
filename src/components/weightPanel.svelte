@@ -48,7 +48,7 @@
 
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
         <label>Time:</label>
-        <RangeSlider bind:value={t} min={min} max={max} step={step} float />
+        <RangeSlider bind:value={t} min={min * 0.01} max={max * 0.01} step={step * 0.1} precision={4} float />
       </div>
 
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
