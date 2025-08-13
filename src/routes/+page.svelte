@@ -1832,8 +1832,34 @@
               behavior.
             </p>
           </div>
+
+          <div class="patterns-header">
+            <h4 class="patterns-title">Manage Patterns</h4>
+            <div class="patterns-actions" role="toolbar" aria-label="Pattern actions">
+              <button
+                class="search-pattern-button"
+                on:click={triggerImport}
+                aria-label="Upload patterns"
+                title="Upload patterns"
+              >
+                Upload
+              </button>
+
+              {#if $searchPatternSet && $searchPatternSet.length > 1}
+                <button
+                  class="search-pattern-button"
+                  on:click={exportDB}
+                  aria-label="Download patterns"
+                  title="Download saved patterns"
+                >
+                  Download
+                </button>
+              {/if}
+            </div>
+          </div>
+
           {#if $searchPatternSet && $searchPatternSet.length > 1}
-            <div class="saved-patterns-section">
+            <div class="saved-patterns-section" style="margin-top: 20px;">
               <h4>Saved Patterns</h4>
               <div class="saved-patterns-list">
                 <SavedPatternsBar
@@ -1849,7 +1875,7 @@
           {/if}
 
           {#if Object.keys(selectedPatterns).length > 0}
-            <div class="pattern-results-summary">
+            <div class="pattern-results-summary" style="margin-top: 20px;">
               <h4>Selection Results</h4>
               {#each Object.entries(selectedPatterns) as [sessionId, pattern]}
                 <div class="pattern-item">
