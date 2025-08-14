@@ -93,7 +93,7 @@ $: if (sharedSelection) {
 
 
   function sharedSelectionChanged() {
-    console.log("Shared selection changed:", sharedSelection);
+    // console.log("Shared selection changed:", sharedSelection);
     if (!sharedSelection) return;
     if (!processedData) return;
     if (!bars) return;
