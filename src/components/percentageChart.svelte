@@ -65,11 +65,11 @@
 
     patternSessions.forEach((session) => {
       if (processedSessionIds.has(session.sessionId)) return;
+
       processedSessionIds.add(session.sessionId);
-
       const aiRatio = aiRatioMap.get(session.sessionId);
-      if (typeof aiRatio !== 'number') return;
 
+      if (typeof aiRatio !== 'number') return;
       const binIndex = Math.min(Math.floor(aiRatio * 10), binCount - 1);
       highlightCounts[binIndex]++;
     });
@@ -158,7 +158,6 @@
     ctx.fillStyle = "#000";
     ctx.fillText(title[1], legendX - legendBoxSize - legendSpacing, legendY + legendBoxSize + legendSpacing + legendBoxSize / 2);
   }
-
 
   onMount(() => {
     drawChart();

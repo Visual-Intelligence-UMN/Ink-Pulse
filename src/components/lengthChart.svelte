@@ -35,7 +35,7 @@
 
     const fixedBinLabels = [
       "500-1000", "1000-1500", "1500-2000", "2000-2500", "2500-3000",
-      "3000-3500", "3500-4000", "4000-4500", "4500-5000", "5000-5500"];
+      "3000-3500", "3500-4000", "4000-4500", "4500-5000", "5000-5500", "5500-6000"];
 
     let bins = fixedBinLabels.map(label => {
       const [minStr, maxStr] = label.split('-');
@@ -74,7 +74,7 @@
       });
     }
     patternSessions.forEach(session => {
-      const val = session.similarityData?.[0]?.sentence;
+      const val = session.similarityData?.[session.similarityData.length - 1]?.sentence;
       if (val === undefined || val === null) return;
       const length = val * 3000;
       const binIndex = nowBins.findIndex(b => length >= b.min && length < b.max);
@@ -97,7 +97,7 @@
     );
 
     ctx.fillStyle = "#000";
-    ctx.font = "7px sans-serif";
+    ctx.font = "6px sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
 

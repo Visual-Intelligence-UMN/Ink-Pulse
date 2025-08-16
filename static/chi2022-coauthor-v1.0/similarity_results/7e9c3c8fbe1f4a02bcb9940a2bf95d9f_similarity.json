@@ -1,98 +1,82 @@
 [
     {
-        "sentence": 0.8146666666666667,
-        "source": "user",
-        "start_progress": 0.09983633387888707,
-        "end_progress": 0.3707037643207856,
-        "start_time": 5.0,
-        "end_time": 249.0,
-        "last_event_time": 671.0,
-        "residual_vector": 0.5259375780927402,
-        "residual_vector_norm": 0.9825913655427008,
-        "score": 7
-    },
-    {
-        "sentence": 0.8146666666666667,
-        "source": "user",
-        "start_progress": 0.3707037643207856,
-        "end_progress": 0.3878887070376432,
-        "start_time": 253.0,
-        "end_time": 288.0,
-        "last_event_time": 671.0,
-        "residual_vector": 0.18456837731310843,
-        "residual_vector_norm": 0.9123155039514076,
-        "score": 7
-    },
-    {
-        "sentence": 0.8146666666666667,
         "source": "api",
-        "start_progress": 0.3878887070376432,
-        "end_progress": 0.4234860883797054,
+        "start_progress": 0,
+        "end_progress": 0.10020449897750511,
+        "start_time": 0.0,
+        "end_time": 0.0,
+        "last_event_time": 0.0,
+        "residual_vector_norm": 0.0,
+        "score": 6
+    },
+    {
+        "source": "user",
+        "start_progress": 0.10020449897750511,
+        "end_progress": 0.3881390593047035,
+        "start_time": 5.0,
+        "end_time": 288.0,
+        "last_event_time": 288.0,
+        "residual_vector_norm": 1.0,
+        "score": 6
+    },
+    {
+        "source": "api",
+        "start_progress": 0.3881390593047035,
+        "end_progress": 0.423721881390593,
         "start_time": 301.0,
         "end_time": 301.0,
-        "last_event_time": 671.0,
-        "residual_vector": 0.14704200557251615,
-        "residual_vector_norm": 0.7268238653273799,
-        "score": 7
+        "last_event_time": 301.0,
+        "residual_vector_norm": 0.24140520746724958,
+        "score": 6
     },
     {
-        "sentence": 0.8146666666666667,
         "source": "user",
-        "start_progress": 0.4234860883797054,
-        "end_progress": 0.5061374795417348,
+        "start_progress": 0.423721881390593,
+        "end_progress": 0.5063394683026585,
         "start_time": 305.0,
         "end_time": 398.0,
-        "last_event_time": 671.0,
-        "residual_vector": 0.16543687397877094,
-        "residual_vector_norm": 0.5782359362938617,
-        "score": 7
+        "last_event_time": 398.0,
+        "residual_vector_norm": 0.27086903225583797,
+        "score": 6
     },
     {
-        "sentence": 0.8146666666666667,
         "source": "api",
-        "start_progress": 0.5061374795417348,
-        "end_progress": 0.5572831423895254,
+        "start_progress": 0.5063394683026585,
+        "end_progress": 0.5574642126789366,
         "start_time": 418.0,
         "end_time": 418.0,
-        "last_event_time": 671.0,
-        "residual_vector": 0.13308144693298674,
-        "residual_vector_norm": 0.657817276679429,
-        "score": 7
+        "last_event_time": 418.0,
+        "residual_vector_norm": 0.22181211521217853,
+        "score": 6
     },
     {
-        "sentence": 0.8146666666666667,
         "source": "user",
-        "start_progress": 0.5572831423895254,
-        "end_progress": 0.647708674304419,
+        "start_progress": 0.5574642126789366,
+        "end_progress": 0.6478527607361964,
         "start_time": 425.0,
         "end_time": 478.0,
-        "last_event_time": 671.0,
-        "residual_vector": 0.1839708498798503,
-        "residual_vector_norm": 0.454680972612593,
-        "score": 7
+        "last_event_time": 478.0,
+        "residual_vector_norm": 0.3166078649110624,
+        "score": 6
     },
     {
-        "sentence": 0.8146666666666667,
         "source": "api",
-        "start_progress": 0.647708674304419,
-        "end_progress": 0.6759410801963993,
+        "start_progress": 0.6478527607361964,
+        "end_progress": 0.6760736196319018,
         "start_time": 490.0,
         "end_time": 490.0,
-        "last_event_time": 671.0,
-        "residual_vector": 0.2023076189253702,
-        "residual_vector_norm": 1.0,
-        "score": 7
+        "last_event_time": 490.0,
+        "residual_vector_norm": 0.3323962175818221,
+        "score": 6
     },
     {
-        "sentence": 0.8146666666666667,
         "source": "user",
-        "start_progress": 0.6759410801963993,
+        "start_progress": 0.6760736196319018,
         "end_progress": 1.0,
         "start_time": 493.0,
         "end_time": 671.0,
         "last_event_time": 671.0,
-        "residual_vector": 0.3572003483522011,
-        "residual_vector_norm": 0.48969758127541957,
-        "score": 7
+        "residual_vector_norm": 0.6244563606195733,
+        "score": 6
     }
 ]

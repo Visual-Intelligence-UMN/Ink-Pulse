@@ -76,7 +76,6 @@
         if (binIndex !== -1) bins[binIndex].count++;
       });
     }
-
     const totalCount = bins.reduce((acc, b) => acc + b.count, 0);
     bins.forEach(b => {
       b.percent = totalCount > 0 ? b.count / totalCount : 0;
