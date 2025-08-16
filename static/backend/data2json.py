@@ -16,6 +16,30 @@ def write_json(data, file_path, session):
         json.dump(data, f, ensure_ascii=False, indent=4)
     print(f"Data written to {new_file_path}")
 
+def update_info(new_info, file_path, session):
+    actual_session = session + '.jsonl'
+    new_file_path = os.path.join(file_path, actual_session)
+    with open(new_file_path, 'r', encoding='utf-8') as f:
+        try:
+            data = json.load(f)
+        except json.JSONDecodeError as e:
+            print(f"JSONDecodeError: {e}")
+            line_num = e.lineno
+            col_num = e.colno
+            print(f"{new_file_path} Error at line {line_num}, column {col_num}")
+            f.seek(0)
+            lines = f.readlines()
+            start = max(0, line_num - 5)
+            end = min(len(lines), line_num + 5)
+            print("Context around the error:")
+            for i in range(start, end):
+                print(f"{i+1}: {lines[i].rstrip()}")
+            return
+    data['info'] = new_info
+    with open(new_file_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+    # print(f"'info' updated and written to {new_file_path}")
+
 def split_text(whole_text, sentence_source, extra_time, extra_process):
     insert_data = []
     sentence = ""
@@ -368,12 +392,10 @@ def flatten(data):
     return new_data
 
 def get_data(session_id, static_dir):
-    # json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-sentence")
-    json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-sentence-new")
-    # json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-json-new")
+    json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-sentence")
     for session in session_id:
-        extracted_data = {'init_text': [], 'init_time': [], 'json': [], 'text': [], 'info': [], 'end_time': []}
-        file_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/legislation_formal_study")
+        extracted_data = {'init_text': [], 'init_time': [], 'json': [], 'text': [], 'info': [], 'end_time': [], 'snapshots': []}
+        file_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-v1.0")
         # actual_session = session['session_id'] + '.jsonl'
         actual_session = session + '.jsonl'
         new_file_path = os.path.join(file_path, actual_session)
@@ -396,21 +418,21 @@ def get_data(session_id, static_dir):
                     current_suggestions = json_data.get('currentSuggestions', {})
                     entry = {'eventNum': event_num, 'eventName': event_name, 'eventSource': event_source, 'event_time': event_time, 'textDelta': text_delta, 'currentSuggestions': current_suggestions}
                     extracted_data['json'].append(entry)
-
         extracted_data['init_time'].append(init_time)
         extracted_data['init_text'].append(init_text)
         text = ''.join(extracted_data['init_text'])
-        last_pos = len(text)
         previous_event_name = None
+        if text != "" and text != "\n":
+            extracted_data['snapshots'].append({
+                'text': text,
+                'eventName': '',
+                'eventSource': 'api',
+                'event_time': init_time,
+                'eventNum': 0
+            })
         for entry in extracted_data['json']:
-            text_delta = entry['textDelta']
-            event_source = entry.get('eventSource', 'unknown')
-            event_time = entry.get('event_time', None)
-            event_num = entry.get('eventNum', None)
-            event_name = entry.get('eventName', None)
-            current_suggestions = entry['currentSuggestions']
-            if not isinstance(text_delta, dict): 
-                # whether text part is empty or not
+            text_delta = entry.get('textDelta', {})
+            if not isinstance(text_delta, dict):
                 if isinstance(text_delta, str) and text_delta.strip():
                     try:
                         text_delta = json.loads(text_delta)
@@ -419,192 +441,138 @@ def get_data(session_id, static_dir):
                 else:
                     text_delta = {}
             ops = text_delta.get('ops', [])
-            first_op = next((op for op in ops if 'retain' not in op), None)
-            if event_name == "text-insert" and isinstance(first_op, dict) and 'delete' in first_op:
-                # if multiple operation, check
-                event_name = "text-delete"
-            if event_name == "text-insert":
-                retain_pos = 0
-                for op in text_delta['ops']:
-                    if 'retain' in op:
-                        retain_pos = op['retain']
-                    if 'insert' in op:
-                        inserts = op['insert']
-                        insert_pos = min(retain_pos, len(text))
-                        last_pos = max(last_pos, insert_pos + len(inserts))
-                        if previous_event_name == "suggestion-close" and len(inserts) > 1:
-                            event_source = "api"
-                        if len(inserts) > 1:
-                            for i, char in enumerate(inserts):
-                                current_insert_pos = insert_pos + i
-                                text = text[:current_insert_pos] + char + text[current_insert_pos:]
-                                extracted_data['info'].append({
-                                    'id': event_num,
-                                    'name': event_name,
-                                    'text': char,
-                                    'eventSource': event_source,
-                                    'event_time': event_time,
-                                    'count': 1,
-                                    'pos': current_insert_pos,
-                                })
-                        else:
-                            text = text[:insert_pos] + inserts + text[insert_pos:]
-                            extracted_data['info'].append({
-                                'id': event_num,
-                                'name': event_name,
-                                'text': inserts,
-                                'eventSource': event_source,
-                                'event_time': event_time,
-                                'count': len(inserts),
-                                'pos': insert_pos,
-                            })
-                        break
-            elif event_name == "text-delete":
-                retain_pos = 0
-                for op in text_delta['ops']:
-                    if 'retain' in op:
-                        retain_pos = op['retain']
-                    if 'delete' in op:
-                        delete_count = op['delete']
-                        delete_pos = min(retain_pos, len(text) - 1)
-                        last_pos = min(last_pos, delete_pos)
-                        deleted_text = text[delete_pos:delete_pos + delete_count]
-                        text = text[:delete_pos] + text[delete_pos + delete_count:]
-                        extracted_data['info'].append({
-                            'id': event_num,
-                            'name': event_name,
-                            'text': deleted_text,
-                            'eventSource': event_source,
-                            'event_time': event_time,
-                            'count': delete_count,
-                            'pos': delete_pos,
-                        })
-                        break
-            elif event_name == 'suggestion-open':
-                if "currentSuggestions" in entry:
-                    suggestions = [suggestion["trimmed"] for suggestion in entry["currentSuggestions"]]
+            event_name = entry.get('eventName')
+            event_source = entry.get('eventSource', 'unknown')
+            event_time = entry.get('event_time')
+            event_num = entry.get('eventNum')
+            pos = entry.get('currentCursor', 0)
+            for op in ops:
+                if 'retain' in op:
+                    pos += op['retain']
+                elif 'insert' in op:
+                    inserts = op['insert']
+                    if not isinstance(inserts, str):
+                        # print(f"skip image insert: {inserts}")
+                        continue
+                    source = event_source
+                    if previous_event_name == "suggestion-close" and len(inserts) > 5:
+                        source = "api"
+                    text = text[:pos] + inserts + text[pos:]
                     extracted_data['info'].append({
-                            'id': event_num,
-                            'name': event_name,
-                            'text': suggestions,
-                            'eventSource': event_source,
-                            'event_time': event_time,
-                            'count': '',
-                            'pos': '',
+                        'id': event_num,
+                        'name': 'text-insert',
+                        'text': inserts,
+                        'eventSource': source,
+                        'event_time': event_time,
+                        'count': len(inserts),
+                        'pos': pos,
                     })
-            previous_event_name = event_name
-        data = collect_data(extracted_data['info'], init_text, init_time, text, last_event_time)
+                    pos += len(inserts)
+                elif 'delete' in op:
+                    delete_count = op['delete']
+                    deleted_text = text[pos:pos + delete_count]
+                    text = text[:pos] + text[pos + delete_count:]
+                    extracted_data['info'].append({
+                        'id': event_num,
+                        'name': 'text-delete',
+                        'text': deleted_text,
+                        'eventSource': event_source,
+                        'event_time': event_time,
+                        'count': delete_count,
+                        'pos': pos,
+                    })
+            if event_name == 'suggestion-open' and entry.get('currentSuggestions'):
+                # suggestions = [s.get("trimmed", "") for s in entry["currentSuggestions"]]
+                extracted_data['info'].append({
+                    'id': event_num,
+                    'name': event_name,
+                    # 'text': suggestions,
+                    'eventSource': event_source,
+                    'event_time': event_time,
+                    # 'count': '',
+                    # 'pos': '',
+                })
+            if ops:
+                extracted_data['snapshots'].append({
+                    'text': text,
+                    'eventName': event_name,
+                    'eventSource': event_source,
+                    'event_time': event_time,
+                    'eventNum': event_num
+                })
+        # print(text)
+        data = collect_data(extracted_data['snapshots'], text)
         extracted_data['text'].append(text)
         extracted_data['end_time'] = last_event_time
         extracted_data.pop('json', None)
+        # check(extracted_data, text)
+        # extracted_data.pop('snapshots', None)
         # write_json(extracted_data, json_path, session)
-        # write_json(data, json_path, session)
+        # update_info(extracted_data, json_path, session)
+        write_json(data, json_path, session)
 
-def collect_data(extracted_data, init_text, init_time, whole_text, last_event_time):
-    data = []
-    whole_text = whole_text[:-1]
-    current_text = init_text
-    current_data = {
-        "text": list(init_text),
-        "source": "api",
-        "time": [init_time] * len(init_text),
-        "last_event_time": last_event_time,
-    }
-    data.append({
-        "text": list(current_data["text"]),
-        "source": current_data["source"],
-        "time": list(current_data["time"]),
-        "last_event_time": current_data["last_event_time"],
-        "start_time": init_time,
-        "end_time": init_time,
-    })
-    current_start_time = init_time
-    current_end_time = init_time
-    first_event = True
-    current_source = "api"
-    for entry in extracted_data:
-        if first_event:
-            current_start_time = entry["event_time"]
-            first_event = False
-        if entry["name"] == "text-insert":
-            if entry["eventSource"] != current_source:
-                data.append({
-                    "text": list(current_data["text"]),
+def check(data, correct):
+    text = data['init_text'][0] if data['init_text'] else ""
+    for entry in sorted(data["info"], key=lambda x: x['id']):
+        op_type = entry['name']
+        content = entry.get('text', '')
+        pos = entry.get('pos', 0)
+
+        if op_type == 'text-insert':
+            text = text[:pos] + content + text[pos:]
+        elif op_type == 'text-delete':
+            text = text[:pos] + text[pos + len(content):]
+    # print(correct)
+    # print(text)
+    # if text == correct:
+    #     print("yes")
+    # else:
+    #     print("no")
+
+def collect_data(snapshots, text):
+    segments = []
+    current_text = ""
+    current_source = None
+    current_start_time = None
+    current_end_time = None
+    for snap in snapshots:
+        text = snap['text']
+        source = snap['eventSource']
+        event_time = snap['event_time']
+        event_name = snap['eventName']
+        if current_source is None:
+            current_source = source
+            current_start_time = event_time
+        if source != current_source or event_name == "suggestion-open":
+            if current_text:
+                segments.append({
+                    "text": current_text,
                     "source": current_source,
-                    "time": list(current_data["time"]),
-                    "last_event_time": last_event_time,
                     "start_time": current_start_time,
                     "end_time": current_end_time,
+                    "last_event_time": current_end_time,
                 })
-                current_start_time = entry["event_time"]
-            if entry["pos"] == len(current_text):
-                current_text += entry["text"]
-                for char in entry["text"]:
-                    current_data["text"].append(char)
-                    current_data["time"].append(entry["event_time"])
-            else:
-                current_text = current_text[0:entry["pos"]] + entry["text"] + current_text[entry["pos"]:]
-                for i, char in enumerate(entry["text"]):
-                    insert_pos = entry["pos"] + i
-                    current_data["text"].insert(insert_pos, char)
-                    current_data["time"].insert(insert_pos, entry["event_time"])
-            current_source = entry["eventSource"]
-            current_end_time = entry["event_time"]
-        if entry["name"] == "text-delete":
-            current_text = current_text[0:entry["pos"]] + current_text[entry["pos"] + entry["count"]:]
-            remain_count = entry["count"]
-            index = entry["pos"]
-            while remain_count > 0 and index < len(current_data["text"]):
-                current_char = current_data["text"][index]
-                if len(current_char) <= remain_count:
-                    remain_count -= len(current_char)
-                    del current_data["text"][index]
-                    del current_data["time"][index]
-                else:
-                    current_data["text"][index] = current_char[remain_count:]
-                    remain_count = 0
-            current_end_time = entry["event_time"]
-        if entry["name"] == "suggestion-open":
-            data.append({
-                "text": list(current_data["text"]),
-                "source": current_source,
-                "time": list(current_data["time"]),
-                "last_event_time": last_event_time,
-                "start_time": current_start_time,
-                "end_time": current_end_time,
-            })
-            current_start_time = entry["event_time"]
-    data.append({
-        "text": list(current_data["text"]),
-        "source": current_source,
-        "time": list(current_data["time"]),
-        "last_event_time": last_event_time,
-        "start_time": current_start_time,
-        "end_time": last_event_time,
-    })
-
-    final_data = []
-    seen_texts = set()
-    current_progress = 0
-    prev_clean_text = None
-    for d in data:
-        d["text"] = "".join(d["text"])[:-1]
-        d["time"] = d["time"][:-1]
-        clean_text = d["text"].rstrip()
-        if clean_text == prev_clean_text:
-            continue
-        if d["text"] not in seen_texts:
-            final_data.append({k: v for k, v in d.items() if k != "time"})
-            seen_texts.add(d["text"])
-            prev_clean_text = clean_text
-    for d in final_data:
-        d["start_progress"] = current_progress
-        d["end_progress"] = len(d["text"]) / len(whole_text)
-        current_progress = d["end_progress"]
-
-    final_data = [{k: v for k, v in entry.items() if k != "time"} for entry in final_data]
-
-    return final_data
+            current_text = text
+            current_source = source
+            current_start_time = event_time
+        else:
+            current_text = text
+        current_end_time = event_time
+    if current_text:
+        segments.append({
+            "text": current_text,
+            "source": current_source,
+            "start_time": current_start_time,
+            "end_time": current_end_time,
+            "last_event_time": current_end_time,
+        })
+    # current_progress = 0
+    # total_length = len(text)
+    # for d in segments:
+    #     d["start_progress"] = current_progress
+    #     d["end_progress"] = len(d["text"]) / total_length
+    #     current_progress = d["end_progress"]
+    return segments
 
 def deal_sentence(data, suggestion_data, whole_text):
     last_event_time = data[0]["last_event_time"]
@@ -720,13 +688,14 @@ if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.abspath(__file__))  
     static_dir = os.path.dirname(script_dir)
     # json_path = os.path.join(static_dir, "fine.json")
-    json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0", "legislation_formal_study")
+    json_path = os.path.join(static_dir, "chi2022-coauthor-v1.0", "coauthor-v1.0")
     # session_id = load_json(json_path)
     session_id = []
     for filename in os.listdir(json_path): 
         filename = filename.removesuffix(".jsonl")
         session_id.append(filename)
-        print(filename)
+        # print(filename)
+
     # get_sentence(session_id, static_dir)
     get_data(session_id, static_dir)
     # add_fine(session_id, static_dir)

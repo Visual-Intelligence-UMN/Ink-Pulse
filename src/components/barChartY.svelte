@@ -41,8 +41,7 @@
     if (selectionMode) {
       if (sharedSelection && sharedSelection.selectionSource != "barChart_y") {
         brushGroup.select(".selection").style("display", "none");
-      }
-      else {
+      } else {
         brushGroup.select(".selection").style("display", null);
       }
 
@@ -75,22 +74,21 @@
     }
   }
 
-$: if (sharedSelection) {
-  sharedSelectionChanged();
-} else {
-  // Only run if svg, brushGroup, brush exist
-  if (svg && brushGroup && brush) {
-    if (bars) {
-      bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
-    }
+  $: if (sharedSelection) {
+    sharedSelectionChanged();
+  } else {
+    // Only run if svg, brushGroup, brush exist
+    if (svg && brushGroup && brush) {
+      if (bars) {
+        bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
+      }
 
-    if (currentSelection) {
-      brushGroup.call(brush.move, null);
-      currentSelection = null;
+      if (currentSelection) {
+        brushGroup.call(brush.move, null);
+        currentSelection = null;
+      }
     }
   }
-}
-
 
   function sharedSelectionChanged() {
     // console.log("Shared selection changed:", sharedSelection);
@@ -101,7 +99,12 @@ $: if (sharedSelection) {
     if (!xScale) return;
 
     function highlightBars(filteredData) {
-      if (!sharedSelection || !sharedSelection.progressMin || !sharedSelection.progressMax) return;
+      if (
+        !sharedSelection ||
+        !sharedSelection.progressMin ||
+        !sharedSelection.progressMax
+      )
+        return;
 
       const selectedIds = new Set(filteredData.map((d) => d.id));
       bars.attr("opacity", (d) => (selectedIds.has(d.id) ? 0.9 : 0.1));
@@ -175,7 +178,7 @@ $: if (sharedSelection) {
       .attr("height", chartHeight + margin.top + margin.bottom)
       .attr(
         "viewBox",
-        `0 0 ${chartWidth + margin.left + margin.right} ${chartHeight + margin.top + margin.bottom}`,
+        `0 0 ${chartWidth + margin.left + margin.right} ${chartHeight + margin.top + margin.bottom}`
       )
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
@@ -226,12 +229,12 @@ $: if (sharedSelection) {
       .attr("y", (d) =>
         newyScale(d.startProgress) < newyScale(d.endProgress)
           ? newyScale(d.startProgress)
-          : newyScale(d.endProgress),
+          : newyScale(d.endProgress)
       )
       .attr("x", (d) => xScale(d.residual_vector_norm))
       .attr("width", (d) => xScale(0) - xScale(d.residual_vector_norm))
       .attr("height", (d) =>
-        Math.abs(newyScale(d.startProgress) - newyScale(d.endProgress)),
+        Math.abs(newyScale(d.startProgress) - newyScale(d.endProgress))
       )
       .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
@@ -272,7 +275,11 @@ $: if (sharedSelection) {
       const progressMin = newyScale.invert(y1);
       const progressMax = newyScale.invert(y0);
 
-      sharedSelection = { progressMin, progressMax, selectionSource: "barChart_y" };
+      sharedSelection = {
+        progressMin,
+        progressMax,
+        selectionSource: "barChart_y",
+      };
     }
 
     function resetBars() {

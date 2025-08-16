@@ -140,6 +140,8 @@
     isValueTrendChecked = false;
   }
   let lastSession = null;
+  let datasets = [];
+  let selectedDataset = "creative";
 
   export const patternDataList = writable([]);
   export const initData = writable([]);
@@ -313,7 +315,7 @@
 
   // FETCH SCORES
   const fetchLLMScore = async (sessionFile) => {
-    const url = `${base}/chi2022-coauthor-v1.0/eval_results/${sessionFile}.json`;
+    const url = `${base}/chi2022-coauthor-v1.0/eval_results-${selectedDataset}/${sessionFile}.json`;
     try {
       const response = await fetch(url);
       if (!response.ok) {
@@ -739,7 +741,7 @@
     };
 
     try {
-      const fileListResponse = await fetch(`${base}/session_name.json`);
+      const fileListResponse = await fetch(`${base}/session_name-${selectedDataset}.json`);
       const fileList = await fileListResponse.json();
 
       for (const fileName of fileList) {
@@ -748,7 +750,7 @@
         //   continue;
         // }
         const dataResponse = await fetch(
-          `${base}/chi2022-coauthor-v1.0/similarity_results/${fileName}`
+          `${base}/chi2022-coauthor-v1.0/similarity_results-${selectedDataset}/${fileName}`
         );
         const data = await dataResponse.json();
         if (Array.isArray(data.chartData)) {
@@ -1037,7 +1039,7 @@
 
   const fetchLengthData = async () => {
     try {
-      const response = await fetch(`${base}/chi2022-coauthor-v1.0/length.json`);
+      const response = await fetch(`${base}/chi2022-coauthor-v1.0/length-${selectedDataset}.json`);
       if (!response.ok) {
         throw new Error(`Failed to fetch summary data: ${response.status}`);
       }
@@ -1053,7 +1055,7 @@
   const fetchOverallSemScoreSummaryData = async () => {
     try {
       const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/overall_sem_score_summary.json`
+        `${base}/chi2022-coauthor-v1.0/overall_sem_score_summary-${selectedDataset}.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch summary data: ${response.status}`);
@@ -1070,7 +1072,7 @@
   const fetchOverallSemScoreData = async () => {
     try {
       const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/overall_sem_score.json`
+        `${base}/chi2022-coauthor-v1.0/overall_sem_score-${selectedDataset}.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch summary data: ${response.status}`);
@@ -1087,7 +1089,7 @@
   const fetchLengthSummaryData = async () => {
     try {
       const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/length_summary.json`
+        `${base}/chi2022-coauthor-v1.0/length_summary-${selectedDataset}.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch summary data: ${response.status}`);
@@ -1104,7 +1106,7 @@
   const fetchPercentageSummaryData = async () => {
     try {
       const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/percentage_summary.json`
+        `${base}/chi2022-coauthor-v1.0/percentage_summary-${selectedDataset}.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch summary data: ${response.status}`);
@@ -1121,7 +1123,7 @@
   const fetchPercentageData = async () => {
     try {
       const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/percentage.json`
+        `${base}/chi2022-coauthor-v1.0/percentage-${selectedDataset}.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch summary data: ${response.status}`);
@@ -1138,7 +1140,7 @@
   const fetchScoreSummaryData = async () => {
     try {
       const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/score_summary.json`
+        `${base}/chi2022-coauthor-v1.0/score_summary-${selectedDataset}.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch summary data: ${response.status}`);
@@ -1188,7 +1190,7 @@
 
   const fetchSessions = async () => {
     try {
-      const response = await fetch(`${base}/fine.json`);
+      const response = await fetch(`${base}/fine-${selectedDataset}.json`);
       const data = await response.json();
       sessions = data || [];
 
@@ -1233,7 +1235,7 @@
   const fetchDataSummary = async (sessionFile) => {
     try {
       const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/coauthor-json/${sessionFile}.jsonl`
+        `${base}/chi2022-coauthor-v1.0/coauthor-json-${selectedDataset}/${sessionFile}.jsonl`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -1283,7 +1285,7 @@
     }
     try {
       const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/coauthor-json/${sessionFile}.jsonl`
+        `${base}/chi2022-coauthor-v1.0/coauthor-json-${selectedDataset}/${sessionFile}.jsonl`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -1330,7 +1332,7 @@
   const fetchSimilarityData = async (sessionFile) => {
     try {
       const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/similarity_results/${sessionFile}_similarity.json`
+        `${base}/chi2022-coauthor-v1.0/similarity_results-${selectedDataset}/${sessionFile}_similarity.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -1354,6 +1356,13 @@
   let isLoadOverallData = false
   onMount(async () => {
     document.title = "Ink-Pulse";
+    const res = await fetch(`${base}/dataset_name.json`);
+    datasets = await res.json();
+    const params = new URLSearchParams(window.location.search);
+    const datasetParam = params.get('dataset');
+    if (datasetParam && datasets.includes(datasetParam)) {
+      selectedDataset = datasetParam;
+    }
     scoreSummary = await fetchScoreSummaryData();
     percentageData = await fetchPercentageData();
     percentageSummaryData = await fetchPercentageSummaryData();
@@ -1522,95 +1531,87 @@
 
   const handleEvents = (data, _) => {
     const initText = data.init_text.join("");
-    let currentText = initText;
-    let currentColor = [];
+    let currentCharArray = initText.split("");
+    let currentColor = new Array(currentCharArray.length).fill("#FC8D62");
     let chartData = [];
     let paragraphColor = [];
     let firstTime = null;
     let indexOfAct = 0;
     const wholeText = data.text[0].slice(0, -1);
     const totalTextLength = wholeText.length;
-
     let totalInsertions = 0;
     let totalDeletions = 0;
     let totalSuggestions = 0;
-    let totalInsertionTime = 0;
-    let totalDeletionTime = 0;
-    let totalSuggestionTime = 0;
     let totalProcessedCharacters = totalTextLength;
-    let currentCharArray = initText.split("");
+    const sortedEvents = [...data.info].sort((a, b) => a.id - b.id);
+    let combinedText = [...initText].map((ch) => ({ text: ch, textColor: "#FC8D62" }));
+    sortedEvents.forEach((event) => {
+      const { name, text = "", eventSource, event_time, count = 0, pos = 0 } = event;
+      const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
+      const eventTime = new Date(event_time);
 
-    const initColor = "#FC8D62";
-    currentColor = new Array(currentCharArray.length).fill(initColor);
+      if (firstTime === null) {
+        firstTime = eventTime;
+        paragraphTime = [{ time: 0, pos: 0 }];
+      }
 
-    let combinedText = data.info.reduce(
-      (acc, event) => {
-        const {
-          name,
-          text = "",
-          eventSource,
-          event_time,
-          count = 0,
-          pos = 0,
-        } = event;
-        const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
-        const eventTime = new Date(event_time);
+      const relativeTime = (eventTime.getTime() - firstTime.getTime()) / 60000;
 
-        if (firstTime === null) {
-          firstTime = eventTime;
-          paragraphTime = [{ time: 0, pos: 0 }];
-        }
+      if (name === "text-insert") {
+        const insertChars = [...text];
+        const insertPos = Math.min(pos, currentCharArray.length);
 
-        const relativeTime =
-          (eventTime.getTime() - firstTime.getTime()) / 60000;
-        let percentage;
+        insertChars.forEach((ch, i) => {
+          currentCharArray.splice(insertPos + i, 0, ch);
+          currentColor.splice(insertPos + i, 0, textColor);
+          combinedText.splice(insertPos + i, 0, { text: ch, textColor });
 
-        if (name === "text-insert") {
-          const insertChars = [...text];
-          currentCharArray.splice(pos, 0, ...insertChars);
-          currentColor.splice(pos, 0, ...insertChars.map(() => textColor));
-          currentText = currentCharArray.join("");
-          insertChars.forEach((char, i) => {
-            acc.splice(pos + i, 0, { text: char, textColor });
+          const percentage = (currentCharArray.length / totalTextLength) * 100;
+
+          chartData.push({
+            time: relativeTime,
+            percentage,
+            eventSource,
+            color: textColor,
+            currentText: currentCharArray.join(""),
+            currentColor: [...currentColor],
+            opacity: 1,
+            isSuggestionOpen: name === "suggestion-open",
+            index: indexOfAct++,
           });
+
           totalInsertions++;
-          totalInsertionTime += relativeTime;
-        }
-
-        if (name === "text-delete") {
-          currentCharArray.splice(pos, count);
-          currentColor.splice(pos, count);
-          currentText = currentCharArray.join("");
-          acc.splice(pos, count);
-          totalDeletions++;
-          totalDeletionTime += relativeTime;
-        }
-
-        if (name === "suggestion-open") {
-          totalSuggestions++;
-          totalSuggestionTime += relativeTime;
-        }
-
-        percentage = (currentCharArray.length / totalTextLength) * 100;
-
-        chartData.push({
-          time: relativeTime,
-          percentage,
-          eventSource,
-          color: textColor,
-          currentText,
-          currentColor: [...currentColor],
-          opacity: 1,
-          isSuggestionOpen: name === "suggestion-open",
-          index: indexOfAct++,
         });
+      }
+      if (name === "text-delete") {
+        const deleteCount = text.length || count;
+        currentCharArray.splice(pos, deleteCount);
+        currentColor.splice(pos, deleteCount);
+        combinedText.splice(pos, deleteCount);
+        totalDeletions++;
+        totalProcessedCharacters -= deleteCount;
+      }
 
-        return acc;
-      },
-      [...initText].map((ch) => ({ text: ch, textColor: "#FC8D62" }))
-    );
+      if (name === "suggestion-open") {
+        totalSuggestions++;
+      }
 
-    paragraphTime = adjustTime(currentText, chartData);
+      const percentage = (currentCharArray.length / totalTextLength) * 100;
+
+      chartData.push({
+        time: relativeTime,
+        percentage,
+        eventSource,
+        color: textColor,
+        currentText: currentCharArray.join(""),
+        currentColor: [...currentColor],
+        opacity: 1,
+        isSuggestionOpen: name === "suggestion-open",
+        index: indexOfAct++,
+      });
+    });
+
+    paragraphTime = adjustTime(currentCharArray.join(""), chartData);
     for (let i = 0; i < paragraphTime.length - 1; i++) {
       const { time: startTime } = paragraphTime[i];
       const { time: endTime } = paragraphTime[i + 1];
@@ -1629,10 +1630,7 @@
       });
     }
 
-    if (
-      combinedText.length &&
-      combinedText[combinedText.length - 1].text === "\n"
-    ) {
+    if (combinedText.length && combinedText[combinedText.length - 1].text === "\n") {
       combinedText.pop();
       currentCharArray.pop();
       currentColor.pop();
@@ -1780,13 +1778,18 @@
     handleContainerClick({ detail: { sessionId: sessionData.sessionId } });
     handleBackFromDetail();
   }
+
+  function handleDatasetChange(event) {
+    selectedDataset = event.target.value;
+    window.location.href = `${window.location.pathname}?dataset=${selectedDataset}`;
+  }
 </script>
 
 <div class="App">
   <header class="App-header">
     <nav>
       <div class="chart-explanation">
-        <span class="triangle-text">▼</span> user open the AI suggestion &nbsp;
+        <span class="triangle-text">▼</span> User open the AI suggestion &nbsp;
         <span class="user-line">●</span> User written &nbsp;
         <span class="api-line">●</span> AI writing
       </div>
@@ -1804,6 +1807,12 @@
           swap_horiz
         </a>
       {/if}
+      <label for="dataset-select">Dataset:</label>
+      <select id="dataset-select" bind:value={selectedDataset} on:change={handleDatasetChange}>
+        {#each datasets as dataset}
+          <option value={dataset}>{dataset}</option>
+        {/each}
+      </select>
       <div style="flex: 1;"></div>
       <div style="display: flex; gap: 0.5em; align-items: right;">
         <button

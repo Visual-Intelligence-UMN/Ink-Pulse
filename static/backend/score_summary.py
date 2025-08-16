@@ -1,6 +1,8 @@
 import json
 import os
 
+dataset_name = "argumentative"
+
 def load_json(json_path):
     with open(json_path, "r", encoding="utf-8") as input_file:
         data = json.load(input_file)
@@ -9,7 +11,7 @@ def load_json(json_path):
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     static_dir = os.path.dirname(script_dir)
-    note_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", "eval_results")
+    note_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", f"eval_results-{dataset_name}")
     num_dic = {}
     num = []
     for file_name in os.listdir(note_dir):
@@ -23,7 +25,7 @@ def main():
         else:
             num_dic[n] = 1
     print(num_dic)
-    save_path = os.path.join(static_dir, "chi2022-coauthor-v1.0", "score_summary.json")
+    save_path = os.path.join(static_dir, "chi2022-coauthor-v1.0", f"score_summary-{dataset_name}.json")
     with open(save_path, "w", encoding="utf-8") as f:
         json.dump(num_dic, f, ensure_ascii=False, indent=4)
             

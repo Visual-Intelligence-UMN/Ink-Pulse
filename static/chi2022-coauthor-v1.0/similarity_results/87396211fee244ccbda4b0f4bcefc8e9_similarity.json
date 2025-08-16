@@ -1,26 +1,32 @@
 [
     {
-        "sentence": 0.8526666666666667,
         "source": "api",
-        "start_progress": 0.1055512118842846,
-        "end_progress": 0.12783424550430023,
-        "start_time": 27.0,
-        "end_time": 27.0,
-        "last_event_time": 589.0,
-        "residual_vector": 0.2529807452764874,
-        "residual_vector_norm": 1.0,
+        "start_progress": 0,
+        "end_progress": 0.10590074247753029,
+        "start_time": 0.0,
+        "end_time": 0.0,
+        "last_event_time": 0.0,
+        "residual_vector_norm": 0.0,
         "score": 7
     },
     {
-        "sentence": 0.8526666666666667,
+        "source": "api",
+        "start_progress": 0.10590074247753029,
+        "end_progress": 0.1281750683860883,
+        "start_time": 27.0,
+        "end_time": 27.0,
+        "last_event_time": 27.0,
+        "residual_vector_norm": 0.3290024737973418,
+        "score": 7
+    },
+    {
         "source": "user",
-        "start_progress": 0.12783424550430023,
+        "start_progress": 0.1281750683860883,
         "end_progress": 1.0,
         "start_time": 27.0,
         "end_time": 589.0,
         "last_event_time": 589.0,
-        "residual_vector": 0.7641368170633288,
-        "residual_vector_norm": 0.5514714453443996,
+        "residual_vector_norm": 1.0,
         "score": 7
     }
 ]
