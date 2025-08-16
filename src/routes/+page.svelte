@@ -1337,7 +1337,7 @@
   let isLoadOverallData = false
   onMount(async () => {
     document.title = "Ink-Pulse";
-    const res = await fetch('/dataset_name.json');
+    const res = await fetch(`${base}/dataset_name.json`);
     datasets = await res.json();
     const params = new URLSearchParams(window.location.search);
     const datasetParam = params.get('dataset');
