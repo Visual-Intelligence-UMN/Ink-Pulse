@@ -5,7 +5,7 @@ import random
 random.seed(23)
 import json
 
-api_key = ""
+api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=api_key)
 
 def load_json(json_path):
@@ -33,7 +33,6 @@ def chatgpt_prompter(input_prompt):
 
 def evaluate_prompt(session_id, topic, intro, article):
     result = []
-    note = [] 
     EVALUATION_PROMPT_TEMPLATE = f"""
         Topic: {topic}
         Introduction: {intro}
@@ -65,10 +64,10 @@ def evaluate_prompt(session_id, topic, intro, article):
         score:
     """      
     answer = chatgpt_prompter(EVALUATION_PROMPT_TEMPLATE)
-    print("system_prompt: ", EVALUATION_PROMPT_TEMPLATE)
-    print(answer)
+    # print("system_prompt: ", EVALUATION_PROMPT_TEMPLATE)
+    # print(answer)
     score = process_evaluate(answer)
-    print(score)
+    # print(score)
     result.append({
         'Prompt': EVALUATION_PROMPT_TEMPLATE,
         'Evaluation': answer,
@@ -78,10 +77,19 @@ def evaluate_prompt(session_id, topic, intro, article):
 
 def process_evaluate(answer):
     answer = answer.strip().removeprefix("```json").removesuffix("```").strip()
-    data = json.loads(answer)
-    idea_score = data["idea_score"]
-    coherence_score = data["coherence_score"]
-    score = int (idea_score) + int(coherence_score)
+    if answer.startswith("[") and answer.endswith("]"):
+        answer = "{" + answer[1:-1] + "}"
+    try:
+        data = json.loads(answer)
+        idea_score = data["idea_score"]
+        coherence_score = data["coherence_score"]
+        score = int (idea_score) + int(coherence_score)
+    except Exception as e:
+        print("Fail:", answer)
+        print(e)
+        score = 0
+        with open("failed.txt", "a") as f:
+            f.write(answer + "\n")
     return score
 
 def longest_common(s1, s2):
@@ -116,7 +124,7 @@ def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     static_dir = os.path.dirname(script_dir)
     session_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", "coauthor-json")
-    topic_dir = os.path.join(static_dir, "session_metadata.csv")
+    topic_dir = os.path.join(static_dir, "Metadata (creative).csv")
     output_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", "similarity_results")
     note_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", "eval_results")
     # os.makedirs(output_dir, exist_ok=True)

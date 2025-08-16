@@ -93,25 +93,26 @@ if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))  
     static_dir = os.path.dirname(script_dir)
     output_path = static_dir
-    # file_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-v1.0")
-    file_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/legislation_formal_study")
+    file_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/coauthor-v1.0")
+    # file_path = os.path.join(static_dir, "chi2022-coauthor-v1.0/legislation_formal_study")
     json_files = [f for f in os.listdir(file_path) if f.endswith('.jsonl')]
-    create_json(json_files)
-    issue_file_path = os.path.join(output_path, "issue-new.json")
-    with open(issue_file_path, 'r', encoding='utf-8') as f:
-        issue_file = json.load(f)
-    fine_session = check_unique(issue_file, json_files)
-    fine_file_path = os.path.join(output_path, f"fine-new-new.json")
-    # csv_path = os.path.join(output_path, "session_metadata.csv")
-    # with open(fine_file_path, 'w', encoding='utf-8') as output_file:
-    #     json.dump(fine_session, output_file, ensure_ascii=False, indent=4)
-    #     print("Done.")
+    # create_json(json_files)
+    # issue_file_path = os.path.join(output_path, "issue-new.json")
+    # with open(issue_file_path, 'r', encoding='utf-8') as f:
+    #     issue_file = json.load(f)
+    # fine_session = check_unique(issue_file, json_files)
+    fine_file_path = os.path.join(output_path, f"fine-creative.json")
+    csv_path = os.path.join(output_path, "Metadata (creative).csv")
+    csv_data = read_csv(csv_path)
+    fine_session = [row['session_id'] for row in csv_data]
 
-    # with open(fine_file_path, 'r', encoding='utf-8') as fine_file:
-    #     fine_session = json.load(fine_file)
+    with open(fine_file_path, 'w', encoding='utf-8') as output_file:
+        json.dump(fine_session, output_file, ensure_ascii=False, indent=4)
+        print("Done.")
 
-    # csv_data = read_csv(csv_path)
+    with open(fine_file_path, 'r', encoding='utf-8') as fine_file:
+        fine_session = json.load(fine_file)
 
-    # updated_fine_session = merge_csv_with_json(csv_data, fine_session)
+    updated_fine_session = merge_csv_with_json(csv_data, fine_session)
 
-    # update_fine_json(updated_fine_session, fine_file_path)
+    update_fine_json(updated_fine_session, fine_file_path)

@@ -2,6 +2,8 @@ import json
 import os
 import pandas as pd
 
+dataset_name = "creative"
+
 def load_json(json_path):
     with open(json_path, "r", encoding="utf-8") as input_file:
         data = json.load(input_file)
@@ -10,7 +12,7 @@ def load_json(json_path):
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     static_dir = os.path.dirname(script_dir)
-    note_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", "coauthor-json")
+    note_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", f"coauthor-json-{dataset_name}")
     summary = []
     for file_name in os.listdir(note_dir):
         ai_num = 0
@@ -20,20 +22,21 @@ def main():
             file_path = os.path.join(note_dir, file_name)
             data = load_json(file_path)
             for d in data["info"]:
-                if d["eventSource"] == "api":
-                    ai_num += 1
-                else:
-                    human_num += 1
+                if d["name"] == "text-insert":
+                    if d["eventSource"] == "api":
+                        ai_num += d["count"]
+                    else:
+                        human_num += d["count"]
             all = ai_num + human_num
             summary.append([session_id, ai_num / all, human_num / all])
-    save_path = os.path.join(static_dir, "chi2022-coauthor-v1.0", "percentage.json")
+    save_path = os.path.join(static_dir, "chi2022-coauthor-v1.0", f"percentage-{dataset_name}.json")
     with open(save_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=4)
             
 def change_format():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     static_dir = os.path.dirname(script_dir)
-    note_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", "percentage.json")
+    note_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", f"percentage-{dataset_name}.json")
     data = load_json(note_dir)
     df = pd.DataFrame(data, columns=["id", "ai_ratio", "human_ratio"])
     bins = [i/10 for i in range(11)]
@@ -43,7 +46,7 @@ def change_format():
     bin_counts = bin_counts.to_dict()
     print(bin_counts)
     
-    save_path = os.path.join(static_dir, "chi2022-coauthor-v1.0", "percentage_summary.json")
+    save_path = os.path.join(static_dir, "chi2022-coauthor-v1.0", f"percentage_summary-{dataset_name}.json")
     with open(save_path, "w", encoding="utf-8") as f:
         json.dump(bin_counts, f, ensure_ascii=False, indent=4)
 
