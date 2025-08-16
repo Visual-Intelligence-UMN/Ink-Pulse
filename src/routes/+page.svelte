@@ -743,6 +743,7 @@
     try {
       const fileListResponse = await fetch(`${base}/session_name-${selectedDataset}.json`);
       const fileList = await fileListResponse.json();
+      console.log("File list length:", fileList.length);
 
       for (const fileName of fileList) {
         // const fileId = fileName.split(".")[0].replace(/_similarity$/, "");
@@ -1815,20 +1816,7 @@
       </select>
       <div style="flex: 1;"></div>
       <div style="display: flex; gap: 0.5em; align-items: right;">
-        <button
-          class="pattern-search-button"
-          on:click={exportDB}
-          aria-label="Save Pattern"
-        >
-          Save Pattern
-        </button>
-        <button
-          class="pattern-search-button"
-          on:click={triggerImport}
-          aria-label="Load Pattern"
-        >
-          Load Pattern
-        </button>
+
         <button
           class="pattern-search-button"
           class:active={showPatternSearch}
@@ -2110,7 +2098,7 @@
                         <button
                           class="search-pattern-button"
                           on:click={openSavePanel}
-                          >Save NOW pattern
+                          >Save NOW Pattern
                         </button>
                       </div>
                       <div style="text-align: center; margin-top: 10px;">
