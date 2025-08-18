@@ -23,8 +23,6 @@
   let flag = "overall";
   let selectedId = "pattern_0";
   let title = [pattern.name, searchPatternSet.find(p => p.id === selectedId).name];
-
-  console.log(init)
   
   const dispatch = createEventDispatcher();
   

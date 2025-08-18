@@ -1,0 +1,6032 @@
+{
+    "init_text": [
+        "You're Barack Obama. 4 years into your retirement, you awake to find a letter with no return address on your bedside table. It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\"\n"
+    ],
+    "init_time": [
+        "2021-08-23 10:07:25"
+    ],
+    "text": [
+        "You're Barack Obama. 4 years into your retirement, you awake to find a letter with no return address on your bedside table. It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\"\n\nTrigger warning: Explicit descriptions of violence/gore\nYou throw on some clothes, and call the number.  An old familiar voice picks up on the other line, \"It's time to get to work. Sorry for the letter, but I didn't have a chance to talk with you before you left office. I need you to do exactly as I say, you'll be working with some familiar faces from the old days.\" \n\n\nJFK continues, \"I promise you'll find it all very interesting, but for now, be ready to fly out in the next hour.\" You pack your bags and head to the airport.  On the plane, you're joined by Jackie O's spirit. \"You've got a lot to learn about the spirit world, but I'll give you a quick primer. You can see, hear, and interact with me right now. You can talk to other spirits who have crossed over, but you can only see them when they want you to. When you leave this plane, you'll enter the spirit realm. The rules are different over there. You'll be able to see and hear everyone, but they won't be able to see or hear you. You'll be working with a team of people from all around the world.\"\n\n\n\"Your first job is to find a veteran who suffers from demonic possession. He's been having some troubles adjusting to civilian life. He's a good man who has a lot to offer, but there are some demons in his past that have been haunting him. Get to him before those demons do.\"\n\n\nYou arrive in Vegas, you're met by Malcolm X. \"You're late...I'll fill you in on the way to the casino, \" he says. \nHe explains that you're now in spirit form, heading for a briefing of grave importance. \n\nYour whole team is here, Martin Luther King Jr., Malcolm X, JFK, MLK JR., John Lennon, and even Gandhi. You're all dressed in tuxedos. The limo pulls up to the front of the Bellagio. In spirit form, you all enter the casino and make your way to a private room on the top floor.\n\nInside the room, you see a large round table with 9 chairs. Everyone sits down.  JFK says, \"Alright gentlemen, I'll get right to it. We have a situation. The one you have to reach is a man named Mike. He was a good man, raised by two wonderful parents. They died in a car accident when he was 19, and that's when everything went wrong for Mike.\"\n\n\"He got into drugs, and was homeless. He joined the marines right before he turned 21, and he fought his way to Iraq. There, he saw his friends being blown to pieces by IEDs and suicide bombers. He was susceptible to demons, and they possessed him. The last thing he remembers is seeing his friend's brains splatter against the wall of a house in Fallujah. He woke up in a hotel room with his friend's blood on his hands, and no memory of what happened to him. Mike has an item we need to stop further demonic possession. But we can't find out where he hid it, until we exorcise him. \"\n\nYou are overwhelmed with questions. How will you exorcise someone, and how will you know what to do?\n"
+    ],
+    "info": [
+        {
+            "id": 1,
+            "name": "text-insert",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:07:28",
+            "count": 1,
+            "pos": 280
+        },
+        {
+            "id": 2,
+            "name": "text-insert",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:07:29",
+            "count": 1,
+            "pos": 281
+        },
+        {
+            "id": 4,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:07:32"
+        },
+        {
+            "id": 8,
+            "name": "text-insert",
+            "text": "You throw on some clothes, and call the number.\n",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:07:38",
+            "count": 48,
+            "pos": 283
+        },
+        {
+            "id": 9,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:07:39",
+            "count": 1,
+            "pos": 330
+        },
+        {
+            "id": 11,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:07:42"
+        },
+        {
+            "id": 15,
+            "name": "text-insert",
+            "text": "An old familiar voice picks up on the other line, \"It's time to get to work.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:07:48",
+            "count": 76,
+            "pos": 331
+        },
+        {
+            "id": 17,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:07:51",
+            "count": 1,
+            "pos": 331
+        },
+        {
+            "id": 19,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:07:53",
+            "count": 1,
+            "pos": 408
+        },
+        {
+            "id": 21,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:07:56"
+        },
+        {
+            "id": 26,
+            "name": "text-insert",
+            "text": "Sorry for the letter, but I didn't have a chance to talk with you before you left office.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:08:07",
+            "count": 89,
+            "pos": 409
+        },
+        {
+            "id": 27,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:08:09",
+            "count": 1,
+            "pos": 498
+        },
+        {
+            "id": 29,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:08:11"
+        },
+        {
+            "id": 35,
+            "name": "text-insert",
+            "text": "I need you to do exactly as I say, you'll be working with some familiar faces from the old days.\"",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:08:20",
+            "count": 97,
+            "pos": 499
+        },
+        {
+            "id": 36,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:08:23",
+            "count": 1,
+            "pos": 596
+        },
+        {
+            "id": 38,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:08:26"
+        },
+        {
+            "id": 43,
+            "name": "text-insert",
+            "text": "\n\nJFK continues, \"I promise you'll find it all very interesting, but for now, be ready to fly out in the next hour\n",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:08:33",
+            "count": 115,
+            "pos": 598
+        },
+        {
+            "id": 44,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:08:34",
+            "count": 1,
+            "pos": 712
+        },
+        {
+            "id": 46,
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:08:41",
+            "count": 1,
+            "pos": 712
+        },
+        {
+            "id": 47,
+            "name": "text-insert",
+            "text": ".",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:08:43",
+            "count": 1,
+            "pos": 712
+        },
+        {
+            "id": 48,
+            "name": "text-insert",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:08:43",
+            "count": 1,
+            "pos": 713
+        },
+        {
+            "id": 49,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:08:44",
+            "count": 1,
+            "pos": 714
+        },
+        {
+            "id": 51,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:08:47"
+        },
+        {
+            "id": 59,
+            "name": "text-insert",
+            "text": "\n\nYou pack your bags and head to the airport.\n",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:08:55",
+            "count": 46,
+            "pos": 716
+        },
+        {
+            "id": 61,
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:08:57",
+            "count": 1,
+            "pos": 717
+        },
+        {
+            "id": 62,
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:08:57",
+            "count": 1,
+            "pos": 716
+        },
+        {
+            "id": 64,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:08:59",
+            "count": 1,
+            "pos": 759
+        },
+        {
+            "id": 66,
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:09:01",
+            "count": 1,
+            "pos": 715
+        },
+        {
+            "id": 68,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:09:03",
+            "count": 1,
+            "pos": 759
+        },
+        {
+            "id": 70,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:09:05"
+        },
+        {
+            "id": 74,
+            "name": "text-insert",
+            "text": "\n\nOn the plane, you're joined by Jackie O's spirit.\n",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:09:10",
+            "count": 52,
+            "pos": 761
+        },
+        {
+            "id": 76,
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:09:12",
+            "count": 1,
+            "pos": 762
+        },
+        {
+            "id": 77,
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:09:12",
+            "count": 1,
+            "pos": 761
+        },
+        {
+            "id": 78,
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:09:12",
+            "count": 1,
+            "pos": 760
+        },
+        {
+            "id": 80,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:09:14",
+            "count": 1,
+            "pos": 809
+        },
+        {
+            "id": 82,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:09:17"
+        },
+        {
+            "id": 87,
+            "name": "text-insert",
+            "text": "\"You've got a lot to learn about the spirit world, but I'll give you a quick primer.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:09:21",
+            "count": 84,
+            "pos": 810
+        },
+        {
+            "id": 89,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:09:26"
+        },
+        {
+            "id": 93,
+            "name": "text-insert",
+            "text": " You can see, hear, and interact with me right now.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:09:30",
+            "count": 51,
+            "pos": 894
+        },
+        {
+            "id": 94,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:09:31",
+            "count": 1,
+            "pos": 945
+        },
+        {
+            "id": 96,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:09:33"
+        },
+        {
+            "id": 100,
+            "name": "text-insert",
+            "text": "You can talk to other spirits who have crossed over, but you can only see them when they want you to.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:09:36",
+            "count": 101,
+            "pos": 946
+        },
+        {
+            "id": 102,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:09:39"
+        },
+        {
+            "id": 116,
+            "name": "text-insert",
+            "text": " When you leave this plane, you'll enter the spirit realm.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:09:52",
+            "count": 58,
+            "pos": 1047
+        },
+        {
+            "id": 118,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:09:55"
+        },
+        {
+            "id": 126,
+            "name": "text-insert",
+            "text": " The rules are different over there.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:10:00",
+            "count": 36,
+            "pos": 1105
+        },
+        {
+            "id": 128,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:10:05"
+        },
+        {
+            "id": 134,
+            "name": "text-insert",
+            "text": " You'll be able to see and hear everyone, but they won't be able to see or hear you.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:10:12",
+            "count": 84,
+            "pos": 1141
+        },
+        {
+            "id": 136,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:10:16"
+        },
+        {
+            "id": 141,
+            "name": "text-insert",
+            "text": " You'll be working with a team of people from all around the world.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:10:25",
+            "count": 67,
+            "pos": 1225
+        },
+        {
+            "id": 142,
+            "name": "text-insert",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:10:27",
+            "count": 1,
+            "pos": 1292
+        },
+        {
+            "id": 143,
+            "name": "text-insert",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:10:28",
+            "count": 1,
+            "pos": 1293
+        },
+        {
+            "id": 144,
+            "name": "text-insert",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:10:28",
+            "count": 1,
+            "pos": 1294
+        },
+        {
+            "id": 146,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:10:31"
+        },
+        {
+            "id": 151,
+            "name": "text-insert",
+            "text": "\"Your first job is to find a veteran who voted for Trump.\n",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:10:36",
+            "count": 58,
+            "pos": 1296
+        },
+        {
+            "id": 153,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:10:39"
+        },
+        {
+            "id": 161,
+            "name": "text-insert",
+            "text": " He's been having some troubles adjusting to civilian life.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:10:48",
+            "count": 59,
+            "pos": 1353
+        },
+        {
+            "id": 163,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:10:51"
+        },
+        {
+            "id": 168,
+            "name": "text-insert",
+            "text": " He's a good man who has a lot to offer, but there are some demons in his past that have been haunting him.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:10:55",
+            "count": 107,
+            "pos": 1412
+        },
+        {
+            "id": 169,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:10:56",
+            "count": 1,
+            "pos": 1519
+        },
+        {
+            "id": 171,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:10:58"
+        },
+        {
+            "id": 182,
+            "name": "text-insert",
+            "text": "Get to him before those demons do.\"",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:11:09",
+            "count": 35,
+            "pos": 1520
+        },
+        {
+            "id": 183,
+            "name": "text-insert",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:11:10",
+            "count": 1,
+            "pos": 1555
+        },
+        {
+            "id": 184,
+            "name": "text-insert",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:11:10",
+            "count": 1,
+            "pos": 1556
+        },
+        {
+            "id": 186,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:11:13"
+        },
+        {
+            "id": 193,
+            "name": "text-insert",
+            "text": "You arrive in Vegas, you're met by Malcolm X.\n",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:11:18",
+            "count": 46,
+            "pos": 1558
+        },
+        {
+            "id": 195,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:11:22"
+        },
+        {
+            "id": 200,
+            "name": "text-insert",
+            "text": " \"You're late...I'll fill you in on the way to the casino.\"",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:11:30",
+            "count": 59,
+            "pos": 1603
+        },
+        {
+            "id": 202,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:11:32"
+        },
+        {
+            "id": 207,
+            "name": "text-insert",
+            "text": "\n\nYour whole team is here, Martin Luther King Jr., Malcolm X, JFK, MLK JR., John Lennon, and even Gandhi.\n",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:11:38",
+            "count": 106,
+            "pos": 1663
+        },
+        {
+            "id": 209,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:11:42"
+        },
+        {
+            "id": 212,
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:11:44",
+            "count": 1,
+            "pos": 1664
+        },
+        {
+            "id": 213,
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:11:44",
+            "count": 1,
+            "pos": 1663
+        },
+        {
+            "id": 215,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:11:46",
+            "count": 1,
+            "pos": 1766
+        },
+        {
+            "id": 217,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:11:48"
+        },
+        {
+            "id": 228,
+            "name": "text-insert",
+            "text": "You're all dressed in tuxedos.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:11:54",
+            "count": 30,
+            "pos": 1767
+        },
+        {
+            "id": 230,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:11:57"
+        },
+        {
+            "id": 237,
+            "name": "text-insert",
+            "text": " The limo pulls up to the front of the Bellagio.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:12:08",
+            "count": 48,
+            "pos": 1797
+        },
+        {
+            "id": 238,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:09",
+            "count": 1,
+            "pos": 1845
+        },
+        {
+            "id": 240,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:12:11"
+        },
+        {
+            "id": 246,
+            "name": "text-insert",
+            "text": "You all enter the casino and make your way to a private room on the top floor.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:12:17",
+            "count": 78,
+            "pos": 1846
+        },
+        {
+            "id": 247,
+            "name": "text-insert",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:19",
+            "count": 1,
+            "pos": 1924
+        },
+        {
+            "id": 249,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:12:22"
+        },
+        {
+            "id": 254,
+            "name": "text-insert",
+            "text": "Inside the room, you see a large round table with 9 chairs.\n",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:12:26",
+            "count": 60,
+            "pos": 1926
+        },
+        {
+            "id": 256,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:12:30"
+        },
+        {
+            "id": 264,
+            "name": "text-insert",
+            "text": " You and JFK sit down.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:12:38",
+            "count": 22,
+            "pos": 1985
+        },
+        {
+            "id": 266,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:12:40"
+        },
+        {
+            "id": 270,
+            "name": "text-insert",
+            "text": "\n\nJFK says, \"Alright gentlemen, I'll get right to it.\n",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:12:46",
+            "count": 54,
+            "pos": 2008
+        },
+        {
+            "id": 272,
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:50",
+            "count": 1,
+            "pos": 2009
+        },
+        {
+            "id": 273,
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:50",
+            "count": 1,
+            "pos": 2008
+        },
+        {
+            "id": 275,
+            "name": "text-insert",
+            "text": "E",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:54",
+            "count": 1,
+            "pos": 1986
+        },
+        {
+            "id": 275,
+            "name": "text-delete",
+            "text": "You and JFK",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:54",
+            "count": 11,
+            "pos": 1987
+        },
+        {
+            "id": 276,
+            "name": "text-insert",
+            "text": "v",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:55",
+            "count": 1,
+            "pos": 1987
+        },
+        {
+            "id": 277,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:55",
+            "count": 1,
+            "pos": 1988
+        },
+        {
+            "id": 278,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:55",
+            "count": 1,
+            "pos": 1989
+        },
+        {
+            "id": 279,
+            "name": "text-insert",
+            "text": "y",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:55",
+            "count": 1,
+            "pos": 1990
+        },
+        {
+            "id": 280,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:55",
+            "count": 1,
+            "pos": 1991
+        },
+        {
+            "id": 281,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:56",
+            "count": 1,
+            "pos": 1992
+        },
+        {
+            "id": 282,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:56",
+            "count": 1,
+            "pos": 1993
+        },
+        {
+            "id": 283,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:56",
+            "count": 1,
+            "pos": 1995
+        },
+        {
+            "id": 284,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:56",
+            "count": 1,
+            "pos": 1995
+        },
+        {
+            "id": 285,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:56",
+            "count": 1,
+            "pos": 1996
+        },
+        {
+            "id": 286,
+            "name": "text-delete",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:57",
+            "count": 1,
+            "pos": 1996
+        },
+        {
+            "id": 287,
+            "name": "text-delete",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:57",
+            "count": 1,
+            "pos": 1995
+        },
+        {
+            "id": 288,
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:57",
+            "count": 1,
+            "pos": 1995
+        },
+        {
+            "id": 289,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:12:59",
+            "count": 1,
+            "pos": 1998
+        },
+        {
+            "id": 291,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:07",
+            "count": 1,
+            "pos": 1846
+        },
+        {
+            "id": 292,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:07",
+            "count": 1,
+            "pos": 1847
+        },
+        {
+            "id": 293,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:07",
+            "count": 1,
+            "pos": 1848
+        },
+        {
+            "id": 294,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:08",
+            "count": 1,
+            "pos": 1849
+        },
+        {
+            "id": 295,
+            "name": "text-insert",
+            "text": "p",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:08",
+            "count": 1,
+            "pos": 1850
+        },
+        {
+            "id": 296,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:08",
+            "count": 1,
+            "pos": 1851
+        },
+        {
+            "id": 297,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:08",
+            "count": 1,
+            "pos": 1852
+        },
+        {
+            "id": 298,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:08",
+            "count": 1,
+            "pos": 1853
+        },
+        {
+            "id": 299,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:08",
+            "count": 1,
+            "pos": 1854
+        },
+        {
+            "id": 300,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:09",
+            "count": 1,
+            "pos": 1855
+        },
+        {
+            "id": 301,
+            "name": "text-insert",
+            "text": "f",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:09",
+            "count": 1,
+            "pos": 1856
+        },
+        {
+            "id": 302,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:09",
+            "count": 1,
+            "pos": 1857
+        },
+        {
+            "id": 303,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:09",
+            "count": 1,
+            "pos": 1858
+        },
+        {
+            "id": 304,
+            "name": "text-insert",
+            "text": "m",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:09",
+            "count": 1,
+            "pos": 1859
+        },
+        {
+            "id": 305,
+            "name": "text-insert",
+            "text": ",",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:10",
+            "count": 1,
+            "pos": 1860
+        },
+        {
+            "id": 306,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:10",
+            "count": 1,
+            "pos": 1861
+        },
+        {
+            "id": 308,
+            "name": "text-delete",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:12",
+            "count": 1,
+            "pos": 1846
+        },
+        {
+            "id": 309,
+            "name": "text-insert",
+            "text": "I",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:12",
+            "count": 1,
+            "pos": 1846
+        },
+        {
+            "id": 311,
+            "name": "text-delete",
+            "text": "Y",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:14",
+            "count": 1,
+            "pos": 1862
+        },
+        {
+            "id": 312,
+            "name": "text-insert",
+            "text": "y",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:15",
+            "count": 1,
+            "pos": 1862
+        },
+        {
+            "id": 314,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:20",
+            "count": 1,
+            "pos": 2073
+        },
+        {
+            "id": 316,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:13:22"
+        },
+        {
+            "id": 322,
+            "name": "text-insert",
+            "text": "We have a situation.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:13:27",
+            "count": 20,
+            "pos": 2074
+        },
+        {
+            "id": 323,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:29",
+            "count": 1,
+            "pos": 2094
+        },
+        {
+            "id": 325,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:13:31"
+        },
+        {
+            "id": 329,
+            "name": "text-insert",
+            "text": "The Trump voter you have to reach is a man named Mike.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:13:36",
+            "count": 54,
+            "pos": 2095
+        },
+        {
+            "id": 330,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:13:39",
+            "count": 1,
+            "pos": 2149
+        },
+        {
+            "id": 332,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:13:42"
+        },
+        {
+            "id": 338,
+            "name": "text-insert",
+            "text": "He was a good man, raised by two wonderful parents.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:13:47",
+            "count": 51,
+            "pos": 2150
+        },
+        {
+            "id": 340,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:13:49"
+        },
+        {
+            "id": 345,
+            "name": "text-insert",
+            "text": " They died in a car accident when he was 19, and that's when everything went wrong for Mike.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:13:56",
+            "count": 92,
+            "pos": 2201
+        },
+        {
+            "id": 347,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:13:59"
+        },
+        {
+            "id": 361,
+            "name": "text-insert",
+            "text": " He got into drugs, and started homeless.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:14:09",
+            "count": 41,
+            "pos": 2293
+        },
+        {
+            "id": 363,
+            "name": "text-insert",
+            "text": "w",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:15",
+            "count": 1,
+            "pos": 2317
+        },
+        {
+            "id": 363,
+            "name": "text-delete",
+            "text": "started",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:15",
+            "count": 7,
+            "pos": 2318
+        },
+        {
+            "id": 364,
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:15",
+            "count": 1,
+            "pos": 2318
+        },
+        {
+            "id": 365,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:16",
+            "count": 1,
+            "pos": 2319
+        },
+        {
+            "id": 367,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:18",
+            "count": 1,
+            "pos": 2330
+        },
+        {
+            "id": 369,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:14:20"
+        },
+        {
+            "id": 375,
+            "name": "text-insert",
+            "text": "He joined the marines right before he turned 21, and he fought his way to Iraq.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:14:24",
+            "count": 79,
+            "pos": 2331
+        },
+        {
+            "id": 377,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:14:28"
+        },
+        {
+            "id": 385,
+            "name": "text-insert",
+            "text": " There, he saw his friends being blown to pieces by IEDs and suicide bombers.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:14:33",
+            "count": 77,
+            "pos": 2410
+        },
+        {
+            "id": 386,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:35",
+            "count": 1,
+            "pos": 2487
+        },
+        {
+            "id": 387,
+            "name": "text-insert",
+            "text": "H",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:37",
+            "count": 1,
+            "pos": 2488
+        },
+        {
+            "id": 388,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:37",
+            "count": 1,
+            "pos": 2489
+        },
+        {
+            "id": 389,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:38",
+            "count": 1,
+            "pos": 2490
+        },
+        {
+            "id": 390,
+            "name": "text-insert",
+            "text": "w",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:38",
+            "count": 1,
+            "pos": 2491
+        },
+        {
+            "id": 391,
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:38",
+            "count": 1,
+            "pos": 2492
+        },
+        {
+            "id": 392,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:38",
+            "count": 1,
+            "pos": 2493
+        },
+        {
+            "id": 393,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:38",
+            "count": 1,
+            "pos": 2494
+        },
+        {
+            "id": 394,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:39",
+            "count": 1,
+            "pos": 2495
+        },
+        {
+            "id": 395,
+            "name": "text-insert",
+            "text": "u",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:39",
+            "count": 1,
+            "pos": 2496
+        },
+        {
+            "id": 396,
+            "name": "text-insert",
+            "text": "c",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:40",
+            "count": 1,
+            "pos": 2497
+        },
+        {
+            "id": 397,
+            "name": "text-delete",
+            "text": "c",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:41",
+            "count": 1,
+            "pos": 2497
+        },
+        {
+            "id": 398,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:41",
+            "count": 1,
+            "pos": 2497
+        },
+        {
+            "id": 399,
+            "name": "text-insert",
+            "text": "c",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:41",
+            "count": 1,
+            "pos": 2498
+        },
+        {
+            "id": 400,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:41",
+            "count": 1,
+            "pos": 2499
+        },
+        {
+            "id": 401,
+            "name": "text-insert",
+            "text": "p",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:41",
+            "count": 1,
+            "pos": 2500
+        },
+        {
+            "id": 402,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:42",
+            "count": 1,
+            "pos": 2501
+        },
+        {
+            "id": 403,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:42",
+            "count": 1,
+            "pos": 2502
+        },
+        {
+            "id": 404,
+            "name": "text-insert",
+            "text": "b",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:42",
+            "count": 1,
+            "pos": 2503
+        },
+        {
+            "id": 405,
+            "name": "text-insert",
+            "text": "l",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:42",
+            "count": 1,
+            "pos": 2504
+        },
+        {
+            "id": 406,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:42",
+            "count": 1,
+            "pos": 2505
+        },
+        {
+            "id": 407,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:43",
+            "count": 1,
+            "pos": 2506
+        },
+        {
+            "id": 408,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:43",
+            "count": 1,
+            "pos": 2507
+        },
+        {
+            "id": 409,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:43",
+            "count": 1,
+            "pos": 2508
+        },
+        {
+            "id": 410,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:43",
+            "count": 1,
+            "pos": 2509
+        },
+        {
+            "id": 411,
+            "name": "text-insert",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:44",
+            "count": 1,
+            "pos": 2510
+        },
+        {
+            "id": 412,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:44",
+            "count": 1,
+            "pos": 2511
+        },
+        {
+            "id": 413,
+            "name": "text-insert",
+            "text": "m",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:44",
+            "count": 1,
+            "pos": 2512
+        },
+        {
+            "id": 414,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:45",
+            "count": 1,
+            "pos": 2513
+        },
+        {
+            "id": 415,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:46",
+            "count": 1,
+            "pos": 2514
+        },
+        {
+            "id": 416,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:46",
+            "count": 1,
+            "pos": 2515
+        },
+        {
+            "id": 417,
+            "name": "text-insert",
+            "text": ",",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:46",
+            "count": 1,
+            "pos": 2516
+        },
+        {
+            "id": 418,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:46",
+            "count": 1,
+            "pos": 2517
+        },
+        {
+            "id": 419,
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:46",
+            "count": 1,
+            "pos": 2518
+        },
+        {
+            "id": 420,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:46",
+            "count": 1,
+            "pos": 2519
+        },
+        {
+            "id": 421,
+            "name": "text-insert",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:47",
+            "count": 1,
+            "pos": 2520
+        },
+        {
+            "id": 422,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:47",
+            "count": 1,
+            "pos": 2521
+        },
+        {
+            "id": 423,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:47",
+            "count": 1,
+            "pos": 2522
+        },
+        {
+            "id": 424,
+            "name": "text-insert",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:47",
+            "count": 1,
+            "pos": 2523
+        },
+        {
+            "id": 425,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:47",
+            "count": 1,
+            "pos": 2524
+        },
+        {
+            "id": 426,
+            "name": "text-insert",
+            "text": "y",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:47",
+            "count": 1,
+            "pos": 2525
+        },
+        {
+            "id": 427,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:47",
+            "count": 1,
+            "pos": 2526
+        },
+        {
+            "id": 428,
+            "name": "text-insert",
+            "text": "p",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:48",
+            "count": 1,
+            "pos": 2527
+        },
+        {
+            "id": 429,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:48",
+            "count": 1,
+            "pos": 2528
+        },
+        {
+            "id": 430,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:48",
+            "count": 1,
+            "pos": 2529
+        },
+        {
+            "id": 431,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:48",
+            "count": 1,
+            "pos": 2530
+        },
+        {
+            "id": 432,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:48",
+            "count": 1,
+            "pos": 2531
+        },
+        {
+            "id": 433,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:49",
+            "count": 1,
+            "pos": 2532
+        },
+        {
+            "id": 434,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:49",
+            "count": 1,
+            "pos": 2533
+        },
+        {
+            "id": 435,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:50",
+            "count": 1,
+            "pos": 2534
+        },
+        {
+            "id": 436,
+            "name": "text-insert",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:50",
+            "count": 1,
+            "pos": 2535
+        },
+        {
+            "id": 437,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:50",
+            "count": 1,
+            "pos": 2536
+        },
+        {
+            "id": 438,
+            "name": "text-insert",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:50",
+            "count": 1,
+            "pos": 2537
+        },
+        {
+            "id": 439,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:50",
+            "count": 1,
+            "pos": 2538
+        },
+        {
+            "id": 440,
+            "name": "text-insert",
+            "text": "m",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:50",
+            "count": 1,
+            "pos": 2539
+        },
+        {
+            "id": 441,
+            "name": "text-insert",
+            "text": ".",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:51",
+            "count": 1,
+            "pos": 2540
+        },
+        {
+            "id": 442,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:14:51",
+            "count": 1,
+            "pos": 2541
+        },
+        {
+            "id": 444,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:14:54"
+        },
+        {
+            "id": 450,
+            "name": "text-insert",
+            "text": "The last thing he remembers is seeing his friend's brains splatter against the wall of a house in Fallujah.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:14:59",
+            "count": 107,
+            "pos": 2542
+        },
+        {
+            "id": 451,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:01",
+            "count": 1,
+            "pos": 2649
+        },
+        {
+            "id": 453,
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:15:03"
+        },
+        {
+            "id": 458,
+            "name": "text-insert",
+            "text": "He woke up in a hotel room with his friend's blood on his hands, and no memory of what happened to him.",
+            "eventSource": "api",
+            "event_time": "2021-08-23 10:15:09",
+            "count": 103,
+            "pos": 2650
+        },
+        {
+            "id": 460,
+            "name": "text-insert",
+            "text": "T",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:20",
+            "count": 1,
+            "pos": 282
+        },
+        {
+            "id": 461,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:20",
+            "count": 1,
+            "pos": 283
+        },
+        {
+            "id": 462,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:20",
+            "count": 1,
+            "pos": 284
+        },
+        {
+            "id": 463,
+            "name": "text-insert",
+            "text": "g",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:21",
+            "count": 1,
+            "pos": 285
+        },
+        {
+            "id": 464,
+            "name": "text-insert",
+            "text": "g",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:21",
+            "count": 1,
+            "pos": 286
+        },
+        {
+            "id": 465,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:21",
+            "count": 1,
+            "pos": 287
+        },
+        {
+            "id": 466,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:21",
+            "count": 1,
+            "pos": 288
+        },
+        {
+            "id": 467,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:22",
+            "count": 1,
+            "pos": 289
+        },
+        {
+            "id": 468,
+            "name": "text-insert",
+            "text": "w",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:23",
+            "count": 1,
+            "pos": 290
+        },
+        {
+            "id": 469,
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:23",
+            "count": 1,
+            "pos": 291
+        },
+        {
+            "id": 470,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:23",
+            "count": 1,
+            "pos": 292
+        },
+        {
+            "id": 471,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:23",
+            "count": 1,
+            "pos": 293
+        },
+        {
+            "id": 472,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:24",
+            "count": 1,
+            "pos": 294
+        },
+        {
+            "id": 473,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:24",
+            "count": 1,
+            "pos": 295
+        },
+        {
+            "id": 474,
+            "name": "text-insert",
+            "text": "g",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:24",
+            "count": 1,
+            "pos": 296
+        },
+        {
+            "id": 475,
+            "name": "text-insert",
+            "text": ".",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:25",
+            "count": 1,
+            "pos": 297
+        },
+        {
+            "id": 476,
+            "name": "text-delete",
+            "text": ".",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:25",
+            "count": 1,
+            "pos": 297
+        },
+        {
+            "id": 477,
+            "name": "text-insert",
+            "text": ":",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:26",
+            "count": 1,
+            "pos": 297
+        },
+        {
+            "id": 478,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:26",
+            "count": 1,
+            "pos": 298
+        },
+        {
+            "id": 479,
+            "name": "text-insert",
+            "text": "E",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:29",
+            "count": 1,
+            "pos": 299
+        },
+        {
+            "id": 480,
+            "name": "text-insert",
+            "text": "x",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:29",
+            "count": 1,
+            "pos": 300
+        },
+        {
+            "id": 481,
+            "name": "text-insert",
+            "text": "p",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:29",
+            "count": 1,
+            "pos": 301
+        },
+        {
+            "id": 482,
+            "name": "text-insert",
+            "text": "l",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:29",
+            "count": 1,
+            "pos": 302
+        },
+        {
+            "id": 483,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:29",
+            "count": 1,
+            "pos": 303
+        },
+        {
+            "id": 484,
+            "name": "text-insert",
+            "text": "c",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:30",
+            "count": 1,
+            "pos": 304
+        },
+        {
+            "id": 485,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:30",
+            "count": 1,
+            "pos": 305
+        },
+        {
+            "id": 486,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:30",
+            "count": 1,
+            "pos": 306
+        },
+        {
+            "id": 487,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:30",
+            "count": 1,
+            "pos": 307
+        },
+        {
+            "id": 488,
+            "name": "text-insert",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:31",
+            "count": 1,
+            "pos": 308
+        },
+        {
+            "id": 489,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:31",
+            "count": 1,
+            "pos": 309
+        },
+        {
+            "id": 490,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:31",
+            "count": 1,
+            "pos": 310
+        },
+        {
+            "id": 491,
+            "name": "text-insert",
+            "text": "c",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:32",
+            "count": 1,
+            "pos": 311
+        },
+        {
+            "id": 492,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:33",
+            "count": 1,
+            "pos": 312
+        },
+        {
+            "id": 493,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:33",
+            "count": 1,
+            "pos": 313
+        },
+        {
+            "id": 494,
+            "name": "text-insert",
+            "text": "p",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:33",
+            "count": 1,
+            "pos": 314
+        },
+        {
+            "id": 495,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:33",
+            "count": 1,
+            "pos": 315
+        },
+        {
+            "id": 496,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:34",
+            "count": 1,
+            "pos": 316
+        },
+        {
+            "id": 497,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:34",
+            "count": 1,
+            "pos": 317
+        },
+        {
+            "id": 498,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:34",
+            "count": 1,
+            "pos": 318
+        },
+        {
+            "id": 499,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:34",
+            "count": 1,
+            "pos": 319
+        },
+        {
+            "id": 500,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:34",
+            "count": 1,
+            "pos": 320
+        },
+        {
+            "id": 501,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:34",
+            "count": 1,
+            "pos": 321
+        },
+        {
+            "id": 502,
+            "name": "text-insert",
+            "text": "f",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:35",
+            "count": 1,
+            "pos": 322
+        },
+        {
+            "id": 503,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:35",
+            "count": 1,
+            "pos": 323
+        },
+        {
+            "id": 504,
+            "name": "text-insert",
+            "text": "v",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:35",
+            "count": 1,
+            "pos": 324
+        },
+        {
+            "id": 505,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:35",
+            "count": 1,
+            "pos": 325
+        },
+        {
+            "id": 506,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:36",
+            "count": 1,
+            "pos": 326
+        },
+        {
+            "id": 507,
+            "name": "text-insert",
+            "text": "l",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:36",
+            "count": 1,
+            "pos": 327
+        },
+        {
+            "id": 508,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:36",
+            "count": 1,
+            "pos": 328
+        },
+        {
+            "id": 509,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:36",
+            "count": 1,
+            "pos": 329
+        },
+        {
+            "id": 510,
+            "name": "text-insert",
+            "text": "c",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:36",
+            "count": 1,
+            "pos": 330
+        },
+        {
+            "id": 511,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:36",
+            "count": 1,
+            "pos": 331
+        },
+        {
+            "id": 512,
+            "name": "text-insert",
+            "text": ".",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:36",
+            "count": 1,
+            "pos": 332
+        },
+        {
+            "id": 513,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:37",
+            "count": 1,
+            "pos": 333
+        },
+        {
+            "id": 514,
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:40",
+            "count": 1,
+            "pos": 333
+        },
+        {
+            "id": 515,
+            "name": "text-delete",
+            "text": ".",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:40",
+            "count": 1,
+            "pos": 332
+        },
+        {
+            "id": 516,
+            "name": "text-insert",
+            "text": "/",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:40",
+            "count": 1,
+            "pos": 332
+        },
+        {
+            "id": 517,
+            "name": "text-insert",
+            "text": "g",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:41",
+            "count": 1,
+            "pos": 333
+        },
+        {
+            "id": 518,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:41",
+            "count": 1,
+            "pos": 334
+        },
+        {
+            "id": 519,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:41",
+            "count": 1,
+            "pos": 335
+        },
+        {
+            "id": 520,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:41",
+            "count": 1,
+            "pos": 336
+        },
+        {
+            "id": 522,
+            "name": "text-insert",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:52",
+            "count": 1,
+            "pos": 2808
+        },
+        {
+            "id": 523,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:53",
+            "count": 1,
+            "pos": 2809
+        },
+        {
+            "id": 524,
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:54",
+            "count": 1,
+            "pos": 2809
+        },
+        {
+            "id": 525,
+            "name": "text-delete",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:54",
+            "count": 1,
+            "pos": 2808
+        },
+        {
+            "id": 526,
+            "name": "text-insert",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:54",
+            "count": 1,
+            "pos": 2808
+        },
+        {
+            "id": 527,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:15:55",
+            "count": 1,
+            "pos": 2809
+        },
+        {
+            "id": 528,
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:01",
+            "count": 1,
+            "pos": 2809
+        },
+        {
+            "id": 529,
+            "name": "text-delete",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:02",
+            "count": 1,
+            "pos": 2808
+        },
+        {
+            "id": 530,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:03",
+            "count": 1,
+            "pos": 2808
+        },
+        {
+            "id": 531,
+            "name": "text-insert",
+            "text": "M",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:03",
+            "count": 1,
+            "pos": 2809
+        },
+        {
+            "id": 532,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:03",
+            "count": 1,
+            "pos": 2810
+        },
+        {
+            "id": 533,
+            "name": "text-insert",
+            "text": "k",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:03",
+            "count": 1,
+            "pos": 2811
+        },
+        {
+            "id": 534,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:04",
+            "count": 1,
+            "pos": 2812
+        },
+        {
+            "id": 535,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:04",
+            "count": 1,
+            "pos": 2813
+        },
+        {
+            "id": 536,
+            "name": "text-insert",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:04",
+            "count": 1,
+            "pos": 2814
+        },
+        {
+            "id": 537,
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:04",
+            "count": 1,
+            "pos": 2815
+        },
+        {
+            "id": 538,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:04",
+            "count": 1,
+            "pos": 2816
+        },
+        {
+            "id": 539,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:04",
+            "count": 1,
+            "pos": 2817
+        },
+        {
+            "id": 540,
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:05",
+            "count": 1,
+            "pos": 2818
+        },
+        {
+            "id": 541,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:05",
+            "count": 1,
+            "pos": 2819
+        },
+        {
+            "id": 542,
+            "name": "text-insert",
+            "text": "p",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:05",
+            "count": 1,
+            "pos": 2820
+        },
+        {
+            "id": 543,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:05",
+            "count": 1,
+            "pos": 2821
+        },
+        {
+            "id": 544,
+            "name": "text-insert",
+            "text": "w",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:05",
+            "count": 1,
+            "pos": 2822
+        },
+        {
+            "id": 545,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:06",
+            "count": 1,
+            "pos": 2823
+        },
+        {
+            "id": 546,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:06",
+            "count": 1,
+            "pos": 2824
+        },
+        {
+            "id": 547,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:06",
+            "count": 1,
+            "pos": 2825
+        },
+        {
+            "id": 548,
+            "name": "text-insert",
+            "text": "w",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:06",
+            "count": 1,
+            "pos": 2826
+        },
+        {
+            "id": 549,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:06",
+            "count": 1,
+            "pos": 2827
+        },
+        {
+            "id": 550,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:06",
+            "count": 1,
+            "pos": 2828
+        },
+        {
+            "id": 551,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:06",
+            "count": 1,
+            "pos": 2829
+        },
+        {
+            "id": 552,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:07",
+            "count": 1,
+            "pos": 2830
+        },
+        {
+            "id": 553,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:07",
+            "count": 1,
+            "pos": 2831
+        },
+        {
+            "id": 554,
+            "name": "text-insert",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:08",
+            "count": 1,
+            "pos": 2832
+        },
+        {
+            "id": 555,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:08",
+            "count": 1,
+            "pos": 2833
+        },
+        {
+            "id": 556,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:11",
+            "count": 1,
+            "pos": 2834
+        },
+        {
+            "id": 557,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:11",
+            "count": 1,
+            "pos": 2835
+        },
+        {
+            "id": 558,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:11",
+            "count": 1,
+            "pos": 2836
+        },
+        {
+            "id": 559,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:15",
+            "count": 1,
+            "pos": 2837
+        },
+        {
+            "id": 560,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:16",
+            "count": 1,
+            "pos": 2838
+        },
+        {
+            "id": 561,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:16",
+            "count": 1,
+            "pos": 2839
+        },
+        {
+            "id": 562,
+            "name": "text-insert",
+            "text": "p",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:16",
+            "count": 1,
+            "pos": 2840
+        },
+        {
+            "id": 563,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:16",
+            "count": 1,
+            "pos": 2841
+        },
+        {
+            "id": 564,
+            "name": "text-insert",
+            "text": "f",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:17",
+            "count": 1,
+            "pos": 2842
+        },
+        {
+            "id": 565,
+            "name": "text-insert",
+            "text": "u",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:17",
+            "count": 1,
+            "pos": 2843
+        },
+        {
+            "id": 566,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:18",
+            "count": 1,
+            "pos": 2844
+        },
+        {
+            "id": 567,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:18",
+            "count": 1,
+            "pos": 2845
+        },
+        {
+            "id": 568,
+            "name": "text-insert",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:18",
+            "count": 1,
+            "pos": 2846
+        },
+        {
+            "id": 569,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:18",
+            "count": 1,
+            "pos": 2847
+        },
+        {
+            "id": 570,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:18",
+            "count": 1,
+            "pos": 2848
+        },
+        {
+            "id": 571,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:18",
+            "count": 1,
+            "pos": 2849
+        },
+        {
+            "id": 572,
+            "name": "text-insert",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:19",
+            "count": 1,
+            "pos": 2850
+        },
+        {
+            "id": 573,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:19",
+            "count": 1,
+            "pos": 2851
+        },
+        {
+            "id": 574,
+            "name": "text-insert",
+            "text": "m",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:19",
+            "count": 1,
+            "pos": 2852
+        },
+        {
+            "id": 575,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:19",
+            "count": 1,
+            "pos": 2853
+        },
+        {
+            "id": 576,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:19",
+            "count": 1,
+            "pos": 2854
+        },
+        {
+            "id": 577,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:21",
+            "count": 1,
+            "pos": 2855
+        },
+        {
+            "id": 578,
+            "name": "text-insert",
+            "text": "c",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:21",
+            "count": 1,
+            "pos": 2856
+        },
+        {
+            "id": 579,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:22",
+            "count": 1,
+            "pos": 2857
+        },
+        {
+            "id": 580,
+            "name": "text-insert",
+            "text": "p",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:22",
+            "count": 1,
+            "pos": 2858
+        },
+        {
+            "id": 581,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:22",
+            "count": 1,
+            "pos": 2859
+        },
+        {
+            "id": 582,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:22",
+            "count": 1,
+            "pos": 2860
+        },
+        {
+            "id": 583,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:22",
+            "count": 1,
+            "pos": 2861
+        },
+        {
+            "id": 584,
+            "name": "text-delete",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:23",
+            "count": 1,
+            "pos": 2861
+        },
+        {
+            "id": 585,
+            "name": "text-delete",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:23",
+            "count": 1,
+            "pos": 2860
+        },
+        {
+            "id": 586,
+            "name": "text-delete",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:23",
+            "count": 1,
+            "pos": 2859
+        },
+        {
+            "id": 587,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:23",
+            "count": 1,
+            "pos": 2859
+        },
+        {
+            "id": 588,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:24",
+            "count": 1,
+            "pos": 2860
+        },
+        {
+            "id": 589,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:24",
+            "count": 1,
+            "pos": 2861
+        },
+        {
+            "id": 590,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:24",
+            "count": 1,
+            "pos": 2862
+        },
+        {
+            "id": 591,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:25",
+            "count": 1,
+            "pos": 2863
+        },
+        {
+            "id": 592,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:25",
+            "count": 1,
+            "pos": 2864
+        },
+        {
+            "id": 593,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:25",
+            "count": 1,
+            "pos": 2865
+        },
+        {
+            "id": 594,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:25",
+            "count": 1,
+            "pos": 2866
+        },
+        {
+            "id": 595,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:25",
+            "count": 1,
+            "pos": 2867
+        },
+        {
+            "id": 597,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:30",
+            "count": 1,
+            "pos": 2819
+        },
+        {
+            "id": 597,
+            "name": "text-delete",
+            "text": " power",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:30",
+            "count": 6,
+            "pos": 2820
+        },
+        {
+            "id": 598,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:31",
+            "count": 1,
+            "pos": 2821
+        },
+        {
+            "id": 599,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:31",
+            "count": 1,
+            "pos": 2821
+        },
+        {
+            "id": 600,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:31",
+            "count": 1,
+            "pos": 2822
+        },
+        {
+            "id": 601,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:31",
+            "count": 1,
+            "pos": 2823
+        },
+        {
+            "id": 602,
+            "name": "text-insert",
+            "text": "m",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:31",
+            "count": 1,
+            "pos": 2824
+        },
+        {
+            "id": 604,
+            "name": "text-insert",
+            "text": ".",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:33",
+            "count": 1,
+            "pos": 2868
+        },
+        {
+            "id": 605,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:34",
+            "count": 1,
+            "pos": 2869
+        },
+        {
+            "id": 606,
+            "name": "text-insert",
+            "text": "B",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:34",
+            "count": 1,
+            "pos": 2870
+        },
+        {
+            "id": 607,
+            "name": "text-insert",
+            "text": "u",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:34",
+            "count": 1,
+            "pos": 2871
+        },
+        {
+            "id": 608,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:34",
+            "count": 1,
+            "pos": 2872
+        },
+        {
+            "id": 609,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:34",
+            "count": 1,
+            "pos": 2873
+        },
+        {
+            "id": 610,
+            "name": "text-insert",
+            "text": "w",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:35",
+            "count": 1,
+            "pos": 2874
+        },
+        {
+            "id": 611,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:35",
+            "count": 1,
+            "pos": 2875
+        },
+        {
+            "id": 612,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:35",
+            "count": 1,
+            "pos": 2876
+        },
+        {
+            "id": 613,
+            "name": "text-insert",
+            "text": "c",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:35",
+            "count": 1,
+            "pos": 2877
+        },
+        {
+            "id": 614,
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:36",
+            "count": 1,
+            "pos": 2878
+        },
+        {
+            "id": 615,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:36",
+            "count": 1,
+            "pos": 2879
+        },
+        {
+            "id": 616,
+            "name": "text-insert",
+            "text": "'",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:36",
+            "count": 1,
+            "pos": 2880
+        },
+        {
+            "id": 617,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:36",
+            "count": 1,
+            "pos": 2881
+        },
+        {
+            "id": 618,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:36",
+            "count": 1,
+            "pos": 2882
+        },
+        {
+            "id": 619,
+            "name": "text-insert",
+            "text": "f",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:36",
+            "count": 1,
+            "pos": 2883
+        },
+        {
+            "id": 620,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:36",
+            "count": 1,
+            "pos": 2884
+        },
+        {
+            "id": 621,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:36",
+            "count": 1,
+            "pos": 2885
+        },
+        {
+            "id": 622,
+            "name": "text-insert",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:37",
+            "count": 1,
+            "pos": 2886
+        },
+        {
+            "id": 623,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:37",
+            "count": 1,
+            "pos": 2887
+        },
+        {
+            "id": 624,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:37",
+            "count": 1,
+            "pos": 2888
+        },
+        {
+            "id": 625,
+            "name": "text-insert",
+            "text": "u",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:37",
+            "count": 1,
+            "pos": 2889
+        },
+        {
+            "id": 626,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:37",
+            "count": 1,
+            "pos": 2890
+        },
+        {
+            "id": 627,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:37",
+            "count": 1,
+            "pos": 2891
+        },
+        {
+            "id": 628,
+            "name": "text-insert",
+            "text": "w",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:37",
+            "count": 1,
+            "pos": 2892
+        },
+        {
+            "id": 629,
+            "name": "text-insert",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:37",
+            "count": 1,
+            "pos": 2893
+        },
+        {
+            "id": 630,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:37",
+            "count": 1,
+            "pos": 2894
+        },
+        {
+            "id": 631,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:38",
+            "count": 1,
+            "pos": 2895
+        },
+        {
+            "id": 632,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:38",
+            "count": 1,
+            "pos": 2896
+        },
+        {
+            "id": 633,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:38",
+            "count": 1,
+            "pos": 2897
+        },
+        {
+            "id": 634,
+            "name": "text-insert",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:38",
+            "count": 1,
+            "pos": 2898
+        },
+        {
+            "id": 635,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:38",
+            "count": 1,
+            "pos": 2899
+        },
+        {
+            "id": 636,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:38",
+            "count": 1,
+            "pos": 2900
+        },
+        {
+            "id": 637,
+            "name": "text-insert",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:38",
+            "count": 1,
+            "pos": 2901
+        },
+        {
+            "id": 638,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:39",
+            "count": 1,
+            "pos": 2902
+        },
+        {
+            "id": 639,
+            "name": "text-insert",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:39",
+            "count": 1,
+            "pos": 2903
+        },
+        {
+            "id": 640,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:39",
+            "count": 1,
+            "pos": 2904
+        },
+        {
+            "id": 641,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:39",
+            "count": 1,
+            "pos": 2905
+        },
+        {
+            "id": 642,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:39",
+            "count": 1,
+            "pos": 2906
+        },
+        {
+            "id": 643,
+            "name": "text-insert",
+            "text": ",",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:40",
+            "count": 1,
+            "pos": 2907
+        },
+        {
+            "id": 644,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:40",
+            "count": 1,
+            "pos": 2908
+        },
+        {
+            "id": 645,
+            "name": "text-insert",
+            "text": "u",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:40",
+            "count": 1,
+            "pos": 2909
+        },
+        {
+            "id": 646,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:40",
+            "count": 1,
+            "pos": 2910
+        },
+        {
+            "id": 647,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:41",
+            "count": 1,
+            "pos": 2911
+        },
+        {
+            "id": 648,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:41",
+            "count": 1,
+            "pos": 2912
+        },
+        {
+            "id": 649,
+            "name": "text-insert",
+            "text": "l",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:41",
+            "count": 1,
+            "pos": 2913
+        },
+        {
+            "id": 650,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:41",
+            "count": 1,
+            "pos": 2914
+        },
+        {
+            "id": 651,
+            "name": "text-insert",
+            "text": "w",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:42",
+            "count": 1,
+            "pos": 2915
+        },
+        {
+            "id": 652,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:42",
+            "count": 1,
+            "pos": 2916
+        },
+        {
+            "id": 653,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:43",
+            "count": 1,
+            "pos": 2917
+        },
+        {
+            "id": 654,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:43",
+            "count": 1,
+            "pos": 2918
+        },
+        {
+            "id": 655,
+            "name": "text-insert",
+            "text": "x",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:43",
+            "count": 1,
+            "pos": 2919
+        },
+        {
+            "id": 656,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:43",
+            "count": 1,
+            "pos": 2920
+        },
+        {
+            "id": 657,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:44",
+            "count": 1,
+            "pos": 2921
+        },
+        {
+            "id": 658,
+            "name": "text-insert",
+            "text": "c",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:44",
+            "count": 1,
+            "pos": 2922
+        },
+        {
+            "id": 659,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:44",
+            "count": 1,
+            "pos": 2923
+        },
+        {
+            "id": 660,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:44",
+            "count": 1,
+            "pos": 2924
+        },
+        {
+            "id": 661,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:44",
+            "count": 1,
+            "pos": 2925
+        },
+        {
+            "id": 662,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:45",
+            "count": 1,
+            "pos": 2926
+        },
+        {
+            "id": 663,
+            "name": "text-insert",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:45",
+            "count": 1,
+            "pos": 2927
+        },
+        {
+            "id": 664,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:45",
+            "count": 1,
+            "pos": 2928
+        },
+        {
+            "id": 665,
+            "name": "text-insert",
+            "text": "m",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:45",
+            "count": 1,
+            "pos": 2929
+        },
+        {
+            "id": 666,
+            "name": "text-insert",
+            "text": ".",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:45",
+            "count": 1,
+            "pos": 2930
+        },
+        {
+            "id": 667,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:45",
+            "count": 1,
+            "pos": 2931
+        },
+        {
+            "id": 668,
+            "name": "text-insert",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:48",
+            "count": 1,
+            "pos": 2932
+        },
+        {
+            "id": 670,
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:58",
+            "count": 1,
+            "pos": 2076
+        },
+        {
+            "id": 671,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:16:59",
+            "count": 1,
+            "pos": 2076
+        },
+        {
+            "id": 673,
+            "name": "text-insert",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:04",
+            "count": 1,
+            "pos": 2349
+        },
+        {
+            "id": 674,
+            "name": "text-insert",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:05",
+            "count": 1,
+            "pos": 2350
+        },
+        {
+            "id": 676,
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:07",
+            "count": 1,
+            "pos": 2348
+        },
+        {
+            "id": 677,
+            "name": "text-insert",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:08",
+            "count": 1,
+            "pos": 2348
+        },
+        {
+            "id": 679,
+            "name": "text-insert",
+            "text": ":",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:11",
+            "count": 1,
+            "pos": 2351
+        },
+        {
+            "id": 680,
+            "name": "text-delete",
+            "text": ":",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:13",
+            "count": 1,
+            "pos": 2351
+        },
+        {
+            "id": 681,
+            "name": "text-insert",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:13",
+            "count": 1,
+            "pos": 2351
+        },
+        {
+            "id": 683,
+            "name": "text-insert",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:28",
+            "count": 1,
+            "pos": 2936
+        },
+        {
+            "id": 684,
+            "name": "text-insert",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:28",
+            "count": 1,
+            "pos": 2937
+        },
+        {
+            "id": 685,
+            "name": "text-insert",
+            "text": "Y",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:29",
+            "count": 1,
+            "pos": 2938
+        },
+        {
+            "id": 686,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:29",
+            "count": 1,
+            "pos": 2939
+        },
+        {
+            "id": 687,
+            "name": "text-insert",
+            "text": "u",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:29",
+            "count": 1,
+            "pos": 2940
+        },
+        {
+            "id": 688,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:30",
+            "count": 1,
+            "pos": 2941
+        },
+        {
+            "id": 689,
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:37",
+            "count": 1,
+            "pos": 2942
+        },
+        {
+            "id": 690,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:37",
+            "count": 1,
+            "pos": 2943
+        },
+        {
+            "id": 691,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:37",
+            "count": 1,
+            "pos": 2944
+        },
+        {
+            "id": 692,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:37",
+            "count": 1,
+            "pos": 2945
+        },
+        {
+            "id": 693,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:37",
+            "count": 1,
+            "pos": 2946
+        },
+        {
+            "id": 694,
+            "name": "text-insert",
+            "text": "v",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:38",
+            "count": 1,
+            "pos": 2947
+        },
+        {
+            "id": 695,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:38",
+            "count": 1,
+            "pos": 2948
+        },
+        {
+            "id": 696,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:38",
+            "count": 1,
+            "pos": 2949
+        },
+        {
+            "id": 697,
+            "name": "text-insert",
+            "text": "w",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:38",
+            "count": 1,
+            "pos": 2950
+        },
+        {
+            "id": 698,
+            "name": "text-insert",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:38",
+            "count": 1,
+            "pos": 2951
+        },
+        {
+            "id": 699,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:38",
+            "count": 1,
+            "pos": 2952
+        },
+        {
+            "id": 700,
+            "name": "text-insert",
+            "text": "m",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:39",
+            "count": 1,
+            "pos": 2953
+        },
+        {
+            "id": 701,
+            "name": "text-delete",
+            "text": "m",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:39",
+            "count": 1,
+            "pos": 2953
+        },
+        {
+            "id": 702,
+            "name": "text-insert",
+            "text": "l",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:40",
+            "count": 1,
+            "pos": 2953
+        },
+        {
+            "id": 703,
+            "name": "text-insert",
+            "text": "m",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:40",
+            "count": 1,
+            "pos": 2954
+        },
+        {
+            "id": 704,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:41",
+            "count": 1,
+            "pos": 2955
+        },
+        {
+            "id": 705,
+            "name": "text-insert",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:41",
+            "count": 1,
+            "pos": 2956
+        },
+        {
+            "id": 706,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:41",
+            "count": 1,
+            "pos": 2957
+        },
+        {
+            "id": 707,
+            "name": "text-insert",
+            "text": "w",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:41",
+            "count": 1,
+            "pos": 2958
+        },
+        {
+            "id": 708,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:41",
+            "count": 1,
+            "pos": 2959
+        },
+        {
+            "id": 709,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:41",
+            "count": 1,
+            "pos": 2960
+        },
+        {
+            "id": 710,
+            "name": "text-insert",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:41",
+            "count": 1,
+            "pos": 2961
+        },
+        {
+            "id": 711,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:42",
+            "count": 1,
+            "pos": 2962
+        },
+        {
+            "id": 712,
+            "name": "text-insert",
+            "text": "q",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:42",
+            "count": 1,
+            "pos": 2963
+        },
+        {
+            "id": 713,
+            "name": "text-insert",
+            "text": "u",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:42",
+            "count": 1,
+            "pos": 2964
+        },
+        {
+            "id": 714,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:42",
+            "count": 1,
+            "pos": 2965
+        },
+        {
+            "id": 715,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:42",
+            "count": 1,
+            "pos": 2966
+        },
+        {
+            "id": 716,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:42",
+            "count": 1,
+            "pos": 2967
+        },
+        {
+            "id": 717,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:43",
+            "count": 1,
+            "pos": 2968
+        },
+        {
+            "id": 718,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:43",
+            "count": 1,
+            "pos": 2969
+        },
+        {
+            "id": 719,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:43",
+            "count": 1,
+            "pos": 2970
+        },
+        {
+            "id": 720,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:43",
+            "count": 1,
+            "pos": 2971
+        },
+        {
+            "id": 721,
+            "name": "text-insert",
+            "text": ".",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:44",
+            "count": 1,
+            "pos": 2972
+        },
+        {
+            "id": 722,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:44",
+            "count": 1,
+            "pos": 2973
+        },
+        {
+            "id": 724,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:48",
+            "count": 1,
+            "pos": 2077
+        },
+        {
+            "id": 727,
+            "name": "text-delete",
+            "text": "Trump v",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:58",
+            "count": 7,
+            "pos": 2155
+        },
+        {
+            "id": 727,
+            "name": "text-delete",
+            "text": "ter",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:58",
+            "count": 3,
+            "pos": 2156
+        },
+        {
+            "id": 728,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:58",
+            "count": 1,
+            "pos": 2156
+        },
+        {
+            "id": 729,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:17:58",
+            "count": 1,
+            "pos": 2157
+        },
+        {
+            "id": 731,
+            "name": "text-delete",
+            "text": "ho voted for Trump",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:12",
+            "count": 18,
+            "pos": 1389
+        },
+        {
+            "id": 732,
+            "name": "text-insert",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:12",
+            "count": 1,
+            "pos": 1389
+        },
+        {
+            "id": 733,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:12",
+            "count": 1,
+            "pos": 1390
+        },
+        {
+            "id": 734,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:12",
+            "count": 1,
+            "pos": 1391
+        },
+        {
+            "id": 735,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:13",
+            "count": 1,
+            "pos": 1392
+        },
+        {
+            "id": 736,
+            "name": "text-insert",
+            "text": "u",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:13",
+            "count": 1,
+            "pos": 1393
+        },
+        {
+            "id": 737,
+            "name": "text-insert",
+            "text": "f",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:13",
+            "count": 1,
+            "pos": 1394
+        },
+        {
+            "id": 738,
+            "name": "text-insert",
+            "text": "f",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:13",
+            "count": 1,
+            "pos": 1395
+        },
+        {
+            "id": 739,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:14",
+            "count": 1,
+            "pos": 1396
+        },
+        {
+            "id": 740,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:14",
+            "count": 1,
+            "pos": 1397
+        },
+        {
+            "id": 741,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:14",
+            "count": 1,
+            "pos": 1398
+        },
+        {
+            "id": 742,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:14",
+            "count": 1,
+            "pos": 1399
+        },
+        {
+            "id": 743,
+            "name": "text-insert",
+            "text": "f",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:14",
+            "count": 1,
+            "pos": 1400
+        },
+        {
+            "id": 744,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:14",
+            "count": 1,
+            "pos": 1401
+        },
+        {
+            "id": 745,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:14",
+            "count": 1,
+            "pos": 1402
+        },
+        {
+            "id": 746,
+            "name": "text-insert",
+            "text": "m",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:15",
+            "count": 1,
+            "pos": 1403
+        },
+        {
+            "id": 747,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:15",
+            "count": 1,
+            "pos": 1404
+        },
+        {
+            "id": 748,
+            "name": "text-insert",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:15",
+            "count": 1,
+            "pos": 1405
+        },
+        {
+            "id": 749,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:15",
+            "count": 1,
+            "pos": 1406
+        },
+        {
+            "id": 750,
+            "name": "text-insert",
+            "text": "m",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:15",
+            "count": 1,
+            "pos": 1407
+        },
+        {
+            "id": 751,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:15",
+            "count": 1,
+            "pos": 1408
+        },
+        {
+            "id": 752,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:16",
+            "count": 1,
+            "pos": 1409
+        },
+        {
+            "id": 753,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:16",
+            "count": 1,
+            "pos": 1410
+        },
+        {
+            "id": 754,
+            "name": "text-insert",
+            "text": "c",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:16",
+            "count": 1,
+            "pos": 1411
+        },
+        {
+            "id": 755,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:16",
+            "count": 1,
+            "pos": 1412
+        },
+        {
+            "id": 756,
+            "name": "text-insert",
+            "text": "p",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:16",
+            "count": 1,
+            "pos": 1413
+        },
+        {
+            "id": 757,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:16",
+            "count": 1,
+            "pos": 1414
+        },
+        {
+            "id": 758,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:16",
+            "count": 1,
+            "pos": 1415
+        },
+        {
+            "id": 759,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:17",
+            "count": 1,
+            "pos": 1416
+        },
+        {
+            "id": 760,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:17",
+            "count": 1,
+            "pos": 1417
+        },
+        {
+            "id": 761,
+            "name": "text-delete",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:17",
+            "count": 1,
+            "pos": 1417
+        },
+        {
+            "id": 762,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:17",
+            "count": 1,
+            "pos": 1417
+        },
+        {
+            "id": 763,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:18",
+            "count": 1,
+            "pos": 1418
+        },
+        {
+            "id": 764,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:18",
+            "count": 1,
+            "pos": 1419
+        },
+        {
+            "id": 765,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:18",
+            "count": 1,
+            "pos": 1420
+        },
+        {
+            "id": 766,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:18",
+            "count": 1,
+            "pos": 1421
+        },
+        {
+            "id": 767,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:19",
+            "count": 1,
+            "pos": 1422
+        },
+        {
+            "id": 769,
+            "name": "text-insert",
+            "text": "H",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:32",
+            "count": 1,
+            "pos": 2983
+        },
+        {
+            "id": 770,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:33",
+            "count": 1,
+            "pos": 2984
+        },
+        {
+            "id": 771,
+            "name": "text-insert",
+            "text": "w",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:33",
+            "count": 1,
+            "pos": 2985
+        },
+        {
+            "id": 772,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:33",
+            "count": 1,
+            "pos": 2986
+        },
+        {
+            "id": 773,
+            "name": "text-insert",
+            "text": "w",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:33",
+            "count": 1,
+            "pos": 2987
+        },
+        {
+            "id": 774,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:33",
+            "count": 1,
+            "pos": 2988
+        },
+        {
+            "id": 775,
+            "name": "text-insert",
+            "text": "l",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:34",
+            "count": 1,
+            "pos": 2989
+        },
+        {
+            "id": 776,
+            "name": "text-insert",
+            "text": "l",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:34",
+            "count": 1,
+            "pos": 2990
+        },
+        {
+            "id": 777,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:34",
+            "count": 1,
+            "pos": 2991
+        },
+        {
+            "id": 778,
+            "name": "text-insert",
+            "text": "y",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:34",
+            "count": 1,
+            "pos": 2992
+        },
+        {
+            "id": 779,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:35",
+            "count": 1,
+            "pos": 2993
+        },
+        {
+            "id": 780,
+            "name": "text-insert",
+            "text": "u",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:35",
+            "count": 1,
+            "pos": 2994
+        },
+        {
+            "id": 781,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:35",
+            "count": 1,
+            "pos": 2995
+        },
+        {
+            "id": 782,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:35",
+            "count": 1,
+            "pos": 2996
+        },
+        {
+            "id": 783,
+            "name": "text-insert",
+            "text": "x",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:35",
+            "count": 1,
+            "pos": 2997
+        },
+        {
+            "id": 784,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:36",
+            "count": 1,
+            "pos": 2998
+        },
+        {
+            "id": 785,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:36",
+            "count": 1,
+            "pos": 2999
+        },
+        {
+            "id": 786,
+            "name": "text-insert",
+            "text": "c",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:36",
+            "count": 1,
+            "pos": 3000
+        },
+        {
+            "id": 787,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:37",
+            "count": 1,
+            "pos": 3001
+        },
+        {
+            "id": 788,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:37",
+            "count": 1,
+            "pos": 3002
+        },
+        {
+            "id": 789,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:37",
+            "count": 1,
+            "pos": 3003
+        },
+        {
+            "id": 790,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:37",
+            "count": 1,
+            "pos": 3004
+        },
+        {
+            "id": 791,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:37",
+            "count": 1,
+            "pos": 3005
+        },
+        {
+            "id": 792,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:37",
+            "count": 1,
+            "pos": 3006
+        },
+        {
+            "id": 793,
+            "name": "text-insert",
+            "text": "m",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:37",
+            "count": 1,
+            "pos": 3007
+        },
+        {
+            "id": 794,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:38",
+            "count": 1,
+            "pos": 3008
+        },
+        {
+            "id": 795,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:38",
+            "count": 1,
+            "pos": 3009
+        },
+        {
+            "id": 796,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:38",
+            "count": 1,
+            "pos": 3010
+        },
+        {
+            "id": 797,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:38",
+            "count": 1,
+            "pos": 3011
+        },
+        {
+            "id": 798,
+            "name": "text-insert",
+            "text": ",",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:38",
+            "count": 1,
+            "pos": 3012
+        },
+        {
+            "id": 799,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:38",
+            "count": 1,
+            "pos": 3013
+        },
+        {
+            "id": 800,
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:39",
+            "count": 1,
+            "pos": 3014
+        },
+        {
+            "id": 801,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:39",
+            "count": 1,
+            "pos": 3015
+        },
+        {
+            "id": 802,
+            "name": "text-insert",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:39",
+            "count": 1,
+            "pos": 3016
+        },
+        {
+            "id": 803,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:39",
+            "count": 1,
+            "pos": 3017
+        },
+        {
+            "id": 804,
+            "name": "text-insert",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:41",
+            "count": 1,
+            "pos": 3018
+        },
+        {
+            "id": 805,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:42",
+            "count": 1,
+            "pos": 3019
+        },
+        {
+            "id": 806,
+            "name": "text-insert",
+            "text": "w",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:42",
+            "count": 1,
+            "pos": 3020
+        },
+        {
+            "id": 807,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:42",
+            "count": 1,
+            "pos": 3021
+        },
+        {
+            "id": 808,
+            "name": "text-insert",
+            "text": "w",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:42",
+            "count": 1,
+            "pos": 3022
+        },
+        {
+            "id": 809,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:42",
+            "count": 1,
+            "pos": 3023
+        },
+        {
+            "id": 810,
+            "name": "text-insert",
+            "text": "l",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:42",
+            "count": 1,
+            "pos": 3024
+        },
+        {
+            "id": 811,
+            "name": "text-insert",
+            "text": "l",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:42",
+            "count": 1,
+            "pos": 3025
+        },
+        {
+            "id": 812,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:42",
+            "count": 1,
+            "pos": 3026
+        },
+        {
+            "id": 813,
+            "name": "text-insert",
+            "text": "y",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:43",
+            "count": 1,
+            "pos": 3027
+        },
+        {
+            "id": 814,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:43",
+            "count": 1,
+            "pos": 3028
+        },
+        {
+            "id": 815,
+            "name": "text-insert",
+            "text": "u",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:43",
+            "count": 1,
+            "pos": 3029
+        },
+        {
+            "id": 816,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:43",
+            "count": 1,
+            "pos": 3030
+        },
+        {
+            "id": 817,
+            "name": "text-insert",
+            "text": "k",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:43",
+            "count": 1,
+            "pos": 3031
+        },
+        {
+            "id": 818,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:43",
+            "count": 1,
+            "pos": 3032
+        },
+        {
+            "id": 819,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:43",
+            "count": 1,
+            "pos": 3033
+        },
+        {
+            "id": 820,
+            "name": "text-insert",
+            "text": "w",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:44",
+            "count": 1,
+            "pos": 3034
+        },
+        {
+            "id": 821,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:44",
+            "count": 1,
+            "pos": 3035
+        },
+        {
+            "id": 822,
+            "name": "text-insert",
+            "text": "w",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:44",
+            "count": 1,
+            "pos": 3036
+        },
+        {
+            "id": 823,
+            "name": "text-insert",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:44",
+            "count": 1,
+            "pos": 3037
+        },
+        {
+            "id": 824,
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:45",
+            "count": 1,
+            "pos": 3038
+        },
+        {
+            "id": 825,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:45",
+            "count": 1,
+            "pos": 3039
+        },
+        {
+            "id": 826,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:45",
+            "count": 1,
+            "pos": 3040
+        },
+        {
+            "id": 827,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:45",
+            "count": 1,
+            "pos": 3041
+        },
+        {
+            "id": 828,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:45",
+            "count": 1,
+            "pos": 3042
+        },
+        {
+            "id": 829,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:45",
+            "count": 1,
+            "pos": 3043
+        },
+        {
+            "id": 830,
+            "name": "text-insert",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:45",
+            "count": 1,
+            "pos": 3044
+        },
+        {
+            "id": 831,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:45",
+            "count": 1,
+            "pos": 3045
+        },
+        {
+            "id": 832,
+            "name": "text-insert",
+            "text": "?",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:46",
+            "count": 1,
+            "pos": 3046
+        },
+        {
+            "id": 834,
+            "name": "text-delete",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:57",
+            "count": 1,
+            "pos": 1732
+        },
+        {
+            "id": 835,
+            "name": "text-delete",
+            "text": ".",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:57",
+            "count": 1,
+            "pos": 1731
+        },
+        {
+            "id": 836,
+            "name": "text-insert",
+            "text": ",",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:58",
+            "count": 1,
+            "pos": 1731
+        },
+        {
+            "id": 837,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:58",
+            "count": 1,
+            "pos": 1732
+        },
+        {
+            "id": 838,
+            "name": "text-insert",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:58",
+            "count": 1,
+            "pos": 1733
+        },
+        {
+            "id": 839,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:59",
+            "count": 1,
+            "pos": 1734
+        },
+        {
+            "id": 840,
+            "name": "text-insert",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:59",
+            "count": 1,
+            "pos": 1735
+        },
+        {
+            "id": 841,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:59",
+            "count": 1,
+            "pos": 1736
+        },
+        {
+            "id": 842,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:59",
+            "count": 1,
+            "pos": 1737
+        },
+        {
+            "id": 843,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:18:59",
+            "count": 1,
+            "pos": 1738
+        },
+        {
+            "id": 844,
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:00",
+            "count": 1,
+            "pos": 1739
+        },
+        {
+            "id": 845,
+            "name": "text-insert",
+            "text": "y",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:00",
+            "count": 1,
+            "pos": 1740
+        },
+        {
+            "id": 846,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:00",
+            "count": 1,
+            "pos": 1741
+        },
+        {
+            "id": 847,
+            "name": "text-insert",
+            "text": ".",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:01",
+            "count": 1,
+            "pos": 1742
+        },
+        {
+            "id": 848,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:01",
+            "count": 1,
+            "pos": 1743
+        },
+        {
+            "id": 849,
+            "name": "text-insert",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:09",
+            "count": 1,
+            "pos": 1744
+        },
+        {
+            "id": 850,
+            "name": "text-insert",
+            "text": "H",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:13",
+            "count": 1,
+            "pos": 1745
+        },
+        {
+            "id": 851,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:13",
+            "count": 1,
+            "pos": 1746
+        },
+        {
+            "id": 852,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:13",
+            "count": 1,
+            "pos": 1747
+        },
+        {
+            "id": 853,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:14",
+            "count": 1,
+            "pos": 1748
+        },
+        {
+            "id": 854,
+            "name": "text-insert",
+            "text": "x",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:14",
+            "count": 1,
+            "pos": 1749
+        },
+        {
+            "id": 855,
+            "name": "text-insert",
+            "text": "p",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:14",
+            "count": 1,
+            "pos": 1750
+        },
+        {
+            "id": 856,
+            "name": "text-insert",
+            "text": "l",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:14",
+            "count": 1,
+            "pos": 1751
+        },
+        {
+            "id": 857,
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:14",
+            "count": 1,
+            "pos": 1752
+        },
+        {
+            "id": 858,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:14",
+            "count": 1,
+            "pos": 1753
+        },
+        {
+            "id": 859,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:14",
+            "count": 1,
+            "pos": 1754
+        },
+        {
+            "id": 860,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:15",
+            "count": 1,
+            "pos": 1755
+        },
+        {
+            "id": 861,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:15",
+            "count": 1,
+            "pos": 1756
+        },
+        {
+            "id": 862,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:15",
+            "count": 1,
+            "pos": 1757
+        },
+        {
+            "id": 863,
+            "name": "text-insert",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:15",
+            "count": 1,
+            "pos": 1758
+        },
+        {
+            "id": 864,
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:15",
+            "count": 1,
+            "pos": 1759
+        },
+        {
+            "id": 865,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:15",
+            "count": 1,
+            "pos": 1760
+        },
+        {
+            "id": 866,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:15",
+            "count": 1,
+            "pos": 1761
+        },
+        {
+            "id": 867,
+            "name": "text-insert",
+            "text": "y",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:16",
+            "count": 1,
+            "pos": 1762
+        },
+        {
+            "id": 868,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:16",
+            "count": 1,
+            "pos": 1763
+        },
+        {
+            "id": 869,
+            "name": "text-insert",
+            "text": "u",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:16",
+            "count": 1,
+            "pos": 1764
+        },
+        {
+            "id": 870,
+            "name": "text-insert",
+            "text": "'",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:17",
+            "count": 1,
+            "pos": 1765
+        },
+        {
+            "id": 871,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:17",
+            "count": 1,
+            "pos": 1766
+        },
+        {
+            "id": 872,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:17",
+            "count": 1,
+            "pos": 1767
+        },
+        {
+            "id": 873,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:17",
+            "count": 1,
+            "pos": 1768
+        },
+        {
+            "id": 874,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:17",
+            "count": 1,
+            "pos": 1769
+        },
+        {
+            "id": 875,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:17",
+            "count": 1,
+            "pos": 1770
+        },
+        {
+            "id": 876,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:17",
+            "count": 1,
+            "pos": 1771
+        },
+        {
+            "id": 877,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:17",
+            "count": 1,
+            "pos": 1772
+        },
+        {
+            "id": 878,
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:18",
+            "count": 1,
+            "pos": 1772
+        },
+        {
+            "id": 879,
+            "name": "text-delete",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:18",
+            "count": 1,
+            "pos": 1771
+        },
+        {
+            "id": 880,
+            "name": "text-insert",
+            "text": "w",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:18",
+            "count": 1,
+            "pos": 1771
+        },
+        {
+            "id": 881,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:18",
+            "count": 1,
+            "pos": 1772
+        },
+        {
+            "id": 882,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:19",
+            "count": 1,
+            "pos": 1773
+        },
+        {
+            "id": 883,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:19",
+            "count": 1,
+            "pos": 1774
+        },
+        {
+            "id": 884,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:19",
+            "count": 1,
+            "pos": 1775
+        },
+        {
+            "id": 885,
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:19",
+            "count": 1,
+            "pos": 1776
+        },
+        {
+            "id": 886,
+            "name": "text-insert",
+            "text": "p",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:19",
+            "count": 1,
+            "pos": 1777
+        },
+        {
+            "id": 887,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:19",
+            "count": 1,
+            "pos": 1778
+        },
+        {
+            "id": 888,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:20",
+            "count": 1,
+            "pos": 1779
+        },
+        {
+            "id": 889,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:20",
+            "count": 1,
+            "pos": 1780
+        },
+        {
+            "id": 890,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:20",
+            "count": 1,
+            "pos": 1781
+        },
+        {
+            "id": 891,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:20",
+            "count": 1,
+            "pos": 1782
+        },
+        {
+            "id": 892,
+            "name": "text-insert",
+            "text": "f",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:21",
+            "count": 1,
+            "pos": 1783
+        },
+        {
+            "id": 893,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:21",
+            "count": 1,
+            "pos": 1784
+        },
+        {
+            "id": 894,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:21",
+            "count": 1,
+            "pos": 1785
+        },
+        {
+            "id": 895,
+            "name": "text-insert",
+            "text": "m",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:21",
+            "count": 1,
+            "pos": 1786
+        },
+        {
+            "id": 896,
+            "name": "text-insert",
+            "text": ",",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:21",
+            "count": 1,
+            "pos": 1787
+        },
+        {
+            "id": 897,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:21",
+            "count": 1,
+            "pos": 1788
+        },
+        {
+            "id": 898,
+            "name": "text-insert",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:25",
+            "count": 1,
+            "pos": 1789
+        },
+        {
+            "id": 899,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:25",
+            "count": 1,
+            "pos": 1790
+        },
+        {
+            "id": 900,
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:25",
+            "count": 1,
+            "pos": 1791
+        },
+        {
+            "id": 901,
+            "name": "text-insert",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:25",
+            "count": 1,
+            "pos": 1792
+        },
+        {
+            "id": 902,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:25",
+            "count": 1,
+            "pos": 1793
+        },
+        {
+            "id": 903,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:25",
+            "count": 1,
+            "pos": 1794
+        },
+        {
+            "id": 904,
+            "name": "text-insert",
+            "text": "g",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:25",
+            "count": 1,
+            "pos": 1795
+        },
+        {
+            "id": 905,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:26",
+            "count": 1,
+            "pos": 1796
+        },
+        {
+            "id": 906,
+            "name": "text-insert",
+            "text": "f",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:26",
+            "count": 1,
+            "pos": 1797
+        },
+        {
+            "id": 907,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:26",
+            "count": 1,
+            "pos": 1798
+        },
+        {
+            "id": 908,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:26",
+            "count": 1,
+            "pos": 1799
+        },
+        {
+            "id": 909,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:26",
+            "count": 1,
+            "pos": 1800
+        },
+        {
+            "id": 910,
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:26",
+            "count": 1,
+            "pos": 1801
+        },
+        {
+            "id": 911,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:27",
+            "count": 1,
+            "pos": 1802
+        },
+        {
+            "id": 912,
+            "name": "text-insert",
+            "text": "b",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:27",
+            "count": 1,
+            "pos": 1803
+        },
+        {
+            "id": 913,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:27",
+            "count": 1,
+            "pos": 1804
+        },
+        {
+            "id": 914,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:28",
+            "count": 1,
+            "pos": 1805
+        },
+        {
+            "id": 915,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:28",
+            "count": 1,
+            "pos": 1806
+        },
+        {
+            "id": 916,
+            "name": "text-insert",
+            "text": "f",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:28",
+            "count": 1,
+            "pos": 1807
+        },
+        {
+            "id": 917,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:28",
+            "count": 1,
+            "pos": 1808
+        },
+        {
+            "id": 918,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:28",
+            "count": 1,
+            "pos": 1809
+        },
+        {
+            "id": 919,
+            "name": "text-insert",
+            "text": "g",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:28",
+            "count": 1,
+            "pos": 1810
+        },
+        {
+            "id": 920,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:29",
+            "count": 1,
+            "pos": 1811
+        },
+        {
+            "id": 921,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:29",
+            "count": 1,
+            "pos": 1812
+        },
+        {
+            "id": 922,
+            "name": "text-insert",
+            "text": "f",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:29",
+            "count": 1,
+            "pos": 1813
+        },
+        {
+            "id": 923,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:29",
+            "count": 1,
+            "pos": 1814
+        },
+        {
+            "id": 924,
+            "name": "text-insert",
+            "text": "g",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:30",
+            "count": 1,
+            "pos": 1815
+        },
+        {
+            "id": 925,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:30",
+            "count": 1,
+            "pos": 1816
+        },
+        {
+            "id": 926,
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:30",
+            "count": 1,
+            "pos": 1817
+        },
+        {
+            "id": 927,
+            "name": "text-insert",
+            "text": "v",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:30",
+            "count": 1,
+            "pos": 1818
+        },
+        {
+            "id": 928,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:30",
+            "count": 1,
+            "pos": 1819
+        },
+        {
+            "id": 929,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:30",
+            "count": 1,
+            "pos": 1820
+        },
+        {
+            "id": 930,
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:30",
+            "count": 1,
+            "pos": 1821
+        },
+        {
+            "id": 931,
+            "name": "text-insert",
+            "text": "m",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:31",
+            "count": 1,
+            "pos": 1822
+        },
+        {
+            "id": 932,
+            "name": "text-insert",
+            "text": "p",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:31",
+            "count": 1,
+            "pos": 1823
+        },
+        {
+            "id": 933,
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:31",
+            "count": 1,
+            "pos": 1824
+        },
+        {
+            "id": 934,
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:31",
+            "count": 1,
+            "pos": 1825
+        },
+        {
+            "id": 935,
+            "name": "text-insert",
+            "text": "t",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:31",
+            "count": 1,
+            "pos": 1826
+        },
+        {
+            "id": 936,
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:31",
+            "count": 1,
+            "pos": 1827
+        },
+        {
+            "id": 937,
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:31",
+            "count": 1,
+            "pos": 1828
+        },
+        {
+            "id": 938,
+            "name": "text-insert",
+            "text": "c",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:32",
+            "count": 1,
+            "pos": 1829
+        },
+        {
+            "id": 939,
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:32",
+            "count": 1,
+            "pos": 1830
+        },
+        {
+            "id": 940,
+            "name": "text-insert",
+            "text": ".",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:32",
+            "count": 1,
+            "pos": 1831
+        },
+        {
+            "id": 941,
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:32",
+            "count": 1,
+            "pos": 1832
+        },
+        {
+            "id": 942,
+            "name": "text-insert",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-23 10:19:33",
+            "count": 1,
+            "pos": 1833
+        }
+    ],
+    "end_time": "2021-08-23 10:19:33"
+}

@@ -315,7 +315,7 @@
 
   // FETCH SCORES
   const fetchLLMScore = async (sessionFile) => {
-    const url = `${base}/chi2022-coauthor-v1.0/eval_results-${selectedDataset}/${sessionFile}.json`;
+    const url = `${base}/dataset/${selectedDataset}/eval_results/${sessionFile}.json`;
     try {
       const response = await fetch(url);
       if (!response.ok) {
@@ -555,7 +555,7 @@
 
     for (let i = 1; i <= data.length - minCount; i++) {
       const window = data.slice(i, i + minCount);
-      if (checks.progress && checks.progress[1]) {
+      if (checks.progress && checks.progress[0]) {
         const [min, max] = checks.progress[1];
         const deltaTarget = max - min;
         const relax = deltaTarget * 0.1;
@@ -581,7 +581,7 @@
         }
       }
 
-      if (checks.time && checks.time[1]) {
+      if (checks.time && checks.time[0]) {
         const [minTime, maxTime] = checks.time[1];
         const deltaTarget = maxTime - minTime;
         const relax = deltaTarget * 0.1;
@@ -615,7 +615,7 @@
         if (!expectedSources.every((src, idx) => src === actualSources[idx])) continue;
       }
 
-      if (checks.semantic && checks.semantic[1]) {
+      if (checks.semantic && checks.semantic[0]) {
         const [minScore, maxScore] = checks.semantic[1];
         const relax = (maxScore - minScore) * 0.1;
         const relaxedMin = minScore - relax;
@@ -741,7 +741,7 @@
     };
 
     try {
-      const fileListResponse = await fetch(`${base}/session_name-${selectedDataset}.json`);
+      const fileListResponse = await fetch(`${base}/dataset/${selectedDataset}/session_name.json`);
       const fileList = await fileListResponse.json();
 
       for (const fileName of fileList) {
@@ -750,7 +750,7 @@
         //   continue;
         // }
         const dataResponse = await fetch(
-          `${base}/chi2022-coauthor-v1.0/similarity_results-${selectedDataset}/${fileName}`
+          `${base}/dataset/${selectedDataset}/similarity_results/${fileName}`
         );
         const data = await dataResponse.json();
         if (Array.isArray(data.chartData)) {
@@ -1020,7 +1020,7 @@
 
   const fetchLengthData = async () => {
     try {
-      const response = await fetch(`${base}/chi2022-coauthor-v1.0/length-${selectedDataset}.json`);
+      const response = await fetch(`${base}/dataset/${selectedDataset}/length.json`);
       if (!response.ok) {
         throw new Error(`Failed to fetch summary data: ${response.status}`);
       }
@@ -1036,7 +1036,7 @@
   const fetchOverallSemScoreSummaryData = async () => {
     try {
       const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/overall_sem_score_summary-${selectedDataset}.json`
+        `${base}/dataset/${selectedDataset}/overall_sem_score_summary.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch summary data: ${response.status}`);
@@ -1053,7 +1053,7 @@
   const fetchOverallSemScoreData = async () => {
     try {
       const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/overall_sem_score-${selectedDataset}.json`
+        `${base}/dataset/${selectedDataset}/overall_sem_score.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch summary data: ${response.status}`);
@@ -1070,7 +1070,7 @@
   const fetchLengthSummaryData = async () => {
     try {
       const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/length_summary-${selectedDataset}.json`
+        `${base}/dataset/${selectedDataset}/length_summary.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch summary data: ${response.status}`);
@@ -1087,7 +1087,7 @@
   const fetchPercentageSummaryData = async () => {
     try {
       const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/percentage_summary-${selectedDataset}.json`
+        `${base}/dataset/${selectedDataset}/percentage_summary.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch summary data: ${response.status}`);
@@ -1104,7 +1104,7 @@
   const fetchPercentageData = async () => {
     try {
       const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/percentage-${selectedDataset}.json`
+        `${base}/dataset/${selectedDataset}/percentage.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch summary data: ${response.status}`);
@@ -1121,7 +1121,7 @@
   const fetchScoreSummaryData = async () => {
     try {
       const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/score_summary-${selectedDataset}.json`
+        `${base}/dataset/${selectedDataset}/score_summary.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch summary data: ${response.status}`);
@@ -1171,7 +1171,7 @@
 
   const fetchSessions = async () => {
     try {
-      const response = await fetch(`${base}/fine-${selectedDataset}.json`);
+      const response = await fetch(`${base}/dataset/${selectedDataset}/fine.json`);
       const data = await response.json();
       sessions = data || [];
 
@@ -1216,7 +1216,7 @@
   const fetchDataSummary = async (sessionFile) => {
     try {
       const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/coauthor-json-${selectedDataset}/${sessionFile}.jsonl`
+        `${base}/dataset/${selectedDataset}/coauthor-json/${sessionFile}.jsonl`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -1266,7 +1266,7 @@
     }
     try {
       const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/coauthor-json-${selectedDataset}/${sessionFile}.jsonl`
+        `${base}/dataset/${selectedDataset}/coauthor-json/${sessionFile}.jsonl`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -1313,7 +1313,7 @@
   const fetchSimilarityData = async (sessionFile) => {
     try {
       const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/similarity_results-${selectedDataset}/${sessionFile}_similarity.json`
+        `${base}/dataset/${selectedDataset}/similarity_results/${sessionFile}_similarity.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch session data: ${response.status}`);
