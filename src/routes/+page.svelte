@@ -1961,9 +1961,7 @@
                           />
                           <span class="slider">
                             <span class="switch-text">
-                              {isExactSearchProgress
-                                ? "Exact Search"
-                                : "Proximity Search"}
+                              {isExactSearchProgress ? "Exact" : "Proximity"}
                             </span>
                           </span>
                         </label>
@@ -1986,9 +1984,7 @@
                           />
                           <span class="slider">
                             <span class="switch-text">
-                              {isExactSearchTime
-                                ? "Exact Search"
-                                : "Proximity Search"}
+                              {isExactSearchTime ? "Exact" : "Proximity"}
                             </span>
                           </span>
                         </label>
@@ -2011,9 +2007,7 @@
                           />
                           <span class="slider">
                             <span class="switch-text">
-                              {isExactSearchSource
-                                ? "Exact Search"
-                                : "Proximity Search"}
+                              {isExactSearchSource ? "Exact" : "Proximity"}
                             </span>
                           </span>
                         </label>
@@ -2055,9 +2049,7 @@
                               />
                               <span class="slider">
                                 <span class="switch-text">
-                                  {isExactSearchTrend
-                                    ? "Exact Search"
-                                    : "Proximity Search"}
+                                  {isExactSearchTrend ? "Exact" : "Proximity"}
                                 </span>
                               </span>
                             </label>
@@ -2852,7 +2844,7 @@
   .switch {
     position: relative;
     display: inline-block;
-    width: 95px;
+    width: 62px;
     height: 14px;
   }
 

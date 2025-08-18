@@ -708,7 +708,7 @@ input:checked+.slider {
 }
 
 input:checked+.slider::before {
-  transform: translateX(81px);
+  transform: translateX(48px);
 }
 
 .slider {
