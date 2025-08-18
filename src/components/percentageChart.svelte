@@ -14,7 +14,7 @@
 
   function drawChart() {
     if (!canvasEl) return;
-    const dpr = 3;
+    const dpr = 2;
 
     const width = 300;
     const height = 200;

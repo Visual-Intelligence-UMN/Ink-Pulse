@@ -14,7 +14,7 @@
   const paddingTop = 20;
   const overallColor = '#bf1818';
   const NOWColor = "#015dc6";
-  const dpr = 3;
+  const dpr = 2;
 
   let labels = [];
 
