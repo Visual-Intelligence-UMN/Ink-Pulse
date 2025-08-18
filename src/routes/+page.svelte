@@ -26,6 +26,7 @@
     searchPatternSet,
     exportDB,
     triggerImport,
+    loadPattern,
   } from "../components/cache.js";
   import RankWorker from "../workers/rankWorker.js?worker";
   import WeightPanel from "../components/weightPanel.svelte";
@@ -43,9 +44,9 @@
   let exactProgressButton;
   let exactTimeButton;
 
-  $: if(selectedPatterns) {
+  $: if (selectedPatterns) {
     // console.log("selectedPatterns", selectedPatterns);
-    isSearch = 0 // reset search state; 0: not searching, 1: searching, 2: search done
+    isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
   }
 
   function initTippy(el, content) {
@@ -58,13 +59,11 @@
   }
   $: filterButton && initTippy(filterButton, "Filter based on prompt type");
   $: collapseButton && initTippy(collapseButton, "Collapse/Expand table view");
-  $: exactSourceButton &&
-    initTippy(exactSourceButton, "Open/Close exact search");
-  $: exactTrendButton && initTippy(exactTrendButton, "Open/Close exact search");
-  $: exactProgressButton && initTippy(exactProgressButton, "Open/Close exact search");
-  $: exactTimeButton && initTippy(exactTimeButton, "Open/Close exact search");
-
-  import { loadPattern } from "../components/cache.js"; // or adjust import path if different
+  // $: exactSourceButton && initTippy(exactSourceButton, "Open/Close exact search");
+  // $: exactTrendButton && initTippy(exactTrendButton, "Open/Close exact search");
+  // $: exactProgressButton &&
+  //   initTippy(exactProgressButton, "Open/Close exact search");
+  // $: exactTimeButton && initTippy(exactTimeButton, "Open/Close exact search");
 
   onMount(() => {
     loadPattern("patterns/load");
@@ -550,8 +549,8 @@
       isExactSearchTrend && checks.trend && checks.trend[1] && minCount > 1;
     const isProgressCheckRequired =
       isExactSearchProgress && checks.progress && checks.progress[1];
-    const isTimeCheckRequired= 
-      isExactSearchTime && checks.time && checks.time[1]
+    const isTimeCheckRequired =
+      isExactSearchTime && checks.time && checks.time[1];
 
     for (let i = 1; i <= data.length - minCount; i++) {
       const window = data.slice(i, i + minCount);
@@ -570,9 +569,12 @@
         const relaxedDeltaMax = deltaTarget + relax;
         if (isProgressCheckRequired) {
           if (
-            start < relaxedStartMin || start > relaxedStartMax ||
-            end < relaxedEndMin || end > relaxedEndMax ||
-            delta < relaxedDeltaMin || delta > relaxedDeltaMax
+            start < relaxedStartMin ||
+            start > relaxedStartMax ||
+            end < relaxedEndMin ||
+            end > relaxedEndMax ||
+            delta < relaxedDeltaMin ||
+            delta > relaxedDeltaMax
           ) {
             continue;
           }
@@ -596,14 +598,18 @@
         const relaxedDeltaMax = deltaTarget + relax;
         if (isTimeCheckRequired) {
           if (
-            startTime < relaxedStartMin || startTime > relaxedStartMax ||
-            endTime < relaxedEndMin || endTime > relaxedEndMax ||
-            deltaTime < relaxedDeltaMin || deltaTime > relaxedDeltaMax
+            startTime < relaxedStartMin ||
+            startTime > relaxedStartMax ||
+            endTime < relaxedEndMin ||
+            endTime > relaxedEndMax ||
+            deltaTime < relaxedDeltaMin ||
+            deltaTime > relaxedDeltaMax
           ) {
             continue;
           }
         } else {
-          if (deltaTime < relaxedDeltaMin || deltaTime > relaxedDeltaMax) continue;
+          if (deltaTime < relaxedDeltaMin || deltaTime > relaxedDeltaMax)
+            continue;
         }
       }
 
@@ -612,7 +618,8 @@
         if (expectedSources.length !== minCount) continue;
 
         const actualSources = window.map((item) => item.source);
-        if (!expectedSources.every((src, idx) => src === actualSources[idx])) continue;
+        if (!expectedSources.every((src, idx) => src === actualSources[idx]))
+          continue;
       }
 
       if (checks.semantic && checks.semantic[0]) {
@@ -620,11 +627,13 @@
         const relax = (maxScore - minScore) * 0.1;
         const relaxedMin = minScore - relax;
         const relaxedMax = maxScore + relax;
-        const allScores = window.map(item => item.residual_vector_norm); 
-        const isScoreValid = allScores.every(score => score >= relaxedMin && score <= relaxedMax);
+        const allScores = window.map((item) => item.residual_vector_norm);
+        const isScoreValid = allScores.every(
+          (score) => score >= relaxedMin && score <= relaxedMax
+        );
         if (!isScoreValid) continue;
       }
-      
+
       if (isTrendCheckRequired) {
         const values = window.map((item) => item.residual_vector_norm);
         if (!matchesTrend(values, checks.trend[1])) continue;
@@ -741,7 +750,9 @@
     };
 
     try {
-      const fileListResponse = await fetch(`${base}/dataset/${selectedDataset}/session_name.json`);
+      const fileListResponse = await fetch(
+        `${base}/dataset/${selectedDataset}/session_name.json`
+      );
       const fileList = await fileListResponse.json();
 
       for (const fileName of fileList) {
@@ -868,7 +879,11 @@
           continue;
         }
         const worker = new RankWorker();
-        worker.postMessage({ patternVectors: chunk, currentVector, weights: get(weights) });
+        worker.postMessage({
+          patternVectors: chunk,
+          currentVector,
+          weights: get(weights),
+        });
         worker.onmessage = (e) => {
           allResults.push(...e.data);
           completed++;
@@ -1020,7 +1035,9 @@
 
   const fetchLengthData = async () => {
     try {
-      const response = await fetch(`${base}/dataset/${selectedDataset}/length.json`);
+      const response = await fetch(
+        `${base}/dataset/${selectedDataset}/length.json`
+      );
       if (!response.ok) {
         throw new Error(`Failed to fetch summary data: ${response.status}`);
       }
@@ -1171,7 +1188,9 @@
 
   const fetchSessions = async () => {
     try {
-      const response = await fetch(`${base}/dataset/${selectedDataset}/fine.json`);
+      const response = await fetch(
+        `${base}/dataset/${selectedDataset}/fine.json`
+      );
       const data = await response.json();
       sessions = data || [];
 
@@ -1197,7 +1216,7 @@
           "mattdamon",
           "shapeshifter",
           "isolation",
-          "cat"
+          "cat",
         ]);
 
         $filterTableData = tableData.filter((session) =>
@@ -1319,7 +1338,7 @@
         throw new Error(`Failed to fetch session data: ${response.status}`);
       }
 
-      const data = await response.json() || [];
+      const data = (await response.json()) || [];
       return data;
     } catch (error) {
       console.error("Error when reading the data file:", error);
@@ -1334,13 +1353,13 @@
   let lengthSummaryData = [];
   let overallSemScoreData = [];
   let overallSemScoreSummaryData = [];
-  let isLoadOverallData = false
+  let isLoadOverallData = false;
   onMount(async () => {
     document.title = "Ink-Pulse";
     const res = await fetch(`${base}/dataset_name.json`);
     datasets = await res.json();
     const params = new URLSearchParams(window.location.search);
-    const datasetParam = params.get('dataset');
+    const datasetParam = params.get("dataset");
     if (datasetParam && datasets.includes(datasetParam)) {
       selectedDataset = datasetParam;
     }
@@ -1353,18 +1372,18 @@
     overallSemScoreSummaryData = await fetchOverallSemScoreSummaryData();
     if (isLoadOverallData == false) {
       const itemToSave = {
-      id: `pattern_0`,
-      name: "Overall",
-      pattern: [],
-      metadata: {},
-      scoreSummary,
-      percentageSummaryData,
-      lengthSummaryData,
-      overallSemScoreData,
-      overallSemScoreSummaryData
-    };
-      searchPatternSet.update(current => {
-        if (!current.find(p => p.id === "pattern_0")) {
+        id: `pattern_0`,
+        name: "Overall",
+        pattern: [],
+        metadata: {},
+        scoreSummary,
+        percentageSummaryData,
+        lengthSummaryData,
+        overallSemScoreData,
+        overallSemScoreSummaryData,
+      };
+      searchPatternSet.update((current) => {
+        if (!current.find((p) => p.id === "pattern_0")) {
           return [...current, itemToSave];
         }
         return current;
@@ -1525,9 +1544,19 @@
     let totalSuggestions = 0;
     let totalProcessedCharacters = totalTextLength;
     const sortedEvents = [...data.info].sort((a, b) => a.id - b.id);
-    let combinedText = [...initText].map((ch) => ({ text: ch, textColor: "#FC8D62" }));
+    let combinedText = [...initText].map((ch) => ({
+      text: ch,
+      textColor: "#FC8D62",
+    }));
     sortedEvents.forEach((event) => {
-      const { name, text = "", eventSource, event_time, count = 0, pos = 0 } = event;
+      const {
+        name,
+        text = "",
+        eventSource,
+        event_time,
+        count = 0,
+        pos = 0,
+      } = event;
       const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
       const eventTime = new Date(event_time);
 
@@ -1611,7 +1640,10 @@
       });
     }
 
-    if (combinedText.length && combinedText[combinedText.length - 1].text === "\n") {
+    if (
+      combinedText.length &&
+      combinedText[combinedText.length - 1].text === "\n"
+    ) {
       combinedText.pop();
       currentCharArray.pop();
       currentColor.pop();
@@ -1789,7 +1821,11 @@
         </a>
       {/if}
       <label for="dataset-select">Dataset:</label>
-      <select id="dataset-select" bind:value={selectedDataset} on:change={handleDatasetChange}>
+      <select
+        id="dataset-select"
+        bind:value={selectedDataset}
+        on:change={handleDatasetChange}
+      >
         {#each datasets as dataset}
           <option value={dataset}>{dataset}</option>
         {/each}
@@ -1865,9 +1901,8 @@
                   <div class="pattern-header">
                     <h5>Session: {sessionId.slice(0, 4)}</h5>
                     <div class="pattern-buttons">
-                      <button
-                        class="weight-button"
-                        on:click={setWeight}>Weight</button
+                      <button class="weight-button" on:click={setWeight}
+                        >Weight</button
                       >
                       <button
                         class="search-pattern-button"
@@ -1924,7 +1959,11 @@
                             bind:checked={isExactSearchProgress}
                             disabled={!isProgressChecked}
                           />
-                          <span class="slider"></span>
+                          <span class="slider">
+                            <span class="switch-text">
+                              {isExactSearchProgress ? "Exact" : "Proximity"}
+                            </span>
+                          </span>
                         </label>
                       </div>
                       <div
@@ -1943,7 +1982,11 @@
                             bind:checked={isExactSearchTime}
                             disabled={!isTimeChecked}
                           />
-                          <span class="slider"></span>
+                          <span class="slider">
+                            <span class="switch-text">
+                              {isExactSearchTime ? "Exact" : "Proximity"}
+                            </span>
+                          </span>
                         </label>
                       </div>
                       <div
@@ -1962,7 +2005,11 @@
                             bind:checked={isExactSearchSource}
                             disabled={!isSourceChecked}
                           />
-                          <span class="slider"></span>
+                          <span class="slider">
+                            <span class="switch-text">
+                              {isExactSearchSource ? "Exact" : "Proximity"}
+                            </span>
+                          </span>
                         </label>
                       </div>
                       <div style="font-size: 13px;">
@@ -2000,7 +2047,11 @@
                                 disabled={!isSemanticChecked ||
                                   !isValueTrendChecked}
                               />
-                              <span class="slider"></span>
+                              <span class="slider">
+                                <span class="switch-text">
+                                  {isExactSearchTrend ? "Exact" : "Proximity"}
+                                </span>
+                              </span>
                             </label>
                           </div>
                         </div>
@@ -2354,7 +2405,7 @@
                               zoomTransforms[$clickSession.sessionId]
                             }
                             {selectionMode}
-                            bind:sharedSelection={sharedSelection}
+                            bind:sharedSelection
                             on:selectionChanged={handleSelectionChanged}
                             on:selectionCleared={handleSelectionCleared}
                             bind:this={
@@ -2376,7 +2427,7 @@
                               zoomTransforms[$clickSession.sessionId]
                             }
                             {selectionMode}
-                            bind:sharedSelection={sharedSelection}
+                            bind:sharedSelection
                           />
                         </div>
                       </div>
@@ -2793,7 +2844,7 @@
   .switch {
     position: relative;
     display: inline-block;
-    width: 25px;
+    width: 62px;
     height: 14px;
   }
 
@@ -2821,5 +2872,4 @@
   .hidden {
     display: none;
   }
-
 </style>
