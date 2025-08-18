@@ -33,10 +33,6 @@
   function renderCanvas() {
     if (!similarityData || !canvasEl || !isVisible) return;
 
-    const dataHash = hashData(similarityData);
-    if (dataHash === lastDataHash) return;
-    lastDataHash = dataHash;
-
     const processedData = similarityData.map((item) => ({
       text_length: item.sentence,
       startProgress: item.start_progress * 100,
@@ -53,7 +49,7 @@
     const yScale = d3.scaleLinear().domain([0, 1]).range([0, height]);
     const opacityScale = d3.scaleLinear().domain([0, 1]).range([0.3, 1]);
 
-    const dpr = 5;
+    const dpr = 2;
     canvasEl.width = width * dpr;
     canvasEl.height = height * dpr;
     canvasEl.style.width = width + "px";

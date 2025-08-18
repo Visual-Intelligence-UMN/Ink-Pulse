@@ -14,7 +14,7 @@
 
   function drawChart() {
     if (!canvasEl) return;
-    const dpr = 3;
+    const dpr = 2;
     const width = 450;
     const height = 200;
 
@@ -66,7 +66,7 @@
       });
     } else {
       lengthSummaryData.forEach(session => {
-        const val = session.similarityData?.[0]?.sentence;
+        const val = session.similarityData?.[session.similarityData.length - 1]?.sentence;
         if (val === undefined || val === null) return;
         const length = val * 3000;
         const binIndex = bins.findIndex(b => length >= b.min && length < b.max);
