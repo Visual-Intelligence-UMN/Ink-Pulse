@@ -15,8 +15,10 @@ self.onmessage = function (e) {
 
   for (const item of patternVectors) {
     let score = 0;
-    for (const key in weights) {
-      score += weights[key] * l2(item[key], currentVector[key]);
+    for (const key in item) {
+      if (key !== "id" && key !== "segmentId") {
+        score += (weights[key] ?? 1) * l2(item[key], currentVector[key]);
+      }
     }
     result.push([item.segmentId, score]);
   }
