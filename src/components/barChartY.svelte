@@ -97,9 +97,7 @@
     if (!newyScale) return;
     if (!xScale) return;
 
-    // 如果是lineChart的X轴brush（时间选择），不执行高亮逻辑
     if (sharedSelection.selectionSource === "lineChart_x") {
-      // 保持bars的默认状态，不进行高亮
       bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
       return;
     }
