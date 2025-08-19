@@ -701,8 +701,8 @@
         vector.t.push(tEnd - tStart);
       }
       if (checks.progress[0]) {
-        const y1 = item.start_progress;
-        const y2 = item.end_progress;
+        const y1 = item.start_progress * 100;
+        const y2 = item.end_progress * 100;
         vector.p.push(y2 - y1);
       }
       if (checks.semantic[0]) {
@@ -750,9 +750,7 @@
     };
 
     try {
-      const fileListResponse = await fetch(
-        `${base}/dataset/${selectedDataset}/session_name.json`
-      );
+      const fileListResponse = await fetch(`${base}/dataset/${selectedDataset}/session_name.json`);
       const fileList = await fileListResponse.json();
 
       for (const fileName of fileList) {
@@ -847,11 +845,12 @@
 
   function calculateRank(patternVectors, currentVector) {
     let finalScore = [];
+    const weightValues = get(weights);
     for (const item of patternVectors) {
       let score = 0;
       for (const key in item) {
         if (key != "id" && key != "segmentId") {
-          let weight = weights[key] ?? 1;
+          let weight = weightValues[key] ?? 1;
           let arr = item[key];
           score += weight * l2(arr, currentVector[key]);
         }
@@ -869,6 +868,7 @@
   ) {
     const chunkSize = Math.ceil(patternVectors.length / threadCount);
     let completed = 0;
+    const weightValues = get(weights);
     const allResults = [];
 
     return new Promise((resolve, reject) => {
@@ -879,11 +879,7 @@
           continue;
         }
         const worker = new RankWorker();
-        worker.postMessage({
-          patternVectors: chunk,
-          currentVector,
-          weights: get(weights),
-        });
+        worker.postMessage({ patternVectors: chunk, currentVector, weights: weightValues  });
         worker.onmessage = (e) => {
           allResults.push(...e.data);
           completed++;
