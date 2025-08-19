@@ -944,36 +944,60 @@
   function handleSelectionChanged(event) {
     showResultCount.set(5);
 
+    console.log("handleSelectionChanged called with:", event.detail);
+    console.log("sharedSelection:", sharedSelection);
+
     if (sharedSelection && sharedSelection.selectionSource === "lineChart_x") {
-      isProgressChecked = false;
+      console.log("Setting lineChart_x options");
+      isProgressChecked = true;
       isTimeChecked = true;
       isSourceChecked = false;
       isSemanticChecked = false;
       isValueRangeChecked = false;
       isValueTrendChecked = false;
       isExactSearchTime = true;
+      isExactSearchProgress = true;
+      isExactSearchSource = false;
+      isExactSearchTrend = false;
+      console.log(
+        "After setting lineChart_x - isProgressChecked:",
+        isProgressChecked,
+        "isTimeChecked:",
+        isTimeChecked,
+        "isSourceChecked:",
+        isSourceChecked
+      );
     } else if (
       sharedSelection &&
       sharedSelection.selectionSource === "lineChart_y"
     ) {
+      console.log("Setting lineChart_y options");
       isProgressChecked = true;
-      isTimeChecked = false;
-      isSourceChecked = false;
-      isSemanticChecked = false;
-      isValueRangeChecked = false;
-      isValueTrendChecked = false;
+      isTimeChecked = true;
+      isSourceChecked = true;
+      isSemanticChecked = true;
+      isValueRangeChecked = true;
+      isValueTrendChecked = true;
       isExactSearchProgress = true;
+      isExactSearchTime = true;
+      isExactSearchSource = true;
+      isExactSearchTrend = true;
     } else if (
       sharedSelection &&
       sharedSelection.selectionSource === "barChart_y"
     ) {
-      isProgressChecked = false;
+      console.log("Setting barChart_y options");
+      isProgressChecked = true;
       isTimeChecked = false;
       isSourceChecked = true;
       isSemanticChecked = true;
       isValueRangeChecked = true;
       isValueTrendChecked = true;
+      isExactSearchProgress = true;
+      isExactSearchSource = true;
+      isExactSearchTrend = true;
     } else {
+      console.log("Setting default options");
       isProgressChecked = false;
       isTimeChecked = false;
       isSourceChecked = true;
@@ -2428,6 +2452,8 @@
                             }
                             {selectionMode}
                             bind:sharedSelection
+                            on:selectionChanged={handleSelectionChanged}
+                            on:selectionCleared={handleSelectionCleared}
                           />
                         </div>
                       </div>
