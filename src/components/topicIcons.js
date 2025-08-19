@@ -8,7 +8,8 @@ export const topicIcons = {
     dad: "👨",  
     mattdamon: "🎬", 
     shapeshifter: "🌀",
-    isolation: "🏝️" 
+    isolation: "🏝️",
+    policy: "📋"
   };
 export function getCategoryIcon(promptCode) {
   return topicIcons[promptCode] || "📄"; 
