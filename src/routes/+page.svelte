@@ -1521,29 +1521,50 @@
         eventSource,
         text = "",
         count = 0,
-        pos = 0,
       } = event;
+
       const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
       const eventTime = new Date(event_time);
       if (!firstTime) firstTime = eventTime;
       const relativeTime = (eventTime.getTime() - firstTime.getTime()) / 60000;
 
       if (name === "text-insert") {
-        currentCharCount += text.length;
+        const insertChars = [...text];
+        insertChars.forEach(() => {
+          currentCharCount++;
+          const percentage = (currentCharCount / totalTextLength) * 100;
+          chartData.push({
+            time: relativeTime,
+            percentage,
+            eventSource,
+            color: textColor,
+            isSuggestionOpen: false,
+            index: index++,
+          });
+        });
       } else if (name === "text-delete") {
-        currentCharCount -= count;
+        const deleteCount = text.length || count;
+        currentCharCount -= deleteCount;
+        const percentage = (currentCharCount / totalTextLength) * 100;
+        chartData.push({
+          time: relativeTime,
+          percentage,
+          eventSource,
+          color: textColor,
+          isSuggestionOpen: false,
+          index: index++,
+        });
+      } else {
+        const percentage = (currentCharCount / totalTextLength) * 100;
+        chartData.push({
+          time: relativeTime,
+          percentage,
+          eventSource,
+          color: textColor,
+          isSuggestionOpen: name === "suggestion-open",
+          index: index++,
+        });
       }
-
-      const percentage = (currentCharCount / totalTextLength) * 100;
-
-      chartData.push({
-        time: relativeTime,
-        percentage,
-        eventSource,
-        color: textColor,
-        isSuggestionOpen: name === "suggestion-open",
-        index: index++,
-      });
     });
 
     return chartData;

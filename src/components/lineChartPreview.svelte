@@ -1,8 +1,8 @@
 <script lang="ts">
   import * as d3 from "d3";
 
-  export let chartData: any[] = [];
-  export let paragraphColor: any[] = [];
+  export let chartData;
+  // export let paragraphColor;
 
   let svgContainer: SVGSVGElement;
   let width = 250;
@@ -64,7 +64,7 @@
   <g transform={`translate(${margin.left},${margin.top})`}>
     <g clip-path="url(#clip_preview)">
       <g>
-        {#each paragraphColor as d}
+        <!-- {#each paragraphColor as d}
           <rect
             x={scaledX(d.xMin)}
             width={scaledX(d.xMax) - scaledX(d.xMin)}
@@ -73,7 +73,7 @@
             fill={d.backgroundColor}
           />
         {/each}
-      </g>
+      </g> -->
 
       <g>
         {#each chartData.filter((d) => !d.isSuggestionOpen) as d (d.index)}
