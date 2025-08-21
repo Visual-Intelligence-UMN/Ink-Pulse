@@ -2411,6 +2411,7 @@
                               {activePatternId}
                               on:pattern-click={handlePatternClick}
                               on:pattern-contextmenu={handlePatternContextMenu}
+                              noRightBorder={true}
                             />
                           {/each}
                         </tr>
