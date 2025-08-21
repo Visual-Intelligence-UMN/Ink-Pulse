@@ -1820,27 +1820,24 @@
 
   // --- Virtual table configuration ---
   export let vtRowHeight    = 60;  // height of each row in px
-  export let vtHeaderHeight = 66;  // header height in px
+  export let vtHeaderHeight = 120;  // header height in px
   export let vtOverscan     = 6;   // number of extra rows rendered above/below
 
   // --- Data for the table (replace with your dataset) ---
-  export let vtData = Array.from({ length: 10000 }, (_, i) => ({
-    id:    i + 1,
-    name:  `Row ${i + 1}`,
-    score: (Math.random() * 100).toFixed(1)
-  }));
+  export let vtData = [];
 
   // --- Internal state ---
   let vtScrollY = 0;   // current vertical scroll offset of window
   let vtViewportH = 0; // current viewport height
 
   // --- Derived values (recomputed automatically when deps change) ---
-  $: vtTotalRows   = vtData.length;                                              // total number of rows
+  $: vtData = $initData ? getColumnGroups() : vtData;
+  $: vtTotalRows   = Math.max(...vtData.map((group) => group.length));          // total number of rows
   $: vtRowsInView  = Math.max(1, Math.ceil((vtViewportH - vtHeaderHeight) / vtRowHeight)); 
-  $: vtVisibleCnt  = vtRowsInView + vtOverscan * 2;                              // rows to render including overscan
+  $: vtVisibleCnt  = vtRowsInView + vtOverscan * 2;                             // rows to render including overscan
   $: vtStartIndex  = Math.max(0, Math.floor(vtScrollY / vtRowHeight) - vtOverscan); 
   $: vtEndIndex    = Math.min(vtTotalRows, vtStartIndex + vtVisibleCnt);        // slice end index
-  $: vtVisibleRows = vtData.slice(vtStartIndex, vtEndIndex);                    // actual rows rendered
+  $: vtVisibleRows = vtData.map(col => col.slice(vtStartIndex, vtEndIndex));    // actual rows rendered
   $: vtOverlayY    = vtHeaderHeight - (vtScrollY % vtRowHeight);                // overlay vertical offset
 
   // --- Lifecycle hooks ---
@@ -2425,9 +2422,9 @@
                   >
                     <table>
                       <tbody>
-                        {#each Array(Math.ceil(Math.max(...getColumnGroups().map((group) => group.length)))) as _, rowIndex (rowIndex + sortColumn + sortDirection)}
+                        {#each Array(Math.ceil(Math.max(...vtVisibleRows.map((group) => group.length)))) as _, rowIndex (rowIndex + sortColumn + sortDirection)}
                           <tr class="unified-session-row" style="height: {vtRowHeight}px;">
-                            {#each getColumnGroups() as group, colIndex}
+                            {#each vtVisibleRows as group, colIndex}
                               <SessionCell
                                 sessionData={group[rowIndex]}
                                 {chartRefs}
