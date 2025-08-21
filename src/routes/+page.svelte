@@ -2390,6 +2390,32 @@
                         {/each}
                       </tr>
                     </thead>
+                    <tbody aria-hidden="true"
+                      style="
+                        visibility:hidden;
+                        pointer-events:none;
+                      ">
+                      {#if vtVisibleRows && vtVisibleRows.length}
+                        <tr class="unified-session-row" style="height:0; padding:0; border:0;">
+                          {#each vtVisibleRows as group, colIndex}
+                            <SessionCell
+                              sessionData={group[0]}
+                              {chartRefs}
+                              onRowClick={handleRowClick}
+                              onCategoryIconClick={handleCategoryIconClick}
+                              {getPromptCode}
+                              {getCategoryIcon}
+                              {colIndex}
+                              showPatterns={showPatternColumn}
+                              patterns={$searchPatternSet}
+                              {activePatternId}
+                              on:pattern-click={handlePatternClick}
+                              on:pattern-contextmenu={handlePatternContextMenu}
+                            />
+                          {/each}
+                        </tr>
+                      {/if}
+                    </tbody>
                   </table>
 
                   <!-- Spacer to push rows below sticky header -->
@@ -2423,6 +2449,22 @@
                     "
                   >
                     <table class="unified-sessions-table">
+                      <thead aria-hidden="true"
+                        style="visibility:hidden; height:0; overflow:hidden; pointer-events:none;">
+                        <tr>
+                          {#each Array(3) as _, colIndex}
+                            <th style="min-width:70px;"></th>
+                            <th style="min-width:90px;"></th>
+                            {#if showPatternColumn}
+                              <th style="min-width:100px;"></th>
+                            {/if}
+                            <th></th>
+                            {#if colIndex < 2}
+                              <th class="spacer" style="width:8vw;"></th>
+                            {/if}
+                          {/each}
+                        </tr>
+                      </thead>
                       <tbody>
                         {#each Array(Math.ceil(Math.max(...vtVisibleRows.map((group) => group.length)))) as _, rowIndex (rowIndex + sortColumn + sortDirection)}
                           <tr class="unified-session-row" style="height: {vtRowHeight}px;">
