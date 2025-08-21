@@ -1831,7 +1831,7 @@
   let vtViewportH = 0; // current viewport height
 
   // --- Derived values (recomputed automatically when deps change) ---
-  $: vtData = $initData ? getColumnGroups() : vtData;
+  $: vtData = ($initData || sortColumn) ? getColumnGroups() : vtData;
   $: vtTotalRows   = Math.max(...vtData.map((group) => group.length));          // total number of rows
   $: vtRowsInView  = Math.max(1, Math.ceil((vtViewportH - vtHeaderHeight) / vtRowHeight)); 
   $: vtVisibleCnt  = vtRowsInView + vtOverscan * 2;                             // rows to render including overscan
@@ -2396,7 +2396,6 @@
                   <div
                     style="
                       height:{vtHeaderHeight}px;
-                      border-bottom:1px solid #e6e6e6;
                       margin-top:-1px;
                     "
                   ></div>
@@ -2418,9 +2417,12 @@
                       pointer-events:none;
                       transform: translateY({vtOverlayY}px);
                       --vt-row-h:{vtRowHeight}px;
+
+                      display: flex;
+                      justify-content: center;
                     "
                   >
-                    <table>
+                    <table class="unified-sessions-table">
                       <tbody>
                         {#each Array(Math.ceil(Math.max(...vtVisibleRows.map((group) => group.length)))) as _, rowIndex (rowIndex + sortColumn + sortDirection)}
                           <tr class="unified-session-row" style="height: {vtRowHeight}px;">
