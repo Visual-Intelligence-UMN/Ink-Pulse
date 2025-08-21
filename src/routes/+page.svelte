@@ -1816,6 +1816,50 @@
     selectedDataset = event.target.value;
     window.location.href = `${window.location.pathname}?dataset=${selectedDataset}`;
   }
+
+
+  // --- Virtual table configuration ---
+  export let vtRowHeight    = 60;  // height of each row in px
+  export let vtHeaderHeight = 66;  // header height in px
+  export let vtOverscan     = 6;   // number of extra rows rendered above/below
+
+  // --- Data for the table (replace with your dataset) ---
+  export let vtData = Array.from({ length: 10000 }, (_, i) => ({
+    id:    i + 1,
+    name:  `Row ${i + 1}`,
+    score: (Math.random() * 100).toFixed(1)
+  }));
+
+  // --- Internal state ---
+  let vtScrollY = 0;   // current vertical scroll offset of window
+  let vtViewportH = 0; // current viewport height
+
+  // --- Derived values (recomputed automatically when deps change) ---
+  $: vtTotalRows   = vtData.length;                                              // total number of rows
+  $: vtRowsInView  = Math.max(1, Math.ceil((vtViewportH - vtHeaderHeight) / vtRowHeight)); 
+  $: vtVisibleCnt  = vtRowsInView + vtOverscan * 2;                              // rows to render including overscan
+  $: vtStartIndex  = Math.max(0, Math.floor(vtScrollY / vtRowHeight) - vtOverscan); 
+  $: vtEndIndex    = Math.min(vtTotalRows, vtStartIndex + vtVisibleCnt);        // slice end index
+  $: vtVisibleRows = vtData.slice(vtStartIndex, vtEndIndex);                    // actual rows rendered
+  $: vtOverlayY    = vtHeaderHeight - (vtScrollY % vtRowHeight);                // overlay vertical offset
+
+  // --- Lifecycle hooks ---
+  onMount(() => {
+    function vtOnScroll() { vtScrollY = window.scrollY || 0; }
+    function vtOnResize() { vtViewportH = window.innerHeight || 0; }
+
+    vtOnResize();
+    vtOnScroll();
+
+    window.addEventListener("scroll", vtOnScroll, { passive: true });
+    window.addEventListener("resize", vtOnResize);
+
+    onDestroy(() => {
+      window.removeEventListener("scroll", vtOnScroll);
+      window.removeEventListener("resize", vtOnResize);
+    });
+  });
+
 </script>
 
 <div class="App">
@@ -2349,29 +2393,61 @@
                         {/each}
                       </tr>
                     </thead>
-                    <tbody>
-                      {#each Array(Math.ceil(Math.max(...getColumnGroups().map((group) => group.length)))) as _, rowIndex (rowIndex + sortColumn + sortDirection)}
-                        <tr class="unified-session-row">
-                          {#each getColumnGroups() as group, colIndex}
-                            <SessionCell
-                              sessionData={group[rowIndex]}
-                              {chartRefs}
-                              onRowClick={handleRowClick}
-                              onCategoryIconClick={handleCategoryIconClick}
-                              {getPromptCode}
-                              {getCategoryIcon}
-                              {colIndex}
-                              showPatterns={showPatternColumn}
-                              patterns={$searchPatternSet}
-                              {activePatternId}
-                              on:pattern-click={handlePatternClick}
-                              on:pattern-contextmenu={handlePatternContextMenu}
-                            />
-                          {/each}
-                        </tr>
-                      {/each}
-                    </tbody>
                   </table>
+
+                  <!-- Spacer to push rows below sticky header -->
+                  <div
+                    style="
+                      height:{vtHeaderHeight}px;
+                      border-bottom:1px solid #e6e6e6;
+                      margin-top:-1px;
+                    "
+                  ></div>
+
+                  <!-- Tall pad to create correct scrollbar height -->
+                  <div style="height:{vtTotalRows * vtRowHeight}px;"></div>
+
+                  <!-- Bottom spacer so last row can fully scroll into view -->
+                  <div style="height:50vh;"></div>
+
+                  <!-- Fixed overlay that actually renders only visible rows -->
+                  <div
+                    style="
+                      position:fixed;
+                      left:0;
+                      right:0;
+                      top:0;
+                      z-index:2;
+                      pointer-events:none;
+                      transform: translateY({vtOverlayY}px);
+                      --vt-row-h:{vtRowHeight}px;
+                    "
+                  >
+                    <table>
+                      <tbody>
+                        {#each Array(Math.ceil(Math.max(...getColumnGroups().map((group) => group.length)))) as _, rowIndex (rowIndex + sortColumn + sortDirection)}
+                          <tr class="unified-session-row" style="height: {vtRowHeight}px;">
+                            {#each getColumnGroups() as group, colIndex}
+                              <SessionCell
+                                sessionData={group[rowIndex]}
+                                {chartRefs}
+                                onRowClick={handleRowClick}
+                                onCategoryIconClick={handleCategoryIconClick}
+                                {getPromptCode}
+                                {getCategoryIcon}
+                                {colIndex}
+                                showPatterns={showPatternColumn}
+                                patterns={$searchPatternSet}
+                                {activePatternId}
+                                on:pattern-click={handlePatternClick}
+                                on:pattern-contextmenu={handlePatternContextMenu}
+                              />
+                            {/each}
+                          </tr>
+                        {/each}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             {/if}
