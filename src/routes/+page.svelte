@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import "chartjs-adapter-date-fns";
   import { writable } from "svelte/store";
   import { tick } from "svelte";
