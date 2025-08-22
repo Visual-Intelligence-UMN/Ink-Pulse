@@ -1865,7 +1865,7 @@
       <div class="chart-explanation">
         <span class="triangle-text">▼</span> User open the AI suggestion &nbsp;
         <span class="user-line">●</span> User written &nbsp;
-        <span class="api-line">●</span> AI writing
+        <span class="api-line">●</span> AI writing &nbsp; &nbsp;
       </div>
       <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded"
@@ -1881,7 +1881,7 @@
           swap_horiz
         </a>
       {/if}
-      <label for="dataset-select">Dataset:</label>
+      <label for="dataset-select" style="font-size: 15px; margin-top: 2px;">Dataset: &nbsp;</label>
       <select
         id="dataset-select"
         bind:value={selectedDataset}
