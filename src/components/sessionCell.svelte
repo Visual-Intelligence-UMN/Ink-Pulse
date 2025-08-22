@@ -14,6 +14,7 @@
   export let showPatterns = false;
   export let patterns = [];
   export let activePatternId = null;
+  export let noRightBorder = false;
 
   const dispatch = createEventDispatcher();
   
@@ -73,7 +74,7 @@
     </td>
   {/if}
 
-  <td class="activity-cell" class:add-right-border={colIndex === 0 || colIndex === 1}>
+  <td class="activity-cell" class:add-right-border={(colIndex === 0 || colIndex === 1) && !noRightBorder}>
     <div class="mini-chart" on:click={() => onRowClick(sessionData)}>
       <ZoomoutChart
         bind:this={chartRefs[sessionData.sessionId]}
