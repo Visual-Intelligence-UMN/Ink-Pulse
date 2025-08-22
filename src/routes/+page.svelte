@@ -1838,7 +1838,7 @@
   $: vtStartIndex  = Math.max(0, Math.floor(vtScrollY / vtRowHeight) - vtOverscan); 
   $: vtEndIndex    = Math.min(vtTotalRows, vtStartIndex + vtVisibleCnt);        // slice end index
   $: vtVisibleRows = vtData.map(col => col.slice(vtStartIndex, vtEndIndex));    // actual rows rendered
-  $: vtOverlayY    = vtHeaderHeight - (vtScrollY < vtHeaderHeight * vtOverscan ? vtScrollY : vtScrollY % vtRowHeight + vtRowHeight * vtOverscan);                // overlay vertical offset
+  $: vtOverlayY    = vtHeaderHeight - (vtScrollY < vtRowHeight * vtOverscan ? vtScrollY : vtScrollY % vtRowHeight + vtRowHeight * vtOverscan);                // overlay vertical offset
 
   // --- Lifecycle hooks ---
   onMount(() => {
