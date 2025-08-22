@@ -1831,7 +1831,7 @@
   let vtViewportH = 0; // current viewport height
 
   // --- Derived values (recomputed automatically when deps change) ---
-  $: vtData = ($initData || sortColumn) ? getColumnGroups() : vtData;
+  $: vtData = ($initData || sortColumn || sortDirection) ? getColumnGroups() : vtData;
   $: vtTotalRows   = Math.max(...vtData.map((group) => group.length));          // total number of rows
   $: vtRowsInView  = Math.max(1, Math.ceil((vtViewportH - vtHeaderHeight) / vtRowHeight)); 
   $: vtVisibleCnt  = vtRowsInView + vtOverscan * 2;                             // rows to render including overscan
