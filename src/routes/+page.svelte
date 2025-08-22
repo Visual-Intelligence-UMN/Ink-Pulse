@@ -2430,9 +2430,6 @@
                   <!-- Tall pad to create correct scrollbar height -->
                   <div style="height:{vtTotalRows * vtRowHeight}px;"></div>
 
-                  <!-- Bottom spacer so last row can fully scroll into view -->
-                  <div style="height:50vh;"></div>
-
                   <!-- Fixed overlay that actually renders only visible rows -->
                   <div
                     style="
