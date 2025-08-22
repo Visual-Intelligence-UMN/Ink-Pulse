@@ -1819,9 +1819,9 @@
 
 
   // --- Virtual table configuration ---
-  export let vtRowHeight    = 60;  // height of each row in px
+  export let vtRowHeight    = 65;  // height of each row in px
   export let vtHeaderHeight = 120;  // header height in px
-  export let vtOverscan     = 6;   // number of extra rows rendered above/below
+  export let vtOverscan     = 2;   // number of extra rows rendered above/below
 
   // --- Data for the table (replace with your dataset) ---
   export let vtData = [];
@@ -1838,7 +1838,7 @@
   $: vtStartIndex  = Math.max(0, Math.floor(vtScrollY / vtRowHeight) - vtOverscan); 
   $: vtEndIndex    = Math.min(vtTotalRows, vtStartIndex + vtVisibleCnt);        // slice end index
   $: vtVisibleRows = vtData.map(col => col.slice(vtStartIndex, vtEndIndex));    // actual rows rendered
-  $: vtOverlayY    = vtHeaderHeight - (vtScrollY % vtRowHeight);                // overlay vertical offset
+  $: vtOverlayY    = vtHeaderHeight - (vtScrollY < vtHeaderHeight * vtOverscan ? vtScrollY : vtScrollY % vtRowHeight + vtRowHeight * vtOverscan);                // overlay vertical offset
 
   // --- Lifecycle hooks ---
   onMount(() => {
