@@ -2441,7 +2441,7 @@
                       right:0;
                       top:0;
                       z-index:2;
-                      pointer-events:none;
+                      pointer-events:auto;
                       transform: translateY({vtOverlayY}px);
                       --vt-row-h:{vtRowHeight}px;
 
