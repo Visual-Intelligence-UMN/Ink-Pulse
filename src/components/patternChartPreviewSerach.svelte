@@ -33,7 +33,7 @@
             source: d.source,
         }));
 
-        const margin = { top: 10, right: 0, bottom: 25, left: 40 };
+        const margin = { top: 10, right: 0, bottom: 30, left: 40 };
         const chartWidth = width - margin.left - margin.right;
         const chartHeight = height - margin.top - margin.bottom;
 
@@ -58,10 +58,10 @@
 
         svg.append("g")
             .attr("transform", `translate(0, ${chartHeight})`)
-            .call(d3.axisBottom(xScale).ticks(0))
+            .call(d3.axisBottom(xScale).ticks(5))
             .append("text")
             .attr("x", chartWidth / 2)
-            .attr("y", 22)
+            .attr("y", 25)
             .attr("fill", "black")
             .attr("text-anchor", "middle")
             .style("font-size", "10px")
