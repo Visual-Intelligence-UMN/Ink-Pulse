@@ -103,6 +103,10 @@
     .scaleLinear()
     .domain([0, 100])
     .range([height - margin.top - margin.bottom, 0]);
+  let yScaleFactor = (height - margin.top - margin.bottom) / 100;
+  let xScaleBarChartFactor;
+  let xScaleLineChartFactor;
+
   let zoomTransforms = {};
   export const clickSession = writable(null);
   let patternData = [];
@@ -828,26 +832,35 @@
   }
   let weights = writable({
     s: 1.5, // user 1, api 0
-    t: 0.01, // 1s
+    t: 0.2, // 1s
     p: 1, // 1% -> 0.01
     tr: 2.5, // up 1, down -1
     sem: 2, // 1% -> 0.01
   });
-  const initialWeights = get(weights);
+  let initialWeights = get(weights);
 
-  $: if (zoomTransforms && $clickSession?.sessionId) {
+  $: if(xScaleBarChartFactor || xScaleLineChartFactor) {
+    // console.log("yScaleFactor:", yScaleFactor);
+    // console.log("xScaleBarChartFactor:", xScaleBarChartFactor);
+    // console.log("xScaleLineChartFactor:", xScaleLineChartFactor);
+
+    initialWeights.p = Math.round((yScaleFactor + Number.EPSILON) * 100) / 100;
+    initialWeights.sem = Math.round((xScaleBarChartFactor + Number.EPSILON) * 100) / 100;
+    initialWeights.t = Math.round((xScaleLineChartFactor + Number.EPSILON) * 1e4) / 1e4;
+
+    // console.log("Initial Weights:", initialWeights);
+  }
+
+  $: if (zoomTransforms && $clickSession?.sessionId && initialWeights) {
     const scale = zoomTransforms[$clickSession.sessionId]?.k ?? 1;
-
-    console.debug("Zoom scale:", scale);
-    console.debug("Before update weights:", get(weights));
 
     weights.update((w) => {
       const updated = {
         ...w,
         t: Math.round((initialWeights.t * scale + Number.EPSILON) * 1e4) / 1e4,
         p: Math.round((initialWeights.p * scale + Number.EPSILON) * 100) / 100,
+        sem: initialWeights.sem,
       };
-      console.debug("Updated weights:", updated);
       return updated;
     });
   }
@@ -2574,6 +2587,7 @@
                               chartRefs[$clickSession.sessionId + "-barChart"]
                             }
                             on:chartLoaded={handleChartLoaded}
+                            bind:xScaleBarChartFactor
                           />
                         {/if}
                         <div>
@@ -2590,6 +2604,7 @@
                             }
                             {selectionMode}
                             bind:sharedSelection
+                            bind:xScaleLineChartFactor
                           />
                         </div>
                       </div>
