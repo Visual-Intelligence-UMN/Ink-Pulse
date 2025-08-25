@@ -1402,14 +1402,19 @@
         overallSemScoreData,
         overallSemScoreSummaryData,
       };
-      searchPatternSet.update((current) => {
-        if (!current.find((p) => p.id === "pattern_0")) {
+      searchPatternSet.update(current => {
+        const index = current.findIndex(p => p.id === "pattern_0");
+        if (index >= 0) {
+          const copy = [...current];
+          copy[index] = itemToSave;
+          return copy;
+        } else {
           return [...current, itemToSave];
         }
-        return current;
       });
       isLoadOverallData = true;
     }
+    
     await fetchSessions();
     for (let i = 0; i < selectedSession.length; i++) {
       const sessionId = selectedSession[i];
