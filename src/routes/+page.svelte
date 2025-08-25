@@ -846,7 +846,7 @@
 
     initialWeights.p = Math.round((yScaleFactor + Number.EPSILON) * 100) / 100;
     initialWeights.sem = Math.round((xScaleBarChartFactor + Number.EPSILON) * 100) / 100;
-    initialWeights.t = Math.round((xScaleLineChartFactor + Number.EPSILON) * 1e4) / 1e4;
+    initialWeights.t = Math.round((xScaleLineChartFactor + Number.EPSILON) * 1e2) / 1e2;
 
     // console.log("Initial Weights:", initialWeights);
   }
@@ -857,7 +857,7 @@
     weights.update((w) => {
       const updated = {
         ...w,
-        t: Math.round((initialWeights.t * scale + Number.EPSILON) * 1e4) / 1e4,
+        t: Math.round((initialWeights.t * scale + Number.EPSILON) * 1e2) / 1e2,
         p: Math.round((initialWeights.p * scale + Number.EPSILON) * 100) / 100,
         sem: initialWeights.sem,
       };
