@@ -48,12 +48,12 @@
 
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
         <label>Time:</label>
-        <RangeSlider bind:value={t} min={min} max={max} step={step} float />
+        <RangeSlider bind:value={t} min={min} max={max} step={step * 0.1} precision={2} float />
       </div>
 
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
         <label>Progress:</label>
-        <RangeSlider bind:value={p} min={min} max={max} step={step} float />
+        <RangeSlider bind:value={p} min={min * 1.5} max={max * 1.5} step={step} float />
       </div>
 
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
