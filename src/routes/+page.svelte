@@ -750,7 +750,9 @@
     };
 
     try {
-      const fileListResponse = await fetch(`${base}/dataset/${selectedDataset}/session_name.json`);
+      const fileListResponse = await fetch(
+        `${base}/dataset/${selectedDataset}/session_name.json`
+      );
       const fileList = await fileListResponse.json();
 
       for (const fileName of fileList) {
@@ -879,7 +881,11 @@
           continue;
         }
         const worker = new RankWorker();
-        worker.postMessage({ patternVectors: chunk, currentVector, weights: weightValues  });
+        worker.postMessage({
+          patternVectors: chunk,
+          currentVector,
+          weights: weightValues,
+        });
         worker.onmessage = (e) => {
           allResults.push(...e.data);
           completed++;
@@ -1515,13 +1521,7 @@
     let currentCharCount = data.init_text.join("").length;
 
     data.info.forEach((event) => {
-      const {
-        name,
-        event_time,
-        eventSource,
-        text = "",
-        count = 0,
-      } = event;
+      const { name, event_time, eventSource, text = "", count = 0 } = event;
 
       const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
       const eventTime = new Date(event_time);
@@ -1834,18 +1834,50 @@
   }
 
   function handleDatasetChange(event) {
-    selectedDataset = event.target.value;
+    const value = event.target.value;
+
+    // Handle help option
+    if (value === "__help__") {
+      // Reset to current dataset
+      event.target.value = selectedDataset;
+      // Open help dialog or navigate to documentation
+      openDatasetHelp();
+      return;
+    }
+
+    selectedDataset = value;
     window.location.href = `${window.location.pathname}?dataset=${selectedDataset}`;
+  }
+
+  function openDatasetHelp() {
+    // Open GitHub README section about dataset import
+    window.open(
+      "https://github.com/Visual-Intelligence-UMN/Ink-Pulse/blob/main/README.md#how-to-import-your-own-dataset",
+      "_blank"
+    );
   }
 </script>
 
 <div class="App">
   <header class="App-header">
     <nav>
-      <div class="chart-explanation">
-        <span class="triangle-text">▼</span> User open the AI suggestion &nbsp;
-        <span class="user-line">●</span> User written &nbsp;
-        <span class="api-line">●</span> AI writing
+      <div class="brand-section">
+        <div class="brand-content">
+          <div class="brand-logo">
+            <img
+              src="{base}/favicon.png"
+              alt="InkPulse Logo"
+              class="ink-icon"
+            />
+            <span class="brand-name">InkPulse</span>
+          </div>
+          <div class="chart-explanation">
+            <span class="triangle-text">▼</span> User open the AI suggestion
+            &nbsp;
+            <span class="user-line">●</span> User written &nbsp;
+            <span class="api-line">●</span> AI writing
+          </div>
+        </div>
       </div>
       <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded"
@@ -1861,32 +1893,20 @@
           swap_horiz
         </a>
       {/if}
-      <label for="dataset-select">Dataset:</label>
-      <select
-        id="dataset-select"
-        bind:value={selectedDataset}
-        on:change={handleDatasetChange}
-      >
-        {#each datasets as dataset}
-          <option value={dataset}>{dataset}</option>
-        {/each}
-      </select>
       <div style="flex: 1;"></div>
-      <div style="display: flex; gap: 0.5em; align-items: right;">
-        <button
-          class="pattern-search-button"
-          on:click={exportDB}
-          aria-label="Save Pattern"
+      <div style="display: flex; gap: 0.5em; align-items: center;">
+        <label for="dataset-select">Dataset:</label>
+        <select
+          id="dataset-select"
+          bind:value={selectedDataset}
+          on:change={handleDatasetChange}
         >
-          Save Pattern
-        </button>
-        <button
-          class="pattern-search-button"
-          on:click={triggerImport}
-          aria-label="Load Pattern"
-        >
-          Load Pattern
-        </button>
+          {#each datasets as dataset}
+            <option value={dataset}>{dataset}</option>
+          {/each}
+          <option disabled>─────────────────</option>
+          <option value="__help__">🔗 How to Add Your Dataset</option>
+        </select>
         <button
           class="pattern-search-button"
           class:active={showPatternSearch}
@@ -1930,6 +1950,48 @@
                   on:show-more-patterns={handleShowMorePatterns}
                   {maxVisible}
                 />
+              </div>
+              <div class="pattern-actions">
+                <button
+                  class="pattern-action-button save-button"
+                  on:click={exportDB}
+                  aria-label="Save Pattern"
+                >
+                  Save Pattern
+                </button>
+                <button
+                  class="pattern-action-button load-button"
+                  on:click={triggerImport}
+                  aria-label="Load Pattern"
+                >
+                  Load Pattern
+                </button>
+              </div>
+            </div>
+          {:else}
+            <div class="saved-patterns-section">
+              <h4>Saved Patterns</h4>
+              <div class="no-patterns-message">
+                <p>
+                  No saved patterns yet. Start by selecting a portion in the
+                  chart and saving your first pattern!
+                </p>
+              </div>
+              <div class="pattern-actions">
+                <button
+                  class="pattern-action-button save-button"
+                  on:click={exportDB}
+                  aria-label="Save Pattern"
+                >
+                  💾 Save Pattern
+                </button>
+                <button
+                  class="pattern-action-button load-button"
+                  on:click={triggerImport}
+                  aria-label="Load Pattern"
+                >
+                  📁 Load Pattern
+                </button>
               </div>
             </div>
           {/if}
@@ -2684,8 +2746,44 @@
     margin-right: 15px;
   }
 
+  .brand-section {
+    display: flex;
+    align-items: flex-start;
+    margin-left: 10px;
+  }
+
+  .brand-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+  }
+
+  .ink-icon {
+    width: 32px;
+    height: 32px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    border-radius: 4px;
+  }
+
+  .brand-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #2563eb;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
   .chart-explanation {
-    margin-top: 5px;
     font-size: 12px;
     display: flex;
   }
@@ -2914,5 +3012,58 @@
 
   .hidden {
     display: none;
+  }
+
+  .pattern-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .pattern-action-button {
+    flex: 1;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .save-button {
+    background-color: #10b981;
+    color: white;
+  }
+
+  .save-button:hover {
+    background-color: #059669;
+    transform: translateY(-1px);
+  }
+
+  .load-button {
+    background-color: #3b82f6;
+    color: white;
+  }
+
+  .load-button:hover {
+    background-color: #2563eb;
+    transform: translateY(-1px);
+  }
+
+  .no-patterns-message {
+    padding: 20px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+    background-color: #f9fafb;
+    border-radius: 8px;
+    margin-bottom: 10px;
   }
 </style>
