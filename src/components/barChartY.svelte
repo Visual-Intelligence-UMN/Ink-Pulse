@@ -8,6 +8,7 @@
   export let yScale;
   export let selectionMode = false;
   export let sharedSelection = null;
+  export let xScaleBarChartFactor;
 
   let container;
   const dispatch = createEventDispatcher();
@@ -184,6 +185,7 @@
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
     xScale = d3.scaleLinear().domain([1, 0]).range([0, chartWidth]);
+    xScaleBarChartFactor = chartWidth / 100;
     newyScale = zoomTransform.rescaleY(yScale.copy());
 
     svg

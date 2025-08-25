@@ -6,6 +6,7 @@
   export let paragraphColor: any[] = [];
   export let selectionMode: boolean = false;
   export let sharedSelection;
+  export let xScaleLineChartFactor: number;
 
   type ChartEvents = {
     pointSelected: {
@@ -337,6 +338,8 @@
       .scaleLinear()
       .domain([minTime, maxTime])
       .range([0, width - margin.left - margin.right]);
+
+    xScaleLineChartFactor = (width - margin.left - margin.right) / ((maxTime - minTime) * 60);
 
     zoom = d3
       .zoom()
