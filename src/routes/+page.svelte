@@ -1831,7 +1831,12 @@
   let vtViewportH = 0; // current viewport height
 
   // --- Derived values (recomputed automatically when deps change) ---
-  $: vtData = ($initData || sortColumn || sortDirection) ? getColumnGroups() : vtData;
+  $: if ($initData || sortColumn || sortDirection || !selectedCategoryFilter || !selectedPatternForDetail) {
+    const colgrp = getColumnGroups();
+    if (!(colgrp.length === 0 || colgrp[0].length === 0)) {
+      vtData = colgrp;
+    } 
+  }
   $: vtTotalRows   = Math.max(...vtData.map((group) => group.length));          // total number of rows
   $: vtRowsInView  = Math.max(1, Math.ceil((vtViewportH - vtHeaderHeight) / vtRowHeight)); 
   $: vtVisibleCnt  = vtRowsInView + vtOverscan * 2;                             // rows to render including overscan
@@ -1847,6 +1852,15 @@
 
     vtOnResize();
     vtOnScroll();
+
+    // setInterval(() => {
+    //   console.log("displaySessions:", getDisplaySessions());
+    //   console.log("columnGroups:", getColumnGroups()); 
+    //   console.log("vtData:", vtData);
+    //   console.log("filteredByCategory:", filteredByCategory);
+    //   console.log("-----------------------");
+    //   console.log("-----------------------");
+    // }, 2000);
 
     window.addEventListener("scroll", vtOnScroll, { passive: true });
     window.addEventListener("resize", vtOnResize);
@@ -2322,7 +2336,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      {#each selectedCategoryFilter ? filteredByCategory : filteredSessions as sessionData (sessionData.sessionId)}
+                      {#each selectedCategoryFilter ? filteredByCategory : filteredSessions as sessionData}
                         <tr
                           class="session-row"
                           on:click={() => handleRowClick(sessionData)}
