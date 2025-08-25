@@ -705,8 +705,8 @@
         vector.t.push(tEnd - tStart);
       }
       if (checks.progress[0]) {
-        const y1 = item.start_progress;
-        const y2 = item.end_progress;
+        const y1 = item.start_progress * 100;
+        const y2 = item.end_progress * 100;
         vector.p.push(y2 - y1);
       }
       if (checks.semantic[0]) {
@@ -839,14 +839,16 @@
   });
   let initialWeights = get(weights);
 
-  $: if(xScaleBarChartFactor || xScaleLineChartFactor) {
+  $: if (xScaleBarChartFactor || xScaleLineChartFactor) {
     // console.log("yScaleFactor:", yScaleFactor);
     // console.log("xScaleBarChartFactor:", xScaleBarChartFactor);
     // console.log("xScaleLineChartFactor:", xScaleLineChartFactor);
 
     initialWeights.p = Math.round((yScaleFactor + Number.EPSILON) * 100) / 100;
-    initialWeights.sem = Math.round((xScaleBarChartFactor + Number.EPSILON) * 100) / 100;
-    initialWeights.t = Math.round((xScaleLineChartFactor + Number.EPSILON) * 1e2) / 1e2;
+    initialWeights.sem =
+      Math.round((xScaleBarChartFactor + Number.EPSILON) * 100) / 100;
+    initialWeights.t =
+      Math.round((xScaleLineChartFactor + Number.EPSILON) * 1e2) / 1e2;
 
     // console.log("Initial Weights:", initialWeights);
   }
@@ -880,11 +882,12 @@
 
   function calculateRank(patternVectors, currentVector) {
     let finalScore = [];
+    const weightValues = get(weights);
     for (const item of patternVectors) {
       let score = 0;
       for (const key in item) {
         if (key != "id" && key != "segmentId") {
-          let weight = weights[key] ?? 1;
+          let weight = weightValues[key] ?? 1;
           let arr = item[key];
           score += weight * l2(arr, currentVector[key]);
         }
@@ -902,6 +905,7 @@
   ) {
     const chunkSize = Math.ceil(patternVectors.length / threadCount);
     let completed = 0;
+    const weightValues = get(weights);
     const allResults = [];
 
     return new Promise((resolve, reject) => {
@@ -915,7 +919,7 @@
         worker.postMessage({
           patternVectors: chunk,
           currentVector,
-          weights: get(weights),
+          weights: weightValues,
         });
         worker.onmessage = (e) => {
           allResults.push(...e.data);
@@ -977,36 +981,60 @@
   function handleSelectionChanged(event) {
     showResultCount.set(5);
 
+    console.log("handleSelectionChanged called with:", event.detail);
+    console.log("sharedSelection:", sharedSelection);
+
     if (sharedSelection && sharedSelection.selectionSource === "lineChart_x") {
-      isProgressChecked = false;
+      console.log("Setting lineChart_x options");
+      isProgressChecked = true;
       isTimeChecked = true;
       isSourceChecked = false;
       isSemanticChecked = false;
       isValueRangeChecked = false;
       isValueTrendChecked = false;
       isExactSearchTime = true;
+      isExactSearchProgress = true;
+      isExactSearchSource = false;
+      isExactSearchTrend = false;
+      console.log(
+        "After setting lineChart_x - isProgressChecked:",
+        isProgressChecked,
+        "isTimeChecked:",
+        isTimeChecked,
+        "isSourceChecked:",
+        isSourceChecked
+      );
     } else if (
       sharedSelection &&
       sharedSelection.selectionSource === "lineChart_y"
     ) {
+      console.log("Setting lineChart_y options");
       isProgressChecked = true;
-      isTimeChecked = false;
-      isSourceChecked = false;
-      isSemanticChecked = false;
-      isValueRangeChecked = false;
-      isValueTrendChecked = false;
+      isTimeChecked = true;
+      isSourceChecked = true;
+      isSemanticChecked = true;
+      isValueRangeChecked = true;
+      isValueTrendChecked = true;
       isExactSearchProgress = true;
+      isExactSearchTime = true;
+      isExactSearchSource = true;
+      isExactSearchTrend = true;
     } else if (
       sharedSelection &&
       sharedSelection.selectionSource === "barChart_y"
     ) {
-      isProgressChecked = false;
+      console.log("Setting barChart_y options");
+      isProgressChecked = true;
       isTimeChecked = false;
       isSourceChecked = true;
       isSemanticChecked = true;
       isValueRangeChecked = true;
       isValueTrendChecked = true;
+      isExactSearchProgress = true;
+      isExactSearchSource = true;
+      isExactSearchTrend = true;
     } else {
+      console.log("Setting default options");
       isProgressChecked = false;
       isTimeChecked = false;
       isSourceChecked = true;
@@ -1416,13 +1444,18 @@
         overallSemScoreSummaryData,
       };
       searchPatternSet.update((current) => {
-        if (!current.find((p) => p.id === "pattern_0")) {
+        const index = current.findIndex((p) => p.id === "pattern_0");
+        if (index >= 0) {
+          const copy = [...current];
+          copy[index] = itemToSave;
+          return copy;
+        } else {
           return [...current, itemToSave];
         }
-        return current;
       });
       isLoadOverallData = true;
     }
+
     await fetchSessions();
     for (let i = 0; i < selectedSession.length; i++) {
       const sessionId = selectedSession[i];
@@ -1528,35 +1561,50 @@
     let currentCharCount = data.init_text.join("").length;
 
     data.info.forEach((event) => {
-      const {
-        name,
-        event_time,
-        eventSource,
-        text = "",
-        count = 0,
-        pos = 0,
-      } = event;
+      const { name, event_time, eventSource, text = "", count = 0 } = event;
+
       const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
       const eventTime = new Date(event_time);
       if (!firstTime) firstTime = eventTime;
       const relativeTime = (eventTime.getTime() - firstTime.getTime()) / 60000;
 
       if (name === "text-insert") {
-        currentCharCount += text.length;
+        const insertChars = [...text];
+        insertChars.forEach(() => {
+          currentCharCount++;
+          const percentage = (currentCharCount / totalTextLength) * 100;
+          chartData.push({
+            time: relativeTime,
+            percentage,
+            eventSource,
+            color: textColor,
+            isSuggestionOpen: false,
+            index: index++,
+          });
+        });
       } else if (name === "text-delete") {
-        currentCharCount -= count;
+        const deleteCount = text.length || count;
+        currentCharCount -= deleteCount;
+        const percentage = (currentCharCount / totalTextLength) * 100;
+        chartData.push({
+          time: relativeTime,
+          percentage,
+          eventSource,
+          color: textColor,
+          isSuggestionOpen: false,
+          index: index++,
+        });
+      } else {
+        const percentage = (currentCharCount / totalTextLength) * 100;
+        chartData.push({
+          time: relativeTime,
+          percentage,
+          eventSource,
+          color: textColor,
+          isSuggestionOpen: name === "suggestion-open",
+          index: index++,
+        });
       }
-
-      const percentage = (currentCharCount / totalTextLength) * 100;
-
-      chartData.push({
-        time: relativeTime,
-        percentage,
-        eventSource,
-        color: textColor,
-        isSuggestionOpen: name === "suggestion-open",
-        index: index++,
-      });
     });
 
     return chartData;
@@ -1830,45 +1878,64 @@
     window.location.href = `${window.location.pathname}?dataset=${selectedDataset}`;
   }
 
-
   // --- Virtual table configuration ---
-  export let vtRowHeight    = 65;  // height of each row in px
-  export let vtHeaderHeight = 120;  // header height in px
-  export let vtOverscan     = 2;   // number of extra rows rendered above/below
+  export let vtRowHeight = 65; // height of each row in px
+  export let vtHeaderHeight = 120; // header height in px
+  export let vtOverscan = 2; // number of extra rows rendered above/below
 
   // --- Data for the table (replace with your dataset) ---
   export let vtData = [];
 
   // --- Internal state ---
-  let vtScrollY = 0;   // current vertical scroll offset of window
+  let vtScrollY = 0; // current vertical scroll offset of window
   let vtViewportH = 0; // current viewport height
 
   // --- Derived values (recomputed automatically when deps change) ---
-  $: if ($initData || sortColumn || sortDirection || !selectedCategoryFilter || !selectedPatternForDetail) {
+  $: if (
+    $initData ||
+    sortColumn ||
+    sortDirection ||
+    !selectedCategoryFilter ||
+    !selectedPatternForDetail
+  ) {
     const colgrp = getColumnGroups();
     if (!(colgrp.length === 0 || colgrp[0].length === 0)) {
       vtData = colgrp;
-    } 
+    }
   }
-  $: vtTotalRows   = Math.max(...vtData.map((group) => group.length));          // total number of rows
-  $: vtRowsInView  = Math.max(1, Math.ceil((vtViewportH - vtHeaderHeight) / vtRowHeight)); 
-  $: vtVisibleCnt  = vtRowsInView + vtOverscan * 2;                             // rows to render including overscan
-  $: vtStartIndex  = Math.max(0, Math.floor(vtScrollY / vtRowHeight) - vtOverscan); 
-  $: vtEndIndex    = Math.min(vtTotalRows, vtStartIndex + vtVisibleCnt);        // slice end index
-  $: vtVisibleRows = vtData.map(col => col.slice(vtStartIndex, vtEndIndex));    // actual rows rendered
-  $: vtOverlayY    = vtHeaderHeight - (vtScrollY < vtRowHeight * vtOverscan ? vtScrollY : vtScrollY % vtRowHeight + vtRowHeight * vtOverscan);                // overlay vertical offset
+  $: vtTotalRows = Math.max(...vtData.map((group) => group.length)); // total number of rows
+  $: vtRowsInView = Math.max(
+    1,
+    Math.ceil((vtViewportH - vtHeaderHeight) / vtRowHeight)
+  );
+  $: vtVisibleCnt = vtRowsInView + vtOverscan * 2; // rows to render including overscan
+  $: vtStartIndex = Math.max(
+    0,
+    Math.floor(vtScrollY / vtRowHeight) - vtOverscan
+  );
+  $: vtEndIndex = Math.min(vtTotalRows, vtStartIndex + vtVisibleCnt); // slice end index
+  $: vtVisibleRows = vtData.map((col) => col.slice(vtStartIndex, vtEndIndex)); // actual rows rendered
+  $: vtOverlayY =
+    vtHeaderHeight -
+    (vtScrollY < vtRowHeight * vtOverscan
+      ? vtScrollY
+      : (vtScrollY % vtRowHeight) + vtRowHeight * vtOverscan); // overlay vertical offset
 
   // --- Lifecycle hooks ---
   onMount(() => {
-    function vtOnScroll() { vtScrollY = window.scrollY || 0; }
-    function vtOnResize() { vtViewportH = window.innerHeight || 0; }
+    function vtOnScroll() {
+      vtScrollY = window.scrollY || 0;
+    }
+    function vtOnResize() {
+      vtViewportH = window.innerHeight || 0;
+    }
 
     vtOnResize();
     vtOnScroll();
 
     // setInterval(() => {
     //   console.log("displaySessions:", getDisplaySessions());
-    //   console.log("columnGroups:", getColumnGroups()); 
+    //   console.log("columnGroups:", getColumnGroups());
     //   console.log("vtData:", vtData);
     //   console.log("filteredByCategory:", filteredByCategory);
     //   console.log("-----------------------");
@@ -1883,7 +1950,6 @@
       window.removeEventListener("resize", vtOnResize);
     });
   });
-
 </script>
 
 <div class="App">
@@ -1908,7 +1974,9 @@
           swap_horiz
         </a>
       {/if}
-      <label for="dataset-select" style="font-size: 15px; margin-top: 2px;">Dataset: &nbsp;</label>
+      <label for="dataset-select" style="font-size: 15px; margin-top: 2px;"
+        >Dataset: &nbsp;</label
+      >
       <select
         id="dataset-select"
         bind:value={selectedDataset}
@@ -1920,7 +1988,6 @@
       </select>
       <div style="flex: 1;"></div>
       <div style="display: flex; gap: 0.5em; align-items: right;">
-
         <button
           class="pattern-search-button"
           class:active={showPatternSearch}
@@ -1955,7 +2022,11 @@
 
           <div class="patterns-header">
             <h4 class="patterns-title">Manage Patterns</h4>
-            <div class="patterns-actions" role="toolbar" aria-label="Pattern actions">
+            <div
+              class="patterns-actions"
+              role="toolbar"
+              aria-label="Pattern actions"
+            >
               <button
                 class="search-pattern-button"
                 on:click={triggerImport}
@@ -2417,13 +2488,18 @@
                         {/each}
                       </tr>
                     </thead>
-                    <tbody aria-hidden="true"
+                    <tbody
+                      aria-hidden="true"
                       style="
                         visibility:hidden;
                         pointer-events:none;
-                      ">
+                      "
+                    >
                       {#if vtVisibleRows && vtVisibleRows.length}
-                        <tr class="unified-session-row" style="height:0; padding:0; border:0;">
+                        <tr
+                          class="unified-session-row"
+                          style="height:0; padding:0; border:0;"
+                        >
                           {#each vtVisibleRows as group, colIndex}
                             <SessionCell
                               sessionData={group[0]}
@@ -2474,8 +2550,10 @@
                     "
                   >
                     <table class="unified-sessions-table">
-                      <thead aria-hidden="true"
-                        style="visibility:hidden; height:0; overflow:hidden; pointer-events:none;">
+                      <thead
+                        aria-hidden="true"
+                        style="visibility:hidden; height:0; overflow:hidden; pointer-events:none;"
+                      >
                         <tr>
                           {#each Array(3) as _, colIndex}
                             <th style="min-width:70px;"></th>
@@ -2492,7 +2570,10 @@
                       </thead>
                       <tbody>
                         {#each Array(Math.ceil(Math.max(...vtVisibleRows.map((group) => group.length)))) as _, rowIndex (rowIndex + sortColumn + sortDirection)}
-                          <tr class="unified-session-row" style="height: {vtRowHeight}px;">
+                          <tr
+                            class="unified-session-row"
+                            style="height: {vtRowHeight}px;"
+                          >
                             {#each vtVisibleRows as group, colIndex}
                               <SessionCell
                                 sessionData={group[rowIndex]}
@@ -2604,6 +2685,8 @@
                             }
                             {selectionMode}
                             bind:sharedSelection
+                            on:selectionChanged={handleSelectionChanged}
+                            on:selectionCleared={handleSelectionCleared}
                             bind:xScaleLineChartFactor
                           />
                         </div>

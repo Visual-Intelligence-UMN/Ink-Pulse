@@ -80,7 +80,6 @@
     bins.forEach(b => {
       b.percent = totalCount > 0 ? b.count / totalCount : 0;
     });
-
     patternSessions.forEach(session => {
       const Id = session.sessionId;
       const scoreEntry = overallSemScoreData.find(([id, _]) => id === Id);

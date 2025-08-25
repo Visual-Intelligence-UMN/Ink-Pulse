@@ -1,13 +1,13 @@
 <script lang="ts">
   import * as d3 from "d3";
 
-  export let chartData: any[] = [];
-  export let paragraphColor: any[] = [];
+  export let chartData;
+  // export let paragraphColor;
 
   let svgContainer: SVGSVGElement;
   let width = 250;
   let height = 150;
-  const margin = { top: 10, right: 0, bottom: 30, left: 0 };
+  const margin = { top: 10, right: 10, bottom: 30, left: 0 };
 
   let xScale: any;
   let yScale = d3
@@ -18,9 +18,15 @@
   let xAxisG: SVGGElement;
   let yAxisG: SVGGElement;
 
+  const chartWidth = width - margin.left - margin.right;
+  const chartHeight = height - margin.top - margin.bottom;
+
+  let maxTime = chartData.length > 0 ? chartData[chartData.length - 1].time : 10;
+
   $: xScale = d3
     .scaleLinear()
-    .domain([0, d3.max(chartData, (d) => d.time) || 1])
+    .domain([0, maxTime])
+    .nice()
     .range([0, width - margin.left - margin.right]);
 
   $: yScale = d3
@@ -64,7 +70,7 @@
   <g transform={`translate(${margin.left},${margin.top})`}>
     <g clip-path="url(#clip_preview)">
       <g>
-        {#each paragraphColor as d}
+        <!-- {#each paragraphColor as d}
           <rect
             x={scaledX(d.xMin)}
             width={scaledX(d.xMax) - scaledX(d.xMin)}
@@ -73,7 +79,7 @@
             fill={d.backgroundColor}
           />
         {/each}
-      </g>
+      </g> -->
 
       <g>
         {#each chartData.filter((d) => !d.isSuggestionOpen) as d (d.index)}
@@ -96,21 +102,23 @@
         {/each}
       </g>
     </g>
+  </g>
 
-    <g
-      class="x-axis"
-      transform={`translate(0, ${height - margin.top - margin.bottom})`}
-      bind:this={xAxisG}
-    ></g>
+  <g
+    class="x-axis"
+    transform={`translate(0, ${chartHeight - 4.5})`}
+    bind:this={xAxisG}
+  >
     <text
-      x={width / 2}
-      y={height - margin.top - 7}
+      x={chartWidth / 2}
+      y={25}
       text-anchor="middle"
       font-size="10px"
       fill="black"
     >
       Time (min)
     </text>
-    <g class="y-axis" bind:this={yAxisG} style="display: none"></g>
   </g>
+
+  <g class="y-axis" bind:this={yAxisG} style="display: none"></g>
 </svg>

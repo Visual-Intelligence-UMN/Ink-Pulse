@@ -99,6 +99,11 @@
     if (!newyScale) return;
     if (!xScale) return;
 
+    if (sharedSelection.selectionSource === "lineChart_x") {
+      bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
+      return;
+    }
+
     function highlightBars(filteredData) {
       if (
         !sharedSelection ||
