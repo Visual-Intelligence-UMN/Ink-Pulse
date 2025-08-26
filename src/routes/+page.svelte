@@ -125,6 +125,9 @@
   let selectedPatternForDetail = null;
   let activePatternId = null;
 
+  // Loading state for pattern import
+  let isImporting = false;
+
   // Confirm dialog state
   let showDeleteConfirm = false;
   let patternToDelete = null;
@@ -2061,11 +2064,25 @@
             >
               <button
                 class="search-pattern-button"
-                on:click={triggerImport}
+                class:loading={isImporting}
+                on:click={async () => {
+                  isImporting = true;
+                  try {
+                    await triggerImport();
+                  } finally {
+                    isImporting = false;
+                  }
+                }}
                 aria-label="Upload patterns"
                 title="Upload patterns"
+                disabled={isImporting}
               >
-                Upload
+                {#if isImporting}
+                  <span class="loading-spinner"></span>
+                  Loading...
+                {:else}
+                  Upload
+                {/if}
               </button>
 
               {#if $searchPatternSet && $searchPatternSet.length > 1}
@@ -3263,5 +3280,37 @@
     background-color: #f9fafb;
     border-radius: 8px;
     margin-bottom: 10px;
+  }
+
+  /* Loading state styles */
+  .search-pattern-button.loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+    position: relative;
+  }
+
+  .loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  .search-pattern-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
   }
 </style>

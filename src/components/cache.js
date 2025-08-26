@@ -120,8 +120,16 @@ async function importDBFromFile(file) {
           };
         }
 
-        tx.oncomplete = () => {
+        tx.oncomplete = async () => {
           console.log('Import complete');
+          // Refresh the store with updated data
+          try {
+            const updatedData = await getFromDB(CACHE_KEY);
+            searchPatternSet.set(updatedData);
+            console.log('Store updated with imported data:', updatedData);
+          } catch (error) {
+            console.warn('Failed to refresh store:', error);
+          }
           resolve();
         };
         tx.onerror = () => reject(tx.error);
@@ -135,24 +143,28 @@ async function importDBFromFile(file) {
 }
 
 export function triggerImport() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.bin';
-  input.onchange = async () => {
-    const file = input.files[0];
-    if (file) {
-      try {
-        console.log('Starting import of file:', file.name, 'Size:', file.size);
-        await importDBFromFile(file);
-        console.log('Import completed successfully!');
-        alert(`Successfully imported ${file.name}!`);
-      } catch (error) {
-        console.error('Import failed:', error);
-        alert(`Import failed: ${error.message}`);
+  return new Promise((resolve, reject) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.bin';
+    input.onchange = async () => {
+      const file = input.files[0];
+      if (file) {
+        try {
+          console.log('Starting import of file:', file.name, 'Size:', file.size);
+          await importDBFromFile(file);
+          console.log('Import completed successfully!');
+          resolve();
+        } catch (error) {
+          console.error('Import failed:', error);
+          reject(error);
+        }
+      } else {
+        resolve(); // No file selected
       }
-    }
-  };
-  input.click();
+    };
+    input.click();
+  });
 }
 
 // Svelte writable store synced to IndexedDB
