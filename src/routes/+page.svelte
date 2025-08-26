@@ -2947,12 +2947,13 @@
     display: flex;
     align-items: flex-start;
     margin-left: 10px;
+    margin-top: -5px;
   }
 
   .brand-content {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
   }
 
   .brand-logo {
@@ -2963,14 +2964,14 @@
   }
 
   .ink-icon {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
     border-radius: 4px;
   }
 
   .brand-name {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     color: #2563eb;
     letter-spacing: -0.5px;
@@ -2981,7 +2982,7 @@
   }
 
   .chart-explanation {
-    font-size: 12px;
+    font-size: 11px;
     display: flex;
   }
 
@@ -3020,7 +3021,7 @@
     top: 0;
     width: 100%;
     background-color: white;
-    padding: 1em 0;
+    padding: 0.5em 0;
     margin: 0px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     z-index: 600;

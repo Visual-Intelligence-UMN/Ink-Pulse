@@ -66,7 +66,8 @@
       const isFirst = processedData.indexOf(d) === 0;
       const hideFirst = isFirst && !showPrompt;
       const barY = yScale(hideFirst ? 0 : 1);
-      const barHeight = yScale(0) - yScale(hideFirst ? 0 : d.residual_vector_norm);
+      const barHeight =
+        yScale(0) - yScale(hideFirst ? 0 : d.residual_vector_norm);
       const barX = xScale(d.startProgress);
       const barWidth = xScale(d.endProgress) - barX;
 
@@ -74,7 +75,7 @@
       context.globalAlpha = opacityScale(d.residual_vector_norm);
       // if (isFirst) {
       //   context.fillStyle = "#e8e8e8";
-      //   context.globalAlpha = 1; 
+      //   context.globalAlpha = 1;
       // }
       context.fillRect(barX, barY, barWidth, barHeight);
 
@@ -92,7 +93,7 @@
         isVisible = entry.isIntersecting;
         if (isVisible) renderCanvas();
       },
-      { threshold: 0.1 },
+      { threshold: 0.1 }
     );
 
     if (canvasEl) observer.observe(canvasEl);
