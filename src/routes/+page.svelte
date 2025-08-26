@@ -984,8 +984,8 @@
   function handleSelectionChanged(event) {
     showResultCount.set(5);
 
-    console.log("handleSelectionChanged called with:", event.detail);
-    console.log("sharedSelection:", sharedSelection);
+    // console.log("handleSelectionChanged called with:", event.detail);
+    // console.log("sharedSelection:", sharedSelection);
 
     if (sharedSelection && sharedSelection.selectionSource === "lineChart_x") {
       console.log("Setting lineChart_x options");
