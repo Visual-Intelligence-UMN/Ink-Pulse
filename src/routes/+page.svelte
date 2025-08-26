@@ -1983,14 +1983,14 @@
                   on:click={exportDB}
                   aria-label="Save Pattern"
                 >
-                  💾 Save Pattern
+                  Save Pattern
                 </button>
                 <button
                   class="pattern-action-button load-button"
                   on:click={triggerImport}
                   aria-label="Load Pattern"
                 >
-                  📁 Load Pattern
+                  Load Pattern
                 </button>
               </div>
             </div>
