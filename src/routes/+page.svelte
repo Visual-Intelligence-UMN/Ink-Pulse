@@ -2456,6 +2456,7 @@
                         <th
                           class="sortable-header"
                           on:click={() => handleSort("topic")}
+                          style="min-width: 70px;"
                         >
                           <span>Topic</span>
                           <span class="sort-icon">{getSortIcon("topic")}</span>
@@ -2463,6 +2464,7 @@
                         <th
                           class="sortable-header"
                           on:click={() => handleSort("score")}
+                          style="min-width: 90px;"
                         >
                           <span>Score</span>
                           <span class="sort-icon">{getSortIcon("score")}</span>
@@ -2471,6 +2473,7 @@
                           <th
                             class="sortable-header"
                             on:click={() => handleSort("pattern")}
+                            style="min-width: 100px;"
                           >
                             <span>Pattern</span>
                             <span class="sort-icon"
@@ -3062,6 +3065,7 @@
     top: 0;
     background: white;
     z-index: 10;
+    font-size: 14px;
   }
 
   table {
