@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import "chartjs-adapter-date-fns";
   import { writable } from "svelte/store";
   import { tick } from "svelte";
@@ -103,6 +103,10 @@
     .scaleLinear()
     .domain([0, 100])
     .range([height - margin.top - margin.bottom, 0]);
+  let yScaleFactor = (height - margin.top - margin.bottom) / 100;
+  let xScaleBarChartFactor;
+  let xScaleLineChartFactor;
+
   let zoomTransforms = {};
   export const clickSession = writable(null);
   let patternData = [];
@@ -754,6 +758,7 @@
         `${base}/dataset/${selectedDataset}/session_name.json`
       );
       const fileList = await fileListResponse.json();
+      console.log("File list length:", fileList.length);
 
       for (const fileName of fileList) {
         // const fileId = fileName.split(".")[0].replace(/_similarity$/, "");
@@ -827,11 +832,41 @@
   }
   let weights = writable({
     s: 1.5, // user 1, api 0
-    t: 0.01, // 1s
+    t: 0.2, // 1s
     p: 1, // 1% -> 0.01
     tr: 2.5, // up 1, down -1
     sem: 2, // 1% -> 0.01
   });
+  let initialWeights = get(weights);
+
+  $: if (xScaleBarChartFactor || xScaleLineChartFactor) {
+    // console.log("yScaleFactor:", yScaleFactor);
+    // console.log("xScaleBarChartFactor:", xScaleBarChartFactor);
+    // console.log("xScaleLineChartFactor:", xScaleLineChartFactor);
+
+    initialWeights.p = Math.round((yScaleFactor + Number.EPSILON) * 100) / 100;
+    initialWeights.sem =
+      Math.round((xScaleBarChartFactor + Number.EPSILON) * 100) / 100;
+    initialWeights.t =
+      Math.round((xScaleLineChartFactor + Number.EPSILON) * 1e2) / 1e2;
+
+    // console.log("Initial Weights:", initialWeights);
+  }
+
+  $: if (zoomTransforms && $clickSession?.sessionId && initialWeights) {
+    const scale = zoomTransforms[$clickSession.sessionId]?.k ?? 1;
+
+    weights.update((w) => {
+      const updated = {
+        ...w,
+        t: Math.round((initialWeights.t * scale + Number.EPSILON) * 1e2) / 1e2,
+        p: Math.round((initialWeights.p * scale + Number.EPSILON) * 100) / 100,
+        sem: initialWeights.sem,
+      };
+      return updated;
+    });
+  }
+
   export async function calculateRankAuto(
     patternVectors,
     currentVector,
@@ -1409,13 +1444,18 @@
         overallSemScoreSummaryData,
       };
       searchPatternSet.update((current) => {
-        if (!current.find((p) => p.id === "pattern_0")) {
+        const index = current.findIndex((p) => p.id === "pattern_0");
+        if (index >= 0) {
+          const copy = [...current];
+          copy[index] = itemToSave;
+          return copy;
+        } else {
           return [...current, itemToSave];
         }
-        return current;
       });
       isLoadOverallData = true;
     }
+
     await fetchSessions();
     for (let i = 0; i < selectedSession.length; i++) {
       const sessionId = selectedSession[i];
@@ -1856,6 +1896,79 @@
       "_blank"
     );
   }
+
+  // --- Virtual table configuration ---
+  export let vtRowHeight = 65; // height of each row in px
+  export let vtHeaderHeight = 120; // header height in px
+  export let vtOverscan = 2; // number of extra rows rendered above/below
+
+  // --- Data for the table (replace with your dataset) ---
+  export let vtData = [];
+
+  // --- Internal state ---
+  let vtScrollY = 0; // current vertical scroll offset of window
+  let vtViewportH = 0; // current viewport height
+
+  // --- Derived values (recomputed automatically when deps change) ---
+  $: if (
+    $initData ||
+    sortColumn ||
+    sortDirection ||
+    !selectedCategoryFilter ||
+    !selectedPatternForDetail
+  ) {
+    const colgrp = getColumnGroups();
+    if (!(colgrp.length === 0 || colgrp[0].length === 0)) {
+      vtData = colgrp;
+    }
+  }
+  $: vtTotalRows = Math.max(...vtData.map((group) => group.length)); // total number of rows
+  $: vtRowsInView = Math.max(
+    1,
+    Math.ceil((vtViewportH - vtHeaderHeight) / vtRowHeight)
+  );
+  $: vtVisibleCnt = vtRowsInView + vtOverscan * 2; // rows to render including overscan
+  $: vtStartIndex = Math.max(
+    0,
+    Math.floor(vtScrollY / vtRowHeight) - vtOverscan
+  );
+  $: vtEndIndex = Math.min(vtTotalRows, vtStartIndex + vtVisibleCnt); // slice end index
+  $: vtVisibleRows = vtData.map((col) => col.slice(vtStartIndex, vtEndIndex)); // actual rows rendered
+  $: vtOverlayY =
+    vtHeaderHeight -
+    (vtScrollY < vtRowHeight * vtOverscan
+      ? vtScrollY
+      : (vtScrollY % vtRowHeight) + vtRowHeight * vtOverscan); // overlay vertical offset
+
+  // --- Lifecycle hooks ---
+  onMount(() => {
+    function vtOnScroll() {
+      vtScrollY = window.scrollY || 0;
+    }
+    function vtOnResize() {
+      vtViewportH = window.innerHeight || 0;
+    }
+
+    vtOnResize();
+    vtOnScroll();
+
+    // setInterval(() => {
+    //   console.log("displaySessions:", getDisplaySessions());
+    //   console.log("columnGroups:", getColumnGroups());
+    //   console.log("vtData:", vtData);
+    //   console.log("filteredByCategory:", filteredByCategory);
+    //   console.log("-----------------------");
+    //   console.log("-----------------------");
+    // }, 2000);
+
+    window.addEventListener("scroll", vtOnScroll, { passive: true });
+    window.addEventListener("resize", vtOnResize);
+
+    onDestroy(() => {
+      window.removeEventListener("scroll", vtOnScroll);
+      window.removeEventListener("resize", vtOnResize);
+    });
+  });
 </script>
 
 <div class="App">
@@ -1905,7 +2018,7 @@
             <option value={dataset}>{dataset}</option>
           {/each}
           <option disabled>─────────────────</option>
-          <option value="__help__">🔗 How to Add Your Dataset</option>
+          <option value="__help__">How to Add Your Dataset</option>
         </select>
         <button
           class="pattern-search-button"
@@ -1938,8 +2051,38 @@
               behavior.
             </p>
           </div>
+
+          <div class="patterns-header">
+            <h4 class="patterns-title">Manage Patterns</h4>
+            <div
+              class="patterns-actions"
+              role="toolbar"
+              aria-label="Pattern actions"
+            >
+              <button
+                class="search-pattern-button"
+                on:click={triggerImport}
+                aria-label="Upload patterns"
+                title="Upload patterns"
+              >
+                Upload
+              </button>
+
+              {#if $searchPatternSet && $searchPatternSet.length > 1}
+                <button
+                  class="search-pattern-button"
+                  on:click={exportDB}
+                  aria-label="Download patterns"
+                  title="Download saved patterns"
+                >
+                  Download
+                </button>
+              {/if}
+            </div>
+          </div>
+
           {#if $searchPatternSet && $searchPatternSet.length > 1}
-            <div class="saved-patterns-section">
+            <div class="saved-patterns-section" style="margin-top: 20px;">
               <h4>Saved Patterns</h4>
               <div class="saved-patterns-list">
                 <SavedPatternsBar
@@ -1951,22 +2094,6 @@
                   {maxVisible}
                 />
               </div>
-              <div class="pattern-actions">
-                <button
-                  class="pattern-action-button save-button"
-                  on:click={exportDB}
-                  aria-label="Save Pattern"
-                >
-                  Save Pattern
-                </button>
-                <button
-                  class="pattern-action-button load-button"
-                  on:click={triggerImport}
-                  aria-label="Load Pattern"
-                >
-                  Load Pattern
-                </button>
-              </div>
             </div>
           {:else}
             <div class="saved-patterns-section">
@@ -1977,27 +2104,11 @@
                   chart and saving your first pattern!
                 </p>
               </div>
-              <div class="pattern-actions">
-                <button
-                  class="pattern-action-button save-button"
-                  on:click={exportDB}
-                  aria-label="Save Pattern"
-                >
-                  Save Pattern
-                </button>
-                <button
-                  class="pattern-action-button load-button"
-                  on:click={triggerImport}
-                  aria-label="Load Pattern"
-                >
-                  Load Pattern
-                </button>
-              </div>
             </div>
           {/if}
 
           {#if Object.keys(selectedPatterns).length > 0}
-            <div class="pattern-results-summary">
+            <div class="pattern-results-summary" style="margin-top: 20px;">
               <h4>Selection Results</h4>
               {#each Object.entries(selectedPatterns) as [sessionId, pattern]}
                 <div class="pattern-item">
@@ -2219,7 +2330,7 @@
                         <button
                           class="search-pattern-button"
                           on:click={openSavePanel}
-                          >Save NOW pattern
+                          >Save NOW Pattern
                         </button>
                       </div>
                       <div style="text-align: center; margin-top: 10px;">
@@ -2351,7 +2462,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      {#each selectedCategoryFilter ? filteredByCategory : filteredSessions as sessionData (sessionData.sessionId)}
+                      {#each selectedCategoryFilter ? filteredByCategory : filteredSessions as sessionData}
                         <tr
                           class="session-row"
                           on:click={() => handleRowClick(sessionData)}
@@ -2419,12 +2530,21 @@
                         {/each}
                       </tr>
                     </thead>
-                    <tbody>
-                      {#each Array(Math.ceil(Math.max(...getColumnGroups().map((group) => group.length)))) as _, rowIndex (rowIndex + sortColumn + sortDirection)}
-                        <tr class="unified-session-row">
-                          {#each getColumnGroups() as group, colIndex}
+                    <tbody
+                      aria-hidden="true"
+                      style="
+                        visibility:hidden;
+                        pointer-events:none;
+                      "
+                    >
+                      {#if vtVisibleRows && vtVisibleRows.length}
+                        <tr
+                          class="unified-session-row"
+                          style="height:0; padding:0; border:0;"
+                        >
+                          {#each vtVisibleRows as group, colIndex}
                             <SessionCell
-                              sessionData={group[rowIndex]}
+                              sessionData={group[0]}
                               {chartRefs}
                               onRowClick={handleRowClick}
                               onCategoryIconClick={handleCategoryIconClick}
@@ -2436,12 +2556,87 @@
                               {activePatternId}
                               on:pattern-click={handlePatternClick}
                               on:pattern-contextmenu={handlePatternContextMenu}
+                              noRightBorder={true}
                             />
                           {/each}
                         </tr>
-                      {/each}
+                      {/if}
                     </tbody>
                   </table>
+
+                  <!-- Spacer to push rows below sticky header -->
+                  <div
+                    style="
+                      height:{vtHeaderHeight}px;
+                      margin-top:-1px;
+                    "
+                  ></div>
+
+                  <!-- Tall pad to create correct scrollbar height -->
+                  <div style="height:{vtTotalRows * vtRowHeight}px;"></div>
+
+                  <!-- Fixed overlay that actually renders only visible rows -->
+                  <div
+                    style="
+                      position:fixed;
+                      left:0;
+                      right:0;
+                      top:0;
+                      z-index:2;
+                      pointer-events:auto;
+                      transform: translateY({vtOverlayY}px);
+                      --vt-row-h:{vtRowHeight}px;
+
+                      display: flex;
+                      justify-content: center;
+                    "
+                  >
+                    <table class="unified-sessions-table">
+                      <thead
+                        aria-hidden="true"
+                        style="visibility:hidden; height:0; overflow:hidden; pointer-events:none;"
+                      >
+                        <tr>
+                          {#each Array(3) as _, colIndex}
+                            <th style="min-width:70px;"></th>
+                            <th style="min-width:90px;"></th>
+                            {#if showPatternColumn}
+                              <th style="min-width:100px;"></th>
+                            {/if}
+                            <th></th>
+                            {#if colIndex < 2}
+                              <th class="spacer" style="width:8vw;"></th>
+                            {/if}
+                          {/each}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {#each Array(Math.ceil(Math.max(...vtVisibleRows.map((group) => group.length)))) as _, rowIndex (rowIndex + sortColumn + sortDirection)}
+                          <tr
+                            class="unified-session-row"
+                            style="height: {vtRowHeight}px;"
+                          >
+                            {#each vtVisibleRows as group, colIndex}
+                              <SessionCell
+                                sessionData={group[rowIndex]}
+                                {chartRefs}
+                                onRowClick={handleRowClick}
+                                onCategoryIconClick={handleCategoryIconClick}
+                                {getPromptCode}
+                                {getCategoryIcon}
+                                {colIndex}
+                                showPatterns={showPatternColumn}
+                                patterns={$searchPatternSet}
+                                {activePatternId}
+                                on:pattern-click={handlePatternClick}
+                                on:pattern-contextmenu={handlePatternContextMenu}
+                              />
+                            {/each}
+                          </tr>
+                        {/each}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             {/if}
@@ -2515,6 +2710,7 @@
                               chartRefs[$clickSession.sessionId + "-barChart"]
                             }
                             on:chartLoaded={handleChartLoaded}
+                            bind:xScaleBarChartFactor
                           />
                         {/if}
                         <div>
@@ -2533,6 +2729,7 @@
                             bind:sharedSelection
                             on:selectionChanged={handleSelectionChanged}
                             on:selectionCleared={handleSelectionCleared}
+                            bind:xScaleLineChartFactor
                           />
                         </div>
                       </div>

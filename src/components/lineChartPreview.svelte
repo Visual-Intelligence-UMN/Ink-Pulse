@@ -4,8 +4,6 @@
   export let chartData;
   // export let paragraphColor;
 
-  console.log(chartData);
-
   let svgContainer: SVGSVGElement;
   let width = 250;
   let height = 150;

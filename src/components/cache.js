@@ -75,6 +75,9 @@ async function importDBFromFile(file) {
     reader.onload = async () => {
       try {
         const raw = reader.result;
+        if (!(raw instanceof ArrayBuffer)) {
+          throw new Error('Invalid file format: expected binary data');
+        }
         const importedItems = JSON.parse(new TextDecoder().decode(raw));
 
         const db = await openDB();
@@ -135,9 +138,19 @@ export function triggerImport() {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = '.bin';
-  input.onchange = () => {
+  input.onchange = async () => {
     const file = input.files[0];
-    if (file) importDBFromFile(file);
+    if (file) {
+      try {
+        console.log('Starting import of file:', file.name, 'Size:', file.size);
+        await importDBFromFile(file);
+        console.log('Import completed successfully!');
+        alert(`Successfully imported ${file.name}!`);
+      } catch (error) {
+        console.error('Import failed:', error);
+        alert(`Import failed: ${error.message}`);
+      }
+    }
   };
   input.click();
 }
