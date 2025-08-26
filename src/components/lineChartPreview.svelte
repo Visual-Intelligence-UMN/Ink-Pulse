@@ -21,7 +21,8 @@
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
 
-  let maxTime = chartData.length > 0 ? chartData[chartData.length - 1].time : 10;
+  let maxTime =
+    chartData.length > 0 ? chartData[chartData.length - 1].time : 10;
 
   $: xScale = d3
     .scaleLinear()
@@ -81,44 +82,45 @@
         {/each}
       </g> -->
 
-      <g>
-        {#each chartData.filter((d) => !d.isSuggestionOpen) as d (d.index)}
-          <circle
-            cx={scaledX(d.time)}
-            cy={scaledY(d.percentage)}
-            r={2}
-            fill={d.color}
-            opacity={d.opacity}
-          />
-        {/each}
+        <g>
+          {#each chartData.filter((d) => !d.isSuggestionOpen) as d (d.index)}
+            <circle
+              cx={scaledX(d.time)}
+              cy={scaledY(d.percentage)}
+              r={2}
+              fill={d.color}
+              opacity={d.opacity}
+            />
+          {/each}
 
-        {#each chartData.filter((d) => d.isSuggestionOpen) as d}
-          <path
-            d={d3.symbol().type(d3.symbolTriangle).size(40)()}
-            fill="#FFBBCC"
-            opacity={d.opacity + 0.29}
-            transform={`translate(${scaledX(d.time)},${scaledY(d.percentage + 6)}) rotate(180)`}
-          />
-        {/each}
+          {#each chartData.filter((d) => d.isSuggestionOpen) as d}
+            <path
+              d={d3.symbol().type(d3.symbolTriangle).size(40)()}
+              fill="#FFBBCC"
+              opacity={d.opacity + 0.29}
+              transform={`translate(${scaledX(d.time)},${scaledY(d.percentage + 6)}) rotate(180)`}
+            />
+          {/each}
+        </g>
       </g>
     </g>
-  </g>
 
-  <g
-    class="x-axis"
-    transform={`translate(0, ${chartHeight - 4.5})`}
-    bind:this={xAxisG}
-  >
-    <text
-      x={chartWidth / 2}
-      y={25}
-      text-anchor="middle"
-      font-size="10px"
-      fill="black"
+    <g
+      class="x-axis"
+      transform={`translate(0, ${chartHeight - 4.5})`}
+      bind:this={xAxisG}
     >
-      Time (min)
-    </text>
-  </g>
+      <text
+        x={chartWidth / 2}
+        y={25}
+        text-anchor="middle"
+        font-size="10px"
+        fill="black"
+      >
+        Time (min)
+      </text>
+    </g>
 
-  <g class="y-axis" bind:this={yAxisG} style="display: none"></g>
-</svg>
+    <g class="y-axis" bind:this={yAxisG} style="display: none"></g>
+  </g></svg
+>

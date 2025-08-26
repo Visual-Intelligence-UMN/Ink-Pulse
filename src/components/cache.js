@@ -75,6 +75,9 @@ async function importDBFromFile(file) {
     reader.onload = async () => {
       try {
         const raw = reader.result;
+        if (!(raw instanceof ArrayBuffer)) {
+          throw new Error('Invalid file format: expected binary data');
+        }
         const importedItems = JSON.parse(new TextDecoder().decode(raw));
 
         const db = await openDB();
@@ -117,8 +120,16 @@ async function importDBFromFile(file) {
           };
         }
 
-        tx.oncomplete = () => {
+        tx.oncomplete = async () => {
           console.log('Import complete');
+          // Refresh the store with updated data
+          try {
+            const updatedData = await getFromDB(CACHE_KEY);
+            searchPatternSet.set(updatedData);
+            console.log('Store updated with imported data:', updatedData);
+          } catch (error) {
+            console.warn('Failed to refresh store:', error);
+          }
           resolve();
         };
         tx.onerror = () => reject(tx.error);
@@ -132,14 +143,28 @@ async function importDBFromFile(file) {
 }
 
 export function triggerImport() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.bin';
-  input.onchange = () => {
-    const file = input.files[0];
-    if (file) importDBFromFile(file);
-  };
-  input.click();
+  return new Promise((resolve, reject) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.bin';
+    input.onchange = async () => {
+      const file = input.files[0];
+      if (file) {
+        try {
+          console.log('Starting import of file:', file.name, 'Size:', file.size);
+          await importDBFromFile(file);
+          console.log('Import completed successfully!');
+          resolve();
+        } catch (error) {
+          console.error('Import failed:', error);
+          reject(error);
+        }
+      } else {
+        resolve(); // No file selected
+      }
+    };
+    input.click();
+  });
 }
 
 // Svelte writable store synced to IndexedDB

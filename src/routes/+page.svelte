@@ -125,6 +125,9 @@
   let selectedPatternForDetail = null;
   let activePatternId = null;
 
+  // Loading state for pattern import
+  let isImporting = false;
+
   // Confirm dialog state
   let showDeleteConfirm = false;
   let patternToDelete = null;
@@ -1874,8 +1877,27 @@
   }
 
   function handleDatasetChange(event) {
-    selectedDataset = event.target.value;
+    const value = event.target.value;
+
+    // Handle help option
+    if (value === "__help__") {
+      // Reset to current dataset
+      event.target.value = selectedDataset;
+      // Open help dialog or navigate to documentation
+      openDatasetHelp();
+      return;
+    }
+
+    selectedDataset = value;
     window.location.href = `${window.location.pathname}?dataset=${selectedDataset}`;
+  }
+
+  function openDatasetHelp() {
+    // Open GitHub README section about dataset import
+    window.open(
+      "https://github.com/Visual-Intelligence-UMN/Ink-Pulse/blob/main/README.md#how-to-import-your-own-dataset",
+      "_blank"
+    );
   }
 
   // --- Virtual table configuration ---
@@ -1955,10 +1977,23 @@
 <div class="App">
   <header class="App-header">
     <nav>
-      <div class="chart-explanation">
-        <span class="triangle-text">▼</span> User open the AI suggestion &nbsp;
-        <span class="user-line">●</span> User written &nbsp;
-        <span class="api-line">●</span> AI writing &nbsp; &nbsp;
+      <div class="brand-section">
+        <div class="brand-content">
+          <div class="brand-logo">
+            <img
+              src="{base}/favicon.png"
+              alt="InkPulse Logo"
+              class="ink-icon"
+            />
+            <span class="brand-name">InkPulse</span>
+          </div>
+          <div class="chart-explanation">
+            <span class="triangle-text">▼</span> User open the AI suggestion
+            &nbsp;
+            <span class="user-line">●</span> User written &nbsp;
+            <span class="api-line">●</span> AI writing
+          </div>
+        </div>
       </div>
       <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded"
@@ -1974,20 +2009,20 @@
           swap_horiz
         </a>
       {/if}
-      <label for="dataset-select" style="font-size: 15px; margin-top: 2px;"
-        >Dataset: &nbsp;</label
-      >
-      <select
-        id="dataset-select"
-        bind:value={selectedDataset}
-        on:change={handleDatasetChange}
-      >
-        {#each datasets as dataset}
-          <option value={dataset}>{dataset}</option>
-        {/each}
-      </select>
       <div style="flex: 1;"></div>
-      <div style="display: flex; gap: 0.5em; align-items: right;">
+      <div style="display: flex; gap: 0.5em; align-items: center;">
+        <label for="dataset-select">Dataset:</label>
+        <select
+          id="dataset-select"
+          bind:value={selectedDataset}
+          on:change={handleDatasetChange}
+        >
+          {#each datasets as dataset}
+            <option value={dataset}>{dataset}</option>
+          {/each}
+          <option disabled>─────────────────</option>
+          <option value="__help__">How to Add Your Dataset</option>
+        </select>
         <button
           class="pattern-search-button"
           class:active={showPatternSearch}
@@ -2029,11 +2064,25 @@
             >
               <button
                 class="search-pattern-button"
-                on:click={triggerImport}
+                class:loading={isImporting}
+                on:click={async () => {
+                  isImporting = true;
+                  try {
+                    await triggerImport();
+                  } finally {
+                    isImporting = false;
+                  }
+                }}
                 aria-label="Upload patterns"
                 title="Upload patterns"
+                disabled={isImporting}
               >
-                Upload
+                {#if isImporting}
+                  <span class="loading-spinner"></span>
+                  Loading...
+                {:else}
+                  Upload
+                {/if}
               </button>
 
               {#if $searchPatternSet && $searchPatternSet.length > 1}
@@ -2061,6 +2110,16 @@
                   on:show-more-patterns={handleShowMorePatterns}
                   {maxVisible}
                 />
+              </div>
+            </div>
+          {:else}
+            <div class="saved-patterns-section">
+              <h4>Saved Patterns</h4>
+              <div class="no-patterns-message">
+                <p>
+                  No saved patterns yet. Start by selecting a portion in the
+                  chart and saving your first pattern!
+                </p>
               </div>
             </div>
           {/if}
@@ -2901,9 +2960,46 @@
     margin-right: 15px;
   }
 
+  .brand-section {
+    display: flex;
+    align-items: flex-start;
+    margin-left: 10px;
+    margin-top: -5px;
+  }
+
+  .brand-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+  }
+
+  .ink-icon {
+    width: 28px;
+    height: 28px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    border-radius: 4px;
+  }
+
+  .brand-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2563eb;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
   .chart-explanation {
-    margin-top: 5px;
-    font-size: 12px;
+    font-size: 11px;
     display: flex;
   }
 
@@ -2942,7 +3038,7 @@
     top: 0;
     width: 100%;
     background-color: white;
-    padding: 1em 0;
+    padding: 0.5em 0;
     margin: 0px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     z-index: 600;
@@ -3131,5 +3227,90 @@
 
   .hidden {
     display: none;
+  }
+
+  .pattern-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .pattern-action-button {
+    flex: 1;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .save-button {
+    background-color: #10b981;
+    color: white;
+  }
+
+  .save-button:hover {
+    background-color: #059669;
+    transform: translateY(-1px);
+  }
+
+  .load-button {
+    background-color: #3b82f6;
+    color: white;
+  }
+
+  .load-button:hover {
+    background-color: #2563eb;
+    transform: translateY(-1px);
+  }
+
+  .no-patterns-message {
+    padding: 20px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+    background-color: #f9fafb;
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+
+  /* Loading state styles */
+  .search-pattern-button.loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+    position: relative;
+  }
+
+  .loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  .search-pattern-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
   }
 </style>
