@@ -917,4 +917,55 @@ function findSegments(data, checks, minCount) {
     return true;
   }
 
+    const fetchPercentageSummaryData = async () => {
+    try {
+      const response = await fetch(
+        `${base}/dataset/${selectedDataset}/percentage_summary.json`
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch summary data: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error when reading the data file:", error);
+      return null;
+    }
+  };
+
+  const fetchLengthSummaryData = async () => {
+    try {
+      const response = await fetch(
+        `${base}/dataset/${selectedDataset}/length_summary.json`
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch summary data: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error when reading the data file:", error);
+      return null;
+    }
+  };
+
+  const fetchOverallSemScoreSummaryData = async () => {
+    try {
+      const response = await fetch(
+        `${base}/dataset/${selectedDataset}/overall_sem_score_summary.json`
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch summary data: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error when reading the data file:", error);
+      return null;
+    }
+  };
+
 '''

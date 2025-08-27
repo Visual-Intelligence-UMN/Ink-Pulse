@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import jStat from 'jstat';
 
   export let percentageSummaryData;
   export let percentageData;
@@ -7,17 +8,16 @@
   export let flag;
   export let title;
 
-  const NOWColor = '#015dc6';
-  const overallColor = '#bf1818';
+  const NOWColor = '#999999';
+  const overallColor = '#ffffff';
 
   let canvasEl: HTMLCanvasElement;
 
   function drawChart() {
     if (!canvasEl) return;
     const dpr = 2;
-
-    const width = 300;
-    const height = 200;
+    const width = 200;
+    const height = 175;
 
     canvasEl.width = width * dpr;
     canvasEl.height = height * dpr;
@@ -27,27 +27,53 @@
     const ctx = canvasEl.getContext("2d");
     if (!ctx) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, width, height);
 
     const paddingTop = 20;
     const paddingBottom = 40;
     const paddingLeft = 50;
-    const tickLength = 6;
+    const tickLength = 3;
     const ySteps = 5;
     const maxStart = 100;
     const step = 10;
     const binCount = maxStart / step;
 
+    function getAdjustedOverallCounts(percentageData, patternSessions) {
+      const removedIds = new Set(patternSessions.map(s => s.sessionId));
+      const processedIds = new Set<string>();
+      const counts = new Array(binCount).fill(0);
+      const values: number[] = [];
+
+      percentageData.forEach(([id, ai]) => {
+        if (removedIds.has(id)) return;
+        if (processedIds.has(id)) return;
+        processedIds.add(id);
+
+        if (typeof ai !== "number") return;
+
+        const binIndex = Math.min(Math.floor(ai * 10), binCount - 1);
+        counts[binIndex]++;
+        values.push(ai * 100);
+      });
+
+      return { counts, values };
+    }
+
     const labels = Array.from({ length: binCount }, (_, i) => `${i * step}-${(i + 1) * step}`);
     const overallCounts = new Array(binCount).fill(0);
     const highlightCounts = new Array(binCount).fill(0);
+    let overallValues: number[] = [];
+    let highlightValues: number[] = [];
+
     if (flag === "overall") {
-      const tempCounts = Object.values(percentageSummaryData).map(Number);
-      for (let i = 0; i < Math.min(tempCounts.length, binCount); i++) {
-        overallCounts[i] = tempCounts[i];
-      }
+      const { counts, values } = getAdjustedOverallCounts(percentageData, patternSessions);
+      overallValues = values;
+      for (let i = 0; i < Math.min(counts.length, binCount); i++) overallCounts[i] = counts[i];
     } else {
       const aiRatioMap = new Map(percentageData.map(([id, ai]) => [id, ai]));
       const processedSessionIds = new Set<string>();
+      const values: number[] = [];
+
       percentageSummaryData.forEach((session) => {
         if (processedSessionIds.has(session.sessionId)) return;
         processedSessionIds.add(session.sessionId);
@@ -57,28 +83,33 @@
 
         const binIndex = Math.min(Math.floor(aiRatio * 10), binCount - 1);
         overallCounts[binIndex]++;
+        values.push(aiRatio * 100);
       });
+
+      overallValues = values;
     }
 
     const aiRatioMap = new Map(percentageData.map(([id, ai]) => [id, ai]));
     const processedSessionIds = new Set<string>();
+    const highlightValuesTmp: number[] = [];
 
     patternSessions.forEach((session) => {
       if (processedSessionIds.has(session.sessionId)) return;
-
       processedSessionIds.add(session.sessionId);
       const aiRatio = aiRatioMap.get(session.sessionId);
-
       if (typeof aiRatio !== 'number') return;
       const binIndex = Math.min(Math.floor(aiRatio * 10), binCount - 1);
       highlightCounts[binIndex]++;
+      highlightValuesTmp.push(aiRatio * 100);
     });
+    highlightValues = highlightValuesTmp;
 
-    ctx.clearRect(0, 0, width, height);
+    ctx.strokeStyle = "#999999";
+    ctx.lineWidth = 0.5;
     const barWidth = (width - paddingLeft) / binCount;
-    ctx.strokeStyle = "#000";
+
+    ctx.font = "10px sans-serif";
     ctx.fillStyle = "#000";
-    ctx.font = "12px sans-serif";
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
 
@@ -101,62 +132,156 @@
     ctx.lineTo(width, height - paddingBottom);
     ctx.stroke();
 
+    ctx.font = "7px sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
-    ctx.font = "7px sans-serif";
-
     for (let i = 0; i < binCount; i++) {
       const x = paddingLeft + i * barWidth + barWidth / 2;
-      ctx.beginPath();
-      ctx.moveTo(x, height - paddingBottom);
-      ctx.lineTo(x, height - paddingBottom + tickLength);
-      ctx.stroke();
-
-      ctx.fillText(labels[i], x, height - paddingBottom + tickLength + 3);
+      const textY = height - paddingBottom + tickLength + 3;
+      const angle = -Math.PI / 4;
+      ctx.save();
+      ctx.translate(x, textY);
+      ctx.rotate(angle);
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      ctx.fillText(labels[i], 0, 0);
+      ctx.restore();
     }
 
     ctx.font = "10px sans-serif";
     ctx.fillText("AI Ratio", paddingLeft + (width - paddingLeft) / 2, height - paddingBottom + tickLength + 20);
 
-    const highlightTotal = patternSessions.length;
+    const bw = 0.4;
+    const highlightOffset = (barWidth - 2 * barWidth * bw) / 2;
+    const overallOffset = highlightOffset + barWidth * bw;
+
+    const highlightTotal = highlightValues.length;
     for (let i = 0; i < binCount; i++) {
       if (highlightCounts[i] === 0) continue;
       const freq = highlightCounts[i] / highlightTotal;
       const barHeight = freq * (height - paddingTop - paddingBottom);
-      const x = paddingLeft + i * barWidth + barWidth * 0.25;
+      const x = paddingLeft + i * barWidth + highlightOffset;
       const y = height - paddingBottom - barHeight;
-
       ctx.fillStyle = NOWColor;
-      ctx.fillRect(x, y, barWidth * 0.3, barHeight);
+      ctx.fillRect(x, y, barWidth * bw, barHeight);
+      ctx.strokeStyle = NOWColor;
+      ctx.lineWidth = 0.3;
+      ctx.strokeRect(x, y, barWidth * bw, barHeight);
     }
 
-    const overallTotal = overallCounts.reduce((a, b) => a + b, 0);
+    function createStripedPattern(ctx, color = NOWColor) {
+      const size = 8;
+      const patternCanvas = document.createElement('canvas');
+      patternCanvas.width = size;
+      patternCanvas.height = size;
+      const pctx = patternCanvas.getContext('2d');
+      if (!pctx) return null;
+      pctx.strokeStyle = color;
+      pctx.lineWidth = 1;
+      pctx.beginPath();
+      pctx.moveTo(0, size);
+      pctx.lineTo(size, 0);
+      pctx.stroke();
+      return ctx.createPattern(patternCanvas, 'repeat');
+    }
+
+    const overallTotal = overallValues.length;
     for (let i = 0; i < binCount; i++) {
       if (overallCounts[i] === 0) continue;
       const freq = overallCounts[i] / overallTotal;
       const barHeight = freq * (height - paddingTop - paddingBottom);
-      const x = paddingLeft + i * barWidth + barWidth * 0.55;
+      const x = paddingLeft + i * barWidth + overallOffset;
       const y = height - paddingBottom - barHeight;
-
-      ctx.fillStyle = overallColor;
-      ctx.fillRect(x, y, barWidth * 0.3, barHeight);
+      ctx.fillStyle = createStripedPattern(ctx);;
+      ctx.fillRect(x, y, barWidth * bw, barHeight);
+      ctx.strokeStyle = NOWColor;
+      ctx.lineWidth = 0.3;
+      ctx.strokeRect(x, y, barWidth * bw, barHeight);
     }
+
+    const overallMean = overallValues.reduce((a, b) => a + b, 0) / overallValues.length;
+    const highlightMean = highlightValues.reduce((a, b) => a + b, 0) / highlightValues.length;
+
+    let pValue = null;
+    if (overallValues.length > 1 && highlightValues.length > 1) {
+      const mean1 = jStat.mean(overallValues);
+      const mean2 = jStat.mean(highlightValues);
+      const var1 = jStat.variance(overallValues, true);
+      const var2 = jStat.variance(highlightValues, true);
+      const n1 = overallValues.length;
+      const n2 = highlightValues.length;
+
+      const t = (mean1 - mean2) / Math.sqrt(var1 / n1 + var2 / n2);
+
+      const df = Math.pow(var1 / n1 + var2 / n2, 2) /
+                ((Math.pow(var1 / n1, 2) / (n1 - 1)) + (Math.pow(var2 / n2, 2) / (n2 - 1)));
+
+      pValue = 2 * (1 - jStat.studentt.cdf(Math.abs(t), df));
+    }
+
+    function drawMeanLine(ctx, mean, barHeights, offset, color, label, side) {
+      const barGroupWidth = (width - paddingLeft) / binCount;
+      let closestIndex = 0;
+      let minDiff = Infinity;
+      for (let i = 0; i < binCount; i++) {
+        const mid = i * step + step / 2;
+        const diff = Math.abs(mid - mean);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestIndex = i;
+        }
+      }
+      const barTop = height - paddingBottom - barHeights[closestIndex];
+      const topY = barTop - offset;
+      let barGroupCenter = paddingLeft + closestIndex * barGroupWidth + barGroupWidth / 2;
+      if (side === "left") barGroupCenter -= barWidth * bw / 2;
+      if (side === "right") barGroupCenter += barWidth * bw / 2;
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(barGroupCenter, topY);
+      ctx.lineTo(barGroupCenter, barTop);
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.font = "10px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.fillText(`${label}=${mean.toFixed(2)}`, barGroupCenter, topY - 10);
+    }
+
+    drawMeanLine(ctx, overallMean, overallCounts.map(c => c / overallTotal * (height - paddingTop - paddingBottom)), 3, "#666666", "x\u0305", "right");
+    drawMeanLine(ctx, highlightMean, highlightCounts.map(c => c / highlightTotal * (height - paddingTop - paddingBottom)), 3, "#000000", "x\u0305", "left");
 
     const legendX = width - 10;
     const legendY = 15;
     const legendBoxSize = 12;
     const legendSpacing = 5;
-    ctx.font = "12px sans-serif";
+    ctx.font = "10px sans-serif";
     ctx.textBaseline = "middle";
     ctx.textAlign = "right";
     ctx.fillStyle = NOWColor;
     ctx.fillRect(legendX - legendBoxSize, legendY, legendBoxSize, legendBoxSize);
+    ctx.strokeStyle = NOWColor;
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(legendX - legendBoxSize, legendY, legendBoxSize, legendBoxSize);
     ctx.fillStyle = "#000";
     ctx.fillText(title[0], legendX - legendBoxSize - legendSpacing, legendY + legendBoxSize / 2);
-    ctx.fillStyle = overallColor;
+
+    ctx.fillStyle = createStripedPattern(ctx);
     ctx.fillRect(legendX - legendBoxSize, legendY + legendBoxSize + legendSpacing, legendBoxSize, legendBoxSize);
+    ctx.strokeStyle = NOWColor;
+    ctx.strokeRect(legendX - legendBoxSize, legendY + legendBoxSize + legendSpacing, legendBoxSize, legendBoxSize);
     ctx.fillStyle = "#000";
     ctx.fillText(title[1], legendX - legendBoxSize - legendSpacing, legendY + legendBoxSize + legendSpacing + legendBoxSize / 2);
+
+    if (pValue !== null) {
+      ctx.fillStyle = "#000";
+      ctx.font = "10px sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(`p=${pValue.toExponential(2)}`, width - 140, legendY + 5);
+    }
   }
 
   onMount(() => {

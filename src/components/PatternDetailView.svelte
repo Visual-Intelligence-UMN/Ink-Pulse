@@ -11,15 +11,16 @@
   export let pattern;
   export let sessions;
   export let chartRefs = {};
-  export let percentageData;
-  export let lengthData;
   export let searchPatternSet;
   const init = searchPatternSet.find(p => p.id === "pattern_0");
   let scoreSummary = init.scoreSummary;
   let percentageSummaryData = init.percentageSummaryData;
+  let percentageData = init.percentageData;
+  let lengthData = init.lengthData;
   let lengthSummaryData = init.lengthSummaryData;
   let overallSemScoreData = init.overallSemScoreData;
   let overallSemScoreSummaryData = init.overallSemScoreSummaryData;
+  console.log("check",searchPatternSet)
   let flag = "overall";
   let selectedId = "pattern_0";
   let title = [pattern.name, searchPatternSet.find(p => p.id === selectedId).name];
@@ -50,12 +51,6 @@
     const found = sessions.find((s) => s.session_id === sessionId);
     return found?.prompt_code ?? "";
   }
-  
-  function getScoreDisplay(score) {
-    if (!score) return 'N/A';
-    const stars = '⭐'.repeat(Math.floor(score / 20)) + '☆'.repeat(5 - Math.floor(score / 20));
-    return `${score.toFixed(1)} ${stars}`;
-  }
 
   function handleSelectChange(event) {
     const selectedValue = event.target.value;
@@ -64,6 +59,8 @@
       title = [pattern.name, searchPatternSet.find(p => p.id === selectedValue).name];
       scoreSummary = init.scoreSummary;
       percentageSummaryData = init.percentageSummaryData;
+      percentageData = init.percentageData;
+      lengthData = init.lengthData;
       lengthSummaryData = init.lengthSummaryData;
       overallSemScoreData = init.overallSemScoreData;
       overallSemScoreSummaryData = init.overallSemScoreSummaryData;
@@ -85,7 +82,6 @@
       lengthSummaryData = select.pattern;
       overallSemScoreSummaryData = select.pattern;
     }
-    
   }
 
   $: patternSessions = pattern?.pattern || [];
@@ -259,40 +255,35 @@
     </div>
   </div>
 
-  <div style="display: flex; justify-content: center;">
-    <ScoreSummaryChart
-      rawData = {scoreSummary}
-      nowData = {scoreCount}
-      {title}
-    />
-  </div>
-  <div style="display: flex; justify-content: center;">
-    <PercentageChart
-      {patternSessions}
-      {percentageSummaryData}
-      {percentageData}
-      {flag}
-      {title}
-    />
-  </div>
-  <div style="display: flex; justify-content: center;">
-    <LengthChart
-      {patternSessions}
-      {lengthData}
-      {lengthSummaryData}
-      {flag}
-      {title}
-    />
-  </div>
-  <div style="display: flex; justify-content: center;">
-    <OverallSemScoreChart
-      {patternSessions}
-      {overallSemScoreData}
-      {overallSemScoreSummaryData}
-      {flag}
-      {title}
-    />
-  </div>
+  <div class="charts-grid">
+  <ScoreSummaryChart
+    rawData={scoreSummary}
+    nowData={scoreCount}
+    {flag}
+    {title}
+  />
+  <OverallSemScoreChart
+    {patternSessions}
+    {overallSemScoreData}
+    {overallSemScoreSummaryData}
+    {flag}
+    {title}
+  />
+  <PercentageChart
+    {patternSessions}
+    {percentageSummaryData}
+    {percentageData}
+    {flag}
+    {title}
+  />
+  <LengthChart
+    {patternSessions}
+    {lengthData}
+    {lengthSummaryData}
+    {flag}
+    {title}
+  />
+</div>
   
   <div class="table-container">
     <table class="pattern-sessions-table">
@@ -347,9 +338,9 @@
 <style>
   .pattern-detail-container {
     width: 100%;
-    max-width: 1200px;
+    max-width: 800px;
     margin: 0 auto;
-    padding: 20px;
+    /* padding: 20px; */
     min-height: 100vh;
     overflow: visible;
   }
@@ -462,32 +453,6 @@
     vertical-align: top;
   }
   
-  .topic-cell {
-    padding: 15px;
-    vertical-align: middle;
-  }
-  
-  .topic-content {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  
-  .topic-icon {
-    font-size: 18px;
-  }
-  
-  .topic-name {
-    font-weight: 500;
-    color: #333;
-  }
-  
-  .score-cell {
-    padding: 15px;
-    vertical-align: middle;
-    font-size: 14px;
-  }
-  
   .empty-state {
     padding: 40px;
     text-align: center;
@@ -577,44 +542,47 @@
   }
 
   input:checked+.slider {
-  background-color: #ffbbcc;
-}
+    background-color: #ffbbcc;
+  }
 
-input:checked+.slider::before {
-  transform: translateX(11px);
-}
+  input:checked+.slider::before {
+    transform: translateX(11px);
+  }
 
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: 0.2s;
-  border-radius: 28px;
-}
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.2s;
+    border-radius: 28px;
+  }
 
-.slider::before {
-  position: absolute;
-  content: "";
-  height: 11px;
-  width: 11px;
-  left: 1.5px;
-  bottom: 1.5px;
-  background-color: white;
-  transition: 0.2s;
-  border-radius: 50%;
-}
+  .slider::before {
+    position: absolute;
+    content: "";
+    height: 11px;
+    width: 11px;
+    left: 1.5px;
+    bottom: 1.5px;
+    background-color: white;
+    transition: 0.2s;
+    border-radius: 50%;
+  }
 
-.switch {
-  position: relative;
-  display: inline-block;  /* or inline-flex */
-  width: 26px;             /* or whatever width you need */
-  height: 14px;
-  margin-left: 3px;
-}
-  
-  
+  .switch {
+    position: relative;
+    display: inline-block;  /* or inline-flex */
+    width: 26px;             /* or whatever width you need */
+    height: 14px;
+    margin-left: 3px;
+  }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
 </style>

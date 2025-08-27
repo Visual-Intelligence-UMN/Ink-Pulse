@@ -230,9 +230,8 @@
     text-align: center;
   }
 
-  /* Tooltip样式 */
   :global(.semantic-tooltip) {
-    position: fixed; /* 改为fixed定位 */
+    position: fixed;
     background: rgba(0, 0, 0, 0.9);
     color: white;
     padding: 8px 12px;
@@ -243,7 +242,6 @@
     z-index: 10000;
     white-space: nowrap;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    /* 移除transform，因为我们现在直接计算位置 */
   }
 
   :global(.semantic-tooltip::after) {
