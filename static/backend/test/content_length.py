@@ -12,16 +12,19 @@ def load_json(json_path):
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     static_dir = os.path.dirname(script_dir)
-    note_dir = os.path.join(static_dir, "chi2022-coauthor-v1.0", f"similarity_results-{dataset_name}")
+    note_dir = os.path.join(static_dir, "data", f"{dataset_name}", "similarity_results")
     length = []
     for file_name in os.listdir(note_dir):
         if file_name.endswith(".json"):
             file_path = os.path.join(note_dir, file_name)
-            # name = file_name.split('_')[0]
+            name = file_name.split('_')[0]
             data = load_json(file_path)
             sentence = data[-1]["sentence"] * 3000
-            length.append(sentence)
-    save_path = os.path.join(static_dir, "chi2022-coauthor-v1.0", f"length-{dataset_name}.json")
+            length.append({
+                "session_id": name,
+                "sentence": sentence
+            })
+    save_path = os.path.join(static_dir, "data", f"{dataset_name}", f"length.json")
     with open(save_path, "w", encoding="utf-8") as f:
         json.dump(length, f, ensure_ascii=False, indent=4)
 
@@ -47,4 +50,4 @@ def convert_format():
 
 if __name__ == "__main__":    
     main()
-    convert_format()
+    # convert_format()

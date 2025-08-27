@@ -35,8 +35,12 @@ def main(dataset_name):
         if file_name.endswith(".json"):
             file_path = os.path.join(note_dir, file_name)
             data = load_json(file_path)
+            name = file_name.split('_')[0]
             sentence = data[-1]["sentence"] * 3000
-            length.append(sentence)
+            length.append({
+                "session_id": name,
+                "sentence": sentence
+            })
     save_path = os.path.join(static_dir, "dataset", f"{dataset_name}", "length.json")
     with open(save_path, "w", encoding="utf-8") as f:
         json.dump(length, f, ensure_ascii=False, indent=4)

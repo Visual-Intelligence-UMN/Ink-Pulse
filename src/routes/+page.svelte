@@ -44,9 +44,14 @@
   let exactProgressButton;
   let exactTimeButton;
 
-  $: if (selectedPatterns) {
+  let lastSharedSelection = null;
+  $: if (sharedSelection) {
     // console.log("selectedPatterns", selectedPatterns);
-    isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
+    // console.log("sharedSelection", sharedSelection);
+    if (sharedSelection !== lastSharedSelection) {
+      isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
+      lastSharedSelection = sharedSelection;
+    }
   }
 
   function initTippy(el, content) {
@@ -984,9 +989,6 @@
   function handleSelectionChanged(event) {
     showResultCount.set(5);
 
-    console.log("handleSelectionChanged called with:", event.detail);
-    console.log("sharedSelection:", sharedSelection);
-
     if (sharedSelection && sharedSelection.selectionSource === "lineChart_x") {
       console.log("Setting lineChart_x options");
       isProgressChecked = true;
@@ -1114,61 +1116,10 @@
     }
   };
 
-  const fetchOverallSemScoreSummaryData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/dataset/${selectedDataset}/overall_sem_score_summary.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
-
   const fetchOverallSemScoreData = async () => {
     try {
       const response = await fetch(
         `${base}/dataset/${selectedDataset}/overall_sem_score.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
-
-  const fetchLengthSummaryData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/dataset/${selectedDataset}/length_summary.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
-
-  const fetchPercentageSummaryData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/dataset/${selectedDataset}/percentage_summary.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch summary data: ${response.status}`);
@@ -1429,19 +1380,22 @@
     }
     scoreSummary = await fetchScoreSummaryData();
     percentageData = await fetchPercentageData();
-    percentageSummaryData = await fetchPercentageSummaryData();
+    percentageSummaryData = [];
     lengthData = await fetchLengthData();
-    lengthSummaryData = await fetchLengthSummaryData();
+    lengthSummaryData = [];
     overallSemScoreData = await fetchOverallSemScoreData();
-    overallSemScoreSummaryData = await fetchOverallSemScoreSummaryData();
+    overallSemScoreSummaryData = [];
     if (isLoadOverallData == false) {
       const itemToSave = {
         id: `pattern_0`,
         name: "Overall",
+        dataset: selectedDataset,
         pattern: [],
         metadata: {},
         scoreSummary,
+        percentageData,
         percentageSummaryData,
+        lengthData,
         lengthSummaryData,
         overallSemScoreData,
         overallSemScoreSummaryData,
@@ -1878,16 +1832,6 @@
 
   function handleDatasetChange(event) {
     const value = event.target.value;
-
-    // Handle help option
-    if (value === "__help__") {
-      // Reset to current dataset
-      event.target.value = selectedDataset;
-      // Open help dialog or navigate to documentation
-      openDatasetHelp();
-      return;
-    }
-
     selectedDataset = value;
     window.location.href = `${window.location.pathname}?dataset=${selectedDataset}`;
   }
@@ -1979,7 +1923,7 @@
     <nav>
       <div class="brand-section">
         <div class="brand-content">
-          <div class="brand-logo">
+          <div class="brand-logo" style="zoom: 150%;">
             <img
               src="{base}/favicon.png"
               alt="InkPulse Logo"
@@ -1987,13 +1931,13 @@
             />
             <span class="brand-name">InkPulse</span>
           </div>
-          <div class="chart-explanation">
-            <span class="triangle-text">▼</span> User open the AI suggestion
-            &nbsp;
-            <span class="user-line">●</span> User written &nbsp;
-            <span class="api-line">●</span> AI writing
-          </div>
         </div>
+      </div>
+      <div class="chart-explanation" style="font-size: 13px; align-items: center; display: flex;">
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <span class="triangle-text">▼</span> User open the AI suggestion &nbsp;
+        <span class="user-line">●</span> User written &nbsp;
+        <span class="api-line">●</span> AI writing
       </div>
       <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded"
@@ -2011,18 +1955,19 @@
       {/if}
       <div style="flex: 1;"></div>
       <div style="display: flex; gap: 0.5em; align-items: center;">
-        <label for="dataset-select">Dataset:</label>
-        <select
-          id="dataset-select"
-          bind:value={selectedDataset}
-          on:change={handleDatasetChange}
-        >
-          {#each datasets as dataset}
-            <option value={dataset}>{dataset}</option>
-          {/each}
-          <option disabled>─────────────────</option>
-          <option value="__help__">How to Add Your Dataset</option>
-        </select>
+        <div style="margin-right: 30px;">
+          <label for="dataset-select" style="font-size: 14px;">Dataset:</label>
+          <select
+            id="dataset-select"
+            bind:value={selectedDataset}
+            on:change={handleDatasetChange}
+            style="width: min-content;"
+          >
+            {#each datasets as dataset}
+              <option value={dataset}>{dataset}</option>
+            {/each}
+          </select>
+        </div>
         <button
           class="pattern-search-button"
           class:active={showPatternSearch}
@@ -2410,6 +2355,12 @@
             <p>
               Discover insights into <b>human-AI collaboration</b> and have fun!
             </p>
+            <p>
+              Want to use your own dataset?
+              <a href=" " on:click={openDatasetHelp}>
+                Check here!
+              </a>.
+            </p>
             <button class="start-button" on:click={open2close}
               >Start Exploring</button
             >
@@ -2424,8 +2375,6 @@
             searchPatternSet={$searchPatternSet}
             {sessions}
             {chartRefs}
-            {percentageData}
-            {lengthData}
             on:back={handleBackFromDetail}
             on:apply-pattern={handleApplyPattern}
             on:edit-pattern={handleEditPattern}
@@ -2453,6 +2402,7 @@
                         <th
                           class="sortable-header"
                           on:click={() => handleSort("topic")}
+                          style="min-width: 70px;"
                         >
                           <span>Topic</span>
                           <span class="sort-icon">{getSortIcon("topic")}</span>
@@ -2460,6 +2410,7 @@
                         <th
                           class="sortable-header"
                           on:click={() => handleSort("score")}
+                          style="min-width: 90px;"
                         >
                           <span>Score</span>
                           <span class="sort-icon">{getSortIcon("score")}</span>
@@ -2468,6 +2419,7 @@
                           <th
                             class="sortable-header"
                             on:click={() => handleSort("pattern")}
+                            style="min-width: 100px;"
                           >
                             <span>Pattern</span>
                             <span class="sort-icon"
@@ -3059,6 +3011,7 @@
     top: 0;
     background: white;
     z-index: 10;
+    font-size: 14px;
   }
 
   table {
