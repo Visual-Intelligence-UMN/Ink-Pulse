@@ -989,9 +989,6 @@
   function handleSelectionChanged(event) {
     showResultCount.set(5);
 
-    // console.log("handleSelectionChanged called with:", event.detail);
-    // console.log("sharedSelection:", sharedSelection);
-
     if (sharedSelection && sharedSelection.selectionSource === "lineChart_x") {
       console.log("Setting lineChart_x options");
       isProgressChecked = true;
@@ -1119,61 +1116,10 @@
     }
   };
 
-  const fetchOverallSemScoreSummaryData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/dataset/${selectedDataset}/overall_sem_score_summary.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
-
   const fetchOverallSemScoreData = async () => {
     try {
       const response = await fetch(
         `${base}/dataset/${selectedDataset}/overall_sem_score.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
-
-  const fetchLengthSummaryData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/dataset/${selectedDataset}/length_summary.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
-
-  const fetchPercentageSummaryData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/dataset/${selectedDataset}/percentage_summary.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch summary data: ${response.status}`);
@@ -1434,19 +1380,22 @@
     }
     scoreSummary = await fetchScoreSummaryData();
     percentageData = await fetchPercentageData();
-    percentageSummaryData = await fetchPercentageSummaryData();
+    percentageSummaryData = [];
     lengthData = await fetchLengthData();
-    lengthSummaryData = await fetchLengthSummaryData();
+    lengthSummaryData = [];
     overallSemScoreData = await fetchOverallSemScoreData();
-    overallSemScoreSummaryData = await fetchOverallSemScoreSummaryData();
+    overallSemScoreSummaryData = [];
     if (isLoadOverallData == false) {
       const itemToSave = {
         id: `pattern_0`,
         name: "Overall",
+        dataset: selectedDataset,
         pattern: [],
         metadata: {},
         scoreSummary,
+        percentageData,
         percentageSummaryData,
+        lengthData,
         lengthSummaryData,
         overallSemScoreData,
         overallSemScoreSummaryData,
@@ -1883,16 +1832,6 @@
 
   function handleDatasetChange(event) {
     const value = event.target.value;
-
-    // Handle help option
-    if (value === "__help__") {
-      // Reset to current dataset
-      event.target.value = selectedDataset;
-      // Open help dialog or navigate to documentation
-      openDatasetHelp();
-      return;
-    }
-
     selectedDataset = value;
     window.location.href = `${window.location.pathname}?dataset=${selectedDataset}`;
   }
@@ -2027,8 +1966,6 @@
             {#each datasets as dataset}
               <option value={dataset}>{dataset}</option>
             {/each}
-            <option disabled>────────────</option>
-            <option value="__help__">How to Add Your Dataset</option>
           </select>
         </div>
         <button
@@ -2418,6 +2355,12 @@
             <p>
               Discover insights into <b>human-AI collaboration</b> and have fun!
             </p>
+            <p>
+              Want to use your own dataset?
+              <a href=" " on:click={openDatasetHelp}>
+                Check here!
+              </a>.
+            </p>
             <button class="start-button" on:click={open2close}
               >Start Exploring</button
             >
@@ -2432,8 +2375,6 @@
             searchPatternSet={$searchPatternSet}
             {sessions}
             {chartRefs}
-            {percentageData}
-            {lengthData}
             on:back={handleBackFromDetail}
             on:apply-pattern={handleApplyPattern}
             on:edit-pattern={handleEditPattern}
