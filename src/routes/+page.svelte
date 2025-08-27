@@ -235,6 +235,7 @@
       id: `pattern_${Date.now()}`,
       name,
       color,
+      dataset: selectedDataset,
       pattern: processedSlice,
       metadata: {
         createdAt: Date.now(),
@@ -242,6 +243,13 @@
         originalMatches: allPatternData.length,
       },
       searchDetail,
+      scoreSummary,
+      percentageData,
+      percentageSummaryData: processedSlice,
+      lengthData,
+      lengthSummaryData: processedSlice,
+      overallSemScoreData,
+      overallSemScoreSummaryData: processedSlice
     };
 
     searchPatternSet.update((current) => [...current, itemToSave]);
@@ -766,7 +774,6 @@
         `${base}/dataset/${selectedDataset}/session_name.json`
       );
       const fileList = await fileListResponse.json();
-      console.log("File list length:", fileList.length);
 
       for (const fileName of fileList) {
         // const fileId = fileName.split(".")[0].replace(/_similarity$/, "");
@@ -1386,9 +1393,10 @@
     overallSemScoreData = await fetchOverallSemScoreData();
     overallSemScoreSummaryData = [];
     if (isLoadOverallData == false) {
+      const prefix = selectedDataset.slice(0, 2);
       const itemToSave = {
         id: `pattern_0`,
-        name: "Overall",
+        name: `All-${prefix}`,
         dataset: selectedDataset,
         pattern: [],
         metadata: {},
@@ -1401,7 +1409,10 @@
         overallSemScoreSummaryData,
       };
       searchPatternSet.update((current) => {
-        const index = current.findIndex((p) => p.id === "pattern_0");
+        const index = current.findIndex(
+          (p) => p.id === "pattern_0" && p.dataset === selectedDataset
+        );
+
         if (index >= 0) {
           const copy = [...current];
           copy[index] = itemToSave;
@@ -1738,7 +1749,6 @@
 
   function handlePatternClick(event) {
     const { pattern } = event.detail;
-
     selectedPatternForDetail = pattern;
     activePatternId = pattern.id;
     currentView = "pattern-detail";

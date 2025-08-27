@@ -12,7 +12,11 @@
   export let sessions;
   export let chartRefs = {};
   export let searchPatternSet;
-  const init = searchPatternSet.find(p => p.id === "pattern_0");
+
+  const init = searchPatternSet.find(
+    (p) => p.id === "pattern_0" && p.dataset === pattern.dataset
+  );
+  console.log(init)
   let scoreSummary = init.scoreSummary;
   let percentageSummaryData = init.percentageSummaryData;
   let percentageData = init.percentageData;
@@ -20,7 +24,6 @@
   let lengthSummaryData = init.lengthSummaryData;
   let overallSemScoreData = init.overallSemScoreData;
   let overallSemScoreSummaryData = init.overallSemScoreSummaryData;
-  console.log("check",searchPatternSet)
   let flag = "overall";
   let selectedId = "pattern_0";
   let title = [pattern.name, searchPatternSet.find(p => p.id === selectedId).name];
