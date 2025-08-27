@@ -44,9 +44,14 @@
   let exactProgressButton;
   let exactTimeButton;
 
-  $: if (selectedPatterns) {
+  let lastSharedSelection = null;
+  $: if (sharedSelection) {
     // console.log("selectedPatterns", selectedPatterns);
-    isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
+    // console.log("sharedSelection", sharedSelection);
+    if (sharedSelection !== lastSharedSelection) {
+      isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
+      lastSharedSelection = sharedSelection;
+    }
   }
 
   function initTippy(el, content) {
