@@ -44,9 +44,14 @@
   let exactProgressButton;
   let exactTimeButton;
 
-  $: if (selectedPatterns) {
+  let lastSharedSelection = null;
+  $: if (sharedSelection) {
     // console.log("selectedPatterns", selectedPatterns);
-    isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
+    // console.log("sharedSelection", sharedSelection);
+    if (sharedSelection !== lastSharedSelection) {
+      isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
+      lastSharedSelection = sharedSelection;
+    }
   }
 
   function initTippy(el, content) {
@@ -984,8 +989,8 @@
   function handleSelectionChanged(event) {
     showResultCount.set(5);
 
-    console.log("handleSelectionChanged called with:", event.detail);
-    console.log("sharedSelection:", sharedSelection);
+    // console.log("handleSelectionChanged called with:", event.detail);
+    // console.log("sharedSelection:", sharedSelection);
 
     if (sharedSelection && sharedSelection.selectionSource === "lineChart_x") {
       console.log("Setting lineChart_x options");
@@ -1979,7 +1984,7 @@
     <nav>
       <div class="brand-section">
         <div class="brand-content">
-          <div class="brand-logo">
+          <div class="brand-logo" style="zoom: 150%;">
             <img
               src="{base}/favicon.png"
               alt="InkPulse Logo"
@@ -1987,13 +1992,13 @@
             />
             <span class="brand-name">InkPulse</span>
           </div>
-          <div class="chart-explanation">
-            <span class="triangle-text">▼</span> User open the AI suggestion
-            &nbsp;
-            <span class="user-line">●</span> User written &nbsp;
-            <span class="api-line">●</span> AI writing
-          </div>
         </div>
+      </div>
+      <div class="chart-explanation" style="font-size: 13px; align-items: center; display: flex;">
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <span class="triangle-text">▼</span> User open the AI suggestion &nbsp;
+        <span class="user-line">●</span> User written &nbsp;
+        <span class="api-line">●</span> AI writing
       </div>
       <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded"
@@ -2011,18 +2016,21 @@
       {/if}
       <div style="flex: 1;"></div>
       <div style="display: flex; gap: 0.5em; align-items: center;">
-        <label for="dataset-select">Dataset:</label>
-        <select
-          id="dataset-select"
-          bind:value={selectedDataset}
-          on:change={handleDatasetChange}
-        >
-          {#each datasets as dataset}
-            <option value={dataset}>{dataset}</option>
-          {/each}
-          <option disabled>─────────────────</option>
-          <option value="__help__">How to Add Your Dataset</option>
-        </select>
+        <div style="margin-right: 30px;">
+          <label for="dataset-select" style="font-size: 14px;">Dataset:</label>
+          <select
+            id="dataset-select"
+            bind:value={selectedDataset}
+            on:change={handleDatasetChange}
+            style="width: min-content;"
+          >
+            {#each datasets as dataset}
+              <option value={dataset}>{dataset}</option>
+            {/each}
+            <option disabled>────────────</option>
+            <option value="__help__">How to Add Your Dataset</option>
+          </select>
+        </div>
         <button
           class="pattern-search-button"
           class:active={showPatternSearch}
@@ -2453,6 +2461,7 @@
                         <th
                           class="sortable-header"
                           on:click={() => handleSort("topic")}
+                          style="min-width: 70px;"
                         >
                           <span>Topic</span>
                           <span class="sort-icon">{getSortIcon("topic")}</span>
@@ -2460,6 +2469,7 @@
                         <th
                           class="sortable-header"
                           on:click={() => handleSort("score")}
+                          style="min-width: 90px;"
                         >
                           <span>Score</span>
                           <span class="sort-icon">{getSortIcon("score")}</span>
@@ -2468,6 +2478,7 @@
                           <th
                             class="sortable-header"
                             on:click={() => handleSort("pattern")}
+                            style="min-width: 100px;"
                           >
                             <span>Pattern</span>
                             <span class="sort-icon"
@@ -3059,6 +3070,7 @@
     top: 0;
     background: white;
     z-index: 10;
+    font-size: 14px;
   }
 
   table {

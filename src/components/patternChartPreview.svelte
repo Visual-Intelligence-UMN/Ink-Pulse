@@ -124,10 +124,17 @@
           : newyScale(d.endProgress),
       )
       .attr("x", (d) => xScale(d.residual_vector_norm))
-      .attr("width", (d) => xScale(0) - xScale(d.residual_vector_norm))
-      .attr("height", (d) =>
-        Math.abs(newyScale(d.startProgress) - newyScale(d.endProgress)),
-      )
+      .attr("width", (d) => {
+        const x1 = xScale(d.residual_vector_norm);
+        const x2 = xScale(0);
+        return isNaN(x1) || isNaN(x2) ? 0 : (x2 - x1);
+      })
+      .attr("height", (d) => {
+        const y1 = newyScale(d.startProgress);
+        const y2 = newyScale(d.endProgress);
+        return isNaN(y1) || isNaN(y2) ? 0 : Math.abs(y1 - y2);
+      })
+
       .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke-width", 0.1)
@@ -146,10 +153,16 @@
           : newyScale(d.endProgress),
       )
       .attr("x", (d) => xScale(d.residual_vector_norm))
-      .attr("width", (d) => xScale(0) - xScale(d.residual_vector_norm))
-      .attr("height", (d) =>
-        Math.abs(newyScale(d.startProgress) - newyScale(d.endProgress)),
-      )
+      .attr("width", (d) => {
+        const x1 = xScale(d.residual_vector_norm);
+        const x2 = xScale(0);
+        return isNaN(x1) || isNaN(x2) ? 0 : (x2 - x1);
+      })
+      .attr("height", (d) => {
+        const y1 = newyScale(d.startProgress);
+        const y2 = newyScale(d.endProgress);
+        return isNaN(y1) || isNaN(y2) ? 0 : Math.abs(y1 - y2);
+      })
       .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke-width", 0.1)

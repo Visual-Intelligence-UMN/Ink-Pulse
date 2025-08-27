@@ -219,8 +219,8 @@
 
   .score-text {
     position: absolute;
-    top: 46.5%;
-    left: 49.5%;
+    top: 51%;
+    left: 50%;
     transform: translate(-50%, -50%);
     font-weight: 800;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
