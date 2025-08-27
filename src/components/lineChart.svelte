@@ -104,7 +104,7 @@
   });
 
   $: {
-    if (brushGroup && brushX) {
+    if (brushGroup && brushX && brushY) {
       if (!selectionMode) {
         brushGroup.call(brushX.move, null);
         brushGroup.call(brushY.move, null);
@@ -122,6 +122,11 @@
         }
       }
     }
+  }
+
+  $: if(brushGroup && zoomTransform) {
+    brushGroup.select(".overlay").style("pointer-events", "all");
+    brushGroup.select(".selection").style("display", "none");
   }
 
   function getCircleOpacity(d) {
