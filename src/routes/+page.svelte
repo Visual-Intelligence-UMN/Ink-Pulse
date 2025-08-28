@@ -216,39 +216,71 @@
 
   function handleSave(event) {
     const { name, color } = event.detail;
-    const allPatternData = get(patternDataList).slice(0, get(showResultCount));
-    const seenSessionIds = new Set();
-    const deduplicatedData = allPatternData.filter((session) => {
-      if (seenSessionIds.has(session.sessionId)) {
-        return false;
-      }
-      seenSessionIds.add(session.sessionId);
-      return true;
-    });
 
-    const processedSlice = deduplicatedData.map((session) => ({
-      ...session,
-      llmScore: session.similarityData[0].score || 0,
-    }));
+    // Top-N rows we’re saving from the visible results
+    const allPatternData = get(patternDataList).slice(0, get(showResultCount));
+
+    // Group rows by sessionId so we can accumulate counts per session
+    const sessionsById = new Map();
+
+    const getOrInitSession = (row) => {
+      if (!sessionsById.has(row.sessionId)) {
+        const sim = Array.isArray(row.similarityData) ? row.similarityData : [];
+        sessionsById.set(row.sessionId, {
+          ...row,
+          // fresh counter array aligned to similarityData
+          pattern_indices: Array(sim.length).fill(0),
+          // keep score behavior consistent with your original code
+          llmScore: sim?.[0]?.score ?? 0,
+        });
+      }
+      return sessionsById.get(row.sessionId);
+    };
+
+    const findIndex = (sim, time, field) =>
+      sim.findIndex((x) => x?.[field] === time);
+
+    // For each pattern occurrence (row), mark its segments into that session’s counters
+    for (const row of allPatternData) {
+      const session = getOrInitSession(row);
+      const sim = Array.isArray(session.similarityData) ? session.similarityData : [];
+      const segs = Array.isArray(row.segments) ? row.segments : [];
+
+      for (const seg of segs) {
+        const startIdx = findIndex(sim, seg?.start_time, "start_time");
+        const endIdx   = findIndex(sim, seg?.end_time,   "end_time");
+        if (startIdx === -1 || endIdx === -1) continue;
+
+        const a = Math.min(startIdx, endIdx);
+        const b = Math.max(startIdx, endIdx);
+        for (let i = a; i <= b; i++) {
+          session.pattern_indices[i] += 1; // increment covered indices
+        }
+      }
+    }
+
+    // Final list of sessions (unique by sessionId), with accumulated pattern_indices
+    const processed = Array.from(sessionsById.values());
 
     const itemToSave = {
       id: `pattern_${Date.now()}`,
       name,
       color,
-      pattern: processedSlice,
+      pattern: processed,
       metadata: {
         createdAt: Date.now(),
-        totalSessions: processedSlice.length,
-        originalMatches: allPatternData.length,
+        totalSessions: processed.length,     // unique sessions
+        originalMatches: allPatternData.length,     // raw rows
       },
       searchDetail,
     };
 
-    searchPatternSet.update((current) => [...current, itemToSave]);
+    // Commit & refresh UI
+    searchPatternSet.update((cur) => [...cur, itemToSave]);
     isSave = false;
 
     tick().then(() => {
-      initData.update((data) => [...data]);
+      initData.update((data) => [...data]); // poke reactivity
     });
   }
 
