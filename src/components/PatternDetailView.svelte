@@ -12,7 +12,10 @@
   export let sessions;
   export let chartRefs = {};
   export let searchPatternSet;
-  const init = searchPatternSet.find(p => p.id === "pattern_0");
+
+  const init = searchPatternSet.find(
+    (p) => p.id === "pattern_0" && p.dataset === pattern.dataset
+  );
   let scoreSummary = init.scoreSummary;
   let percentageSummaryData = init.percentageSummaryData;
   let percentageData = init.percentageData;
@@ -20,10 +23,9 @@
   let lengthSummaryData = init.lengthSummaryData;
   let overallSemScoreData = init.overallSemScoreData;
   let overallSemScoreSummaryData = init.overallSemScoreSummaryData;
-  console.log("check",searchPatternSet)
   let flag = "overall";
-  let selectedId = "pattern_0";
-  let title = [pattern.name, searchPatternSet.find(p => p.id === selectedId).name];
+  let selectedIdDataset = `${init.id}::${init.dataset}`;
+  let title = [pattern.name, findPatternByKey(selectedIdDataset)?.name];
   
   const dispatch = createEventDispatcher();
   
@@ -52,23 +54,32 @@
     return found?.prompt_code ?? "";
   }
 
+  function findPatternByKey(key) {
+    const [id, dataset] = key.split("::");
+    return searchPatternSet.find(p => p.id === id && p.dataset === dataset);
+  }
+
   function handleSelectChange(event) {
-    const selectedValue = event.target.value;
-    if (selectedValue == "pattern_0") {
+    const selectedKey = event.target.value;
+    selectedIdDataset = selectedKey;
+    const select = findPatternByKey(selectedKey);
+    if (!select) return;
+
+    const [selectedValue, _] = selectedKey.split("::");
+
+    if (selectedValue === "pattern_0") {
       flag = "overall";
-      title = [pattern.name, searchPatternSet.find(p => p.id === selectedValue).name];
-      scoreSummary = init.scoreSummary;
-      percentageSummaryData = init.percentageSummaryData;
-      percentageData = init.percentageData;
-      lengthData = init.lengthData;
-      lengthSummaryData = init.lengthSummaryData;
-      overallSemScoreData = init.overallSemScoreData;
-      overallSemScoreSummaryData = init.overallSemScoreSummaryData;
-    } 
-    else {
+      title = [pattern.name, select?.name];
+      scoreSummary = select?.scoreSummary;
+      percentageSummaryData = select?.percentageSummaryData;
+      percentageData = select?.percentageData;
+      lengthData = select?.lengthData;
+      lengthSummaryData = select?.lengthSummaryData;
+      overallSemScoreData = select?.overallSemScoreData;
+      overallSemScoreSummaryData = select?.overallSemScoreSummaryData;
+    } else {
       flag = selectedValue;
-      title = [pattern.name, searchPatternSet.find(p => p.id === selectedValue).name]
-      let select = searchPatternSet.find(p => p.id === selectedValue);
+      title = [pattern.name, select.name];
       const patternSessions = select.pattern || [];
       const temp = {};
       for (const session of patternSessions) {
@@ -96,6 +107,16 @@
       Object.entries(temp).map(([k, v]) => [Number(k), v])
     );
   }
+  $: filteredPatterns = searchPatternSet.filter(p => p.dataset === pattern.dataset);
+  $: {
+    if (!filteredPatterns.find(p => `${p.id}::${p.dataset}` === selectedIdDataset)) {
+      const defaultPattern = filteredPatterns.find(p => p.id === "pattern_0") || filteredPatterns[0];
+      if (defaultPattern) {
+        selectedIdDataset = `${defaultPattern.id}::${defaultPattern.dataset}`;
+        handleSelectChange({ target: { value: selectedIdDataset } });
+      }
+    }
+  }
 </script>
 
 <div class="pattern-detail-container">
@@ -120,9 +141,11 @@
           aria-label="color dot"></span>
           {pattern.name}</span>
         <span>VS</span>
-        <select id="pattern-select" bind:value={selectedId} on:change={handleSelectChange}>
-          {#each searchPatternSet as pattern}
-            <option value={pattern.id}>{pattern.name}</option>
+        <select id="pattern-select" bind:value={selectedIdDataset} on:change={handleSelectChange}>
+          {#each filteredPatterns as filteredPattern}
+            <option value={`${filteredPattern.id}::${filteredPattern.dataset}`}>
+              {filteredPattern.name}
+            </option>
           {/each}
         </select>
       </div>

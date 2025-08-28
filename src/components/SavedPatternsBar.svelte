@@ -20,7 +20,9 @@
     dispatch('show-more-patterns');
   }
   
-  $: visiblePatterns = patterns.slice(1, maxVisible + 1); // 1st pattern is overall, which is not displayed
+  $: visiblePatterns = patterns
+    .filter(p => p.id !== "pattern_0")
+    .slice(0, maxVisible);
   $: remainingCount = Math.max(0, patterns.length - maxVisible);
 </script>
 
