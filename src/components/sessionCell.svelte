@@ -15,6 +15,7 @@
   export let patterns = [];
   export let activePatternId = null;
   export let noRightBorder = false;
+  export let highlightPatterns = null;
 
   const dispatch = createEventDispatcher();
   
@@ -81,6 +82,7 @@
         sessionId={sessionData.sessionId}
         similarityData={sessionData.similarityData}
         on:containerClick={() => {}}
+        {highlightPatterns}
       />
     </div>
   </td>

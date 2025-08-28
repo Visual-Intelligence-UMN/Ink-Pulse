@@ -125,7 +125,6 @@
   }
 
   $: if(brushGroup && zoomTransform) {
-    brushGroup.select(".overlay").style("pointer-events", "all");
     brushGroup.select(".selection").style("display", "none");
   }
 
