@@ -984,10 +984,17 @@
     });
   }
 
+  let fetchProgress = 0
+
   async function patternDataLoad(results) {
     const ids = results.map((group) => group[0]?.id).filter(Boolean);
-    const fetchPromises = ids.map((id) => fetchDataSummary(id));
-    await Promise.all(fetchPromises);
+    const BATCH_SIZE = 100;
+    for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+      // console.log("processing", i, "out of", ids.length);
+      fetchProgress = Math.round((i / ids.length) * 100) > 100? 100 : Math.round((i / ids.length) * 100);
+      const chunk = ids.slice(i, i + BATCH_SIZE);
+      await Promise.allSettled(chunk.map((id) => fetchDataSummary(id)));
+    }
 
     const sessionDataMap = get(storeSessionSummaryData);
     patternDataList.set(
@@ -1018,6 +1025,7 @@
         .filter(Boolean)
     );
     isSearch = 2; // reset search state; 0: not searching, 1: searching, 2: search done
+    fetchProgress = 0;
   }
 
   function closePatternSearch() {
@@ -2345,9 +2353,22 @@
                     <div class="no-data-message">
                       No data found matching the search criteria.
                     </div>
-                  {:else if isSearch == 1}
-                    <div class="loading-message">Searching for patterns...</div>
-                  {/if}
+                    {:else if isSearch == 1}
+                      <div class="loading-message">Searching for patterns...</div>
+                      <div class="progress-container">
+                        <span>{fetchProgress} %</span>
+                        <progress
+                          value={fetchProgress}
+                          max={100}
+                          style="
+                            width: 100px;
+                            --progHeight: 15px;
+                            --progColor: hsl(6, 100%, 50%);
+                            --progBackgroundColor: hsl(6, 100%, 90%);
+                          "
+                        ></progress>
+                      </div>
+                    {/if}
                 </div>
               {/each}
             </div>
