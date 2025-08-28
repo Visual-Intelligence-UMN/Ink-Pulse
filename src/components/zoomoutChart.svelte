@@ -50,7 +50,7 @@
     const yScale = d3.scaleLinear().domain([0, 1]).range([0, height]);
     const opacityScale = d3.scaleLinear().domain([0, 1]).range([0.3, 1]);
 
-    const dpr = 2;
+    const dpr = 5;
     canvasEl.width = width * dpr;
     canvasEl.height = height * dpr;
     canvasEl.style.width = width + "px";
