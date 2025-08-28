@@ -305,7 +305,7 @@
                 onCategoryIconClick={() => {}}
                 {getPromptCode}
                 {getCategoryIcon}
-
+                highlightPatterns={pattern.pattern_indices || null}
               />
             </td>
           </tr>

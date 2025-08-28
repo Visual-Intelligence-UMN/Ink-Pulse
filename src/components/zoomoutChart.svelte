@@ -7,6 +7,7 @@
 
   export let similarityData;
   export let sessionId;
+  export let highlightPatterns = null;
 
   let showPrompt = true;
   let height = 20;
