@@ -3363,7 +3363,7 @@
     cursor: not-allowed;
   }
 
-  /* Large topic icon styling */
+  /* Large topic icon styling with dynamic colors */
   .category-icon-large :global(.topic-letters) {
     font-family:
       "Inter",
@@ -3377,10 +3377,14 @@
     letter-spacing: 1px;
 
     /* Fallback color */
-    color: #667eea;
+    color: var(--topic-color-primary, #667eea);
 
-    /* Gradient text effect */
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* Dynamic gradient text effect */
+    background: linear-gradient(
+      135deg,
+      var(--topic-color-primary, #667eea) 0%,
+      var(--topic-color-secondary, #764ba2) 100%
+    );
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -3390,8 +3394,11 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 
-    /* Enhanced shadow for large size */
-    filter: drop-shadow(0 2px 6px rgba(102, 126, 234, 0.25));
+    /* Enhanced shadow for large size using dynamic color */
+    filter: drop-shadow(
+      0 2px 6px
+        color-mix(in srgb, var(--topic-color-primary, #667eea) 35%, transparent)
+    );
 
     display: inline-block;
     transform: translateZ(0);

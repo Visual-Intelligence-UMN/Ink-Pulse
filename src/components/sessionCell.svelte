@@ -166,7 +166,7 @@
     transform: scale(1.1);
   }
 
-  /* Beautiful styling for topic letters */
+  /* Beautiful styling for topic letters with dynamic colors */
   :global(.topic-letters) {
     font-family:
       "Inter",
@@ -179,11 +179,15 @@
     font-size: 14px;
     letter-spacing: 0.5px;
 
-    /* Fallback color for browsers that don't support background-clip */
+    /* Fallback color for browsers that don't support CSS variables */
     color: #667eea;
 
-    /* Modern gradient text effect */
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* Dynamic gradient text effect using CSS variables */
+    background: linear-gradient(
+      135deg,
+      var(--topic-color-primary, #667eea) 0%,
+      var(--topic-color-secondary, #764ba2) 100%
+    );
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -193,8 +197,11 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 
-    /* Subtle shadow for depth */
-    filter: drop-shadow(0 1px 2px rgba(102, 126, 234, 0.2));
+    /* Subtle shadow for depth using dynamic color */
+    filter: drop-shadow(
+      0 1px 2px
+        color-mix(in srgb, var(--topic-color-primary, #667eea) 30%, transparent)
+    );
 
     display: inline-block;
     transform: translateZ(0);
@@ -202,14 +209,22 @@
   }
 
   .topic-icon-btn:hover :global(.topic-letters) {
-    /* Fallback color for hover */
-    color: #f093fb;
+    /* Fallback hover color */
+    color: var(--topic-color-hover, #f093fb);
 
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    /* Dynamic hover gradient */
+    background: linear-gradient(
+      135deg,
+      var(--topic-color-hover, #f093fb) 0%,
+      var(--topic-color-primary, #f5576c) 100%
+    );
     background-clip: text;
     -webkit-background-clip: text;
     transform: scale(1.08) translateZ(0);
-    filter: drop-shadow(0 2px 4px rgba(240, 147, 251, 0.3));
+    filter: drop-shadow(
+      0 2px 4px
+        color-mix(in srgb, var(--topic-color-hover, #f093fb) 40%, transparent)
+    );
   }
 
   .score-cell {
