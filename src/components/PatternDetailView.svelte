@@ -1,7 +1,7 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   import SessionCell from './sessionCell.svelte';
-  import { getCategoryIcon } from './topicIcons.js';
+  import { getCategoryIcon as getCategoryIconBase } from './topicIcons.js';
   import ScoreSummaryChart from './scoreSummaryChart.svelte';
   import PercentageChart from './percentageChart.svelte'
   import LengthChart from './lengthChart.svelte';
@@ -12,6 +12,7 @@
   export let sessions;
   export let chartRefs = {};
   export let searchPatternSet;
+  export let selectedDataset;
 
   const init = searchPatternSet.find(
     (p) => p.id === "pattern_0" && p.dataset === pattern.dataset
@@ -52,6 +53,10 @@
   function getPromptCode(sessionId) {
     const found = sessions.find((s) => s.session_id === sessionId);
     return found?.prompt_code ?? "";
+  }
+
+  function getCategoryIcon(promptCode) {
+    return getCategoryIconBase(promptCode, selectedDataset);
   }
 
   function findPatternByKey(key) {

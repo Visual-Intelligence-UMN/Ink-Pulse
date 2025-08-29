@@ -8,7 +8,7 @@
   export let yScale;
   export let selectionMode = false;
   export let sharedSelection = null;
-  export let xScaleBarChartFactor;
+  export let xScaleBarChartFactor = 1;
 
   let container;
   const dispatch = createEventDispatcher();

@@ -147,6 +147,8 @@ export function triggerImport() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.bin';
+    
+    // Handle file selection
     input.onchange = async () => {
       const file = input.files[0];
       if (file) {
@@ -163,6 +165,12 @@ export function triggerImport() {
         resolve(); // No file selected
       }
     };
+    
+    // Handle file dialog cancellation
+    input.oncancel = () => {
+      resolve(); // User cancelled file selection
+    };
+    
     input.click();
   });
 }

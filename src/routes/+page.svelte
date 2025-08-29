@@ -13,7 +13,7 @@
   import PatternChartPreview from "../components/patternChartPreview.svelte";
   import PatternChartPreviewSerach from "../components/patternChartPreviewSerach.svelte";
   import SkeletonLoading from "../components/skeletonLoading.svelte";
-  import { getCategoryIcon } from "../components/topicIcons.js";
+  import { getCategoryIcon as getCategoryIconBase } from "../components/topicIcons.js";
   import "../components/styles.css";
   import LineChartPreview from "../components/lineChartPreview.svelte";
   import SessionCell from "../components/sessionCell.svelte";
@@ -243,12 +243,14 @@
     // For each pattern occurrence (row), mark its segments into that session’s counters
     for (const row of allPatternData) {
       const session = getOrInitSession(row);
-      const sim = Array.isArray(session.similarityData) ? session.similarityData : [];
+      const sim = Array.isArray(session.similarityData)
+        ? session.similarityData
+        : [];
       const segs = Array.isArray(row.segments) ? row.segments : [];
 
       for (const seg of segs) {
         const startIdx = findIndex(sim, seg?.start_time, "start_time");
-        const endIdx   = findIndex(sim, seg?.end_time,   "end_time");
+        const endIdx = findIndex(sim, seg?.end_time, "end_time");
         if (startIdx === -1 || endIdx === -1) continue;
 
         const a = Math.min(startIdx, endIdx);
@@ -270,8 +272,8 @@
       pattern: processedSlice,
       metadata: {
         createdAt: Date.now(),
-        totalSessions: processedSlice.length,     // unique sessions
-        originalMatches: allPatternData.length,     // raw rows
+        totalSessions: processedSlice.length, // unique sessions
+        originalMatches: allPatternData.length, // raw rows
       },
       searchDetail,
       scoreSummary,
@@ -280,7 +282,7 @@
       lengthData,
       lengthSummaryData: processedSlice,
       overallSemScoreData,
-      overallSemScoreSummaryData: processedSlice
+      overallSemScoreSummaryData: processedSlice,
     };
 
     // Commit & refresh UI
@@ -308,6 +310,10 @@
   function getPromptCode(sessionId) {
     const found = sessions.find((s) => s.session_id === sessionId);
     return found?.prompt_code ?? "";
+  }
+
+  function getCategoryIcon(promptCode) {
+    return getCategoryIconBase(promptCode, selectedDataset);
   }
 
   // Functions about tables
@@ -984,14 +990,17 @@
     });
   }
 
-  let fetchProgress = 0
+  let fetchProgress = 0;
 
   async function patternDataLoad(results) {
     const ids = results.map((group) => group[0]?.id).filter(Boolean);
     const BATCH_SIZE = 100;
     for (let i = 0; i < ids.length; i += BATCH_SIZE) {
       // console.log("processing", i, "out of", ids.length);
-      fetchProgress = Math.round((i / ids.length) * 100) > 100? 100 : Math.round((i / ids.length) * 100);
+      fetchProgress =
+        Math.round((i / ids.length) * 100) > 100
+          ? 100
+          : Math.round((i / ids.length) * 100);
       const chunk = ids.slice(i, i + BATCH_SIZE);
       await Promise.allSettled(chunk.map((id) => fetchDataSummary(id)));
     }
@@ -1983,7 +1992,10 @@
           </div>
         </div>
       </div>
-      <div class="chart-explanation" style="font-size: 13px; align-items: center; display: flex;">
+      <div
+        class="chart-explanation"
+        style="font-size: 13px; align-items: center; display: flex;"
+      >
         &nbsp;&nbsp;&nbsp;&nbsp;
         <span class="triangle-text">▼</span> User open the AI suggestion &nbsp;
         <span class="user-line">●</span> User written &nbsp;
@@ -2353,7 +2365,7 @@
                     <div class="no-data-message">
                       No data found matching the search criteria.
                     </div>
-                  {:else if isSearch == 1}                    
+                  {:else if isSearch == 1}
                     <div
                       style="
                         display: flex;
@@ -2363,10 +2375,17 @@
                         width: 100%;
                       "
                     >
-                      <div class="loading-message" style="margin: 0;">Searching for patterns...</div>
+                      <div class="loading-message" style="margin: 0;">
+                        Searching for patterns...
+                      </div>
                       {#if fetchProgress > 0}
-                        <div class="progress-container" style="margin-top: 5px;">
-                          <span style="font-size: 12px; top: 0%">{fetchProgress} %</span>
+                        <div
+                          class="progress-container"
+                          style="margin-top: 5px;"
+                        >
+                          <span style="font-size: 12px; top: 0%"
+                            >{fetchProgress} %</span
+                          >
                           <progress
                             value={fetchProgress}
                             max={100}
@@ -2432,9 +2451,7 @@
             </p>
             <p>
               Want to use your own dataset?
-              <a href=" " on:click={openDatasetHelp}>
-                Check here!
-              </a>.
+              <a href=" " on:click={openDatasetHelp}> Check here! </a>.
             </p>
             <button class="start-button" on:click={open2close}
               >Start Exploring</button
@@ -2450,6 +2467,7 @@
             searchPatternSet={$searchPatternSet}
             {sessions}
             {chartRefs}
+            {selectedDataset}
             on:back={handleBackFromDetail}
             on:apply-pattern={handleApplyPattern}
             on:edit-pattern={handleEditPattern}
@@ -2465,7 +2483,10 @@
                 <div class="category-filter-header">
                   <h2>
                     <span class="category-icon-large">
-                      {getCategoryIcon(selectedCategoryFilter)}
+                      {@html getCategoryIconBase(
+                        selectedCategoryFilter,
+                        selectedDataset
+                      )}
                     </span>
                     {selectedCategoryFilter.toUpperCase()} Sessions
                   </h2>
@@ -3340,5 +3361,46 @@
   .search-pattern-button:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+  }
+
+  /* Large topic icon styling with dynamic colors */
+  .category-icon-large :global(.topic-letters) {
+    font-family:
+      "Inter",
+      "SF Pro Display",
+      "Segoe UI",
+      "Roboto",
+      -apple-system,
+      sans-serif;
+    font-weight: 800;
+    font-size: 24px;
+    letter-spacing: 1px;
+
+    /* Fallback color */
+    color: var(--topic-color-primary, #667eea);
+
+    /* Dynamic gradient text effect */
+    background: linear-gradient(
+      135deg,
+      var(--topic-color-primary, #667eea) 0%,
+      var(--topic-color-secondary, #764ba2) 100%
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    /* Enhanced typography */
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /* Enhanced shadow for large size using dynamic color */
+    filter: drop-shadow(
+      0 2px 6px
+        color-mix(in srgb, var(--topic-color-primary, #667eea) 35%, transparent)
+    );
+
+    display: inline-block;
+    transform: translateZ(0);
   }
 </style>
