@@ -15,8 +15,9 @@ def convert_format(dataset_name):
     data = load_json(note_dir)
     bin_counts = Counter()
     bin_size = 500
-    for length in data:
-        bin_start = int(length // bin_size) * bin_size
+    for item in data:
+        sentence_length = int(item["sentence"])
+        bin_start = (sentence_length // bin_size) * bin_size
         bin_end = bin_start + bin_size
         bin_label = f"{bin_start}-{bin_end}"
         bin_counts[bin_label] += 1
