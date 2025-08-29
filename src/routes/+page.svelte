@@ -984,10 +984,17 @@
     });
   }
 
+  let fetchProgress = 0
+
   async function patternDataLoad(results) {
     const ids = results.map((group) => group[0]?.id).filter(Boolean);
-    const fetchPromises = ids.map((id) => fetchDataSummary(id));
-    await Promise.all(fetchPromises);
+    const BATCH_SIZE = 100;
+    for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+      // console.log("processing", i, "out of", ids.length);
+      fetchProgress = Math.round((i / ids.length) * 100) > 100? 100 : Math.round((i / ids.length) * 100);
+      const chunk = ids.slice(i, i + BATCH_SIZE);
+      await Promise.allSettled(chunk.map((id) => fetchDataSummary(id)));
+    }
 
     const sessionDataMap = get(storeSessionSummaryData);
     patternDataList.set(
@@ -1018,6 +1025,7 @@
         .filter(Boolean)
     );
     isSearch = 2; // reset search state; 0: not searching, 1: searching, 2: search done
+    fetchProgress = 0;
   }
 
   function closePatternSearch() {
@@ -2346,7 +2354,32 @@
                       No data found matching the search criteria.
                     </div>
                   {:else if isSearch == 1}
-                    <div class="loading-message">Searching for patterns...</div>
+                    {#if fetchProgress > 0}
+                      <div
+                        style="
+                          display: flex;
+                          align-items: center;
+                          gap: 40px;
+                          margin-top: 10px;
+                          width: 100%;
+                        "
+                      >
+                        <div class="loading-message" style="margin: 0;">Searching for patterns...</div>
+                        <div class="progress-container" style="margin-top: 5px;">
+                          <span style="font-size: 12px; top: 0%">{fetchProgress} %</span>
+                          <progress
+                            value={fetchProgress}
+                            max={100}
+                            style="
+                              width: 180px;
+                              height: 15px;
+                              border-radius: 15px;
+                              --progHeight: 15px;
+                            "
+                          ></progress>
+                        </div>
+                      </div>
+                    {/if}
                   {/if}
                 </div>
               {/each}
