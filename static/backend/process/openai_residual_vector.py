@@ -8,6 +8,11 @@ if "OPENAI_API_KEY" not in os.environ:
 
 client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
+def load_json(json_path):
+    with open(json_path, "r", encoding="utf-8") as input_file:
+        data = json.load(input_file)
+    return data
+
 def read_sentences(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         data = json.load(file)
@@ -32,11 +37,11 @@ def get_openai_embedding(text, model="text-embedding-3-small"):
 def compute_vector_norm(residual_vector):
     return float(np.linalg.norm(residual_vector))
 
-def analyze_residuals(sentences):
+def analyze_residuals(sentences, check):
     results = []
     delta = 5
-    first_is_empty = sentences[0]["text"].strip() == ""
-    
+    first_is_empty = not check["init_text"] or check["init_text"][0].strip() == ""
+
     for i, sentence in enumerate(sentences):
         text = sentence.get("text", "").strip()
         
@@ -108,6 +113,7 @@ def main(dataset_name):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     static_dir = os.path.dirname(os.path.dirname(script_dir))
     session_dir = os.path.join(static_dir, f"dataset/{dataset_name}/coauthor-sentence")
+    check_dir = os.path.join(static_dir, f"dataset/{dataset_name}/coauthor-json")
 
     output_dir = os.path.join(static_dir, "dataset", f"{dataset_name}", "similarity_results")
     if not os.path.exists(output_dir):
@@ -120,5 +126,7 @@ def main(dataset_name):
             file_path = os.path.join(session_dir, file_name)
             session_id = os.path.splitext(file_name)[0]
             sentences = read_sentences(file_path)
-            results = analyze_residuals(sentences)
+            check_file = os.path.join(check_dir, session_id + ".jsonl")
+            check = load_json(check_file)
+            results = analyze_residuals(sentences, check)
             save_results_to_json(results, session_id, output_dir)

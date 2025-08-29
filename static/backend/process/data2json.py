@@ -125,10 +125,11 @@ def get_data(dataset_name, session_id, static_dir, is_json):
                 extracted_data['snapshots'].append({
                     'text': text,
                     'eventName': event_name,
-                    'eventSource': event_source,
+                    'eventSource': source,
                     'event_time': event_time,
                     'eventNum': event_num
                 })
+            previous_event_name = event_name
         if entry['eventNum'] == None:
             for entry in extracted_data['info']:
                 if 'id' in entry:
