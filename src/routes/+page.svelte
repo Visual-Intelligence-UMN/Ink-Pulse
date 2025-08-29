@@ -1987,6 +1987,7 @@
               src="{base}/favicon.png"
               alt="InkPulse Logo"
               class="ink-icon"
+              style="width: 40px; height: auto;"
             />
             <span class="brand-name">InkPulse</span>
           </div>
