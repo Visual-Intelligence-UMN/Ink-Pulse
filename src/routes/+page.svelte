@@ -2353,18 +2353,18 @@
                     <div class="no-data-message">
                       No data found matching the search criteria.
                     </div>
-                  {:else if isSearch == 1}
-                    {#if fetchProgress > 0}
-                      <div
-                        style="
-                          display: flex;
-                          align-items: center;
-                          gap: 40px;
-                          margin-top: 10px;
-                          width: 100%;
-                        "
-                      >
-                        <div class="loading-message" style="margin: 0;">Searching for patterns...</div>
+                  {:else if isSearch == 1}                    
+                    <div
+                      style="
+                        display: flex;
+                        align-items: center;
+                        gap: 40px;
+                        margin-top: 10px;
+                        width: 100%;
+                      "
+                    >
+                      <div class="loading-message" style="margin: 0;">Searching for patterns...</div>
+                      {#if fetchProgress > 0}
                         <div class="progress-container" style="margin-top: 5px;">
                           <span style="font-size: 12px; top: 0%">{fetchProgress} %</span>
                           <progress
@@ -2378,8 +2378,8 @@
                             "
                           ></progress>
                         </div>
-                      </div>
-                    {/if}
+                      {/if}
+                    </div>
                   {/if}
                 </div>
               {/each}
