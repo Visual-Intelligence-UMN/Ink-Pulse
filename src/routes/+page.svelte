@@ -2353,22 +2353,34 @@
                     <div class="no-data-message">
                       No data found matching the search criteria.
                     </div>
-                    {:else if isSearch == 1}
-                      <div class="loading-message">Searching for patterns...</div>
-                      <div class="progress-container">
-                        <span>{fetchProgress} %</span>
-                        <progress
-                          value={fetchProgress}
-                          max={100}
-                          style="
-                            width: 100px;
-                            --progHeight: 15px;
-                            --progColor: hsl(6, 100%, 50%);
-                            --progBackgroundColor: hsl(6, 100%, 90%);
-                          "
-                        ></progress>
+                  {:else if isSearch == 1}
+                    {#if fetchProgress > 0}
+                      <div
+                        style="
+                          display: flex;
+                          align-items: center;
+                          gap: 50px;
+                          margin-top: 10px;
+                          width: 100%;
+                        "
+                      >
+                        <div class="loading-message" style="margin: 0;">Searching for patterns...</div>
+                        <div class="progress-container">
+                          <span style="font-size: 12px; top: 0%">{fetchProgress} %</span>
+                          <progress
+                            value={fetchProgress}
+                            max={100}
+                            style="
+                              width: 180px;
+                              height: 15px;
+                              border-radius: 15px;
+                              --progHeight: 15px;
+                            "
+                          ></progress>
+                        </div>
                       </div>
                     {/if}
+                  {/if}
                 </div>
               {/each}
             </div>
