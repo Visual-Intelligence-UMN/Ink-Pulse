@@ -2359,13 +2359,13 @@
                         style="
                           display: flex;
                           align-items: center;
-                          gap: 50px;
+                          gap: 40px;
                           margin-top: 10px;
                           width: 100%;
                         "
                       >
                         <div class="loading-message" style="margin: 0;">Searching for patterns...</div>
-                        <div class="progress-container">
+                        <div class="progress-container" style="margin-top: 5px;">
                           <span style="font-size: 12px; top: 0%">{fetchProgress} %</span>
                           <progress
                             value={fetchProgress}
