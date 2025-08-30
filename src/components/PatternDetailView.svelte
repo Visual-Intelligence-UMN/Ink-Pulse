@@ -26,7 +26,7 @@
   let overallSemScoreSummaryData = init.overallSemScoreSummaryData;
   let flag = "overall";
   let selectedIdDataset = `${init.id}::${init.dataset}`;
-  let title = [pattern.name, findPatternByKey(selectedIdDataset)?.name];
+  let title = [pattern.name, normalizeName(findPatternByKey(selectedIdDataset)?.name)];
   
   const dispatch = createEventDispatcher();
   
@@ -74,7 +74,7 @@
 
     if (selectedValue === "pattern_0") {
       flag = "overall";
-      title = [pattern.name, select?.name];
+      title = [pattern.name, normalizeName(select?.name)];
       scoreSummary = select?.scoreSummary;
       percentageSummaryData = select?.percentageSummaryData;
       percentageData = select?.percentageData;
@@ -84,7 +84,7 @@
       overallSemScoreSummaryData = select?.overallSemScoreSummaryData;
     } else {
       flag = selectedValue;
-      title = [pattern.name, select.name];
+      title = [pattern.name, normalizeName(select?.name)];
       const patternSessions = select.pattern || [];
       const temp = {};
       for (const session of patternSessions) {
@@ -112,12 +112,21 @@
       Object.entries(temp).map(([k, v]) => [Number(k), v])
     );
   }
+
+  function normalizeName(s) {
+    return s?.startsWith('Others-') ? 'Others' : s;
+  }
+
   $: filteredPatterns = searchPatternSet.filter(p => p.dataset === pattern.dataset);
   $: {
     if (!filteredPatterns.find(p => `${p.id}::${p.dataset}` === selectedIdDataset)) {
       const defaultPattern = filteredPatterns.find(p => p.id === "pattern_0") || filteredPatterns[0];
       if (defaultPattern) {
-        selectedIdDataset = `${defaultPattern.id}::${defaultPattern.dataset}`;
+        const dataset = defaultPattern.dataset.startsWith("Others-")
+          ? "Others"
+          : defaultPattern.dataset;
+
+        selectedIdDataset = `${defaultPattern.id}::${dataset}`;
         handleSelectChange({ target: { value: selectedIdDataset } });
       }
     }
@@ -149,7 +158,7 @@
         <select id="pattern-select" bind:value={selectedIdDataset} on:change={handleSelectChange}>
           {#each filteredPatterns as filteredPattern}
             <option value={`${filteredPattern.id}::${filteredPattern.dataset}`}>
-              {filteredPattern.name}
+              {normalizeName(filteredPattern.name)}
             </option>
           {/each}
         </select>

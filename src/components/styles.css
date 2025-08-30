@@ -776,3 +776,38 @@ input:checked+.slider::before {
   -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
 }
+
+.saved-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #66c2a5;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: center;
+  opacity: 0;
+  animation: fadeInUp 1s ease forwards;
+  z-index: 9999;
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 20%);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -70%);
+  }
+}

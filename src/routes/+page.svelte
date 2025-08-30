@@ -212,6 +212,7 @@
   let isSave = false;
   let nameInput = "";
   let colorInput = "#66ccff";
+  let showSavedMessage = false;
   async function openSavePanel() {
     isSave = false;
     await tick();
@@ -298,6 +299,11 @@
     tick().then(() => {
       initData.update((data) => [...data]); // poke reactivity
     });
+
+    showSavedMessage = true;
+    setTimeout(() => {
+      showSavedMessage = false;
+    }, 1000);
   }
 
   function handleClose() {
@@ -1453,7 +1459,7 @@
       const prefix = selectedDataset.slice(0, 2);
       const itemToSave = {
         id: `pattern_0`,
-        name: `All-${prefix}`,
+        name: `Others-${prefix}`,
         dataset: selectedDataset,
         pattern: [],
         metadata: {},
@@ -2425,6 +2431,9 @@
         on:save={handleSave}
         on:close={handleClose}
       />
+    {/if}
+    {#if showSavedMessage}
+      <div class="saved-message">Saved successfully</div>
     {/if}
     {#if isWeights}
       <WeightPanel
