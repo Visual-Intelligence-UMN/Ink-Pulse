@@ -456,13 +456,16 @@
 }
 
 .weight-button {
-  padding: 4px 10px;
-  background-color: #000000;
-  color: white;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background-color: #333;
+  color: #333;
   border: none;
-  border-radius: 4px;
+  border-radius: 50%;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 16px;
+  transition: background-color 0.2s ease;
 }
 
 .weight-button:hover {
@@ -682,7 +685,9 @@ a:active {
 }
 
 .triangle-text {
-  color: #ffbbcc;
+  color: #ffffff;
+  -webkit-text-stroke: 1.5px #aaaaaa;
+  font-weight: bold;
 }
 
 .user-line {
@@ -743,10 +748,31 @@ input:checked+.slider::before {
   transform: translate(-50%, -50%);
   font-size: 8px;
   font-weight: 600;
-  color: #2b958e;
   text-align: center;
   white-space: nowrap;
   pointer-events: none;
   user-select: none;
   text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
+}
+
+.switch-text.exact {
+  color: #663344;
+}
+
+.switch-text.proximity {
+  color: #272727; 
+}
+
+.humbleicons--arrow-go-back {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  --svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23000' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M11 18h3.75a5.25 5.25 0 1 0 0-10.5H5M7.5 4L4 7.5L7.5 11'/%3E%3C/svg%3E");
+  background-color: currentColor;
+  -webkit-mask-image: var(--svg);
+  mask-image: var(--svg);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
 }
