@@ -60,12 +60,6 @@
     font-size: 14px;
   }
   
-  .patterns-label {
-    font-weight: 500;
-    color: #333;
-    white-space: nowrap;
-  }
-  
   .no-patterns {
     color: #666;
     font-style: italic;
