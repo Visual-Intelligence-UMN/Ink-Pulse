@@ -168,6 +168,12 @@
   $: if (!isSemanticChecked || !isValueTrendChecked) {
     isExactSearchTrend = false;
   }
+  $: if (isValueTrendChecked) {
+    isExactSearchTrend = true;
+  }
+  $: if (isSourceChecked) {
+    isExactSearchSource = true;
+  }
   $: if (!isSourceChecked) {
     isExactSearchSource = false;
   }
@@ -1099,18 +1105,20 @@
       isProgressChecked = false;
       isTimeChecked = false;
       isSourceChecked = true;
+      isExactSearchSource = true;
       isSemanticChecked = true;
       isValueRangeChecked = true;
       isValueTrendChecked = true;
+      isExactSearchTrend = true;
     }
 
-    if (sharedSelection && sharedSelection.selectionSource === "barChart_y") {
-      isExactSearchSource = true;
-      isExactSearchTrend = true;
-    } else {
-      isExactSearchSource = false;
-      isExactSearchTrend = false;
-    }
+    // if (sharedSelection && sharedSelection.selectionSource === "barChart_y") {
+    //   isExactSearchSource = true;/
+    //   isExactSearchTrend = true;
+    // } else {
+    //   isExactSearchSource = false;
+    //   isExactSearchTrend = false;
+    // }
     semanticTrend = [];
     selectedPatterns = {};
     patternData = [];
@@ -1979,7 +1987,7 @@
 
 <div class="App">
   <header class="App-header">
-    <nav>
+    <nav style="display: flex; align-items: center;">
       <div class="brand-section">
         <div class="brand-content">
           <div class="brand-logo" style="zoom: 150%;">
@@ -1998,9 +2006,9 @@
         style="font-size: 13px; align-items: center; display: flex;"
       >
         &nbsp;&nbsp;&nbsp;&nbsp;
-        <span class="triangle-text">▼</span> User open the AI suggestion &nbsp;
-        <span class="user-line">●</span> User written &nbsp;
-        <span class="api-line">●</span> AI writing
+        <span class="triangle-text">▼</span> Open AI suggestion &nbsp;
+        <span class="user-line">●</span> User &nbsp;
+        <span class="api-line">●</span> AI
       </div>
       <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded"
@@ -2011,10 +2019,8 @@
           on:click={change2bar}
           href=" "
           aria-label="Toggle View"
-          class="material-symbols-rounded"
-        >
-          swap_horiz
-        </a>
+          class="humbleicons--arrow-go-back"
+        ></a>
       {/if}
       <div style="flex: 1;"></div>
       <div style="display: flex; gap: 0.5em; align-items: center;">
@@ -2140,9 +2146,9 @@
                   <div class="pattern-header">
                     <h5>Session: {sessionId.slice(0, 4)}</h5>
                     <div class="pattern-buttons">
-                      <button class="weight-button" on:click={setWeight}
-                        >Weight</button
-                      >
+                      <button class="weight-button" on:click={setWeight} title="Adjust Weight">
+                        🔧
+                      </button>
                       <button
                         class="search-pattern-button"
                         on:click={() => searchPattern(sessionId)}>Search</button
@@ -2199,7 +2205,7 @@
                             disabled={!isProgressChecked}
                           />
                           <span class="slider">
-                            <span class="switch-text">
+                            <span class="switch-text {isExactSearchProgress ? 'exact' : 'proximity'}">
                               {isExactSearchProgress ? "Exact" : "Proximity"}
                             </span>
                           </span>
@@ -2222,7 +2228,7 @@
                             disabled={!isTimeChecked}
                           />
                           <span class="slider">
-                            <span class="switch-text">
+                            <span class="switch-text {isExactSearchTime ? 'exact' : 'proximity'}">
                               {isExactSearchTime ? "Exact" : "Proximity"}
                             </span>
                           </span>
@@ -2244,11 +2250,11 @@
                             bind:checked={isExactSearchSource}
                             disabled={!isSourceChecked}
                           />
-                          <span class="slider">
+                          <!-- <span class="slider">
                             <span class="switch-text">
                               {isExactSearchSource ? "Exact" : "Proximity"}
                             </span>
-                          </span>
+                          </span> -->
                         </label>
                       </div>
                       <div style="font-size: 13px;">
@@ -2286,11 +2292,11 @@
                                 disabled={!isSemanticChecked ||
                                   !isValueTrendChecked}
                               />
-                              <span class="slider">
+                              <!-- <span class="slider">
                                 <span class="switch-text">
                                   {isExactSearchTrend ? "Exact" : "Proximity"}
                                 </span>
-                              </span>
+                              </span> -->
                             </label>
                           </div>
                         </div>

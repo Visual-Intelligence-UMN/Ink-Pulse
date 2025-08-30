@@ -96,7 +96,9 @@
           {#each chartData.filter((d) => d.isSuggestionOpen) as d}
             <path
               d={d3.symbol().type(d3.symbolTriangle).size(40)()}
-              fill="#FFBBCC"
+              fill="#ffffff"
+              stroke="#aaaaaa"
+              stroke-width="1"
               opacity={d.opacity + 0.29}
               transform={`translate(${scaledX(d.time)},${scaledY(d.percentage + 6)}) rotate(180)`}
             />
