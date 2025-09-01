@@ -614,13 +614,13 @@
   function findSegments(data, checks, minCount) {
     const segments = [];
     const isSourceCheckRequired =
-      isExactSearchSource && checks.source && checks.source[1];
+      isExactSearchSource && checks.source && checks.source[0];
     const isTrendCheckRequired =
-      isExactSearchTrend && checks.trend && checks.trend[1] && minCount > 1;
+      isExactSearchTrend && checks.trend && checks.trend[0] && minCount > 1;
     const isProgressCheckRequired =
-      isExactSearchProgress && checks.progress && checks.progress[1];
+      isExactSearchProgress && checks.progress && checks.progress[0];
     const isTimeCheckRequired =
-      isExactSearchTime && checks.time && checks.time[1];
+      isExactSearchTime && checks.time && checks.time[0];
 
     for (let i = 1; i <= data.length - minCount; i++) {
       const window = data.slice(i, i + minCount);
@@ -654,9 +654,11 @@
       }
 
       if (checks.time && checks.time[0]) {
-        const [minTime, maxTime] = checks.time[1];
+        let [minTime, maxTime] = checks.time[1];
+        maxTime = maxTime * 60;
+        minTime = minTime * 60;
         const deltaTarget = maxTime - minTime;
-        const relax = deltaTarget * 0.1;
+        const relax = deltaTarget * 0.3;
         const startTime = window[0].start_time;
         const endTime = window[window.length - 1].end_time;
         const deltaTime = endTime - startTime;
@@ -1136,7 +1138,7 @@
       dataRange.progressRange.min,
       dataRange.progressRange.max,
     ];
-    timeRange = [dataRange.timeRange, dataRange.timeRange.max];
+    timeRange = [dataRange.timeRange.min, dataRange.timeRange.max];
     sourceRange = sources;
     semanticRange = [dataRange.scRange.min, dataRange.scRange.max];
     semanticData = dataRange.sc.sc;
@@ -1166,6 +1168,11 @@
 
   function change2bar() {
     showMulti = !showMulti;
+    clickSession.set([]);
+  }
+
+  function change2main() {
+    showMulti = false;
     clickSession.set([]);
   }
 
@@ -1656,6 +1663,7 @@
     let totalSuggestions = 0;
     let totalProcessedCharacters = totalTextLength;
     const sortedEvents = [...data.info].sort((a, b) => a.id - b.id);
+    
     let combinedText = [...initText].map((ch) => ({
       text: ch,
       textColor: "#FC8D62",
@@ -1714,9 +1722,9 @@
         totalProcessedCharacters -= deleteCount;
       }
 
-      if (name === "suggestion-open") {
-        totalSuggestions++;
-      }
+      // if (name === "suggestion-open") {
+      //   totalSuggestions++;
+      // }
 
       const percentage = (currentCharArray.length / totalTextLength) * 100;
 
@@ -1764,9 +1772,7 @@
       totalInsertions--;
     }
 
-    if (chartData.length) {
-      chartData[0].isSuggestionOpen = false;
-    }
+    totalSuggestions = chartData.filter(d => d.isSuggestionOpen).length;
 
     return {
       chartData,
@@ -1989,6 +1995,11 @@
       window.removeEventListener("resize", vtOnResize);
     });
   });
+
+  function scrollToTop() {
+    const panel = document.querySelector('.pattern-panel-content');
+    if (panel) panel.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 </script>
 
 <div class="App">
@@ -2001,9 +2012,10 @@
               src="{base}/favicon.png"
               alt="InkPulse Logo"
               class="ink-icon"
-              style="width: 40px; height: auto;"
+              style="width: 40px; height: auto; cursor: pointer;"
+              on:click={change2main}
             />
-            <span class="brand-name">InkPulse</span>
+            <span class="brand-name" style="cursor: pointer;" on:click={change2main}>InkPulse</span>
           </div>
         </div>
       </div>
@@ -2068,6 +2080,7 @@
         </div>
 
         <div class="pattern-panel-content">
+          <button class="scroll-to-top" on:click={scrollToTop}>↑</button>
           <div class="pattern-instructions">
             <p>
               Select a portion in the chart to identify patterns in writing
@@ -2211,8 +2224,8 @@
                             disabled={!isProgressChecked}
                           />
                           <span class="slider">
-                            <span class="switch-text {isExactSearchProgress ? 'exact' : 'proximity'}">
-                              {isExactSearchProgress ? "Exact" : "Proximity"}
+                            <span class="switch-text {isExactSearchProgress ? 'exact' : 'duration'}">
+                              {isExactSearchProgress ? "Exact" : "Duration"}
                             </span>
                           </span>
                         </label>
@@ -2234,8 +2247,8 @@
                             disabled={!isTimeChecked}
                           />
                           <span class="slider">
-                            <span class="switch-text {isExactSearchTime ? 'exact' : 'proximity'}">
-                              {isExactSearchTime ? "Exact" : "Proximity"}
+                            <span class="switch-text {isExactSearchTime ? 'exact' : 'duration'}">
+                              {isExactSearchTime ? "Exact" : "Duration"}
                             </span>
                           </span>
                         </label>
@@ -2767,7 +2780,7 @@
                         </div>
                         <div class="totalSuggestions">
                           {$clickSession.summaryData
-                            ? `Suggestions: ${$clickSession.summaryData.totalSuggestions - 1}`
+                            ? `Suggestions: ${$clickSession.summaryData.totalSuggestions}`
                             : ""}
                         </div>
                       </div>
