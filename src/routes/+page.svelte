@@ -2000,6 +2000,24 @@
     const panel = document.querySelector('.pattern-panel-content');
     if (panel) panel.scrollTo({ top: 0, behavior: 'smooth' });
   }
+
+  let showButton = false;
+  async function updateVisibility() {
+    await tick();
+    const panel = document.querySelector(".pattern-panel-content");
+    if (panel) {
+      showButton = panel.scrollHeight > panel.clientHeight;
+    }
+  }
+
+  onMount(() => {
+    updateVisibility();
+    window.addEventListener("resize", updateVisibility);
+
+    return () => {
+      window.removeEventListener("resize", updateVisibility);
+    };
+  });
 </script>
 
 <div class="App">
@@ -2080,7 +2098,9 @@
         </div>
 
         <div class="pattern-panel-content">
-          <button class="scroll-to-top" on:click={scrollToTop}>↑</button>
+          {#if Object.keys(selectedPatterns).length > 0}
+            <button class="scroll-to-top" on:click={scrollToTop}>↑</button>
+          {/if}
           <div class="pattern-instructions">
             <p>
               Select a portion in the chart to identify patterns in writing
