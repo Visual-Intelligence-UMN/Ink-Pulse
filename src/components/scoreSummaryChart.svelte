@@ -194,25 +194,10 @@
       ctx.stroke();
     });
 
-    const legendX = width - 10;
     const legendY = 15;
-    const legendBoxSize = 12;
-    const legendSpacing = 5;
     ctx.font = "10px sans-serif";
     ctx.textBaseline = "middle";
     ctx.textAlign = "right";
-
-    ctx.fillStyle = NOWColor;
-    ctx.fillRect(legendX - legendBoxSize, legendY, legendBoxSize, legendBoxSize);
-    ctx.fillStyle = "#000";
-    ctx.fillText(title[0], legendX - legendBoxSize - legendSpacing, legendY + legendBoxSize / 2);
-
-    ctx.fillStyle = createStripedPattern(ctx);
-    ctx.fillRect(legendX - legendBoxSize, legendY + legendBoxSize + legendSpacing, legendBoxSize, legendBoxSize);
-    ctx.strokeStyle = NOWColor;
-    ctx.strokeRect(legendX - legendBoxSize, legendY + legendBoxSize + legendSpacing, legendBoxSize, legendBoxSize);
-    ctx.fillStyle = "#000";
-    ctx.fillText(title[1], legendX - legendBoxSize - legendSpacing, legendY + legendBoxSize + legendSpacing + legendBoxSize / 2);
 
     const rawMean = meanFromCounts(adjustedRawData);
     const nowMean = meanFromCounts(nowData);

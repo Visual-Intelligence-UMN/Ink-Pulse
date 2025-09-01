@@ -237,28 +237,10 @@
     drawMeanLine(overallMean, "#666666", "x\u0305", "right");
     drawMeanLine(highlightMean, "#000000", "x\u0305", "left");
 
-    const legendX = 250;
     const legendY = 30;
-    const legendBoxSize = 12;
-    const legendSpacing = 5;
     ctx.font = "10px sans-serif";
     ctx.textBaseline = "middle";
     ctx.textAlign = "right";
-
-    ctx.fillStyle = NOWColor;
-    ctx.fillRect(legendX - legendBoxSize, legendY - 10, legendBoxSize, legendBoxSize);
-    ctx.strokeStyle = NOWColor;
-    ctx.lineWidth = 0.3;
-    ctx.strokeRect(legendX - legendBoxSize, legendY - 10, legendBoxSize, legendBoxSize);
-    ctx.fillStyle = "#000";
-    ctx.fillText(title[0], legendX - legendBoxSize - legendSpacing, legendY + legendBoxSize / 2 - 10);
-
-    ctx.fillStyle = createStripedPattern(ctx);
-    ctx.fillRect(legendX - legendBoxSize, legendY - 10 + legendBoxSize + legendSpacing, legendBoxSize, legendBoxSize);
-    ctx.strokeStyle = NOWColor;
-    ctx.strokeRect(legendX - legendBoxSize, legendY - 10 + legendBoxSize + legendSpacing, legendBoxSize, legendBoxSize);
-    ctx.fillStyle = "#000";
-    ctx.fillText(title[1], legendX - legendBoxSize - legendSpacing, legendY - 10 + legendBoxSize + legendSpacing + legendBoxSize / 2);
 
     if (pValue !== null) {
       ctx.fillStyle = "#000";

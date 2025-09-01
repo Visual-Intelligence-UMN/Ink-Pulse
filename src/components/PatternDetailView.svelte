@@ -14,6 +14,8 @@
   export let searchPatternSet;
   export let selectedDataset;
 
+  const NOWColor = '#999999';
+
   const init = searchPatternSet.find(
     (p) => p.id === "pattern_0" && p.dataset === pattern.dataset
   );
@@ -292,6 +294,27 @@
     </div>
   </div>
 
+  <div class="chart-legend">
+    <div class="legend-item">
+      <div class="color-box" style="background-color: {NOWColor}; border-color: {NOWColor}"></div>
+      <span>{title[0]}</span>
+    </div>
+    <div class="legend-item">
+      <div
+        class="color-box striped"
+        style="
+          border-color: {NOWColor};
+          background-image: repeating-linear-gradient(
+            -45deg,
+            #999999 0 2px,
+            transparent 1px 6px
+          );
+        "
+      ></div>
+      <span>{title[1]}</span>
+    </div>
+  </div>
+
   <div class="charts-grid">
   <ScoreSummaryChart
     rawData={scoreSummary}
@@ -415,7 +438,6 @@
     display: flex;
     align-items: center;
     gap: 15px;
-    margin-bottom: 25px;
     padding: 15px;
     background-color: #f8f9fa;
     border-radius: 8px;
@@ -621,5 +643,34 @@
   .charts-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .chart-legend {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 5px;
+    font-size: 10px;
+  }
+
+  .color-box {
+    width: 12px;
+    height: 12px;
+    border: 0.3px solid #000;
+  }
+
+  .striped {
+    background-image: repeating-linear-gradient(
+      45deg,
+      #000 0 2px,
+      transparent 2px 4px
+    );
   }
 </style>
