@@ -2228,6 +2228,10 @@
                           selectedRange={pattern.range}
                           bind:this={chartRefs[sessionId]}
                         />
+                        <LineChartPreview
+                          bind:this={chartRefs[sessionId]}
+                          chartData={$clickSession.chartData}
+                        />
                       </div>
                       <div style="margin-top: 5px; width: 60%">
                         <div
