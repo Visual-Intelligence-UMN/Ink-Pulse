@@ -1056,8 +1056,13 @@
     selectionMode = false;
   }
 
+  let selectionSrc = null;
+
   function handleSelectionChanged(event) {
     showResultCount.set(5);
+    if(sharedSelection) {
+      selectionSrc = sharedSelection.selectionSource;
+    }
 
     if (sharedSelection && sharedSelection.selectionSource === "lineChart_x") {
       console.log("Setting lineChart_x options");
@@ -2213,135 +2218,267 @@
                       Counts: {pattern.count}
                     </div>
                   </div>
-                  <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <div class="pattern-chart-preview small-preview">
-                      <PatternChartPreview
-                        {sessionId}
-                        data={pattern.data}
-                        wholeData={pattern.wholeData}
-                        selectedRange={pattern.range}
-                        bind:this={chartRefs[sessionId]}
-                      />
-                    </div>
-                    <div style="margin-top: 5px; width: 60%">
-                      <div
-                        class:dimmed={!isProgressChecked}
-                        style="font-size: 13px;"
-                      >
-                        <input
-                          type="checkbox"
-                          bind:checked={isProgressChecked}
+                  {#if selectionSrc == "lineChart_y"}
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                      <div class="pattern-chart-preview small-preview">
+                        <PatternChartPreview
+                          {sessionId}
+                          data={pattern.data}
+                          wholeData={pattern.wholeData}
+                          selectedRange={pattern.range}
+                          bind:this={chartRefs[sessionId]}
                         />
-                        Writing Progress
-                        <label
-                          class="switch"
-                          style="transform: translateY(4px);"
-                          bind:this={exactProgressButton}
+                      </div>
+                      <div style="margin-top: 5px; width: 60%">
+                        <div
+                          class:dimmed={!isProgressChecked}
+                          style="font-size: 13px;"
                         >
                           <input
                             type="checkbox"
-                            bind:checked={isExactSearchProgress}
-                            disabled={!isProgressChecked}
+                            bind:checked={isProgressChecked}
                           />
-                          <span class="slider">
-                            <span class="switch-text {isExactSearchProgress ? 'exact' : 'duration'}">
-                              {isExactSearchProgress ? "Exact" : "Duration"}
+                          Writing Progress
+                          <label
+                            class="switch"
+                            style="transform: translateY(4px);"
+                            bind:this={exactProgressButton}
+                          >
+                            <input
+                              type="checkbox"
+                              bind:checked={isExactSearchProgress}
+                              disabled={!isProgressChecked}
+                            />
+                            <span class="slider">
+                              <span class="switch-text {isExactSearchProgress ? 'exact' : 'duration'}">
+                                {isExactSearchProgress ? "Exact" : "Duration"}
+                              </span>
                             </span>
-                          </span>
-                        </label>
-                      </div>
-                      <div
-                        class:dimmed={!isTimeChecked}
-                        style="font-size: 13px;"
-                      >
-                        <input type="checkbox" bind:checked={isTimeChecked} />
-                        Time
-                        <label
-                          class="switch"
-                          style="transform: translateY(4px);"
-                          bind:this={exactTimeButton}
-                        >
-                          <input
-                            type="checkbox"
-                            bind:checked={isExactSearchTime}
-                            disabled={!isTimeChecked}
-                          />
-                          <span class="slider">
-                            <span class="switch-text {isExactSearchTime ? 'exact' : 'duration'}">
-                              {isExactSearchTime ? "Exact" : "Duration"}
-                            </span>
-                          </span>
-                        </label>
-                      </div>
-                      <div
-                        class:dimmed={!isSourceChecked}
-                        style="font-size: 13px;"
-                      >
-                        <input type="checkbox" bind:checked={isSourceChecked} />
-                        Source(human/AI)
-                        <label
-                          class="switch"
-                          style="transform: translateY(4px);"
-                          bind:this={exactSourceButton}
-                        >
-                          <input
-                            type="checkbox"
-                            bind:checked={isExactSearchSource}
-                            disabled={!isSourceChecked}
-                          />
-                          <!-- <span class="slider">
-                            <span class="switch-text">
-                              {isExactSearchSource ? "Exact" : "Proximity"}
-                            </span>
-                          </span> -->
-                        </label>
-                      </div>
-                      <div style="font-size: 13px;">
-                        <div class:dimmed={!isSemanticChecked}>
-                          <input
-                            type="checkbox"
-                            bind:checked={isSemanticChecked}
-                          />
-                          Semantic Expansion
+                          </label>
                         </div>
-                        <div style="margin-left: 20px;">
-                          <div class:dimmed={!isValueRangeChecked}>
+                        <div
+                          class:dimmed={!isTimeChecked}
+                          style="font-size: 13px;"
+                        >
+                          <input type="checkbox" bind:checked={isTimeChecked} />
+                          Time
+                          <label
+                            class="switch"
+                            style="transform: translateY(4px);"
+                            bind:this={exactTimeButton}
+                          >
                             <input
                               type="checkbox"
-                              bind:checked={isValueRangeChecked}
-                              disabled={!isSemanticChecked}
+                              bind:checked={isExactSearchTime}
+                              disabled={!isTimeChecked}
                             />
-                            Value Range
+                            <span class="slider">
+                              <span class="switch-text {isExactSearchTime ? 'exact' : 'duration'}">
+                                {isExactSearchTime ? "Exact" : "Duration"}
+                              </span>
+                            </span>
+                          </label>
+                        </div>
+                        <div
+                          class:dimmed={!isSourceChecked}
+                          style="font-size: 13px;"
+                        >
+                          <input type="checkbox" bind:checked={isSourceChecked} />
+                          Source(human/AI)
+                          <label
+                            class="switch"
+                            style="transform: translateY(4px);"
+                            bind:this={exactSourceButton}
+                          >
+                            <input
+                              type="checkbox"
+                              bind:checked={isExactSearchSource}
+                              disabled={!isSourceChecked}
+                            />
+                            <!-- <span class="slider">
+                              <span class="switch-text">
+                                {isExactSearchSource ? "Exact" : "Proximity"}
+                              </span>
+                            </span> -->
+                          </label>
+                        </div>
+                        <div style="font-size: 13px;">
+                          <div class:dimmed={!isSemanticChecked}>
+                            <input
+                              type="checkbox"
+                              bind:checked={isSemanticChecked}
+                            />
+                            Semantic Expansion
                           </div>
-                          <div class:dimmed={!isValueTrendChecked}>
-                            <input
-                              type="checkbox"
-                              bind:checked={isValueTrendChecked}
-                              disabled={!isSemanticChecked}
-                            />
-                            Value Trend
-                            <label
-                              class="switch"
-                              style="transform: translateY(4px);"
-                              bind:this={exactTrendButton}
-                            >
+                          <div style="margin-left: 20px;">
+                            <div class:dimmed={!isValueRangeChecked}>
                               <input
                                 type="checkbox"
-                                bind:checked={isExactSearchTrend}
-                                disabled={!isSemanticChecked ||
-                                  !isValueTrendChecked}
+                                bind:checked={isValueRangeChecked}
+                                disabled={!isSemanticChecked}
                               />
-                              <!-- <span class="slider">
-                                <span class="switch-text">
-                                  {isExactSearchTrend ? "Exact" : "Proximity"}
-                                </span>
-                              </span> -->
-                            </label>
+                              Value Range
+                            </div>
+                            <div class:dimmed={!isValueTrendChecked}>
+                              <input
+                                type="checkbox"
+                                bind:checked={isValueTrendChecked}
+                                disabled={!isSemanticChecked}
+                              />
+                              Value Trend
+                              <label
+                                class="switch"
+                                style="transform: translateY(4px);"
+                                bind:this={exactTrendButton}
+                              >
+                                <input
+                                  type="checkbox"
+                                  bind:checked={isExactSearchTrend}
+                                  disabled={!isSemanticChecked ||
+                                    !isValueTrendChecked}
+                                />
+                                <!-- <span class="slider">
+                                  <span class="switch-text">
+                                    {isExactSearchTrend ? "Exact" : "Proximity"}
+                                  </span>
+                                </span> -->
+                              </label>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  {:else}
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                      <div class="pattern-chart-preview small-preview">
+                        <PatternChartPreview
+                          {sessionId}
+                          data={pattern.data}
+                          wholeData={pattern.wholeData}
+                          selectedRange={pattern.range}
+                          bind:this={chartRefs[sessionId]}
+                        />
+                      </div>
+                      <div style="margin-top: 5px; width: 60%">
+                        <div
+                          class:dimmed={!isProgressChecked}
+                          style="font-size: 13px;"
+                        >
+                          <input
+                            type="checkbox"
+                            bind:checked={isProgressChecked}
+                          />
+                          Writing Progress
+                          <label
+                            class="switch"
+                            style="transform: translateY(4px);"
+                            bind:this={exactProgressButton}
+                          >
+                            <input
+                              type="checkbox"
+                              bind:checked={isExactSearchProgress}
+                              disabled={!isProgressChecked}
+                            />
+                            <span class="slider">
+                              <span class="switch-text {isExactSearchProgress ? 'exact' : 'duration'}">
+                                {isExactSearchProgress ? "Exact" : "Duration"}
+                              </span>
+                            </span>
+                          </label>
+                        </div>
+                        <div
+                          class:dimmed={!isTimeChecked}
+                          style="font-size: 13px;"
+                        >
+                          <input type="checkbox" bind:checked={isTimeChecked} />
+                          Time
+                          <label
+                            class="switch"
+                            style="transform: translateY(4px);"
+                            bind:this={exactTimeButton}
+                          >
+                            <input
+                              type="checkbox"
+                              bind:checked={isExactSearchTime}
+                              disabled={!isTimeChecked}
+                            />
+                            <span class="slider">
+                              <span class="switch-text {isExactSearchTime ? 'exact' : 'duration'}">
+                                {isExactSearchTime ? "Exact" : "Duration"}
+                              </span>
+                            </span>
+                          </label>
+                        </div>
+                        <div
+                          class:dimmed={!isSourceChecked}
+                          style="font-size: 13px;"
+                        >
+                          <input type="checkbox" bind:checked={isSourceChecked} />
+                          Source(human/AI)
+                          <label
+                            class="switch"
+                            style="transform: translateY(4px);"
+                            bind:this={exactSourceButton}
+                          >
+                            <input
+                              type="checkbox"
+                              bind:checked={isExactSearchSource}
+                              disabled={!isSourceChecked}
+                            />
+                            <!-- <span class="slider">
+                              <span class="switch-text">
+                                {isExactSearchSource ? "Exact" : "Proximity"}
+                              </span>
+                            </span> -->
+                          </label>
+                        </div>
+                        <div style="font-size: 13px;">
+                          <div class:dimmed={!isSemanticChecked}>
+                            <input
+                              type="checkbox"
+                              bind:checked={isSemanticChecked}
+                            />
+                            Semantic Expansion
+                          </div>
+                          <div style="margin-left: 20px;">
+                            <div class:dimmed={!isValueRangeChecked}>
+                              <input
+                                type="checkbox"
+                                bind:checked={isValueRangeChecked}
+                                disabled={!isSemanticChecked}
+                              />
+                              Value Range
+                            </div>
+                            <div class:dimmed={!isValueTrendChecked}>
+                              <input
+                                type="checkbox"
+                                bind:checked={isValueTrendChecked}
+                                disabled={!isSemanticChecked}
+                              />
+                              Value Trend
+                              <label
+                                class="switch"
+                                style="transform: translateY(4px);"
+                                bind:this={exactTrendButton}
+                              >
+                                <input
+                                  type="checkbox"
+                                  bind:checked={isExactSearchTrend}
+                                  disabled={!isSemanticChecked ||
+                                    !isValueTrendChecked}
+                                />
+                                <!-- <span class="slider">
+                                  <span class="switch-text">
+                                    {isExactSearchTrend ? "Exact" : "Proximity"}
+                                  </span>
+                                </span> -->
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  {/if}
                   {#if $patternDataList.length > 0 && isSearch == 2}
                     <div>Search Results</div>
                     {#each $patternDataList as sessionData, index (sessionData.segmentId)}
