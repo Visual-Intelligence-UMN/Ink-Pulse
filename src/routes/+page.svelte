@@ -2221,48 +2221,50 @@
                   {#if selectionSrc == "lineChart_y"}
                     <div style="display: flex; flex-wrap: wrap; gap: 0; width: 100%; align-items: flex-start;">
 
-                      <div style="display: flex; gap: 0; width: 100%; align-items: flex-start;">
+<div
+  style="
+    display: flex;
+    gap: 0;
+    width: 100%;
+    align-items: flex-start;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background-color: white;
+  "
+>
+  <!-- Pattern chart -->
+  <div style="flex: 1 1 50%; margin-top: 10px; padding: 0;">
+    <div style="margin: 0; padding: 0;">
+      <PatternChartPreview
+        {sessionId}
+        data={pattern.data}
+        wholeData={pattern.wholeData}
+        selectedRange={pattern.range}
+        bind:this={chartRefs[sessionId]}
+        margin_right={0}
+      />
+    </div>
+  </div>
 
-                        <div style="flex: 1 1 50%; margin: 0; padding: 0;">
-                          <div class="pattern-chart-preview small-preview" style="margin: 0; padding: 0;">
-                            <PatternChartPreview
-                              {sessionId}
-                              data={pattern.data}
-                              wholeData={pattern.wholeData}
-                              selectedRange={pattern.range}
-                              bind:this={chartRefs[sessionId]}
-                            />
-                          </div>
-                        </div>
+  <!-- Line chart -->
+  <div style="flex: 1 1 50%; margin-top: 7px; padding: 0; margin-left: 0;">
+    <div
+      style="
+        position: relative;
+        height: 160px;
+        overflow: hidden;
+        transform-origin: top left;
+        margin-left: 0;
+      "
+    >
+      <LineChartPreview
+        bind:this={chartRefs[sessionId]}
+        chartData={$clickSession.chartData}
+      />
+    </div>
+  </div>
+</div>
 
-                        <div
-                          style="
-                            flex: 1 1 50%;
-                            margin: 0;
-                            padding: 0;
-                            margin-left: 0px;
-                          "
-                        >
-                          <div
-                            style="
-                              position: relative;
-                              height: 160px;
-                              overflow: hidden;
-                              transform: scale(1);
-                              transform-origin: top left;
-                              margin-left: 0px;
-                            "
-                          >
-                            <LineChartPreview
-                              bind:this={chartRefs[sessionId]}
-                              chartData={$clickSession.chartData}
-                              heightPx={160}
-                              marginLeftPx={0}
-                              zoomScale={1}
-                            />
-                          </div>
-                        </div>
-                      </div>
 
                       <div
                         style="

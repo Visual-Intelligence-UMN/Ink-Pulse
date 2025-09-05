@@ -6,6 +6,7 @@
   export let data;
   export let wholeData;
   export let selectedRange;
+  export let margin_right = 5;
 
   let container;
   let prevSelectedRange;
@@ -58,7 +59,7 @@
       source: d.source,
     }));
 
-    const margin = { top: 10, right: 5, bottom: 25, left: 40 };
+    const margin = { top: 10, right: margin_right, bottom: 25, left: 40 };
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
 
