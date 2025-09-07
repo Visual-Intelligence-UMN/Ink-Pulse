@@ -1603,7 +1603,7 @@
     const totalTextLength = data.text[0].slice(0, -1).length;
     let currentCharCount = data.init_text.join("").length;
 
-    data.info.forEach((event) => {
+    data.info.forEach((event, idx) => {
       const { name, event_time, eventSource, text = "", count = 0 } = event;
 
       const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
@@ -1611,45 +1611,56 @@
       if (!firstTime) firstTime = eventTime;
       const relativeTime = (eventTime.getTime() - firstTime.getTime()) / 60000;
 
+      let percentage;
       if (name === "text-insert") {
         const insertChars = [...text];
         insertChars.forEach(() => {
           currentCharCount++;
-          const percentage = (currentCharCount / totalTextLength) * 100;
+          percentage = (currentCharCount / totalTextLength) * 100;
           chartData.push({
             time: relativeTime,
             percentage,
             eventSource,
             color: textColor,
             isSuggestionOpen: false,
+            isSuggestionAccept: false,
             index: index++,
           });
         });
       } else if (name === "text-delete") {
         const deleteCount = text.length || count;
         currentCharCount -= deleteCount;
-        const percentage = (currentCharCount / totalTextLength) * 100;
+        percentage = (currentCharCount / totalTextLength) * 100;
         chartData.push({
           time: relativeTime,
           percentage,
           eventSource,
           color: textColor,
           isSuggestionOpen: false,
+          isSuggestionAccept: false,
           index: index++,
         });
       } else {
-        const percentage = (currentCharCount / totalTextLength) * 100;
+        percentage = (currentCharCount / totalTextLength) * 100;
+        let isSuggestionAccept = false;
+        if (name === "suggestion-open" && data.info[idx + 1]) {
+          const nextEvent = data.info[idx + 1];
+          if (nextEvent.eventSource === "api" && nextEvent.name === "text-insert") {
+            isSuggestionAccept = true;
+          }
+        }
+
         chartData.push({
           time: relativeTime,
           percentage,
           eventSource,
           color: textColor,
           isSuggestionOpen: name === "suggestion-open",
+          isSuggestionAccept,
           index: index++,
         });
       }
     });
-
     return chartData;
   };
 
@@ -1673,7 +1684,7 @@
       text: ch,
       textColor: "#FC8D62",
     }));
-    sortedEvents.forEach((event) => {
+    sortedEvents.forEach((event, idx) => {
       const {
         name,
         text = "",
@@ -1712,12 +1723,14 @@
             currentColor: [...currentColor],
             opacity: 1,
             isSuggestionOpen: name === "suggestion-open",
+            isSuggestionAccept: false,
             index: indexOfAct++,
           });
 
           totalInsertions++;
         });
       }
+
       if (name === "text-delete") {
         const deleteCount = text.length || count;
         currentCharArray.splice(pos, deleteCount);
@@ -1727,9 +1740,13 @@
         totalProcessedCharacters -= deleteCount;
       }
 
-      // if (name === "suggestion-open") {
-      //   totalSuggestions++;
-      // }
+      let isSuggestionAccept = false;
+      if (name === "suggestion-open" && sortedEvents[idx + 1]) {
+        const nextEvent = sortedEvents[idx + 1];
+        if (nextEvent.eventSource === "api" && nextEvent.name === "text-insert") {
+          isSuggestionAccept = true;
+        }
+      }
 
       const percentage = (currentCharArray.length / totalTextLength) * 100;
 
@@ -1742,9 +1759,11 @@
         currentColor: [...currentColor],
         opacity: 1,
         isSuggestionOpen: name === "suggestion-open",
+        isSuggestionAccept,
         index: indexOfAct++,
       });
     });
+
 
     paragraphTime = adjustTime(currentCharArray.join(""), chartData);
     for (let i = 0; i < paragraphTime.length - 1; i++) {
@@ -2047,7 +2066,8 @@
         style="font-size: 13px; align-items: center; display: flex;"
       >
         &nbsp;&nbsp;&nbsp;&nbsp;
-        <span class="triangle-text">▼</span> Open AI suggestion &nbsp;
+        <span class="triangle-text-accept">▼</span> Accept AI suggestion &nbsp;
+        <span class="triangle-text-reject">▼</span> Reject AI suggestion &nbsp;
         <span class="user-line">●</span> User &nbsp;
         <span class="api-line">●</span> AI
       </div>

@@ -32,47 +32,6 @@
     return total > 0 ? sum / total : 0;
   }
 
-  function drawMeanLine(ctx, mean, color, label, labels, barHeights, offset = 3, side = "center") {
-    if (!labels.length) return;
-
-    let closestIndex = 0;
-    let minDiff = Infinity;
-    labels.forEach((lab, i) => {
-      const diff = Math.abs(lab - mean);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestIndex = i;
-      }
-    });
-
-    const barTop = height - paddingBottom - barHeights[closestIndex];
-    const topY = barTop - offset;
-
-    const binCount = labels.length;
-    const barGroupWidth = (width - paddingLeft) / binCount;
-    const barWidth = barGroupWidth * 0.4;
-    let barGroupCenter = paddingLeft + closestIndex * barGroupWidth + barGroupWidth / 2;
-
-    if (side === "left") {
-      barGroupCenter -= barWidth / 2;
-    } else if (side === "right") {
-      barGroupCenter += barWidth / 2;
-    }
-
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(barGroupCenter, topY);
-    ctx.lineTo(barGroupCenter, barTop);
-    ctx.stroke();
-
-    ctx.fillStyle = color;
-    ctx.font = "10px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "bottom";
-    ctx.fillText(`${label}=${mean.toFixed(2)}`, barGroupCenter, topY - 10);
-  }
-
   function getAdjustedRaw(raw, now, flag) {
     if (flag != "overall") return { ...raw };
 
@@ -201,8 +160,6 @@
 
     const rawMean = meanFromCounts(adjustedRawData);
     const nowMean = meanFromCounts(nowData);
-    drawMeanLine(ctx, rawMean, "#666666", "x\u0305", labels, rawBarHeights, 3, "right");
-    drawMeanLine(ctx, nowMean, "#000000", "x\u0305", labels, nowBarHeights, 3, "left");
 
     function countsToArray(data) {
       const arr = [];
@@ -239,6 +196,10 @@
       ctx.textBaseline = "top";
       ctx.fillText(`p = ${pValue.toExponential(2)}`, width - 140, legendY);
     }
+
+    ctx.fillText(`${title[0]}-x\u0305=${nowMean.toFixed(2)}`, width - 140, legendY + 10);
+    ctx.fillStyle = "#666";
+    ctx.fillText(`${title[1]}-x\u0305=${rawMean.toFixed(2)}`, width - 140, legendY + 20);
   }
 
   onMount(() => {

@@ -1059,4 +1059,35 @@ function findSegments(data, checks, minCount) {
     ctx.fillStyle = "#000";
     ctx.fillText(title[1], legendX - legendBoxSize - legendSpacing, legendY + legendBoxSize + legendSpacing + legendBoxSize / 2);
 
+    
+    function drawMeanLine(mean, color, label, side: "left"|"right") {
+      let closestIndex = 0;
+      let minDiff = Infinity;
+      bins.forEach((b, i) => {
+        const mid = (b.min + b.max)/2;
+        const diff = Math.abs(mid - mean);
+        if(diff < minDiff){ minDiff = diff; closestIndex = i;}
+      });
+      const barHeights = side==="left" ? nowBins.map(b=>b.nowPercent*(height-paddingTop-paddingBottom))
+                                       : bins.map(b=>b.percent*(height-paddingTop-paddingBottom));
+      const barTop = height - paddingBottom - barHeights[closestIndex];
+      const topY = barTop - 3;
+      const barGroupCenter = paddingLeft + closestIndex * barWidth + barWidth/2 + (side==="left"? -barWidth*barWidthRatio/2 : barWidth*barWidthRatio/2);
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(barGroupCenter, topY);
+      ctx.lineTo(barGroupCenter, barTop);
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.font = "10px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.fillText(`${label}=${mean.toFixed(2)}`, barGroupCenter, topY - 10);
+    }
+
+    drawMeanLine(overallMean, "#666666", "x\u0305", "right");
+    drawMeanLine(highlightMean, "#000000", "x\u0305", "left");
 '''

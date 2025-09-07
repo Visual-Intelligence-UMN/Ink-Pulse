@@ -96,7 +96,7 @@
           {#each chartData.filter((d) => d.isSuggestionOpen) as d}
             <path
               d={d3.symbol().type(d3.symbolTriangle).size(40)()}
-              fill="#ffffff"
+              fill={d.isSuggestionAccept ? "#ffffff" : "#cccccc"}
               stroke="#aaaaaa"
               stroke-width="1"
               opacity={d.opacity + 0.29}

@@ -99,7 +99,7 @@
       .attr("fill", "black")
       .attr("text-anchor", "middle")
       .style("font-size", "8px")
-      .text("Semantic Change (%)");
+      .text("Semantic Change");
 
     svg
       .append("g")
@@ -111,7 +111,7 @@
       .attr("fill", "black")
       .attr("text-anchor", "middle")
       .style("font-size", "8px")
-      .text("Progress(%)");
+      .text("Writing length");
 
     svg
       .selectAll(".bar-whole")
