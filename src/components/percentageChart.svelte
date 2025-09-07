@@ -219,49 +219,18 @@
       pValue = 2 * (1 - jStat.studentt.cdf(Math.abs(t), df));
     }
 
-    function drawMeanLine(ctx, mean, barHeights, offset, color, label, side) {
-      const barGroupWidth = (width - paddingLeft) / binCount;
-      let closestIndex = 0;
-      let minDiff = Infinity;
-      for (let i = 0; i < binCount; i++) {
-        const mid = i * step + step / 2;
-        const diff = Math.abs(mid - mean);
-        if (diff < minDiff) {
-          minDiff = diff;
-          closestIndex = i;
-        }
-      }
-      const barTop = height - paddingBottom - barHeights[closestIndex];
-      const topY = barTop - offset;
-      let barGroupCenter = paddingLeft + closestIndex * barGroupWidth + barGroupWidth / 2;
-      if (side === "left") barGroupCenter -= barWidth * bw / 2;
-      if (side === "right") barGroupCenter += barWidth * bw / 2;
-
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(barGroupCenter, topY);
-      ctx.lineTo(barGroupCenter, barTop);
-      ctx.stroke();
-
-      ctx.fillStyle = color;
-      ctx.font = "10px sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "bottom";
-      ctx.fillText(`${label}=${mean.toFixed(2)}`, barGroupCenter, topY - 10);
-    }
-
-    drawMeanLine(ctx, overallMean, overallCounts.map(c => c / overallTotal * (height - paddingTop - paddingBottom)), 3, "#666666", "x\u0305", "right");
-    drawMeanLine(ctx, highlightMean, highlightCounts.map(c => c / highlightTotal * (height - paddingTop - paddingBottom)), 3, "#000000", "x\u0305", "left");
-    
     const legendY = 15;
 
     if (pValue !== null) {
       ctx.fillStyle = "#000";
       ctx.font = "10px sans-serif";
       ctx.textAlign = "left";
-      ctx.fillText(`p=${pValue.toExponential(2)}`, width - 140, legendY + 5);
+      ctx.fillText(`p=${pValue.toExponential(2)}`, width - 140, legendY);
     }
+
+    ctx.fillText(`${title[0]}-x\u0305=${highlightMean.toFixed(2)}`, width - 140, legendY + 10);
+    ctx.fillStyle = "#666";
+    ctx.fillText(`${title[1]}-x\u0305=${overallMean.toFixed(2)}`, width - 140, legendY + 20);
   }
 
   onMount(() => {

@@ -684,10 +684,18 @@ a:active {
   margin-left: 10px;
 }
 
-.triangle-text {
+.triangle-text-accept {
   color: #ffffff;
   -webkit-text-stroke: 1.5px #aaaaaa;
   font-weight: bold;
+  margin-right: 3px;
+}
+
+.triangle-text-reject {
+  color: #cccccc;
+  -webkit-text-stroke: 1.5px #aaaaaa;
+  font-weight: bold;
+  margin-right: 3px;
 }
 
 .user-line {

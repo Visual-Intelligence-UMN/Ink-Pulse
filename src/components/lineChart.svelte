@@ -442,13 +442,14 @@
         {#each chartData.filter((d) => d.isSuggestionOpen) as d}
           <path
             d={d3.symbol().type(d3.symbolTriangle).size(40)()}
-            fill="#ffffff"
+            fill={d.isSuggestionAccept ? "#ffffff" : "#cccccc"}
             stroke="#aaaaaa"
             stroke-width="1"
             opacity={d.opacity + 0.29}
             transform={`translate(${zoomTransform.applyX(scaledX(d.time))},${zoomTransform.applyY(scaledY(d.percentage + 6 / zoomTransform.k))}) rotate(180)`}
           />
         {/each}
+
       </g>
     </g>
 
