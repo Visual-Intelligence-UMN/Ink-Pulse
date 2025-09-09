@@ -1,13 +1,15 @@
-import adapter from '@sveltejs/adapter-vercel';
+import adapter from '@sveltejs/adapter-static';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
   kit: {
     adapter: adapter({
-      runtime: 'nodejs20.x'
+      pages: 'build',
+      assets: 'build',
+      fallback: '404.html'
     }),
     paths: {
-      base: process.argv.includes('dev') ? '' : '',
+      base: process.argv.includes('dev') ? '' : '/Ink-Pulse',
       relative: false
     }
   }
