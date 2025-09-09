@@ -134,18 +134,29 @@
       return selectedPoint === d || hoveredPoint === d ? 1 : d.opacity;
     }
 
-    if (
-      !sharedSelection ||
-      !sharedSelection.progressMin ||
-      !sharedSelection.progressMax
-    ) {
+    if (!sharedSelection) {
       // selectionMode active but no brush yet
       return 1;
     }
 
-    const { progressMin, progressMax } = sharedSelection;
-    const inRange = d.percentage >= progressMin && d.percentage <= progressMax;
-    return inRange ? 1 : 0.01;
+    // Handle time-based selection (lineChart_x)
+    if (sharedSelection.selectionSource === "lineChart_x" && 
+        sharedSelection.timeMin !== undefined && 
+        sharedSelection.timeMax !== undefined) {
+      const { timeMin, timeMax } = sharedSelection;
+      const inTimeRange = d.time >= timeMin && d.time <= timeMax;
+      return inTimeRange ? 1 : 0.01;
+    }
+
+    // Handle progress-based selection (lineChart_y, barChart_y)
+    if (sharedSelection.progressMin !== undefined && 
+        sharedSelection.progressMax !== undefined) {
+      const { progressMin, progressMax } = sharedSelection;
+      const inProgressRange = d.percentage >= progressMin && d.percentage <= progressMax;
+      return inProgressRange ? 1 : 0.01;
+    }
+
+    return 1;
   }
 
   function brushedY(event) {
@@ -219,6 +230,8 @@
     sharedSelection = {
       progressMin,
       progressMax,
+      timeMin: t0,
+      timeMax: t1,
       selectionSource: "lineChart_x",
     };
 

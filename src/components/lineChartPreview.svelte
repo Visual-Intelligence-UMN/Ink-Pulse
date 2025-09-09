@@ -2,12 +2,13 @@
   import * as d3 from "d3";
 
   export let chartData;
+  export let selectedTimeRange = null; // { min: number, max: number }
   // export let paragraphColor;
 
   let svgContainer: SVGSVGElement;
   let width = 250;
   let height = 150;
-  const margin = { top: 10, right: 10, bottom: 30, left: 0 };
+  const margin = { top: 10, right: 10, bottom: 30, left: 50 };
 
   let xScale: any;
   let yScale = d3
@@ -37,14 +38,28 @@
 
   $: if (xScale && yScale && xAxisG && yAxisG) {
     const xAxis = d3.axisBottom(xScale).ticks(5);
-    const yAxis = d3.axisRight(yScale).ticks(5);
+    const yAxis = d3.axisLeft(yScale).ticks(5);
     d3.select(xAxisG).call(xAxis);
     d3.select(xAxisG)
       .selectAll(".tick text")
       .filter((_, i) => i === 0)
       .attr("dx", "1px")
       .attr("text-anchor", "start");
+
     d3.select(yAxisG).call(yAxis);
+
+    // Add Y-axis label
+    d3.select(yAxisG).selectAll(".y-axis-label").remove();
+    d3.select(yAxisG)
+      .append("text")
+      .attr("class", "y-axis-label")
+      .attr("transform", "rotate(-90)")
+      .attr("y", -35)
+      .attr("x", -chartHeight / 2)
+      .attr("text-anchor", "middle")
+      .style("font-size", "10px")
+      .style("fill", "black")
+      .text("Writing length");
   }
 
   function scaledX(val) {
@@ -71,6 +86,22 @@
   <g transform={`translate(${margin.left},${margin.top})`}>
     <g clip-path="url(#clip_preview)">
       <g>
+        <!-- Selected time range highlight -->
+        {#if selectedTimeRange}
+          <rect
+            x={scaledX(selectedTimeRange.min)}
+            width={scaledX(selectedTimeRange.max) -
+              scaledX(selectedTimeRange.min)}
+            y={0}
+            height={chartHeight}
+            fill="#000000"
+            opacity={0.1}
+            stroke="#000000"
+            stroke-width="1"
+            stroke-dasharray="3,3"
+          />
+        {/if}
+
         <!-- {#each paragraphColor as d}
           <rect
             x={scaledX(d.xMin)}
@@ -80,7 +111,7 @@
             fill={d.backgroundColor}
           />
         {/each}
-      </g> -->
+        </g> -->
 
         <g>
           {#each chartData.filter((d) => !d.isSuggestionOpen) as d (d.index)}
@@ -123,6 +154,6 @@
       </text>
     </g>
 
-    <g class="y-axis" bind:this={yAxisG} style="display: none"></g>
+    <g class="y-axis" bind:this={yAxisG}></g>
   </g></svg
 >
