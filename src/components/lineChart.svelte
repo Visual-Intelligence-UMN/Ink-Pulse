@@ -124,7 +124,7 @@
     }
   }
 
-  $: if(brushGroup && zoomTransform) {
+  $: if (brushGroup && zoomTransform) {
     brushGroup.select(".selection").style("display", "none");
   }
 
@@ -343,7 +343,8 @@
       .domain([minTime, maxTime])
       .range([0, width - margin.left - margin.right]);
 
-    xScaleLineChartFactor = (width - margin.left - margin.right) / ((maxTime - minTime) * 60);
+    xScaleLineChartFactor =
+      (width - margin.left - margin.right) / ((maxTime - minTime) * 60);
 
     zoom = d3
       .zoom()

@@ -140,6 +140,12 @@
   // Edit pattern dialog state
   let showEditDialog = false;
   let patternToEdit = null;
+
+  // Session search functionality
+  let sessionSearchQuery = "";
+  let showSessionSearchResults = false;
+  let sessionSearchResults = [];
+
   let isProgressChecked = false;
   let isTimeChecked = false;
   let isSourceChecked = true;
@@ -1917,6 +1923,43 @@
     );
   }
 
+  // Session search functionality
+  function searchSessions(query) {
+    if (!query.trim()) {
+      sessionSearchResults = [];
+      showSessionSearchResults = false;
+      return;
+    }
+
+    const searchTerm = query.toLowerCase();
+    const results = sessions.filter((session) =>
+      session.session_id.toLowerCase().includes(searchTerm)
+    );
+
+    sessionSearchResults = results.slice(0, 10); // Limit to 10 results
+    showSessionSearchResults = results.length > 0;
+  }
+
+  function handleSessionSearch(event) {
+    sessionSearchQuery = event.target.value;
+    searchSessions(sessionSearchQuery);
+  }
+
+  function selectSessionFromSearch(session) {
+    sessionSearchQuery = "";
+    showSessionSearchResults = false;
+    sessionSearchResults = [];
+
+    // Navigate to session detail
+    handleContainerClick({ detail: { sessionId: session.session_id } });
+  }
+
+  function clearSessionSearch() {
+    sessionSearchQuery = "";
+    showSessionSearchResults = false;
+    sessionSearchResults = [];
+  }
+
   // --- Virtual table configuration ---
   export let vtRowHeight = 65; // height of each row in px
   export let vtHeaderHeight = 120; // header height in px
@@ -2030,6 +2073,47 @@
       {/if}
       <div style="flex: 1;"></div>
       <div style="display: flex; gap: 0.5em; align-items: center;">
+        <!-- Session Search -->
+        <div style="position: relative; margin-right: 20px;">
+          <div class="session-search-container">
+            <input
+              type="text"
+              placeholder="Search Session ID..."
+              bind:value={sessionSearchQuery}
+              on:input={handleSessionSearch}
+              on:blur={() => {
+                // Delay hiding results to allow clicking on them
+                setTimeout(() => (showSessionSearchResults = false), 200);
+              }}
+              on:focus={() => {
+                if (sessionSearchQuery.trim()) {
+                  searchSessions(sessionSearchQuery);
+                }
+              }}
+              class="session-search-input"
+            />
+            <span class="search-icon-input">🔍</span>
+          </div>
+
+          {#if showSessionSearchResults && sessionSearchResults.length > 0}
+            <div class="session-search-results">
+              {#each sessionSearchResults as session}
+                <div
+                  class="session-search-item"
+                  on:click={() => selectSessionFromSearch(session)}
+                  on:keydown={(e) =>
+                    e.key === "Enter" && selectSessionFromSearch(session)}
+                  role="button"
+                  tabindex="0"
+                >
+                  <div class="session-item-id">{session.session_id}</div>
+                  <div class="session-item-topic">{session.prompt_code}</div>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+
         <div style="margin-right: 30px;">
           <label for="dataset-select" style="font-size: 14px;">Dataset:</label>
           <select
@@ -2152,7 +2236,11 @@
                   <div class="pattern-header">
                     <h5>Session: {sessionId.slice(0, 4)}</h5>
                     <div class="pattern-buttons">
-                      <button class="weight-button" on:click={setWeight} title="Adjust Weight">
+                      <button
+                        class="weight-button"
+                        on:click={setWeight}
+                        title="Adjust Weight"
+                      >
                         🔧
                       </button>
                       <button
@@ -2211,7 +2299,11 @@
                             disabled={!isProgressChecked}
                           />
                           <span class="slider">
-                            <span class="switch-text {isExactSearchProgress ? 'exact' : 'proximity'}">
+                            <span
+                              class="switch-text {isExactSearchProgress
+                                ? 'exact'
+                                : 'proximity'}"
+                            >
                               {isExactSearchProgress ? "Exact" : "Proximity"}
                             </span>
                           </span>
@@ -2234,7 +2326,11 @@
                             disabled={!isTimeChecked}
                           />
                           <span class="slider">
-                            <span class="switch-text {isExactSearchTime ? 'exact' : 'proximity'}">
+                            <span
+                              class="switch-text {isExactSearchTime
+                                ? 'exact'
+                                : 'proximity'}"
+                            >
                               {isExactSearchTime ? "Exact" : "Proximity"}
                             </span>
                           </span>
