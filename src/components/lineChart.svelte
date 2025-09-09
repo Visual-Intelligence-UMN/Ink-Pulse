@@ -124,7 +124,7 @@
     }
   }
 
-  $: if(brushGroup && zoomTransform) {
+  $: if (brushGroup && zoomTransform) {
     brushGroup.select(".selection").style("display", "none");
   }
 
@@ -140,19 +140,24 @@
     }
 
     // Handle time-based selection (lineChart_x)
-    if (sharedSelection.selectionSource === "lineChart_x" && 
-        sharedSelection.timeMin !== undefined && 
-        sharedSelection.timeMax !== undefined) {
+    if (
+      sharedSelection.selectionSource === "lineChart_x" &&
+      sharedSelection.timeMin !== undefined &&
+      sharedSelection.timeMax !== undefined
+    ) {
       const { timeMin, timeMax } = sharedSelection;
       const inTimeRange = d.time >= timeMin && d.time <= timeMax;
       return inTimeRange ? 1 : 0.01;
     }
 
     // Handle progress-based selection (lineChart_y, barChart_y)
-    if (sharedSelection.progressMin !== undefined && 
-        sharedSelection.progressMax !== undefined) {
+    if (
+      sharedSelection.progressMin !== undefined &&
+      sharedSelection.progressMax !== undefined
+    ) {
       const { progressMin, progressMax } = sharedSelection;
-      const inProgressRange = d.percentage >= progressMin && d.percentage <= progressMax;
+      const inProgressRange =
+        d.percentage >= progressMin && d.percentage <= progressMax;
       return inProgressRange ? 1 : 0.01;
     }
 
@@ -177,23 +182,30 @@
       selectionSource: "lineChart_y",
     };
 
+    // 收集选中进度范围内的完整数据，像BarChart模式一样
+    const filteredData = chartData.filter(
+      (p) => p.percentage >= progressMin && p.percentage <= progressMax
+    );
+    const scValues = filteredData.map((d) => d.residual_vector_norm || 0);
+    const scMin = d3.min(scValues) || 0;
+    const scMax = d3.max(scValues) || 1;
+    const sources = filteredData.map((d) => d.source || "user");
+
     dispatch("selectionChanged", {
       range: {
-        sc: { min: 0, max: 1 },
+        sc: { min: scMin, max: scMax },
         progress: { min: progressMin, max: progressMax },
       },
       dataRange: {
-        scRange: { min: 0, max: 1 },
+        scRange: { min: scMin, max: scMax },
         progressRange: { min: progressMin, max: progressMax },
         timeRange: { min: 0, max: d3.max(chartData, (d) => d.time) },
-        sc: { sc: [] },
+        sc: { sc: scValues },
       },
-      data: chartData.filter(
-        (p) => p.percentage >= progressMin && p.percentage <= progressMax
-      ),
+      data: filteredData,
       wholeData: chartData,
       sessionId: null,
-      sources: [],
+      sources: sources,
     });
   }
 
@@ -235,21 +247,27 @@
       selectionSource: "lineChart_x",
     };
 
+    // 收集选中时间范围内的完整数据，像Progress模式一样
+    const scValues = insidePoints.map((d) => d.residual_vector_norm || 0);
+    const scMin = d3.min(scValues) || 0;
+    const scMax = d3.max(scValues) || 1;
+    const sources = insidePoints.map((d) => d.source || "user");
+
     dispatch("selectionChanged", {
       range: {
-        sc: { min: 0, max: 1 },
+        sc: { min: scMin, max: scMax },
         progress: { min: progressMin, max: progressMax },
       },
       dataRange: {
-        scRange: { min: 0, max: 1 },
+        scRange: { min: scMin, max: scMax },
         progressRange: { min: progressMin, max: progressMax },
         timeRange: { min: t0, max: t1 },
-        sc: { sc: [] },
+        sc: { sc: scValues },
       },
       data: insidePoints,
       wholeData: chartData,
       sessionId: null,
-      sources: [],
+      sources: sources,
     });
   }
 
@@ -356,7 +374,8 @@
       .domain([minTime, maxTime])
       .range([0, width - margin.left - margin.right]);
 
-    xScaleLineChartFactor = (width - margin.left - margin.right) / ((maxTime - minTime) * 60);
+    xScaleLineChartFactor =
+      (width - margin.left - margin.right) / ((maxTime - minTime) * 60);
 
     zoom = d3
       .zoom()
@@ -462,7 +481,6 @@
             transform={`translate(${zoomTransform.applyX(scaledX(d.time))},${zoomTransform.applyY(scaledY(d.percentage + 6 / zoomTransform.k))}) rotate(180)`}
           />
         {/each}
-
       </g>
     </g>
 

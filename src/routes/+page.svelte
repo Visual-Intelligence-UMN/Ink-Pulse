@@ -1224,24 +1224,8 @@
       dataRange.progressRange.max,
     ];
 
-    // Handle time range properly for both time-based and progress-based selections
-    if (
-      selectionSrc === "lineChart_x" &&
-      sharedSelection &&
-      sharedSelection.timeMin !== undefined &&
-      sharedSelection.timeMax !== undefined
-    ) {
-      // Time-based selection (from lineChart_x) - use the actual selected time range
-      timeRange = [sharedSelection.timeMin, sharedSelection.timeMax];
-      console.log("Time mode - using brush selected time range:", timeRange);
-    } else {
-      // Progress-based selection (from lineChart_y or barChart_y) - use full session time range
-      timeRange = [dataRange.timeRange.min, dataRange.timeRange.max];
-      console.log(
-        "Progress/Bar mode - using full session time range:",
-        timeRange
-      );
-    }
+    // 统一使用dataRange中的时间范围，不再区分Time和Progress模式
+    timeRange = [dataRange.timeRange.min, dataRange.timeRange.max];
     sourceRange = sources;
     semanticRange = [dataRange.scRange.min, dataRange.scRange.max];
     semanticData = dataRange.sc.sc;
@@ -1258,6 +1242,13 @@
       scRange: `${range.sc.min.toFixed(1)} - ${range.sc.max.toFixed(1)}%`,
       progressRange: `${range.progress.min.toFixed(1)} - ${range.progress.max.toFixed(1)}%`,
       count: data.length,
+      // 保存时间选择范围，用于Time模式的高亮显示
+      selectedTimeRange:
+        sharedSelection &&
+        sharedSelection.timeMin !== undefined &&
+        sharedSelection.timeMax !== undefined
+          ? { min: sharedSelection.timeMin, max: sharedSelection.timeMax }
+          : null,
     };
   }
 
@@ -2592,14 +2583,7 @@
                               );
                               return data;
                             })()}
-                            selectedTimeRange={sharedSelection &&
-                            sharedSelection.timeMin !== undefined &&
-                            sharedSelection.timeMax !== undefined
-                              ? {
-                                  min: sharedSelection.timeMin,
-                                  max: sharedSelection.timeMax,
-                                }
-                              : null}
+                            selectedTimeRange={pattern.selectedTimeRange}
                           />
                         </div>
                       {:else}
