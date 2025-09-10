@@ -612,6 +612,11 @@
   }
 
   function findSegments(data, checks, minCount) {
+    console.log("=== findSegments Debug ===");
+    console.log("data.length:", data.length);
+    console.log("checks:", checks);
+    console.log("minCount:", minCount);
+
     const segments = [];
     const isSourceCheckRequired =
       isExactSearchSource && checks.source && checks.source[0];
@@ -622,12 +627,36 @@
     const isTimeCheckRequired =
       isExactSearchTime && checks.time && checks.time[0];
 
+    console.log("Check requirements:", {
+      isSourceCheckRequired,
+      isTrendCheckRequired,
+      isProgressCheckRequired,
+      isTimeCheckRequired,
+    });
+
     for (let i = 1; i <= data.length - minCount; i++) {
       const window = data.slice(i, i + minCount);
+
+      // Safety check
+      if (!window || window.length === 0 || !window[0]) {
+        console.log("Invalid window at index", i, "window:", window);
+        continue;
+      }
+
       if (checks.progress && checks.progress[0]) {
         const [min, max] = checks.progress[1];
         const deltaTarget = max - min;
         const relax = deltaTarget * 0.1;
+
+        // Check if required properties exist
+        if (
+          typeof window[0].start_progress !== "number" ||
+          typeof window[window.length - 1].end_progress !== "number"
+        ) {
+          console.log("Missing progress data in window:", window[0]);
+          continue;
+        }
+
         const start = window[0].start_progress * 100;
         const end = window[window.length - 1].end_progress * 100;
         const delta = end - start;
@@ -655,6 +684,17 @@
 
       if (checks.time && checks.time[0]) {
         let [minTime, maxTime] = checks.time[1];
+        console.log("Time check - original range:", minTime, maxTime);
+
+        // Check if required time properties exist
+        if (
+          typeof window[0].start_time !== "number" ||
+          typeof window[window.length - 1].end_time !== "number"
+        ) {
+          console.log("Missing time data in window:", window[0]);
+          continue;
+        }
+
         maxTime = maxTime * 60;
         minTime = minTime * 60;
         const deltaTarget = maxTime - minTime;
@@ -662,6 +702,14 @@
         const startTime = window[0].start_time;
         const endTime = window[window.length - 1].end_time;
         const deltaTime = endTime - startTime;
+        console.log("Time check - converted range:", minTime, maxTime);
+        console.log(
+          "Window time range:",
+          startTime,
+          endTime,
+          "delta:",
+          deltaTime
+        );
         const relaxedStartMin = minTime - relax;
         const relaxedStartMax = minTime + relax;
         const relaxedEndMin = maxTime - relax;
@@ -791,7 +839,18 @@
   async function searchPattern(sessionId) {
     isSearch = 1; // 0: not searching, 1: searching, 2: search done
     const sessionData = selectedPatterns[sessionId];
-    const count = sessionData.count;
+    const count =
+      sessionData.count || Math.max(1, sessionData.data?.length || 1);
+
+    console.log("=== Search Pattern Debug ===");
+    console.log("sessionData:", sessionData);
+    console.log("sessionData.count:", sessionData.count);
+    console.log("sessionData.data length:", sessionData.data?.length);
+    console.log("isTimeChecked:", isTimeChecked);
+    console.log("timeRange:", timeRange);
+    console.log("isProgressChecked:", isProgressChecked);
+    console.log("writingProgressRange:", writingProgressRange);
+
     searchDetail = {
       sessionId,
       data: sessionData.data,
@@ -821,6 +880,8 @@
       trend: [isValueTrendChecked, semanticTrend],
     };
 
+    console.log("checks:", checks);
+
     try {
       const fileListResponse = await fetch(
         `${base}/dataset/${selectedDataset}/session_name.json`
@@ -844,7 +905,26 @@
         delete data.paragraphColor;
         delete data.textElements;
 
-        const segments = findSegments(data, checks, count);
+        console.log("Processing file:", fileName);
+        console.log("Data structure keys:", Object.keys(data));
+        console.log("Data.chartData length:", data.chartData?.length);
+        console.log("Data is array?", Array.isArray(data));
+        console.log("Data length:", data.length);
+        if (Array.isArray(data) && data.length > 0) {
+          console.log("Sample data item:", data[0]);
+        } else if (data.chartData && data.chartData.length > 0) {
+          console.log("Sample chartData item:", data.chartData[0]);
+        }
+
+        // Use the correct data structure
+        const dataToProcess = Array.isArray(data)
+          ? data
+          : data.chartData || data.totalSimilarityData || [];
+
+        console.log("Data to process length:", dataToProcess.length);
+        console.log("Count:", count);
+
+        const segments = findSegments(dataToProcess, checks, count);
         const extractedFileName = fileName
           .split(".")[0]
           .replace(/_similarity$/, "");
@@ -1060,7 +1140,7 @@
 
   function handleSelectionChanged(event) {
     showResultCount.set(5);
-    if(sharedSelection) {
+    if (sharedSelection) {
       selectionSrc = sharedSelection.selectionSource;
     }
 
@@ -1143,6 +1223,8 @@
       dataRange.progressRange.min,
       dataRange.progressRange.max,
     ];
+
+    // 统一使用dataRange中的时间范围，不再区分Time和Progress模式
     timeRange = [dataRange.timeRange.min, dataRange.timeRange.max];
     sourceRange = sources;
     semanticRange = [dataRange.scRange.min, dataRange.scRange.max];
@@ -1160,6 +1242,13 @@
       scRange: `${range.sc.min.toFixed(1)} - ${range.sc.max.toFixed(1)}%`,
       progressRange: `${range.progress.min.toFixed(1)} - ${range.progress.max.toFixed(1)}%`,
       count: data.length,
+      // 保存时间选择范围，用于Time模式的高亮显示
+      selectedTimeRange:
+        sharedSelection &&
+        sharedSelection.timeMin !== undefined &&
+        sharedSelection.timeMax !== undefined
+          ? { min: sharedSelection.timeMin, max: sharedSelection.timeMax }
+          : null,
     };
   }
 
@@ -1645,7 +1734,10 @@
         let isSuggestionAccept = false;
         if (name === "suggestion-open" && data.info[idx + 1]) {
           const nextEvent = data.info[idx + 1];
-          if (nextEvent.eventSource === "api" && nextEvent.name === "text-insert") {
+          if (
+            nextEvent.eventSource === "api" &&
+            nextEvent.name === "text-insert"
+          ) {
             isSuggestionAccept = true;
           }
         }
@@ -1679,7 +1771,7 @@
     let totalSuggestions = 0;
     let totalProcessedCharacters = totalTextLength;
     const sortedEvents = [...data.info].sort((a, b) => a.id - b.id);
-    
+
     let combinedText = [...initText].map((ch) => ({
       text: ch,
       textColor: "#FC8D62",
@@ -1743,7 +1835,10 @@
       let isSuggestionAccept = false;
       if (name === "suggestion-open" && sortedEvents[idx + 1]) {
         const nextEvent = sortedEvents[idx + 1];
-        if (nextEvent.eventSource === "api" && nextEvent.name === "text-insert") {
+        if (
+          nextEvent.eventSource === "api" &&
+          nextEvent.name === "text-insert"
+        ) {
           isSuggestionAccept = true;
         }
       }
@@ -1763,7 +1858,6 @@
         index: indexOfAct++,
       });
     });
-
 
     paragraphTime = adjustTime(currentCharArray.join(""), chartData);
     for (let i = 0; i < paragraphTime.length - 1; i++) {
@@ -1796,7 +1890,7 @@
       totalInsertions--;
     }
 
-    totalSuggestions = chartData.filter(d => d.isSuggestionOpen).length;
+    totalSuggestions = chartData.filter((d) => d.isSuggestionOpen).length;
 
     return {
       chartData,
@@ -2021,8 +2115,8 @@
   });
 
   function scrollToTop() {
-    const panel = document.querySelector('.pattern-panel-content');
-    if (panel) panel.scrollTo({ top: 0, behavior: 'smooth' });
+    const panel = document.querySelector(".pattern-panel-content");
+    if (panel) panel.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   let showButton = false;
@@ -2057,7 +2151,11 @@
               style="width: 40px; height: auto; cursor: pointer;"
               on:click={change2main}
             />
-            <span class="brand-name" style="cursor: pointer;" on:click={change2main}>InkPulse</span>
+            <span
+              class="brand-name"
+              style="cursor: pointer;"
+              on:click={change2main}>InkPulse</span
+            >
           </div>
         </div>
       </div>
@@ -2210,7 +2308,11 @@
                   <div class="pattern-header">
                     <h5>Session: {sessionId.slice(0, 4)}</h5>
                     <div class="pattern-buttons">
-                      <button class="weight-button" on:click={setWeight} title="Adjust Weight">
+                      <button
+                        class="weight-button"
+                        on:click={setWeight}
+                        title="Adjust Weight"
+                      >
                         🔧
                       </button>
                       <button
@@ -2239,10 +2341,11 @@
                     </div>
                   </div>
                   {#if selectionSrc == "lineChart_y"}
-                    <div style="display: flex; flex-wrap: wrap; gap: 0; width: 100%; align-items: flex-start;">
-
-<div
-  style="
+                    <div
+                      style="display: flex; flex-wrap: wrap; gap: 0; width: 100%; align-items: flex-start;"
+                    >
+                      <div
+                        style="
     display: flex;
     gap: 0;
     width: 100%;
@@ -2251,40 +2354,43 @@
     border-radius: 4px;
     background-color: white;
   "
->
-  <!-- Pattern chart -->
-  <div style="flex: 1 1 50%; margin-top: 10px; padding: 0;">
-    <div style="margin: 0; padding: 0;">
-      <PatternChartPreview
-        {sessionId}
-        data={pattern.data}
-        wholeData={pattern.wholeData}
-        selectedRange={pattern.range}
-        bind:this={chartRefs[sessionId]}
-        margin_right={0}
-      />
-    </div>
-  </div>
+                      >
+                        <!-- Pattern chart -->
+                        <div
+                          style="flex: 1 1 50%; margin-top: 10px; padding: 0;"
+                        >
+                          <div style="margin: 0; padding: 0;">
+                            <PatternChartPreview
+                              {sessionId}
+                              data={pattern.data}
+                              wholeData={pattern.wholeData}
+                              selectedRange={pattern.range}
+                              bind:this={chartRefs[sessionId]}
+                              margin_right={0}
+                            />
+                          </div>
+                        </div>
 
-  <!-- Line chart -->
-  <div style="flex: 1 1 50%; margin-top: 7px; padding: 0; margin-left: 0;">
-    <div
-      style="
+                        <!-- Line chart -->
+                        <div
+                          style="flex: 1 1 50%; margin-top: 7px; padding: 0; margin-left: 0;"
+                        >
+                          <div
+                            style="
         position: relative;
         height: 160px;
         overflow: hidden;
         transform-origin: top left;
         margin-left: 0;
       "
-    >
-      <LineChartPreview
-        bind:this={chartRefs[sessionId]}
-        chartData={$clickSession.chartData}
-      />
-    </div>
-  </div>
-</div>
-
+                          >
+                            <LineChartPreview
+                              bind:this={chartRefs[sessionId]}
+                              chartData={$clickSession.chartData}
+                            />
+                          </div>
+                        </div>
+                      </div>
 
                       <div
                         style="
@@ -2301,7 +2407,10 @@
                             class:dimmed={!isProgressChecked}
                             style="font-size: 13px; display: flex; align-items: center; gap: 8px;"
                           >
-                            <input type="checkbox" bind:checked={isProgressChecked} />
+                            <input
+                              type="checkbox"
+                              bind:checked={isProgressChecked}
+                            />
                             <span>Writing Progress</span>
                             <label
                               class="switch"
@@ -2314,7 +2423,11 @@
                                 disabled={!isProgressChecked}
                               />
                               <span class="slider">
-                                <span class="switch-text {isExactSearchProgress ? 'exact' : 'duration'}">
+                                <span
+                                  class="switch-text {isExactSearchProgress
+                                    ? 'exact'
+                                    : 'duration'}"
+                                >
                                   {isExactSearchProgress ? "Exact" : "Duration"}
                                 </span>
                               </span>
@@ -2325,7 +2438,10 @@
                             class:dimmed={!isTimeChecked}
                             style="font-size: 13px; display: flex; align-items: center; gap: 8px;"
                           >
-                            <input type="checkbox" bind:checked={isTimeChecked} />
+                            <input
+                              type="checkbox"
+                              bind:checked={isTimeChecked}
+                            />
                             <span>Time</span>
                             <label
                               class="switch"
@@ -2338,7 +2454,11 @@
                                 disabled={!isTimeChecked}
                               />
                               <span class="slider">
-                                <span class="switch-text {isExactSearchTime ? 'exact' : 'duration'}">
+                                <span
+                                  class="switch-text {isExactSearchTime
+                                    ? 'exact'
+                                    : 'duration'}"
+                                >
                                   {isExactSearchTime ? "Exact" : "Duration"}
                                 </span>
                               </span>
@@ -2349,7 +2469,10 @@
                             class:dimmed={!isSourceChecked}
                             style="font-size: 13px; display: flex; align-items: center; gap: 8px; white-space: nowrap;"
                           >
-                            <input type="checkbox" bind:checked={isSourceChecked} />
+                            <input
+                              type="checkbox"
+                              bind:checked={isSourceChecked}
+                            />
                             <span>Source (human/AI)</span>
                             <label
                               class="switch"
@@ -2370,7 +2493,10 @@
                             class:dimmed={!isSemanticChecked}
                             style="display: flex; align-items: center; gap: 8px; white-space: nowrap; font-weight: 600; padding: 2px 4px; border-radius: 4px;"
                           >
-                            <input type="checkbox" bind:checked={isSemanticChecked} />
+                            <input
+                              type="checkbox"
+                              bind:checked={isSemanticChecked}
+                            />
                             <span>Semantic Expansion</span>
                           </div>
 
@@ -2413,7 +2539,8 @@
                                 <input
                                   type="checkbox"
                                   bind:checked={isExactSearchTrend}
-                                  disabled={!isSemanticChecked || !isValueTrendChecked}
+                                  disabled={!isSemanticChecked ||
+                                    !isValueTrendChecked}
                                 />
                               </label>
                             </div>
@@ -2423,15 +2550,54 @@
                     </div>
                   {:else}
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                      <div class="pattern-chart-preview small-preview">
-                        <PatternChartPreview
-                          {sessionId}
-                          data={pattern.data}
-                          wholeData={pattern.wholeData}
-                          selectedRange={pattern.range}
-                          bind:this={chartRefs[sessionId]}
-                        />
-                      </div>
+                      {#if selectionSrc == "lineChart_x"}
+                        <!-- Time mode: Show LineChart with time selection highlight -->
+                        <div
+                          class="pattern-chart-preview small-preview"
+                          style="width: 100%; height: 160px;"
+                        >
+                          <LineChartPreview
+                            bind:this={chartRefs[sessionId]}
+                            chartData={(() => {
+                              // 优先使用当前会话数据，确保图表不消失
+                              let data = $clickSession?.chartData;
+
+                              // 如果当前会话数据不可用，尝试使用模式数据
+                              if (
+                                !data ||
+                                !Array.isArray(data) ||
+                                data.length === 0
+                              ) {
+                                data = pattern.wholeData;
+                              }
+
+                              // 最后的兜底：空数组
+                              if (!data || !Array.isArray(data)) {
+                                data = [];
+                              }
+
+                              console.log(
+                                "LineChartPreview chartData:",
+                                data?.length,
+                                "items"
+                              );
+                              return data;
+                            })()}
+                            selectedTimeRange={pattern.selectedTimeRange}
+                          />
+                        </div>
+                      {:else}
+                        <!-- Progress/Bar modes: Show PatternChartPreview -->
+                        <div class="pattern-chart-preview small-preview">
+                          <PatternChartPreview
+                            {sessionId}
+                            data={pattern.data}
+                            wholeData={pattern.wholeData}
+                            selectedRange={pattern.range}
+                            bind:this={chartRefs[sessionId]}
+                          />
+                        </div>
+                      {/if}
                       <div style="margin-top: 5px; width: 60%">
                         <div
                           class:dimmed={!isProgressChecked}
@@ -2453,7 +2619,11 @@
                               disabled={!isProgressChecked}
                             />
                             <span class="slider">
-                              <span class="switch-text {isExactSearchProgress ? 'exact' : 'duration'}">
+                              <span
+                                class="switch-text {isExactSearchProgress
+                                  ? 'exact'
+                                  : 'duration'}"
+                              >
                                 {isExactSearchProgress ? "Exact" : "Duration"}
                               </span>
                             </span>
@@ -2476,7 +2646,11 @@
                               disabled={!isTimeChecked}
                             />
                             <span class="slider">
-                              <span class="switch-text {isExactSearchTime ? 'exact' : 'duration'}">
+                              <span
+                                class="switch-text {isExactSearchTime
+                                  ? 'exact'
+                                  : 'duration'}"
+                              >
                                 {isExactSearchTime ? "Exact" : "Duration"}
                               </span>
                             </span>
@@ -2486,7 +2660,10 @@
                           class:dimmed={!isSourceChecked}
                           style="font-size: 13px;"
                         >
-                          <input type="checkbox" bind:checked={isSourceChecked} />
+                          <input
+                            type="checkbox"
+                            bind:checked={isSourceChecked}
+                          />
                           Source(human/AI)
                           <label
                             class="switch"
