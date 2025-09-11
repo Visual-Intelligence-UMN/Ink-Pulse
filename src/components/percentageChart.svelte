@@ -29,14 +29,27 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
-    const paddingTop = 20;
-    const paddingBottom = 40;
+    const paddingTop = 40;
+    const paddingBottom = 45;
     const paddingLeft = 50;
     const tickLength = 3;
     const ySteps = 5;
     const maxStart = 100;
     const step = 10;
     const binCount = maxStart / step;
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(paddingLeft, 0, width - paddingLeft, height - paddingBottom);
+    ctx.strokeStyle = "#ccc";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(paddingLeft, 0);
+    ctx.lineTo(width, 0);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(width, 0);
+    ctx.lineTo(width, height - paddingBottom);
+    ctx.stroke();
 
     function getAdjustedOverallCounts(percentageData, patternSessions) {
       const removedIds = new Set(patternSessions.map(s => s.sessionId));
@@ -149,7 +162,7 @@
     }
 
     ctx.font = "10px sans-serif";
-    ctx.fillText("AI Ratio", paddingLeft + (width - paddingLeft) / 2, height - paddingBottom + tickLength + 20);
+    ctx.fillText("AI Ratio(%)", paddingLeft + (width - paddingLeft) / 2, height - paddingBottom + tickLength + 20);
 
     const bw = 0.4;
     const highlightOffset = (barWidth - 2 * barWidth * bw) / 2;
@@ -219,18 +232,67 @@
       pValue = 2 * (1 - jStat.studentt.cdf(Math.abs(t), df));
     }
 
+
     const legendY = 15;
 
     if (pValue !== null) {
       ctx.fillStyle = "#000";
       ctx.font = "10px sans-serif";
       ctx.textAlign = "left";
-      ctx.fillText(`p=${pValue.toExponential(2)}`, width - 140, legendY);
+
+      ctx.fillText(`p=${pValue.toExponential(2)}`, width - 140, legendY + 30);
     }
 
-    ctx.fillText(`${title[0]}-x\u0305=${highlightMean.toFixed(2)}`, width - 140, legendY + 10);
+    const topContainerHeight = paddingTop;
+    ctx.fillStyle = "#f5f5f5";
+    ctx.fillRect(500, 0, width - paddingLeft, topContainerHeight);
+    function drawBoxplotLine(ctx, values, color, y) {
+      if (!values || values.length < 3) return;
+      const q1 = jStat.quantiles(values, [0.25])[0];
+      const q3 = jStat.quantiles(values, [0.75])[0];
+      const mean = jStat.mean(values);
+
+      const minX = 0;
+      const maxX = 100;
+
+      function scaleX(val) {
+        return paddingLeft + (val - minX) / (maxX - minX) * (width - paddingLeft);
+      }
+
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 1;
+
+      ctx.beginPath();
+      ctx.moveTo(scaleX(q1), y);
+      ctx.lineTo(scaleX(q3), y);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(scaleX(q1), y - 3);
+      ctx.lineTo(scaleX(q1), y + 3);
+      ctx.moveTo(scaleX(q3), y - 3);
+      ctx.lineTo(scaleX(q3), y + 3);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(scaleX(mean), y, 2.5, 0, 2 * Math.PI);
+      ctx.fill();
+
+      return scaleX(mean);
+    }
+
+    const overallMeanX = drawBoxplotLine(ctx, overallValues, "#666", topContainerHeight - 5);
+    const highlightMeanX = drawBoxplotLine(ctx, highlightValues, "#000", topContainerHeight - 25);
+    ctx.strokeStyle = "#ccc";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(paddingLeft, 0, width - paddingLeft, topContainerHeight);
+    ctx.fillStyle = "#000";
+    ctx.textBaseline = "top";
+    ctx.textAlign = "left";
+    ctx.fillText(`avg(${title[0]})=${highlightMean.toFixed(2)}`, highlightMeanX / 2, 0);
     ctx.fillStyle = "#666";
-    ctx.fillText(`${title[1]}-x\u0305=${overallMean.toFixed(2)}`, width - 140, legendY + 20);
+    ctx.fillText(`avg(${title[1]})=${overallMean.toFixed(2)}`, overallMeanX / 2, 20);
   }
 
   onMount(() => {
@@ -242,4 +304,4 @@
   }
 </script>
 
-<canvas bind:this={canvasEl} />
+<canvas bind:this={canvasEl} style="margin-top: 20px;"/>
