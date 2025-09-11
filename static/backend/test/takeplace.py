@@ -1059,7 +1059,7 @@ function findSegments(data, checks, minCount) {
     ctx.fillStyle = "#000";
     ctx.fillText(title[1], legendX - legendBoxSize - legendSpacing, legendY + legendBoxSize + legendSpacing + legendBoxSize / 2);
 
-    
+    content length
     function drawMeanLine(mean, color, label, side: "left"|"right") {
       let closestIndex = 0;
       let minDiff = Infinity;
@@ -1090,4 +1090,118 @@ function findSegments(data, checks, minCount) {
 
     drawMeanLine(overallMean, "#666666", "x\u0305", "right");
     drawMeanLine(highlightMean, "#000000", "x\u0305", "left");
+
+    overall semantic score
+    function drawMeanLine(mean, color, label, side: "left"|"right") {
+      let closestIndex = 0;
+      let minDiff = Infinity;
+      bins.forEach((b, i) => {
+        const mid = (b.min + b.max)/2;
+        const diff = Math.abs(mid - mean);
+        if(diff < minDiff){ minDiff = diff; closestIndex = i;}
+      });
+      const barHeights = side==="left" ? nowBins.map(b=>b.nowPercent*(height-paddingTop-paddingBottom))
+                                       : bins.map(b=>b.percent*(height-paddingTop-paddingBottom));
+      const barTop = height - paddingBottom - barHeights[closestIndex];
+      const topY = barTop - 3;
+      const barGroupCenter = paddingLeft + closestIndex * barWidth + barWidth/2 + (side==="left"? -barWidth*barWidthRatio/2 : barWidth*barWidthRatio/2);
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(barGroupCenter, topY);
+      ctx.lineTo(barGroupCenter, barTop);
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.font = "10px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.fillText(`${label}=${mean.toFixed(2)}`, barGroupCenter, topY - 10);
+    }
+
+    drawMeanLine(overallMean, "#666666", "x\u0305", "right");
+    drawMeanLine(highlightMean, "#000000", "x\u0305", "left");
+
+    score summary
+    function drawMeanLine(ctx, mean, color, label, labels, barHeights, offset = 3, side = "center") {
+    if (!labels.length) return;
+
+    let closestIndex = 0;
+    let minDiff = Infinity;
+    labels.forEach((lab, i) => {
+      const diff = Math.abs(lab - mean);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIndex = i;
+      }
+    });
+
+    const barTop = height - paddingBottom - barHeights[closestIndex];
+    const topY = barTop - offset;
+
+    const binCount = labels.length;
+    const barGroupWidth = (width - paddingLeft) / binCount;
+    const barWidth = barGroupWidth * 0.4;
+    let barGroupCenter = paddingLeft + closestIndex * barGroupWidth + barGroupWidth / 2;
+
+    if (side === "left") {
+      barGroupCenter -= barWidth / 2;
+    } else if (side === "right") {
+      barGroupCenter += barWidth / 2;
+    }
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(barGroupCenter, topY);
+    ctx.lineTo(barGroupCenter, barTop);
+    ctx.stroke();
+
+    ctx.fillStyle = color;
+    ctx.font = "10px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+    ctx.fillText(`${label}=${mean.toFixed(2)}`, barGroupCenter, topY - 10);
+  }
+
+  drawMeanLine(ctx, rawMean, "#666666", "x\u0305", labels, rawBarHeights, 3, "right");
+  drawMeanLine(ctx, nowMean, "#000000", "x\u0305", labels, nowBarHeights, 3, "left");
+
+  percentage
+  function drawMeanLine(ctx, mean, barHeights, offset, color, label, side) {
+      const barGroupWidth = (width - paddingLeft) / binCount;
+      let closestIndex = 0;
+      let minDiff = Infinity;
+      for (let i = 0; i < binCount; i++) {
+        const mid = i * step + step / 2;
+        const diff = Math.abs(mid - mean);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestIndex = i;
+        }
+      }
+      const barTop = height - paddingBottom - barHeights[closestIndex];
+      const topY = barTop - offset;
+      let barGroupCenter = paddingLeft + closestIndex * barGroupWidth + barGroupWidth / 2;
+      if (side === "left") barGroupCenter -= barWidth * bw / 2;
+      if (side === "right") barGroupCenter += barWidth * bw / 2;
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(barGroupCenter, topY);
+      ctx.lineTo(barGroupCenter, barTop);
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.font = "10px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.fillText(`${label}=${mean.toFixed(2)}`, barGroupCenter, topY - 10);
+    }
+
+    drawMeanLine(ctx, overallMean, overallCounts.map(c => c / overallTotal * (height - paddingTop - paddingBottom)), 3, "#666666", "x\u0305", "right");
+    drawMeanLine(ctx, highlightMean, highlightCounts.map(c => c / highlightTotal * (height - paddingTop - paddingBottom)), 3, "#000000", "x\u0305", "left");
+    
 '''

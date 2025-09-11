@@ -12,8 +12,8 @@
   const width = 200;
   const height = 175;
   const paddingLeft = 50;
-  const paddingBottom = 40;
-  const paddingTop = 20;
+  const paddingBottom = 45;
+  const paddingTop = 40;
   const NOWColor = '#999999';
   const dpr = 2;
 
@@ -57,6 +57,19 @@
     const ctx = canvas.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
+
+    ctx.fillStyle = "#ffffff"; 
+    ctx.fillRect(paddingLeft, 0, width - paddingLeft, height - paddingBottom); 
+    ctx.strokeStyle = "#ccc";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(paddingLeft, 0);
+    ctx.lineTo(width, 0);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(width, 0);
+    ctx.lineTo(width, height - paddingBottom);
+    ctx.stroke();
 
     const adjustedRawData = getAdjustedRaw(rawData, nowData, flag);
 
@@ -194,12 +207,58 @@
       ctx.font = "10px sans-serif";
       ctx.textAlign = "left";
       ctx.textBaseline = "top";
-      ctx.fillText(`p = ${pValue.toExponential(2)}`, width - 140, legendY);
+      ctx.fillText(`p = ${pValue.toExponential(2)}`, width - 140, legendY + 30);
     }
 
-    ctx.fillText(`${title[0]}-x\u0305=${nowMean.toFixed(2)}`, width - 140, legendY + 10);
-    ctx.fillStyle = "#666";
-    ctx.fillText(`${title[1]}-x\u0305=${rawMean.toFixed(2)}`, width - 140, legendY + 20);
+    function drawBoxplotLine(ctx, data, color, y) {
+      if (!data || data.length < 3) return;
+
+      const q1 = jStat.quantiles(data, [0.25])[0];
+      const q3 = jStat.quantiles(data, [0.75])[0];
+      const mean = jStat.mean(data);
+
+      const minX = Math.min(...labels);
+      const maxX = Math.max(...labels);
+
+      function scaleX(val) {
+          return paddingLeft + (val - minX) / (maxX - minX) * (width - paddingLeft);
+      }
+
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 1;
+
+      ctx.beginPath();
+      ctx.moveTo(scaleX(q1), y);
+      ctx.lineTo(scaleX(q3), y);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(scaleX(q1), y - 3);
+      ctx.lineTo(scaleX(q1), y + 3);
+      ctx.moveTo(scaleX(q3), y - 3);
+      ctx.lineTo(scaleX(q3), y + 3);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(scaleX(mean), y, 2.5, 0, 2 * Math.PI);
+      ctx.fill();
+
+      return scaleX(mean);
+  }
+  const topContainerHeight = paddingTop;
+  ctx.fillStyle = "#f5f5f5"; 
+  ctx.fillRect(500, 0, width - paddingLeft, topContainerHeight);
+
+  ctx.strokeStyle = "#ccc";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(paddingLeft, 0, width - paddingLeft, topContainerHeight);
+  const overallMeanX = drawBoxplotLine(ctx, rawArr, "#666", topContainerHeight - 5);
+  const nowMeanX = drawBoxplotLine(ctx, nowArr, "#000", topContainerHeight - 25);
+  ctx.fillStyle = "#666";
+  ctx.fillText(`avg(${title[1]})=${meanFromCounts(rawData).toFixed(1)}`, overallMeanX / 2, topContainerHeight - 20);
+  ctx.fillStyle = "#000";
+  ctx.fillText(`avg(${title[0]})=${meanFromCounts(nowData).toFixed(1)}`, nowMeanX / 2, topContainerHeight - 40);
   }
 
   onMount(() => {

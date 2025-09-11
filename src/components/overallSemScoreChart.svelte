@@ -30,9 +30,21 @@
     ctx.clearRect(0, 0, width, height);
 
     const paddingLeft = 40;
-    const paddingBottom = 40;
-    const paddingTop = 20;
+    const paddingBottom = 45;
+    const paddingTop = 40;
     const paddingRight = 0;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, width, height);
+    ctx.strokeStyle = "#ccc";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(paddingLeft, 0);
+    ctx.lineTo(width - paddingRight, 0);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(width - paddingRight, 0);
+    ctx.lineTo(width - paddingRight, height - 40);
+    ctx.stroke();
     const fixedBinLabels = [
       "0-3", "3-6", "6-9", "9-12", "12-15",
       "15-18", "18-21", "21-24", "24-27", "27-30", "30-33", "33-36"
@@ -122,7 +134,7 @@
 
     ctx.font = "10px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("Overall Sem Score", paddingLeft + (width - paddingLeft - paddingRight) / 2, height - paddingBottom + 35);
+    ctx.fillText("Accumulative semantic scores", paddingLeft + (width - paddingLeft - paddingRight) / 2, height - paddingBottom + 35);
 
     ctx.beginPath();
     ctx.moveTo(paddingLeft, paddingTop);
@@ -213,12 +225,60 @@
       ctx.fillStyle = "#000";
       ctx.font = "10px sans-serif";
       ctx.textAlign = "left";
-      ctx.fillText(`p=${pValue.toExponential(2)}`, width - 200, legendY - 10);
+      ctx.fillText(`p=${pValue.toExponential(2)}`, width - 200, legendY + 20);
     }
 
-    ctx.fillText(`${title[0]}-x\u0305=${highlightMean.toFixed(2)}`, width - 200, legendY + 0);
+    function drawBoxplotLine(ctx, data, color, y) {
+      if (!data || data.length < 3) return;
+
+      const q1 = jStat.quantiles(data, [0.25])[0];
+      const q3 = jStat.quantiles(data, [0.75])[0];
+      const mean = jStat.mean(data);
+
+      const minX = bins[0].min;
+      const maxX = bins[bins.length - 1].max;
+
+      function scaleX(val) {
+        return paddingLeft + (val - minX) / (maxX - minX) * (width - paddingLeft - paddingRight);
+      }
+
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 1;
+
+      ctx.beginPath();
+      ctx.moveTo(scaleX(q1), y);
+      ctx.lineTo(scaleX(q3), y);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(scaleX(q1), y - 3);
+      ctx.lineTo(scaleX(q1), y + 3);
+      ctx.moveTo(scaleX(q3), y - 3);
+      ctx.lineTo(scaleX(q3), y + 3);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(scaleX(mean), y, 2.5, 0, 2 * Math.PI);
+      ctx.fill();
+      const meanX = scaleX(mean);
+      return meanX;
+    }
+
+    const topContainerHeight = paddingTop;
+    ctx.fillStyle = "#f5f5f5";
+    ctx.fillRect(500, 0, width - paddingLeft - paddingRight + 50, topContainerHeight);
+
+    ctx.strokeStyle = "#ccc";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(40, 0, width, topContainerHeight);
+
+    const overallMeanX = drawBoxplotLine(ctx, overallArr, "#666", topContainerHeight - 5);
+    const highlightMeanX = drawBoxplotLine(ctx, highlightArr, "#000", topContainerHeight - 25);
+
+    ctx.fillText(`avg(${title[0]})=${highlightMean.toFixed(2)}`, highlightMeanX / 2, topContainerHeight - 35);
     ctx.fillStyle = "#666";
-    ctx.fillText(`${title[1]}-x\u0305=${overallMean.toFixed(2)}`, width - 200, legendY + 10);
+    ctx.fillText(`avg(${title[1]})=${overallMean.toFixed(2)}`, overallMeanX / 2, topContainerHeight - 15);
   }
 
   onMount(() => {

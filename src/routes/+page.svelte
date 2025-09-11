@@ -1734,10 +1734,7 @@
         let isSuggestionAccept = false;
         if (name === "suggestion-open" && data.info[idx + 1]) {
           const nextEvent = data.info[idx + 1];
-          if (
-            nextEvent.eventSource === "api" &&
-            nextEvent.name === "text-insert"
-          ) {
+          if (nextEvent.eventSource === "api" && nextEvent.name === "text-insert") {
             isSuggestionAccept = true;
           }
         }
@@ -1835,10 +1832,7 @@
       let isSuggestionAccept = false;
       if (name === "suggestion-open" && sortedEvents[idx + 1]) {
         const nextEvent = sortedEvents[idx + 1];
-        if (
-          nextEvent.eventSource === "api" &&
-          nextEvent.name === "text-insert"
-        ) {
+        if (nextEvent.eventSource === "api" && nextEvent.name === "text-insert") {
           isSuggestionAccept = true;
         }
       }
@@ -1858,6 +1852,7 @@
         index: indexOfAct++,
       });
     });
+
 
     paragraphTime = adjustTime(currentCharArray.join(""), chartData);
     for (let i = 0; i < paragraphTime.length - 1; i++) {

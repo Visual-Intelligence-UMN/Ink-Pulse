@@ -481,6 +481,7 @@
             transform={`translate(${zoomTransform.applyX(scaledX(d.time))},${zoomTransform.applyY(scaledY(d.percentage + 6 / zoomTransform.k))}) rotate(180)`}
           />
         {/each}
+
       </g>
     </g>
 
