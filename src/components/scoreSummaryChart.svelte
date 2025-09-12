@@ -202,50 +202,56 @@
       pValue = 2 * (1 - jStat.studentt.cdf(Math.abs(t), df));
     }
 
+    let displayP;
     if (typeof pValue === "number") {
       ctx.fillStyle = "#000";
       ctx.font = "10px sans-serif";
       ctx.textAlign = "left";
       ctx.textBaseline = "top";
-      ctx.fillText(`p = ${pValue.toExponential(2)}`, width - 140, legendY + 30);
+      if (pValue < 1e-16) {
+        displayP = "p<1e-16";
+      } else {
+        displayP = `p=${pValue.toExponential(2)}`;
+      }
+      ctx.fillText(displayP, width - 140, legendY + 30);
     }
 
-    function drawBoxplotLine(ctx, data, color, y) {
-      if (!data || data.length < 3) return;
+    function drawStdErrorBar(ctx, values, color, y) {
+      if (!values || values.length < 3) return;
 
-      const q1 = jStat.quantiles(data, [0.25])[0];
-      const q3 = jStat.quantiles(data, [0.75])[0];
-      const mean = jStat.mean(data);
+      const mean = jStat.mean(values);
+      const stdDev = jStat.stdev(values);
 
-      const minX = Math.min(...labels);
-      const maxX = Math.max(...labels);
+      const minX = labels[0];
+      const maxX = labels[labels.length - 1];
+      const usableWidth = width - paddingLeft;
 
-      function scaleX(val) {
-          return paddingLeft + (val - minX) / (maxX - minX) * (width - paddingLeft);
-      }
+      const meanX = paddingLeft + ((mean - minX) / (maxX - minX)) * usableWidth;
+      const stdDevPx = (stdDev / (maxX - minX)) * usableWidth;
 
       ctx.strokeStyle = color;
-      ctx.fillStyle = color;
       ctx.lineWidth = 1;
-
       ctx.beginPath();
-      ctx.moveTo(scaleX(q1), y);
-      ctx.lineTo(scaleX(q3), y);
+      ctx.moveTo(meanX - stdDevPx, y);
+      ctx.lineTo(meanX + stdDevPx, y);
       ctx.stroke();
 
+      const errorBarHeight = 3;
       ctx.beginPath();
-      ctx.moveTo(scaleX(q1), y - 3);
-      ctx.lineTo(scaleX(q1), y + 3);
-      ctx.moveTo(scaleX(q3), y - 3);
-      ctx.lineTo(scaleX(q3), y + 3);
+      ctx.moveTo(meanX - stdDevPx, y - errorBarHeight);
+      ctx.lineTo(meanX - stdDevPx, y + errorBarHeight);
+      ctx.moveTo(meanX + stdDevPx, y - errorBarHeight);
+      ctx.lineTo(meanX + stdDevPx, y + errorBarHeight);
       ctx.stroke();
 
+      ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.arc(scaleX(mean), y, 2.5, 0, 2 * Math.PI);
+      ctx.arc(meanX, y, 2.5, 0, 2 * Math.PI);
       ctx.fill();
 
-      return scaleX(mean);
-  }
+      return meanX;
+    }
+
   const topContainerHeight = paddingTop;
   ctx.fillStyle = "#f5f5f5"; 
   ctx.fillRect(500, 0, width - paddingLeft, topContainerHeight);
@@ -253,8 +259,8 @@
   ctx.strokeStyle = "#ccc";
   ctx.lineWidth = 1;
   ctx.strokeRect(paddingLeft, 0, width - paddingLeft, topContainerHeight);
-  const overallMeanX = drawBoxplotLine(ctx, rawArr, "#666", topContainerHeight - 5);
-  const nowMeanX = drawBoxplotLine(ctx, nowArr, "#000", topContainerHeight - 25);
+  const overallMeanX = drawStdErrorBar(ctx, rawArr, "#666", topContainerHeight - 5);
+  const nowMeanX = drawStdErrorBar(ctx, nowArr, "#000", topContainerHeight - 25);
   ctx.fillStyle = "#666";
   ctx.fillText(`avg(${title[1]})=${meanFromCounts(rawData).toFixed(1)}`, overallMeanX / 2, topContainerHeight - 20);
   ctx.fillStyle = "#000";
