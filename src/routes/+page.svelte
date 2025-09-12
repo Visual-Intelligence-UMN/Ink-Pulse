@@ -2882,7 +2882,7 @@
             </p>
             <p>
               Want to use your own dataset?
-              <a href=" " on:click={openDatasetHelp}> Check here! </a>.
+              <a href=" " on:click={openDatasetHelp}> Check here!</a>
             </p>
             <button class="start-button" on:click={open2close}
               >Start Exploring</button
