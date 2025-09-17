@@ -289,12 +289,34 @@
     ctx.strokeStyle = "#ccc";
     ctx.lineWidth = 1;
     ctx.strokeRect(paddingLeft, 0, width - paddingLeft, topContainerHeight);
+
+    function truncateText(text, maxChars = 8) {
+      const match = text.match(/^avg\((.*?)\)=(.*)$/);
+      if (!match) return text;
+
+      let inside = match[1];
+      const after = parseFloat(match[2]).toFixed(2);
+
+      if (inside.length > maxChars) {
+        inside = inside.slice(0, maxChars) + "…";
+      }
+
+      return `avg(${inside})=${after}`;
+    }
+
     ctx.fillStyle = "#000";
-    ctx.textBaseline = "top";
-    ctx.textAlign = "left";
-    ctx.fillText(`avg(${title[0]})=${highlightMean.toFixed(2)}`, highlightMeanX / 2, 0);
+    ctx.fillText(
+      truncateText(`avg(${title[0]})=${highlightMean}`),
+      highlightMeanX / 2,
+      0
+    );
+
     ctx.fillStyle = "#666";
-    ctx.fillText(`avg(${title[1]})=${overallMean.toFixed(2)}`, overallMeanX / 2, 20);
+    ctx.fillText(
+      truncateText(`avg(${title[1]})=${overallMean}`),
+      overallMeanX / 2,
+      20
+    );
   }
 
   onMount(() => {

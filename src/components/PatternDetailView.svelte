@@ -28,16 +28,15 @@
   let overallSemScoreSummaryData = init.overallSemScoreSummaryData;
   let flag = "overall";
   let selectedIdDataset = `${init.id}::${init.dataset}`;
-  let title = [pattern.name, normalizeName(findPatternByKey(selectedIdDataset)?.name)];
+  $: title = [
+    pattern?.name,
+    normalizeName(findPatternByKey(selectedIdDataset)?.name)
+  ];
   
   const dispatch = createEventDispatcher();
   
   function handleBack() {
     dispatch('back');
-  }
-  
-  function handleApplyPattern() {
-    dispatch('apply-pattern', { pattern });
   }
   
   function handleEditPattern() {
@@ -133,7 +132,6 @@
       }
     }
   }
-  console.log(pattern.searchDetail.flag.isSemanticChecked)
 </script>
 
 <div class="pattern-detail-container">
@@ -384,12 +382,9 @@
   </div>
   
   <div class="action-buttons">
-    <button class="btn btn-primary" on:click={handleApplyPattern}>
-      Apply This Pattern
-    </button>
-    <button class="btn btn-secondary" on:click={handleEditPattern}>
+    <!-- <button class="btn btn-secondary" on:click={handleEditPattern}>
       Edit Pattern
-    </button>
+    </button> -->
     <button class="btn btn-danger" on:click={handleDeletePattern}>
       Delete Pattern
     </button>

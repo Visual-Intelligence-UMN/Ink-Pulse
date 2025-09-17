@@ -280,9 +280,32 @@
     const overallMeanX = drawStdErrorBar(ctx, overallArr, "#666", topContainerHeight - 5);
     const highlightMeanX = drawStdErrorBar(ctx, highlightArr, "#000", topContainerHeight - 25);
 
-    ctx.fillText(`avg(${title[0]})=${highlightMean.toFixed(0)}`, highlightMeanX / 2, topContainerHeight - 35);
+    function truncateText(text, maxChars = 10) {
+      const match = text.match(/^avg\((.*?)\)=(.*)$/);
+      if (!match) return text;
+
+      let inside = match[1];
+      const after = match[2];
+
+      if (inside.length > maxChars) {
+        inside = inside.slice(0, maxChars) + "…";
+      }
+
+      return `avg(${inside})=${after}`;
+    }
+
+    ctx.fillText(
+      truncateText(`avg(${title[0]})=${highlightMean.toFixed(0)}`),
+      highlightMeanX / 2,
+      topContainerHeight - 35
+    );
+
     ctx.fillStyle = "#666";
-    ctx.fillText(`avg(${title[1]})=${overallMean.toFixed(0)}`, overallMeanX / 2, topContainerHeight - 15);
+    ctx.fillText(
+      truncateText(`avg(${title[1]})=${overallMean.toFixed(0)}`),
+      overallMeanX / 2,
+      topContainerHeight - 15
+    );
   }
 
   onMount(() => {
