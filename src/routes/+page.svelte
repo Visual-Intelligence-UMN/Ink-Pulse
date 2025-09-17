@@ -612,10 +612,10 @@
   }
 
   function findSegments(data, checks, minCount) {
-    console.log("=== findSegments Debug ===");
-    console.log("data.length:", data.length);
-    console.log("checks:", checks);
-    console.log("minCount:", minCount);
+    // console.log("=== findSegments Debug ===");
+    // console.log("data.length:", data.length);
+    // console.log("checks:", checks);
+    // console.log("minCount:", minCount);
 
     const segments = [];
     const isSourceCheckRequired =
@@ -627,19 +627,19 @@
     const isTimeCheckRequired =
       isExactSearchTime && checks.time && checks.time[0];
 
-    console.log("Check requirements:", {
-      isSourceCheckRequired,
-      isTrendCheckRequired,
-      isProgressCheckRequired,
-      isTimeCheckRequired,
-    });
+    // console.log("Check requirements:", {
+    //   isSourceCheckRequired,
+    //   isTrendCheckRequired,
+    //   isProgressCheckRequired,
+    //   isTimeCheckRequired,
+    // });
 
     for (let i = 1; i <= data.length - minCount; i++) {
       const window = data.slice(i, i + minCount);
 
       // Safety check
       if (!window || window.length === 0 || !window[0]) {
-        console.log("Invalid window at index", i, "window:", window);
+        // console.log("Invalid window at index", i, "window:", window);
         continue;
       }
 
@@ -653,7 +653,7 @@
           typeof window[0].start_progress !== "number" ||
           typeof window[window.length - 1].end_progress !== "number"
         ) {
-          console.log("Missing progress data in window:", window[0]);
+          // console.log("Missing progress data in window:", window[0]);
           continue;
         }
 
@@ -684,14 +684,14 @@
 
       if (checks.time && checks.time[0]) {
         let [minTime, maxTime] = checks.time[1];
-        console.log("Time check - original range:", minTime, maxTime);
+        // console.log("Time check - original range:", minTime, maxTime);
 
         // Check if required time properties exist
         if (
           typeof window[0].start_time !== "number" ||
           typeof window[window.length - 1].end_time !== "number"
         ) {
-          console.log("Missing time data in window:", window[0]);
+          // console.log("Missing time data in window:", window[0]);
           continue;
         }
 
@@ -702,14 +702,14 @@
         const startTime = window[0].start_time;
         const endTime = window[window.length - 1].end_time;
         const deltaTime = endTime - startTime;
-        console.log("Time check - converted range:", minTime, maxTime);
-        console.log(
-          "Window time range:",
-          startTime,
-          endTime,
-          "delta:",
-          deltaTime
-        );
+        // console.log("Time check - converted range:", minTime, maxTime);
+        // console.log(
+        //   "Window time range:",
+        //   startTime,
+        //   endTime,
+        //   "delta:",
+        //   deltaTime
+        // );
         const relaxedStartMin = minTime - relax;
         const relaxedStartMax = minTime + relax;
         const relaxedEndMin = maxTime - relax;
@@ -842,14 +842,14 @@
     const count =
       sessionData.count || Math.max(1, sessionData.data?.length || 1);
 
-    console.log("=== Search Pattern Debug ===");
-    console.log("sessionData:", sessionData);
-    console.log("sessionData.count:", sessionData.count);
-    console.log("sessionData.data length:", sessionData.data?.length);
-    console.log("isTimeChecked:", isTimeChecked);
-    console.log("timeRange:", timeRange);
-    console.log("isProgressChecked:", isProgressChecked);
-    console.log("writingProgressRange:", writingProgressRange);
+    // console.log("=== Search Pattern Debug ===");
+    // console.log("sessionData:", sessionData);
+    // console.log("sessionData.count:", sessionData.count);
+    // console.log("sessionData.data length:", sessionData.data?.length);
+    // console.log("isTimeChecked:", isTimeChecked);
+    // console.log("timeRange:", timeRange);
+    // console.log("isProgressChecked:", isProgressChecked);
+    // console.log("writingProgressRange:", writingProgressRange);
 
     searchDetail = {
       sessionId,
@@ -862,6 +862,7 @@
         isProgressChecked,
         isTimeChecked,
         isSourceChecked,
+        isSemanticChecked,
         isValueRangeChecked,
         isValueTrendChecked,
         isExactSearchSource,
@@ -880,7 +881,7 @@
       trend: [isValueTrendChecked, semanticTrend],
     };
 
-    console.log("checks:", checks);
+    // console.log("checks:", checks);
 
     try {
       const fileListResponse = await fetch(
@@ -905,24 +906,24 @@
         delete data.paragraphColor;
         delete data.textElements;
 
-        console.log("Processing file:", fileName);
-        console.log("Data structure keys:", Object.keys(data));
-        console.log("Data.chartData length:", data.chartData?.length);
-        console.log("Data is array?", Array.isArray(data));
-        console.log("Data length:", data.length);
-        if (Array.isArray(data) && data.length > 0) {
-          console.log("Sample data item:", data[0]);
-        } else if (data.chartData && data.chartData.length > 0) {
-          console.log("Sample chartData item:", data.chartData[0]);
-        }
+        // console.log("Processing file:", fileName);
+        // console.log("Data structure keys:", Object.keys(data));
+        // console.log("Data.chartData length:", data.chartData?.length);
+        // console.log("Data is array?", Array.isArray(data));
+        // console.log("Data length:", data.length);
+        // if (Array.isArray(data) && data.length > 0) {
+        //   console.log("Sample data item:", data[0]);
+        // } else if (data.chartData && data.chartData.length > 0) {
+        //   console.log("Sample chartData item:", data.chartData[0]);
+        // }
 
         // Use the correct data structure
         const dataToProcess = Array.isArray(data)
           ? data
           : data.chartData || data.totalSimilarityData || [];
 
-        console.log("Data to process length:", dataToProcess.length);
-        console.log("Count:", count);
+        // console.log("Data to process length:", dataToProcess.length);
+        // console.log("Count:", count);
 
         const segments = findSegments(dataToProcess, checks, count);
         const extractedFileName = fileName
@@ -1145,7 +1146,7 @@
     }
 
     if (sharedSelection && sharedSelection.selectionSource === "lineChart_x") {
-      console.log("Setting lineChart_x options");
+      // console.log("Setting lineChart_x options");
       isProgressChecked = true;
       isTimeChecked = true;
       isSourceChecked = false;
@@ -1156,19 +1157,19 @@
       isExactSearchProgress = true;
       isExactSearchSource = false;
       isExactSearchTrend = false;
-      console.log(
-        "After setting lineChart_x - isProgressChecked:",
-        isProgressChecked,
-        "isTimeChecked:",
-        isTimeChecked,
-        "isSourceChecked:",
-        isSourceChecked
-      );
+      // console.log(
+      //   "After setting lineChart_x - isProgressChecked:",
+      //   isProgressChecked,
+      //   "isTimeChecked:",
+      //   isTimeChecked,
+      //   "isSourceChecked:",
+      //   isSourceChecked
+      // );
     } else if (
       sharedSelection &&
       sharedSelection.selectionSource === "lineChart_y"
     ) {
-      console.log("Setting lineChart_y options");
+      // console.log("Setting lineChart_y options");
       isProgressChecked = true;
       isTimeChecked = true;
       isSourceChecked = true;
@@ -1183,7 +1184,7 @@
       sharedSelection &&
       sharedSelection.selectionSource === "barChart_y"
     ) {
-      console.log("Setting barChart_y options");
+      // console.log("Setting barChart_y options");
       isProgressChecked = true;
       isTimeChecked = false;
       isSourceChecked = true;
@@ -1194,7 +1195,7 @@
       isExactSearchSource = true;
       isExactSearchTrend = true;
     } else {
-      console.log("Setting default options");
+      // console.log("Setting default options");
       isProgressChecked = false;
       isTimeChecked = false;
       isSourceChecked = true;
@@ -1938,14 +1939,14 @@
 
   function handlePatternContextMenu(event) {
     const { pattern } = event.detail;
-    console.log("Right clicked on pattern from table:", pattern.name);
+    // console.log("Right clicked on pattern from table:", pattern.name);
   }
 
   $: showPatternColumn = $searchPatternSet && $searchPatternSet.length > 0;
   let maxVisible = 8;
   function handleShowMorePatterns() {
     maxVisible = $searchPatternSet.length;
-    console.log(`Total patterns: ${$searchPatternSet.length}`);
+    // console.log(`Total patterns: ${$searchPatternSet.length}`);
   }
 
   function handleBackFromDetail() {
@@ -2341,14 +2342,14 @@
                     >
                       <div
                         style="
-    display: flex;
-    gap: 0;
-    width: 100%;
-    align-items: flex-start;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    background-color: white;
-  "
+                          display: flex;
+                          gap: 0;
+                          width: 100%;
+                          align-items: flex-start;
+                          border: 1px solid #e0e0e0;
+                          border-radius: 4px;
+                          background-color: white;
+                        "
                       >
                         <!-- Pattern chart -->
                         <div
@@ -2372,12 +2373,12 @@
                         >
                           <div
                             style="
-        position: relative;
-        height: 160px;
-        overflow: hidden;
-        transform-origin: top left;
-        margin-left: 0;
-      "
+                              position: relative;
+                              height: 160px;
+                              overflow: hidden;
+                              transform-origin: top left;
+                              margin-left: 0;
+                            "
                           >
                             <LineChartPreview
                               bind:this={chartRefs[sessionId]}
@@ -2554,10 +2555,10 @@
                           <LineChartPreview
                             bind:this={chartRefs[sessionId]}
                             chartData={(() => {
-                              // 优先使用当前会话数据，确保图表不消失
+                              // Make sure charts always display
                               let data = $clickSession?.chartData;
 
-                              // 如果当前会话数据不可用，尝试使用模式数据
+                              // If current data cannot use
                               if (
                                 !data ||
                                 !Array.isArray(data) ||
@@ -2566,16 +2567,16 @@
                                 data = pattern.wholeData;
                               }
 
-                              // 最后的兜底：空数组
+                              // Empty array
                               if (!data || !Array.isArray(data)) {
                                 data = [];
                               }
 
-                              console.log(
-                                "LineChartPreview chartData:",
-                                data?.length,
-                                "items"
-                              );
+                              // console.log(
+                              //   "LineChartPreview chartData:",
+                              //   data?.length,
+                              //   "items"
+                              // );
                               return data;
                             })()}
                             selectedTimeRange={pattern.selectedTimeRange}
