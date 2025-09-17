@@ -261,10 +261,35 @@
   ctx.strokeRect(paddingLeft, 0, width - paddingLeft, topContainerHeight);
   const overallMeanX = drawStdErrorBar(ctx, rawArr, "#666", topContainerHeight - 5);
   const nowMeanX = drawStdErrorBar(ctx, nowArr, "#000", topContainerHeight - 25);
+  
+  function truncateText(text, maxChars = 8) {
+    const match = text.match(/^avg\((.*?)\)=(.*)$/);
+    if (!match) return text;
+
+    let inside = match[1];
+    const after = parseFloat(match[2]).toFixed(1);
+
+    if (inside.length > maxChars) {
+      inside = inside.slice(0, maxChars) + "…";
+    }
+
+    return `avg(${inside})=${after}`;
+  }
+
   ctx.fillStyle = "#666";
-  ctx.fillText(`avg(${title[1]})=${meanFromCounts(rawData).toFixed(1)}`, overallMeanX / 2, topContainerHeight - 20);
+  ctx.fillText(
+    truncateText(`avg(${title[1]})=${meanFromCounts(rawData)}`),
+    overallMeanX / 2,
+    topContainerHeight - 20
+  );
+
   ctx.fillStyle = "#000";
-  ctx.fillText(`avg(${title[0]})=${meanFromCounts(nowData).toFixed(1)}`, nowMeanX / 2, topContainerHeight - 40);
+  ctx.fillText(
+    truncateText(`avg(${title[0]})=${meanFromCounts(nowData)}`),
+    nowMeanX / 2,
+    topContainerHeight - 40
+  );
+
   }
 
   onMount(() => {
