@@ -76,7 +76,7 @@
             .attr("fill", "black")
             .attr("text-anchor", "middle")
             .style("font-size", "10px")
-            .text("Progress (%)");
+            .text("Writing length");
 
         svg.selectAll(".bar-whole")
             .data(wholeProcessedData)

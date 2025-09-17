@@ -133,6 +133,7 @@
       }
     }
   }
+  console.log(pattern.searchDetail.flag.isSemanticChecked)
 </script>
 
 <div class="pattern-detail-container">
@@ -209,7 +210,20 @@
             disabled
           />
           Writing Progress
-          <div style="flex: 1;"></div>
+          <div></div>
+            <label
+              class="switch"
+              style="transform: translateY(1px);"
+            >
+            <input
+              type="checkbox"
+              class="readonly"
+              checked={pattern.searchDetail.flag.isExactSearchProgress}
+              disabled
+              hidden
+            />
+            <span class="slider readonly"></span>
+            </label>
         </div>
         <div
           style="display: flex; align-items: center; font-size: 13px; color: #5f6368;"
@@ -220,7 +234,20 @@
             checked={pattern.searchDetail.flag.isTimeChecked}
             disabled />
           Time
-          <div style="flex: 1"></div>
+          <div></div>
+          <label
+              class="switch"
+              style="transform: translateY(1px);"
+            >
+            <input
+              type="checkbox"
+              class="readonly"
+              checked={pattern.searchDetail.flag.isTimeCheckRequired}
+              disabled
+              hidden
+            />
+            <span class="slider readonly"></span>
+            </label>
         </div>
         <div
           style="font-size: 13px; color: #5f6368;"
@@ -232,19 +259,6 @@
             disabled
           />
           Source(human/AI)
-          <label
-            class="switch"
-            style="transform: translateY(4px);"
-          >
-            <input
-              type="checkbox"
-              class="readonly"
-              checked={pattern.searchDetail.flag.isExactSearchSource}
-              disabled
-              hidden
-            />
-            <span class="slider readonly"></span>
-          </label>
         </div>
         <div style="font-size: 13px; color: #5f6368;">
           <div>
@@ -274,19 +288,6 @@
                 disabled
               />
               Value Trend
-              <label
-                class="switch"
-                style="transform: translateY(4px);"
-              >
-                <input
-                  type="checkbox"
-                  class="readonly"
-                  checked={pattern.searchDetail.flag.isExactSearchTrend}
-                  disabled
-                  hidden
-                />
-                <span class="slider readonly"></span>
-              </label>
             </div>
           </div>
         </div>
