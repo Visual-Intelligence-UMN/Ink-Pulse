@@ -140,6 +140,11 @@
   // Edit pattern dialog state
   let showEditDialog = false;
   let patternToEdit = null;
+
+  // Search functionality
+  let searchQuery = "";
+  let searchResults = [];
+  let showSearchResults = false;
   let isProgressChecked = false;
   let isTimeChecked = false;
   let isSourceChecked = true;
@@ -1271,6 +1276,20 @@
     clickSession.set([]);
   }
 
+  function backToLanding() {
+    selectedCategoryFilter = null;
+    filteredByCategory = [];
+
+    const originalFilteredData = tableData.filter((session) =>
+      $selectedTags.includes(session.prompt_code)
+    );
+    const originalUpdatedData = originalFilteredData.map((row) => ({
+      ...row,
+      selected: true,
+    }));
+    filterTableData.set(originalUpdatedData);
+  }
+
   const fetchLengthData = async () => {
     try {
       const response = await fetch(
@@ -1735,7 +1754,10 @@
         let isSuggestionAccept = false;
         if (name === "suggestion-open" && data.info[idx + 1]) {
           const nextEvent = data.info[idx + 1];
-          if (nextEvent.eventSource === "api" && nextEvent.name === "text-insert") {
+          if (
+            nextEvent.eventSource === "api" &&
+            nextEvent.name === "text-insert"
+          ) {
             isSuggestionAccept = true;
           }
         }
@@ -1833,7 +1855,10 @@
       let isSuggestionAccept = false;
       if (name === "suggestion-open" && sortedEvents[idx + 1]) {
         const nextEvent = sortedEvents[idx + 1];
-        if (nextEvent.eventSource === "api" && nextEvent.name === "text-insert") {
+        if (
+          nextEvent.eventSource === "api" &&
+          nextEvent.name === "text-insert"
+        ) {
           isSuggestionAccept = true;
         }
       }
@@ -1853,7 +1878,6 @@
         index: indexOfAct++,
       });
     });
-
 
     paragraphTime = adjustTime(currentCharArray.join(""), chartData);
     for (let i = 0; i < paragraphTime.length - 1; i++) {
@@ -2115,6 +2139,61 @@
     if (panel) panel.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  // Search functionality
+  function handleSearch() {
+    if (!searchQuery.trim()) {
+      searchResults = [];
+      showSearchResults = false;
+      return;
+    }
+
+    // Search through all sessions in initData
+    const query = searchQuery.toLowerCase().trim();
+    searchResults = $initData
+      .filter(
+        (session) =>
+          session.sessionId && session.sessionId.toLowerCase().includes(query)
+      )
+      .slice(0, 10); // Limit to 10 results
+
+    showSearchResults = searchResults.length > 0;
+  }
+
+  function handleSearchInput(event) {
+    searchQuery = event.target.value;
+    handleSearch();
+  }
+
+  function selectSearchResult(sessionId) {
+    // Navigate to the session detail
+    handleContainerClick({ detail: { sessionId } });
+
+    // Clear search
+    searchQuery = "";
+    searchResults = [];
+    showSearchResults = false;
+  }
+
+  function handleSearchKeydown(event) {
+    if (event.key === "Enter") {
+      if (searchResults.length > 0) {
+        selectSearchResult(searchResults[0].sessionId);
+      }
+    } else if (event.key === "Escape") {
+      searchQuery = "";
+      searchResults = [];
+      showSearchResults = false;
+    }
+  }
+
+  // Close search results when clicking outside
+  function handleDocumentClick(event) {
+    const searchContainer = document.querySelector(".search-container");
+    if (searchContainer && !searchContainer.contains(event.target)) {
+      showSearchResults = false;
+    }
+  }
+
   let showButton = false;
   async function updateVisibility() {
     await tick();
@@ -2128,8 +2207,12 @@
     updateVisibility();
     window.addEventListener("resize", updateVisibility);
 
+    // Add document click listener for search
+    document.addEventListener("click", handleDocumentClick);
+
     return () => {
       window.removeEventListener("resize", updateVisibility);
+      document.removeEventListener("click", handleDocumentClick);
     };
   });
 </script>
@@ -2165,6 +2248,96 @@
         <span class="user-line">●</span> User &nbsp;
         <span class="api-line">●</span> AI
       </div>
+
+      <!-- Search Box -->
+      <div
+        class="search-container"
+        style="position: relative; margin-left: 20px;"
+      >
+        <input
+          type="text"
+          placeholder="Search Session ID..."
+          bind:value={searchQuery}
+          on:input={handleSearchInput}
+          on:keydown={handleSearchKeydown}
+          class="search-input"
+          style="
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            width: 200px;
+            outline: none;
+          "
+        />
+
+        {#if showSearchResults && searchResults.length > 0}
+          <div
+            class="search-results"
+            style="
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+          "
+          >
+            {#each searchResults as session}
+              <div
+                class="search-result-item"
+                on:click={() => selectSearchResult(session.sessionId)}
+                style="
+                  padding: 8px 12px;
+                  cursor: pointer;
+                  border-bottom: 1px solid #eee;
+                  font-size: 13px;
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                "
+              >
+                <span style="font-weight: 500;">{session.sessionId}</span>
+                {#if session.llmScore}
+                  <span style="color: #666; font-size: 12px;"
+                    >Score: {session.llmScore}</span
+                  >
+                {/if}
+              </div>
+            {/each}
+          </div>
+        {/if}
+
+        {#if showSearchResults && searchResults.length === 0 && searchQuery.trim()}
+          <div
+            class="search-results"
+            style="
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 12px;
+            text-align: center;
+            color: #666;
+            font-size: 13px;
+          "
+          >
+            No sessions found
+          </div>
+        {/if}
+      </div>
       <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded"
         rel="stylesheet"
@@ -2174,6 +2347,22 @@
           on:click={change2bar}
           href=" "
           aria-label="Toggle View"
+          class="humbleicons--arrow-go-back"
+        ></a>
+      {/if}
+      {#if selectedCategoryFilter}
+        <a
+          on:click={backToLanding}
+          href=" "
+          aria-label="Back to Landing"
+          class="humbleicons--arrow-go-back"
+        ></a>
+      {/if}
+      {#if currentView === "pattern-detail"}
+        <a
+          on:click={handleBackFromDetail}
+          href=" "
+          aria-label="Back from Pattern Detail"
           class="humbleicons--arrow-go-back"
         ></a>
       {/if}
@@ -3476,6 +3665,24 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  /* Search Box Styles */
+  .search-input {
+    transition: all 0.2s ease;
+  }
+
+  .search-input:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1) !important;
+  }
+
+  .search-result-item:hover {
+    background-color: #f8f9fa !important;
+  }
+
+  .search-result-item:last-child {
+    border-bottom: none !important;
   }
 
   .chart-explanation {
