@@ -2215,6 +2215,16 @@
       document.removeEventListener("click", handleDocumentClick);
     };
   });
+
+  function handleNavigation() {
+    if (currentView === "pattern-detail") {
+      handleBackFromDetail();
+    } else if (selectedCategoryFilter) {
+      backToLanding();
+    } else if (showMulti) {
+      change2bar();
+    }
+  }
 </script>
 
 <div class="App">
@@ -2228,13 +2238,14 @@
               alt="InkPulse Logo"
               class="ink-icon"
               style="width: 40px; height: auto; cursor: pointer;"
-              on:click={change2main}
+              on:click={handleNavigation}
             />
+
             <span
               class="brand-name"
               style="cursor: pointer;"
-              on:click={change2main}>InkPulse</span
-            >
+              on:click={handleNavigation}
+            >InkPulse</span>
           </div>
         </div>
       </div>
@@ -2342,27 +2353,25 @@
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded"
         rel="stylesheet"
       />
-      {#if showMulti}
+      {#if currentView === "pattern-detail"}
+        <a
+          on:click={handleBackFromDetail}
+          href=" "
+          aria-label="Back from Pattern Detail"
+          class="humbleicons--arrow-go-back"
+        ></a>
+      {:else if showMulti}
         <a
           on:click={change2bar}
           href=" "
           aria-label="Toggle View"
           class="humbleicons--arrow-go-back"
         ></a>
-      {/if}
-      {#if selectedCategoryFilter}
+      {:else if selectedCategoryFilter}
         <a
           on:click={backToLanding}
           href=" "
           aria-label="Back to Landing"
-          class="humbleicons--arrow-go-back"
-        ></a>
-      {/if}
-      {#if currentView === "pattern-detail"}
-        <a
-          on:click={handleBackFromDetail}
-          href=" "
-          aria-label="Back from Pattern Detail"
           class="humbleicons--arrow-go-back"
         ></a>
       {/if}
@@ -2470,6 +2479,7 @@
                   on:pattern-contextmenu={handlePatternContextMenu}
                   on:show-more-patterns={handleShowMorePatterns}
                   {maxVisible}
+                  dataset={selectedDataset}
                 />
               </div>
             </div>
@@ -3121,16 +3131,16 @@
                           on:click={() => handleSort("topic")}
                           style="min-width: 70px;"
                         >
-                          <span>Topic</span>
-                          <span class="sort-icon">{getSortIcon("topic")}</span>
+                          <span style="cursor: pointer;">Topic</span>
+                          <span class="sort-icon" style="cursor: pointer;">{getSortIcon("topic")}</span>
                         </th>
                         <th
                           class="sortable-header"
                           on:click={() => handleSort("score")}
                           style="min-width: 90px;"
                         >
-                          <span>Score</span>
-                          <span class="sort-icon">{getSortIcon("score")}</span>
+                          <span style="cursor: pointer;">Score</span>
+                          <span class="sort-icon" style="cursor: pointer;">{getSortIcon("score")}</span>
                         </th>
                         {#if showPatternColumn}
                           <th
@@ -3138,8 +3148,8 @@
                             on:click={() => handleSort("pattern")}
                             style="min-width: 100px;"
                           >
-                            <span>Pattern</span>
-                            <span class="sort-icon"
+                            <span style="cursor: pointer;">Pattern</span>
+                            <span class="sort-icon" style="cursor: pointer;"
                               >{getSortIcon("pattern")}</span
                             >
                           </th>
@@ -3184,8 +3194,8 @@
                             on:click={() => handleSort("topic")}
                             style="min-width: 70px;"
                           >
-                            <span>Topic</span>
-                            <span class="sort-icon">{getSortIcon("topic")}</span
+                            <span style="cursor: pointer;">Topic</span>
+                            <span class="sort-icon" style="cursor: pointer;">{getSortIcon("topic")}</span
                             >
                           </th>
                           <th
@@ -3193,8 +3203,8 @@
                             on:click={() => handleSort("score")}
                             style="min-width: 90px;"
                           >
-                            <span>Score</span>
-                            <span class="sort-icon">{getSortIcon("score")}</span
+                            <span style="cursor: pointer;">Score</span>
+                            <span class="sort-icon" style="cursor: pointer;">{getSortIcon("score")}</span
                             >
                           </th>
                           {#if showPatternColumn}
@@ -3203,8 +3213,8 @@
                               on:click={() => handleSort("pattern")}
                               style="min-width: 100px;"
                             >
-                              <span>Pattern</span>
-                              <span class="sort-icon"
+                              <span style="cursor: pointer;">Pattern</span>
+                              <span class="sort-icon" style="cursor: pointer;"
                                 >{getSortIcon("pattern")}</span
                               >
                             </th>

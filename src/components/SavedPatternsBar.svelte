@@ -5,6 +5,7 @@
   export let patterns = [];
   export let activePatternId = null;
   export let maxVisible = 8;
+  export let dataset = '';
 
   const dispatch = createEventDispatcher();
 
@@ -21,9 +22,10 @@
   }
 
   $: visiblePatterns = patterns
-    .filter((p) => p.id !== "pattern_0")
+    .filter((p) => p.dataset === dataset && p.id !== "pattern_0")
     .slice(0, maxVisible);
-  $: remainingCount = Math.max(0, patterns.length - maxVisible);
+
+  $: remainingCount = Math.max(0, patterns.filter((p) => p.dataset === dataset && p.id !== "pattern_0").length - maxVisible);
 </script>
 
 <div class="saved-patterns-bar">
