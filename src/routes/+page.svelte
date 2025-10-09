@@ -25,6 +25,7 @@
   import {
     searchPatternSet,
     exportDB,
+    exportSinglePattern,
     triggerImport,
     loadPattern,
   } from "../components/cache.js";
@@ -145,6 +146,9 @@
   let searchQuery = "";
   let searchResults = [];
   let showSearchResults = false;
+
+  // Export functionality
+  let showExportMenu = false;
   let isProgressChecked = false;
   let isTimeChecked = false;
   let isSourceChecked = true;
@@ -2192,6 +2196,43 @@
     if (searchContainer && !searchContainer.contains(event.target)) {
       showSearchResults = false;
     }
+
+    // Close export menu when clicking outside
+    const exportContainer = document.querySelector(".export-dropdown");
+    if (exportContainer && !exportContainer.contains(event.target)) {
+      showExportMenu = false;
+    }
+  }
+
+  // Export functions
+  function toggleExportMenu() {
+    showExportMenu = !showExportMenu;
+    // 调试信息
+    if (showExportMenu) {
+      console.log("=== Export Menu Debug ===");
+      console.log("searchPatternSet:", $searchPatternSet);
+      console.log("selectedDataset:", selectedDataset);
+      console.log(
+        "all patterns:",
+        $searchPatternSet.filter((p) => p.id !== "pattern_0")
+      );
+      console.log(
+        "filtered patterns:",
+        $searchPatternSet.filter(
+          (p) => p.dataset === selectedDataset && p.id !== "pattern_0"
+        )
+      );
+    }
+  }
+
+  async function handleExportAll() {
+    showExportMenu = false;
+    await exportDB();
+  }
+
+  async function handleExportSingle(patternId) {
+    showExportMenu = false;
+    await exportSinglePattern(patternId);
   }
 
   let showButton = false;
@@ -2244,8 +2285,8 @@
             <span
               class="brand-name"
               style="cursor: pointer;"
-              on:click={handleNavigation}
-            >InkPulse</span>
+              on:click={handleNavigation}>InkPulse</span
+            >
           </div>
         </div>
       </div>
@@ -2456,14 +2497,57 @@
               </button>
 
               {#if $searchPatternSet && $searchPatternSet.length > 1}
-                <button
-                  class="search-pattern-button"
-                  on:click={exportDB}
-                  aria-label="Download patterns"
-                  title="Download saved patterns"
-                >
-                  Download
-                </button>
+                <div class="export-dropdown">
+                  <button
+                    class="search-pattern-button"
+                    on:click={toggleExportMenu}
+                    aria-label="Download patterns"
+                    title="Download saved patterns"
+                  >
+                    Download ▼
+                  </button>
+
+                  {#if showExportMenu}
+                    <div class="export-menu">
+                      <button
+                        class="export-option"
+                        on:click={handleExportAll}
+                        title="Export all patterns as separate files"
+                      >
+                        📁 Export All (Separate Files)
+                      </button>
+
+                      <div class="export-divider">Individual Patterns:</div>
+
+                      {#each $searchPatternSet.filter((p) => p.dataset === selectedDataset && p.id !== "pattern_0") as pattern}
+                        <button
+                          class="export-option pattern-export"
+                          on:click={() => handleExportSingle(pattern.id)}
+                          title="Export {pattern.name}"
+                        >
+                          <span
+                            class="pattern-color"
+                            style="background-color: {pattern.color}"
+                          ></span>
+                          {pattern.name}
+                        </button>
+                      {:else}
+                        <div class="export-no-patterns">
+                          No patterns found for dataset: {selectedDataset}
+                          <br />
+                          <small>Available patterns in other datasets:</small>
+                          {#each $searchPatternSet.filter((p) => p.id !== "pattern_0") as pattern}
+                            <small class="other-dataset-pattern">
+                              • {pattern.name} ({pattern.dataset})
+                            </small>
+                          {:else}
+                            <small>No saved patterns yet</small>
+                          {/each}
+                        </div>
+                      {/each}
+                    </div>
+                  {/if}
+                </div>
               {/if}
             </div>
           </div>
@@ -3132,7 +3216,9 @@
                           style="min-width: 70px;"
                         >
                           <span style="cursor: pointer;">Topic</span>
-                          <span class="sort-icon" style="cursor: pointer;">{getSortIcon("topic")}</span>
+                          <span class="sort-icon" style="cursor: pointer;"
+                            >{getSortIcon("topic")}</span
+                          >
                         </th>
                         <th
                           class="sortable-header"
@@ -3140,7 +3226,9 @@
                           style="min-width: 90px;"
                         >
                           <span style="cursor: pointer;">Score</span>
-                          <span class="sort-icon" style="cursor: pointer;">{getSortIcon("score")}</span>
+                          <span class="sort-icon" style="cursor: pointer;"
+                            >{getSortIcon("score")}</span
+                          >
                         </th>
                         {#if showPatternColumn}
                           <th
@@ -3195,7 +3283,8 @@
                             style="min-width: 70px;"
                           >
                             <span style="cursor: pointer;">Topic</span>
-                            <span class="sort-icon" style="cursor: pointer;">{getSortIcon("topic")}</span
+                            <span class="sort-icon" style="cursor: pointer;"
+                              >{getSortIcon("topic")}</span
                             >
                           </th>
                           <th
@@ -3204,7 +3293,8 @@
                             style="min-width: 90px;"
                           >
                             <span style="cursor: pointer;">Score</span>
-                            <span class="sort-icon" style="cursor: pointer;">{getSortIcon("score")}</span
+                            <span class="sort-icon" style="cursor: pointer;"
+                              >{getSortIcon("score")}</span
                             >
                           </th>
                           {#if showPatternColumn}
@@ -4051,5 +4141,107 @@
 
     display: inline-block;
     transform: translateZ(0);
+  }
+
+  /* Export dropdown styles */
+  .export-dropdown {
+    position: relative;
+    display: inline-block;
+  }
+
+  .export-menu {
+    position: absolute;
+    top: 100%;
+    left: 0; /* 改为左对齐，避免超出屏幕 */
+    background: white;
+    border: 2px solid #007acc;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    z-index: 9999;
+    min-width: 300px;
+    max-width: 400px;
+    margin-top: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: #ffffff;
+  }
+
+  .export-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 16px 20px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    border-radius: 0;
+    color: #333;
+  }
+
+  .export-option:first-child {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+
+  .export-option:last-child {
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+  }
+
+  .export-option:hover {
+    background-color: #f5f5f5;
+  }
+
+  .export-divider {
+    padding: 12px 20px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #666;
+    background-color: #f9f9f9;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .pattern-export {
+    font-size: 12px;
+  }
+
+  .pattern-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    display: inline-block;
+    flex-shrink: 0;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .export-no-patterns {
+    padding: 16px;
+    color: #666;
+    font-size: 12px;
+    text-align: left;
+    font-style: italic;
+    border-top: 1px solid #eee;
+  }
+
+  .export-no-patterns small {
+    color: #999;
+    font-size: 10px;
+    display: block;
+    margin-top: 4px;
+  }
+
+  .other-dataset-pattern {
+    display: block;
+    margin-left: 8px;
+    margin-top: 2px;
+    color: #777;
   }
 </style>
