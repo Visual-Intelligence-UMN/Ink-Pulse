@@ -25,21 +25,6 @@ def merge_csv_with_json(csv_data, fine_session):
 
     return updated_fine_session
 
-def merge_csv_with_json(csv_data, fine_session):
-    session_data = {}
-    for entry in csv_data:
-        session_data[entry['session_id']] = entry  
-    
-    updated_fine_session = []
-    for session_filename in fine_session:
-        session_id = session_filename.split('.')[0]  
-        if session_id in session_data:
-            session_info = session_data[session_id]
-            session_info['session_id'] = session_id  
-            updated_fine_session.append(session_info)
-
-    return updated_fine_session
-
 def update_fine_json(fine_session, output_file_path):
     with open(output_file_path, 'w', encoding='utf-8') as output_file:
         json.dump(fine_session, output_file, ensure_ascii=False, indent=4)
