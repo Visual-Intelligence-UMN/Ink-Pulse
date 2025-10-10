@@ -54,18 +54,101 @@ export async function exportDB() {
         entries.push({ key: cur.key, value: cur.value });
         cur.continue();
       } else {
-        const blob = new Blob([JSON.stringify(entries)], { type: 'application/octet-stream' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${DB_NAME}.bin`;
-        a.click();
-        URL.revokeObjectURL(url);
-        console.log('Export complete');
+        const searchPatternEntry = entries.find(entry => entry.key === CACHE_KEY);
+        if (searchPatternEntry && Array.isArray(searchPatternEntry.value)) {
+          const patterns = searchPatternEntry.value;
+          
+          if (patterns.length === 0) {
+            alert('No patterns to export');
+            resolve();
+            return;
+          }
+
+          // Create separate files for each pattern
+          patterns.forEach((pattern, index) => {
+            const patternData = {
+              key: CACHE_KEY,
+              value: [pattern]
+            };
+            
+            const blob = new Blob([JSON.stringify([patternData])], { 
+              type: 'application/octet-stream' 
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            
+            // Use pattern name and ID as file name
+            const safeName = (pattern.name || 'Unnamed').replace(/[^a-zA-Z0-9]/g, '_');
+            const fileName = `${safeName}_${pattern.id}_${pattern.dataset}.bin`;
+            a.download = fileName;
+            
+            setTimeout(() => {
+              a.click();
+              URL.revokeObjectURL(url);
+            }, index * 100);
+          });
+          
+          console.log(`Export complete: ${patterns.length} pattern files created`);
+        } else {
+          const blob = new Blob([JSON.stringify(entries)], { 
+            type: 'application/octet-stream' 
+          });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${DB_NAME}_all.bin`;
+          a.click();
+          URL.revokeObjectURL(url);
+          console.log('Export complete: all data exported');
+        }
+        
         resolve();
       }
     };
     cursor.onerror = () => reject(cursor.error);
+  });
+}
+
+export async function exportSinglePattern(patternId) {
+  const db = await openDB();
+  const tx = db.transaction(STORE_NAME, 'readonly');
+  const store = tx.objectStore(STORE_NAME);
+  
+  return new Promise((resolve, reject) => {
+    const req = store.get(CACHE_KEY);
+    req.onsuccess = () => {
+      const patterns = req.result || [];
+      const pattern = patterns.find(p => p.id === patternId);
+      
+      if (!pattern) {
+        alert('Pattern not found');
+        resolve();
+        return;
+      }
+
+      const patternData = {
+        key: CACHE_KEY,
+        value: [pattern]
+      };
+      
+      const blob = new Blob([JSON.stringify([patternData])], { 
+        type: 'application/octet-stream' 
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      
+      const safeName = (pattern.name || 'Unnamed').replace(/[^a-zA-Z0-9]/g, '_');
+      const fileName = `${safeName}_${pattern.id}_${pattern.dataset}.bin`;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      console.log(`Single pattern exported: ${fileName}`);
+      resolve();
+    };
+    req.onerror = () => reject(req.error);
   });
 }
 
@@ -223,8 +306,11 @@ getFromDB(CACHE_KEY)
 /*
 ✅ Console Tool Usage:
 
-  Export DB:
+  Export all patterns as separate files:
     import('/src/components/cache.js').then(mod => mod.exportDB())
+
+  Export single pattern:
+    import('/src/components/cache.js').then(mod => mod.exportSinglePattern('pattern_1234567890'))
 
   Import & merge:
     import('/src/components/cache.js').then(mod => mod.triggerImport())
