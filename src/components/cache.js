@@ -54,7 +54,6 @@ export async function exportDB() {
         entries.push({ key: cur.key, value: cur.value });
         cur.continue();
       } else {
-        // 找到searchPatternSet数据
         const searchPatternEntry = entries.find(entry => entry.key === CACHE_KEY);
         if (searchPatternEntry && Array.isArray(searchPatternEntry.value)) {
           const patterns = searchPatternEntry.value;
@@ -65,11 +64,11 @@ export async function exportDB() {
             return;
           }
 
-          // 为每个pattern创建独立文件
+          // Create separate files for each pattern
           patterns.forEach((pattern, index) => {
             const patternData = {
               key: CACHE_KEY,
-              value: [pattern] // 单个pattern包装成数组
+              value: [pattern]
             };
             
             const blob = new Blob([JSON.stringify([patternData])], { 
@@ -79,12 +78,11 @@ export async function exportDB() {
             const a = document.createElement('a');
             a.href = url;
             
-            // 使用pattern名称和ID作为文件名
+            // Use pattern name and ID as file name
             const safeName = (pattern.name || 'Unnamed').replace(/[^a-zA-Z0-9]/g, '_');
             const fileName = `${safeName}_${pattern.id}_${pattern.dataset}.bin`;
             a.download = fileName;
             
-            // 延迟下载，避免浏览器阻止多个下载
             setTimeout(() => {
               a.click();
               URL.revokeObjectURL(url);
@@ -93,7 +91,6 @@ export async function exportDB() {
           
           console.log(`Export complete: ${patterns.length} pattern files created`);
         } else {
-          // 如果没有patterns，导出所有数据（兼容性）
           const blob = new Blob([JSON.stringify(entries)], { 
             type: 'application/octet-stream' 
           });
@@ -113,7 +110,6 @@ export async function exportDB() {
   });
 }
 
-// 导出单个pattern
 export async function exportSinglePattern(patternId) {
   const db = await openDB();
   const tx = db.transaction(STORE_NAME, 'readonly');
