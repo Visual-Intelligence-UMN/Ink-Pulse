@@ -315,6 +315,7 @@
   </div>
 
   <div class="charts-grid">
+    
   <ScoreSummaryChart
     rawData={scoreSummary}
     nowData={scoreCount}
