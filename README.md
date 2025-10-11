@@ -7,6 +7,8 @@ analysis of key interactions in human-AI co-writing.
 
 The introduction video can be found [here](https://drive.google.com/file/d/10hUfbSWKgs8HGooqmY0QcR2q3_x5e5AH/view?usp=sharing).
 
+https://github.com/user-attachments/assets/52fd3243-0cf5-4943-a456-d8fd09c1538b
+
 ## Getting started
 
 If running for the first time, ensure you have Node.js **v18 or newer** installed. You can check your version by running:
