@@ -3477,8 +3477,8 @@
                         </div>
                       </div>
                     </div>
-                    <div class="" on:wheel={handleChartZoom}>
-                      <div class="chart-wrapper">
+                    <div class="chart-container">
+                      <div class="chart-wrapper" on:wheel={handleChartZoom}>
                         {#if $clickSession.similarityData}
                           <BarChartY
                             sessionId={$clickSession.sessionId}
@@ -3521,7 +3521,7 @@
                       </div>
                     </div>
                   </div>
-                  <div class="content-box">
+                  <div class="content-box" style="height:65vh">
                     <div class="progress-container">
                       <span
                         >{($clickSession?.currentTime || 0).toFixed(2)} mins</span
@@ -3859,11 +3859,22 @@
     display: table-row;
   }
 
-  .chart-wrapper {
+  .chart-container {
+    position: relative;
     display: flex;
-    align-items: flex-start;
-    margin: 15px 0;
+    justify-content: center;
+    align-items: center;
+    overflow: visible;
   }
+
+  .chart-wrapper {
+    display: flex; 
+    align-items: flex-start;
+    padding-right: 35px;
+    transform: scale(1.25);
+    transform-origin: center top;
+  }
+
 
   .pattern-search-panel {
     position: fixed;
