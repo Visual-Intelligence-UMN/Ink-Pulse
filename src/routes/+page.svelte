@@ -3522,11 +3522,11 @@
                     </div>
                   </div>
                   <div class="content-box" style="height:65vh">
-                    <div class="progress-container">
-                      <span
+                    <div class="progress-container" style="width: 100%;">
+                      <span style="width: 100%;"
                         >{($clickSession?.currentTime || 0).toFixed(2)} mins</span
                       >
-                      <progress
+                      <progress style="width: 100%;"
                         value={$clickSession?.currentTime || 0}
                         max={$clickSession?.time100 || 1}
                       ></progress>
