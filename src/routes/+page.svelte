@@ -1474,7 +1474,7 @@
       effectiveDataRange.progressRange.max ?? 0,
     ];
 
-    // 统一使用dataRange中的时间范围，不再区分Time和Progress模式
+    // Use time range in dataRange, no different bewteen Time and Progress mode
     timeRange = [
       effectiveDataRange.timeRange.min ?? 0,
       effectiveDataRange.timeRange.max ?? 0,
