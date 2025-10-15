@@ -67,7 +67,9 @@ This project is organized with the following structure(only list main folders):
 We use three main data structures in this project, including raw data in the following description.
 
 **`static/dataset/json`**: Contains each action, used for displaying points in line chart.
+
 **`static/dataset/sentence`**: Contains each sentence, used for calculating the data in **`static/dataset/similarity_results`**.
+
 **`static/dataset/similarity_results`**: Contains data for each sentence, used for displaying bars in bar chart.
 
 ### static/dataset/json
