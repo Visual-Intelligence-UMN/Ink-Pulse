@@ -1531,7 +1531,7 @@
       scRange: `${effectiveRange.sc.min.toFixed(1)} - ${effectiveRange.sc.max.toFixed(1)}%`,
       progressRange: `${effectiveRange.progress.min.toFixed(1)} - ${effectiveRange.progress.max.toFixed(1)}%`,
       count: effectiveData.length,
-      // 保存时间选择范围，用于Time模式的高亮显示
+      // Save selected time range, used for highlight in time mode
       selectedTimeRange: highlightTimeRange,
     };
   }
