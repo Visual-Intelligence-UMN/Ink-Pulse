@@ -1474,7 +1474,7 @@
       effectiveDataRange.progressRange.max ?? 0,
     ];
 
-    // 统一使用dataRange中的时间范围，不再区分Time和Progress模式
+    // Use time range in dataRange, no different bewteen Time and Progress mode
     timeRange = [
       effectiveDataRange.timeRange.min ?? 0,
       effectiveDataRange.timeRange.max ?? 0,
@@ -1531,7 +1531,7 @@
       scRange: `${effectiveRange.sc.min.toFixed(1)} - ${effectiveRange.sc.max.toFixed(1)}%`,
       progressRange: `${effectiveRange.progress.min.toFixed(1)} - ${effectiveRange.progress.max.toFixed(1)}%`,
       count: effectiveData.length,
-      // 保存时间选择范围，用于Time模式的高亮显示
+      // Save selected time range, used for highlight in time mode
       selectedTimeRange: highlightTimeRange,
     };
   }
