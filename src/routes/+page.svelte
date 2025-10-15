@@ -620,6 +620,36 @@
     return actual.every((v, i) => v === expectedTrend[i]);
   }
 
+  function deriveTimeRangeFromProgress(progressRange, data) {
+    if (!progressRange || !data || !data.length) {
+      return null;
+    }
+
+    const getClosestTime = (targetPercentage) => {
+      let closestPoint = data[0];
+      let smallestDelta = Infinity;
+
+      for (const point of data) {
+        const percentage = Number(point?.percentage ?? point?.progress ?? 0);
+        const delta = Math.abs(percentage - targetPercentage);
+        if (delta < smallestDelta) {
+          smallestDelta = delta;
+          closestPoint = point;
+        }
+      }
+
+      return Number(closestPoint?.time ?? 0);
+    };
+
+    const start = getClosestTime(progressRange.min);
+    const end = getClosestTime(progressRange.max);
+
+    return {
+      min: Math.min(start, end),
+      max: Math.max(start, end),
+    };
+  }
+
   function findSegments(data, checks, minCount) {
     // console.log("=== findSegments Debug ===");
     // console.log("data.length:", data.length);
@@ -1227,46 +1257,294 @@
     patternData = [];
     patternDataList.set([]);
     currentResults = {};
-    const { sessionId, range, dataRange, data, wholeData, sources } =
-      event.detail;
-    writingProgressRange = [
-      dataRange.progressRange.min,
-      dataRange.progressRange.max,
-    ];
-
-    // 统一使用dataRange中的时间范围，不再区分Time和Progress模式
-    timeRange = [dataRange.timeRange.min, dataRange.timeRange.max];
-    sourceRange = sources;
-    semanticRange = [dataRange.scRange.min, dataRange.scRange.max];
-    semanticData = dataRange.sc.sc;
-    semanticTrend = getTrendPattern(semanticData);
-    currentResults = data;
-    lastSession = $clickSession;
-
-    selectedPatterns[sessionId] = {
+    const {
+      sessionId: rawSessionId,
       range,
       dataRange,
       data,
       wholeData,
       sources,
-      scRange: `${range.sc.min.toFixed(1)} - ${range.sc.max.toFixed(1)}%`,
-      progressRange: `${range.progress.min.toFixed(1)} - ${range.progress.max.toFixed(1)}%`,
-      count: data.length,
+    } = event.detail;
+
+    const resolvedSessionId =
+      rawSessionId ??
+      sharedSelection?.sessionId ??
+      $clickSession?.sessionId ??
+      lastSession?.sessionId;
+
+    if (!resolvedSessionId) {
+      return;
+    }
+
+    const sessionStore = get(storeSessionData);
+    const sessionSummaryStore = get(storeSessionSummaryData);
+    const sessionRecord =
+      sessionStore.get(resolvedSessionId) ??
+      sessionSummaryStore.get(resolvedSessionId) ??
+      {};
+
+    const similaritySeries = Array.isArray(sessionRecord.totalSimilarityData)
+      ? sessionRecord.totalSimilarityData
+      : Array.isArray(sessionRecord.similarityData)
+        ? sessionRecord.similarityData
+        : [];
+
+    const chartSeries =
+      Array.isArray(wholeData) && wholeData.length
+        ? wholeData
+        : Array.isArray(sessionRecord.chartData)
+          ? sessionRecord.chartData
+          : [];
+
+    const selectionSource =
+      sharedSelection?.selectionSource ??
+      selectionSrc ??
+      event.detail.selectionSource ??
+      null;
+
+    const baseRange = range
+      ? {
+          sc: {
+            min: range?.sc?.min ?? 0,
+            max: range?.sc?.max ?? 0,
+          },
+          progress: {
+            min: range?.progress?.min ?? 0,
+            max: range?.progress?.max ?? 0,
+          },
+        }
+      : {
+          sc: { min: 0, max: 0 },
+          progress: { min: 0, max: 0 },
+        };
+
+    let effectiveRange = baseRange;
+
+    const baseDataRange = dataRange
+      ? {
+          scRange: {
+            min: dataRange?.scRange?.min ?? 0,
+            max: dataRange?.scRange?.max ?? 0,
+          },
+          progressRange: {
+            min: dataRange?.progressRange?.min ?? 0,
+            max: dataRange?.progressRange?.max ?? 0,
+          },
+          timeRange: {
+            min: dataRange?.timeRange?.min ?? 0,
+            max: dataRange?.timeRange?.max ?? 0,
+          },
+          sc: { sc: [...(dataRange?.sc?.sc ?? [])] },
+        }
+      : {
+          scRange: { min: 0, max: 0 },
+          progressRange: { min: 0, max: 0 },
+          timeRange: { min: 0, max: 0 },
+          sc: { sc: [] },
+        };
+
+    let effectiveDataRange = baseDataRange;
+
+    let effectiveData =
+      data && data.length ? data.map((item) => ({ ...item })) : [];
+
+    let effectiveSources =
+      sources && sources.length ? [...sources] : [];
+
+    let scValues = [...effectiveDataRange.sc.sc];
+
+    if (!effectiveData.length && similaritySeries.length) {
+      effectiveData = similaritySeries.map((item) => ({ ...item }));
+      scValues = effectiveData
+        .map((point) => Number(point?.residual_vector_norm ?? 0))
+        .filter((value) => Number.isFinite(value));
+    }
+
+    if (selectionSource === "lineChart_x" && similaritySeries.length) {
+      const timeMinRaw =
+        sharedSelection?.timeMin ?? effectiveDataRange.timeRange.min ?? 0;
+      const timeMaxRaw =
+        sharedSelection?.timeMax ?? effectiveDataRange.timeRange.max ?? timeMinRaw;
+      const timeMin = Math.min(timeMinRaw, timeMaxRaw);
+      const timeMax = Math.max(timeMinRaw, timeMaxRaw);
+
+      const filteredSimilarity = similaritySeries.filter((segment) => {
+        const startSeconds = Number(
+          segment?.start_time ?? segment?.startTime ?? 0
+        );
+        const endSeconds = Number(
+          segment?.end_time ??
+            segment?.endTime ??
+            segment?.last_event_time ??
+            segment?.start_time ??
+            startSeconds
+        );
+        const startMinutes = startSeconds / 60;
+        const endMinutes = endSeconds / 60;
+        const segStart = Math.min(startMinutes, endMinutes);
+        const segEnd = Math.max(startMinutes, endMinutes);
+        return segEnd >= timeMin && segStart <= timeMax;
+      });
+
+      if (filteredSimilarity.length) {
+        effectiveData = filteredSimilarity.map((segment) => ({ ...segment }));
+
+        scValues = filteredSimilarity
+          .map((segment) =>
+            Number(segment?.residual_vector_norm ?? 0)
+          )
+          .filter((value) => Number.isFinite(value));
+
+        if (scValues.length) {
+          effectiveRange = {
+            ...effectiveRange,
+            sc: {
+              min: Math.min(...scValues),
+              max: Math.max(...scValues),
+            },
+          };
+        } else {
+          effectiveRange = {
+            ...effectiveRange,
+            sc: { min: 0, max: 0 },
+          };
+        }
+
+        const progressValues = filteredSimilarity
+          .flatMap((segment) => [
+            Number(segment?.start_progress ?? 0) * 100,
+            Number(segment?.end_progress ?? 0) * 100,
+          ])
+          .filter((value) => Number.isFinite(value));
+
+        if (progressValues.length) {
+          effectiveRange = {
+            ...effectiveRange,
+            progress: {
+              min: Math.min(...progressValues),
+              max: Math.max(...progressValues),
+            },
+          };
+        }
+
+        effectiveSources = filteredSimilarity.map(
+          (segment) => segment?.source ?? "user"
+        );
+
+        effectiveDataRange = {
+          ...effectiveDataRange,
+          scRange: { ...effectiveRange.sc },
+          progressRange: { ...effectiveRange.progress },
+          timeRange: { min: timeMin, max: timeMax },
+          sc: { sc: scValues },
+        };
+      } else {
+        effectiveDataRange = {
+          ...effectiveDataRange,
+          timeRange: { min: timeMin, max: timeMax },
+        };
+      }
+    } else {
+      if (!scValues.length) {
+        scValues = effectiveData
+          .map((point) => Number(point?.residual_vector_norm ?? 0))
+          .filter((value) => Number.isFinite(value));
+      }
+      if (scValues.length) {
+        effectiveRange = {
+          ...effectiveRange,
+          sc: {
+            min: Math.min(...scValues),
+            max: Math.max(...scValues),
+          },
+        };
+        effectiveDataRange.scRange = { ...effectiveRange.sc };
+        effectiveDataRange.sc = { sc: scValues };
+      }
+    }
+
+    if (!effectiveSources.length) {
+      effectiveSources = effectiveData.map(
+        (point) => point?.source ?? "user"
+      );
+    }
+
+    writingProgressRange = [
+      effectiveDataRange.progressRange.min ?? 0,
+      effectiveDataRange.progressRange.max ?? 0,
+    ];
+
+    // 统一使用dataRange中的时间范围，不再区分Time和Progress模式
+    timeRange = [
+      effectiveDataRange.timeRange.min ?? 0,
+      effectiveDataRange.timeRange.max ?? 0,
+    ];
+    sourceRange = effectiveSources;
+    semanticRange = [
+      effectiveDataRange.scRange.min ?? 0,
+      effectiveDataRange.scRange.max ?? 0,
+    ];
+    semanticData = scValues;
+    semanticTrend = getTrendPattern(semanticData);
+    currentResults = effectiveData;
+    lastSession = $clickSession ?? sessionRecord;
+
+    let highlightTimeRange = null;
+    if (selectionSource === "lineChart_x") {
+      highlightTimeRange = { min: timeRange[0], max: timeRange[1] };
+    } else if (
+      sharedSelection &&
+      sharedSelection.timeMin !== undefined &&
+      sharedSelection.timeMax !== undefined
+    ) {
+      highlightTimeRange = {
+        min: Math.min(sharedSelection.timeMin, sharedSelection.timeMax),
+        max: Math.max(sharedSelection.timeMin, sharedSelection.timeMax),
+      };
+    } else if (
+      effectiveRange?.progress &&
+      Number.isFinite(effectiveRange.progress.min) &&
+      Number.isFinite(effectiveRange.progress.max) &&
+      Array.isArray(chartSeries) &&
+      chartSeries.length > 0
+    ) {
+      const derivedRange = deriveTimeRangeFromProgress(
+        effectiveRange.progress,
+        chartSeries
+      );
+
+      if (
+        derivedRange &&
+        derivedRange.min !== undefined &&
+        derivedRange.max !== undefined
+      ) {
+        highlightTimeRange = derivedRange;
+      }
+    }
+
+    selectedPatterns[resolvedSessionId] = {
+      range: effectiveRange,
+      dataRange: effectiveDataRange,
+      data: effectiveData,
+      wholeData: chartSeries,
+      sources: effectiveSources,
+      scRange: `${effectiveRange.sc.min.toFixed(1)} - ${effectiveRange.sc.max.toFixed(1)}%`,
+      progressRange: `${effectiveRange.progress.min.toFixed(1)} - ${effectiveRange.progress.max.toFixed(1)}%`,
+      count: effectiveData.length,
       // 保存时间选择范围，用于Time模式的高亮显示
-      selectedTimeRange:
-        sharedSelection &&
-        sharedSelection.timeMin !== undefined &&
-        sharedSelection.timeMax !== undefined
-          ? { min: sharedSelection.timeMin, max: sharedSelection.timeMax }
-          : null,
+      selectedTimeRange: highlightTimeRange,
     };
   }
 
   function handleSelectionCleared(event) {
-    const { sessionId } = event.detail;
+    const resolvedSessionId =
+      event.detail.sessionId ??
+      sharedSelection?.sessionId ??
+      $clickSession?.sessionId ??
+      lastSession?.sessionId;
 
-    if (selectedPatterns[sessionId]) {
-      delete selectedPatterns[sessionId];
+    if (resolvedSessionId && selectedPatterns[resolvedSessionId]) {
+      delete selectedPatterns[resolvedSessionId];
     }
   }
 
@@ -2666,6 +2944,13 @@
                             <LineChartPreview
                               bind:this={chartRefs[sessionId]}
                               chartData={$clickSession.chartData}
+                              selectedTimeRange={
+                                pattern.selectedTimeRange ??
+                                  deriveTimeRangeFromProgress(
+                                    pattern.range?.progress,
+                                    pattern.wholeData
+                                  ) ?? null
+                              }
                             />
                           </div>
                         </div>
@@ -2855,15 +3140,165 @@
                                 data = [];
                               }
 
-                              // console.log(
-                              //   "LineChartPreview chartData:",
-                              //   data?.length,
-                              //   "items"
-                              // );
                               return data;
                             })()}
                             selectedTimeRange={pattern.selectedTimeRange}
                           />
+                        </div>
+                        <div
+                          style="
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            column-gap: 20px;
+                            width: 100%;
+                            margin-top: 8px;
+                            align-items: start;
+                          "
+                        >
+                          <div style="font-size: 13px;">
+                            <div
+                              class:dimmed={!isProgressChecked}
+                              style="font-size: 13px; display: flex; align-items: center; gap: 8px;"
+                            >
+                              <input
+                                type="checkbox"
+                                bind:checked={isProgressChecked}
+                              />
+                              <span>Writing Progress</span>
+                              <label
+                                class="switch"
+                                style="transform: translateY(4px); margin-left: auto;"
+                                bind:this={exactProgressButton}
+                              >
+                                <input
+                                  type="checkbox"
+                                  bind:checked={isExactSearchProgress}
+                                  disabled={!isProgressChecked}
+                                />
+                                <span class="slider">
+                                  <span
+                                    class="switch-text {isExactSearchProgress
+                                      ? 'exact'
+                                      : 'duration'}"
+                                  >
+                                    {isExactSearchProgress ? "Exact" : "Duration"}
+                                  </span>
+                                </span>
+                              </label>
+                            </div>
+
+                            <div
+                              class:dimmed={!isTimeChecked}
+                              style="font-size: 13px; display: flex; align-items: center; gap: 8px;"
+                            >
+                              <input
+                                type="checkbox"
+                                bind:checked={isTimeChecked}
+                              />
+                              <span>Time</span>
+                              <label
+                                class="switch"
+                                style="transform: translateY(4px); margin-left: auto;"
+                                bind:this={exactTimeButton}
+                              >
+                                <input
+                                  type="checkbox"
+                                  bind:checked={isExactSearchTime}
+                                  disabled={!isTimeChecked}
+                                />
+                                <span class="slider">
+                                  <span
+                                    class="switch-text {isExactSearchTime
+                                      ? 'exact'
+                                      : 'duration'}"
+                                  >
+                                    {isExactSearchTime ? "Exact" : "Duration"}
+                                  </span>
+                                </span>
+                              </label>
+                            </div>
+
+                            <div
+                              class:dimmed={!isSourceChecked}
+                              style="font-size: 13px; display: flex; align-items: center; gap: 8px; white-space: nowrap;"
+                            >
+                              <input
+                                type="checkbox"
+                                bind:checked={isSourceChecked}
+                              />
+                              <span>Source (human/AI)</span>
+                              <label
+                                class="switch"
+                                style="transform: translateY(4px); margin-left: auto;"
+                                bind:this={exactSourceButton}
+                              >
+                                <input
+                                  type="checkbox"
+                                  bind:checked={isExactSearchSource}
+                                  disabled={!isSourceChecked}
+                                />
+                              </label>
+                            </div>
+                          </div>
+
+                          <div style="font-size: 13px;">
+                            <div
+                              class:dimmed={!isSemanticChecked}
+                              style="display: flex; align-items: center; gap: 8px; white-space: nowrap; font-weight: 600; padding: 2px 4px; border-radius: 4px;"
+                            >
+                              <input
+                                type="checkbox"
+                                bind:checked={isSemanticChecked}
+                              />
+                              <span>Semantic Expansion</span>
+                            </div>
+
+                            <div
+                              style="
+                                margin: 0;
+                                padding: 0px 10px;
+                                border-left: 3px solid #dcdcdc;
+                                background: rgba(0,0,0,0.03);
+                                border-radius: 4px;
+                              "
+                            >
+                              <div
+                                class:dimmed={!isValueRangeChecked}
+                                style="display: flex; align-items: center; gap: 8px; white-space: nowrap;"
+                              >
+                                <input
+                                  type="checkbox"
+                                  bind:checked={isValueRangeChecked}
+                                  disabled={!isSemanticChecked}
+                                />
+                                <span>Value Range</span>
+                              </div>
+
+                              <div
+                                class:dimmed={!isValueTrendChecked}
+                                style="display: flex; align-items: center; gap: 8px; white-space: nowrap;"
+                              >
+                                <input
+                                  type="checkbox"
+                                  bind:checked={isValueTrendChecked}
+                                  disabled={!isSemanticChecked}
+                                />
+                                <span>Value Trend</span>
+                                <label
+                                  class="switch"
+                                  style="transform: translateY(4px); margin-left: auto;"
+                                  bind:this={exactTrendButton}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    bind:checked={isExactSearchTrend}
+                                    disabled={!isSemanticChecked ||
+                                      !isValueTrendChecked}
+                                  />
+                                </label>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       {:else}
                         <!-- Progress/Bar modes: Show PatternChartPreview -->
@@ -2876,136 +3311,136 @@
                             bind:this={chartRefs[sessionId]}
                           />
                         </div>
-                      {/if}
-                      <div style="margin-top: 5px; width: 60%">
-                        <div
-                          class:dimmed={!isProgressChecked}
-                          style="font-size: 13px;"
-                        >
-                          <input
-                            type="checkbox"
-                            bind:checked={isProgressChecked}
-                          />
-                          Writing Progress
-                          <label
-                            class="switch"
-                            style="transform: translateY(4px);"
-                            bind:this={exactProgressButton}
+                        <div style="margin-top: 5px; width: 60%">
+                          <div
+                            class:dimmed={!isProgressChecked}
+                            style="font-size: 13px;"
                           >
                             <input
                               type="checkbox"
-                              bind:checked={isExactSearchProgress}
-                              disabled={!isProgressChecked}
+                              bind:checked={isProgressChecked}
                             />
-                            <span class="slider">
-                              <span
-                                class="switch-text {isExactSearchProgress
-                                  ? 'exact'
-                                  : 'duration'}"
-                              >
-                                {isExactSearchProgress ? "Exact" : "Duration"}
+                            Writing Progress
+                            <label
+                              class="switch"
+                              style="transform: translateY(4px);"
+                              bind:this={exactProgressButton}
+                            >
+                              <input
+                                type="checkbox"
+                                bind:checked={isExactSearchProgress}
+                                disabled={!isProgressChecked}
+                              />
+                              <span class="slider">
+                                <span
+                                  class="switch-text {isExactSearchProgress
+                                    ? 'exact'
+                                    : 'duration'}"
+                                >
+                                  {isExactSearchProgress ? "Exact" : "Duration"}
+                                </span>
                               </span>
-                            </span>
-                          </label>
-                        </div>
-                        <div
-                          class:dimmed={!isTimeChecked}
-                          style="font-size: 13px;"
-                        >
-                          <input type="checkbox" bind:checked={isTimeChecked} />
-                          Time
-                          <label
-                            class="switch"
-                            style="transform: translateY(4px);"
-                            bind:this={exactTimeButton}
-                          >
-                            <input
-                              type="checkbox"
-                              bind:checked={isExactSearchTime}
-                              disabled={!isTimeChecked}
-                            />
-                            <span class="slider">
-                              <span
-                                class="switch-text {isExactSearchTime
-                                  ? 'exact'
-                                  : 'duration'}"
-                              >
-                                {isExactSearchTime ? "Exact" : "Duration"}
-                              </span>
-                            </span>
-                          </label>
-                        </div>
-                        <div
-                          class:dimmed={!isSourceChecked}
-                          style="font-size: 13px;"
-                        >
-                          <input
-                            type="checkbox"
-                            bind:checked={isSourceChecked}
-                          />
-                          Source(human/AI)
-                          <label
-                            class="switch"
-                            style="transform: translateY(4px);"
-                            bind:this={exactSourceButton}
-                          >
-                            <input
-                              type="checkbox"
-                              bind:checked={isExactSearchSource}
-                              disabled={!isSourceChecked}
-                            />
-                            <!-- <span class="slider">
-                              <span class="switch-text">
-                                {isExactSearchSource ? "Exact" : "Proximity"}
-                              </span>
-                            </span> -->
-                          </label>
-                        </div>
-                        <div style="font-size: 13px;">
-                          <div class:dimmed={!isSemanticChecked}>
-                            <input
-                              type="checkbox"
-                              bind:checked={isSemanticChecked}
-                            />
-                            Semantic Expansion
+                            </label>
                           </div>
-                          <div style="margin-left: 20px;">
-                            <div class:dimmed={!isValueRangeChecked}>
+                          <div
+                            class:dimmed={!isTimeChecked}
+                            style="font-size: 13px;"
+                          >
+                            <input type="checkbox" bind:checked={isTimeChecked} />
+                            Time
+                            <label
+                              class="switch"
+                              style="transform: translateY(4px);"
+                              bind:this={exactTimeButton}
+                            >
                               <input
                                 type="checkbox"
-                                bind:checked={isValueRangeChecked}
-                                disabled={!isSemanticChecked}
+                                bind:checked={isExactSearchTime}
+                                disabled={!isTimeChecked}
                               />
-                              Value Range
+                              <span class="slider">
+                                <span
+                                  class="switch-text {isExactSearchTime
+                                    ? 'exact'
+                                    : 'duration'}"
+                                >
+                                  {isExactSearchTime ? "Exact" : "Duration"}
+                                </span>
+                              </span>
+                            </label>
+                          </div>
+                          <div
+                            class:dimmed={!isSourceChecked}
+                            style="font-size: 13px;"
+                          >
+                            <input
+                              type="checkbox"
+                              bind:checked={isSourceChecked}
+                            />
+                            Source(human/AI)
+                            <label
+                              class="switch"
+                              style="transform: translateY(4px);"
+                              bind:this={exactSourceButton}
+                            >
+                              <input
+                                type="checkbox"
+                                bind:checked={isExactSearchSource}
+                                disabled={!isSourceChecked}
+                              />
+                              <!-- <span class="slider">
+                                <span class="switch-text">
+                                  {isExactSearchSource ? "Exact" : "Proximity"}
+                                </span>
+                              </span> -->
+                            </label>
+                          </div>
+                          <div style="font-size: 13px;">
+                            <div class:dimmed={!isSemanticChecked}>
+                              <input
+                                type="checkbox"
+                                bind:checked={isSemanticChecked}
+                              />
+                              Semantic Expansion
                             </div>
-                            <div class:dimmed={!isValueTrendChecked}>
-                              <input
-                                type="checkbox"
-                                bind:checked={isValueTrendChecked}
-                                disabled={!isSemanticChecked}
-                              />
-                              Value Trend
-                              <label
-                                class="switch"
-                                style="transform: translateY(4px);"
-                                bind:this={exactTrendButton}
-                              >
+                            <div style="margin-left: 20px;">
+                              <div class:dimmed={!isValueRangeChecked}>
                                 <input
                                   type="checkbox"
-                                  bind:checked={isExactSearchTrend}
-                                  disabled={!isSemanticChecked ||
-                                    !isValueTrendChecked}
+                                  bind:checked={isValueRangeChecked}
+                                  disabled={!isSemanticChecked}
                                 />
-                                <!-- <span class="slider">
-                                  <span class="switch-text">
-                                    {isExactSearchTrend ? "Exact" : "Proximity"}
-                                  </span>
-                                </span> -->
-                              </label>
+                                Value Range
+                              </div>
+                              <div class:dimmed={!isValueTrendChecked}>
+                                <input
+                                  type="checkbox"
+                                  bind:checked={isValueTrendChecked}
+                                  disabled={!isSemanticChecked}
+                                />
+                                Value Trend
+                                <label
+                                  class="switch"
+                                  style="transform: translateY(4px);"
+                                  bind:this={exactTrendButton}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    bind:checked={isExactSearchTrend}
+                                    disabled={!isSemanticChecked ||
+                                      !isValueTrendChecked}
+                                  />
+                                  <!-- <span class="slider">
+                                    <span class="switch-text">
+                                      {isExactSearchTrend ? "Exact" : "Proximity"}
+                                    </span>
+                                  </span> -->
+                                </label>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
+                      {/if}
                     </div>
                   {/if}
                   {#if $patternDataList.length > 0 && isSearch == 2}
