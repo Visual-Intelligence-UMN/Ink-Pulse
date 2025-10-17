@@ -346,6 +346,11 @@
   let sortDirection = "none";
 
   function handleSort(column) {
+    // 在Topic详情页中，禁用Topic列排序（因为都是同一个topic）
+    if (column === "topic" && selectedCategoryFilter) {
+      return;
+    }
+
     if (column === "pattern") {
       // Special logic for pattern sorting: toggle between sorted and original order
       if (sortColumn === "pattern") {
@@ -375,6 +380,11 @@
   }
 
   function getSortIcon(column) {
+    // 在Topic详情页中，Topic列不显示排序图标
+    if (column === "topic" && selectedCategoryFilter) {
+      return "";
+    }
+
     if (column === "pattern") {
       // Special icon for pattern column
       if (sortColumn === "pattern") {
@@ -467,6 +477,50 @@
 
   $: if (sortColumn || sortDirection) {
   }
+
+  // 为Topic详情页排序filteredByCategory数据
+  $: sortedFilteredByCategory = (() => {
+    if (!selectedCategoryFilter || !filteredByCategory.length) {
+      return filteredByCategory;
+    }
+
+    let sorted = [...filteredByCategory];
+
+    // Score排序
+    if (sortColumn === "score" && sortDirection !== "none") {
+      sorted = sorted.sort((a, b) => {
+        const aScore = a.llmScore || 0;
+        const bScore = b.llmScore || 0;
+        if (sortDirection === "asc") {
+          return aScore - bScore;
+        } else {
+          return bScore - aScore;
+        }
+      });
+    }
+
+    // Pattern排序
+    if (sortColumn === "pattern" && sortDirection !== "none") {
+      sorted = sorted.sort((a, b) => {
+        const aHasPattern = hasPattern(a.sessionId);
+        const bHasPattern = hasPattern(b.sessionId);
+
+        if (sortDirection === "asc") {
+          // Show sessions with patterns first
+          if (aHasPattern && !bHasPattern) return -1;
+          if (!aHasPattern && bHasPattern) return 1;
+          return 0;
+        } else {
+          // Show sessions without patterns first
+          if (aHasPattern && !bHasPattern) return 1;
+          if (!aHasPattern && bHasPattern) return -1;
+          return 0;
+        }
+      });
+    }
+
+    return sorted;
+  })();
 
   function waitForSessionData(sessionId) {
     return new Promise((resolve) => {
@@ -1348,8 +1402,7 @@
     let effectiveData =
       data && data.length ? data.map((item) => ({ ...item })) : [];
 
-    let effectiveSources =
-      sources && sources.length ? [...sources] : [];
+    let effectiveSources = sources && sources.length ? [...sources] : [];
 
     let scValues = [...effectiveDataRange.sc.sc];
 
@@ -1364,7 +1417,9 @@
       const timeMinRaw =
         sharedSelection?.timeMin ?? effectiveDataRange.timeRange.min ?? 0;
       const timeMaxRaw =
-        sharedSelection?.timeMax ?? effectiveDataRange.timeRange.max ?? timeMinRaw;
+        sharedSelection?.timeMax ??
+        effectiveDataRange.timeRange.max ??
+        timeMinRaw;
       const timeMin = Math.min(timeMinRaw, timeMaxRaw);
       const timeMax = Math.max(timeMinRaw, timeMaxRaw);
 
@@ -1390,9 +1445,7 @@
         effectiveData = filteredSimilarity.map((segment) => ({ ...segment }));
 
         scValues = filteredSimilarity
-          .map((segment) =>
-            Number(segment?.residual_vector_norm ?? 0)
-          )
+          .map((segment) => Number(segment?.residual_vector_norm ?? 0))
           .filter((value) => Number.isFinite(value));
 
         if (scValues.length) {
@@ -1464,9 +1517,7 @@
     }
 
     if (!effectiveSources.length) {
-      effectiveSources = effectiveData.map(
-        (point) => point?.source ?? "user"
-      );
+      effectiveSources = effectiveData.map((point) => point?.source ?? "user");
     }
 
     writingProgressRange = [
@@ -2944,13 +2995,12 @@
                             <LineChartPreview
                               bind:this={chartRefs[sessionId]}
                               chartData={$clickSession.chartData}
-                              selectedTimeRange={
-                                pattern.selectedTimeRange ??
-                                  deriveTimeRangeFromProgress(
-                                    pattern.range?.progress,
-                                    pattern.wholeData
-                                  ) ?? null
-                              }
+                              selectedTimeRange={pattern.selectedTimeRange ??
+                                deriveTimeRangeFromProgress(
+                                  pattern.range?.progress,
+                                  pattern.wholeData
+                                ) ??
+                                null}
                             />
                           </div>
                         </div>
@@ -3181,7 +3231,9 @@
                                       ? 'exact'
                                       : 'duration'}"
                                   >
-                                    {isExactSearchProgress ? "Exact" : "Duration"}
+                                    {isExactSearchProgress
+                                      ? "Exact"
+                                      : "Duration"}
                                   </span>
                                 </span>
                               </label>
@@ -3346,7 +3398,10 @@
                             class:dimmed={!isTimeChecked}
                             style="font-size: 13px;"
                           >
-                            <input type="checkbox" bind:checked={isTimeChecked} />
+                            <input
+                              type="checkbox"
+                              bind:checked={isTimeChecked}
+                            />
                             Time
                             <label
                               class="switch"
@@ -3647,12 +3702,20 @@
                       <tr>
                         <th
                           class="sortable-header"
+                          class:disabled={selectedCategoryFilter}
                           on:click={() => handleSort("topic")}
                           style="min-width: 70px;"
                         >
-                          <span style="cursor: pointer;">Topic</span>
-                          <span class="sort-icon" style="cursor: pointer;"
-                            >{getSortIcon("topic")}</span
+                          <span
+                            style="cursor: {selectedCategoryFilter
+                              ? 'default'
+                              : 'pointer'};">Topic</span
+                          >
+                          <span
+                            class="sort-icon"
+                            style="cursor: {selectedCategoryFilter
+                              ? 'default'
+                              : 'pointer'};">{getSortIcon("topic")}</span
                           >
                         </th>
                         <th
@@ -3681,7 +3744,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      {#each selectedCategoryFilter ? filteredByCategory : filteredSessions as sessionData}
+                      {#each selectedCategoryFilter ? sortedFilteredByCategory : filteredSessions as sessionData}
                         <tr
                           class="session-row"
                           on:click={() => handleRowClick(sessionData)}
@@ -3961,7 +4024,8 @@
                       <span style="width: 100%;"
                         >{($clickSession?.currentTime || 0).toFixed(2)} mins</span
                       >
-                      <progress style="width: 100%;"
+                      <progress
+                        style="width: 100%;"
                         value={$clickSession?.currentTime || 0}
                         max={$clickSession?.time100 || 1}
                       ></progress>
@@ -4303,13 +4367,12 @@
   }
 
   .chart-wrapper {
-    display: flex; 
+    display: flex;
     align-items: flex-start;
     padding-right: 35px;
     transform: scale(1.25);
     transform-origin: center top;
   }
-
 
   .pattern-search-panel {
     position: fixed;
@@ -4689,5 +4752,15 @@
     margin-left: 8px;
     margin-top: 2px;
     color: #777;
+  }
+
+  /* 禁用状态的表头样式 */
+  .sortable-header.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .sortable-header.disabled span {
+    color: #999 !important;
   }
 </style>
