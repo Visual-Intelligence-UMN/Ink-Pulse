@@ -346,7 +346,6 @@
   let sortDirection = "none";
 
   function handleSort(column) {
-    // 在Topic详情页中，禁用Topic列排序（因为都是同一个topic）
     if (column === "topic" && selectedCategoryFilter) {
       return;
     }
@@ -380,7 +379,6 @@
   }
 
   function getSortIcon(column) {
-    // 在Topic详情页中，Topic列不显示排序图标
     if (column === "topic" && selectedCategoryFilter) {
       return "";
     }
@@ -478,7 +476,6 @@
   $: if (sortColumn || sortDirection) {
   }
 
-  // 为Topic详情页排序filteredByCategory数据
   $: sortedFilteredByCategory = (() => {
     if (!selectedCategoryFilter || !filteredByCategory.length) {
       return filteredByCategory;
@@ -499,7 +496,6 @@
       });
     }
 
-    // Pattern排序
     if (sortColumn === "pattern" && sortDirection !== "none") {
       sorted = sorted.sort((a, b) => {
         const aHasPattern = hasPattern(a.sessionId);
@@ -4754,7 +4750,6 @@
     color: #777;
   }
 
-  /* 禁用状态的表头样式 */
   .sortable-header.disabled {
     opacity: 0.6;
     pointer-events: none;
