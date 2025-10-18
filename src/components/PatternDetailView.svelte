@@ -101,7 +101,6 @@
     } else {
       flag = selectedValue;
       title = [pattern.name, normalizeName(select?.name)];
-      console.log(select?.pattern)
       const selectData = select?.pattern || [];
       patternData = selectData.map(item => item.sessionId);
       // const patternSessions = select.pattern || [];

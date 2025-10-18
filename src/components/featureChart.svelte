@@ -9,6 +9,11 @@
   export let flag; // whether compare with Others
   export let title;
 
+  $: console.log("data", data);
+  $: console.log("patternData", patternData);
+  $: console.log("featureData", featureData);
+
+
   let canvas;
 
 

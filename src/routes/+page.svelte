@@ -2090,7 +2090,6 @@
     let index = 0;
     const totalTextLength = data.text[0].slice(0, -1).length;
     let currentCharCount = data.init_text.join("").length;
-    console.log(similarityData)
 
     data.info.forEach((event, idx) => {
       const { name, event_time, eventSource, text = "", count = 0 } = event;
