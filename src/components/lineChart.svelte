@@ -7,6 +7,7 @@
   export let selectionMode: boolean = false;
   export let sharedSelection;
   export let xScaleLineChartFactor: number;
+  export let similarityData: any[] = [];
 
   type ChartEvents = {
     pointSelected: {
@@ -171,25 +172,54 @@
       return;
     }
 
+    const [y0, y1] = event.selection;
+    const zx = zoomTransform.rescaleX(xScale);
     const zy = zoomTransform.rescaleY(yScale);
 
-    const [y0, y1] = event.selection;
-    const progressMin = zy.invert(y1);
-    const progressMax = zy.invert(y0);
+    const x0 = 0;
+    const x1 = chartWidth;
+
+    const insidePoints = chartData.filter((d) => {
+      const px = zx(d.time);
+      const py = zy(d.percentage);
+      return px >= x0 && px <= x1 && py >= y0 && py <= y1;
+    });
+
+    if (!insidePoints.length) {
+      sharedSelection = null;
+      dispatch("selectionCleared", { sessionId: null });
+      return;
+    }
+
+    const matchedPoints = insidePoints
+      .map((d) => {
+        const matchedSim = similarityData.find(
+          (s) => s.start_progress * 100 <= d.percentage && s.end_progress * 100 >= d.percentage
+        );
+
+        if (!matchedSim) return null;
+
+        return {
+          ...d,
+          residual_vector_norm: matchedSim.residual_vector_norm,
+        };
+      })
+  .filter((d) => d !== null);
+
+    const progressMin = d3.min(insidePoints, (d) => d.percentage);
+    const progressMax = d3.max(insidePoints, (d) => d.percentage);
+    const scValues = matchedPoints.map((d) => d.residual_vector_norm || 0);
+    const scMin = d3.min(scValues) || 0;
+    const scMax = d3.max(scValues) || 1;
+    const sources = insidePoints.map((d) => d.source || "user");
+    const tMin = d3.min(insidePoints, (d) => d.time);
+    const tMax = d3.max(insidePoints, (d) => d.time);
+
     sharedSelection = {
       progressMin,
       progressMax,
       selectionSource: "lineChart_y",
     };
-
-    // 收集选中进度范围内的完整数据，像BarChart模式一样
-    const filteredData = chartData.filter(
-      (p) => p.percentage >= progressMin && p.percentage <= progressMax
-    );
-    const scValues = filteredData.map((d) => d.residual_vector_norm || 0);
-    const scMin = d3.min(scValues) || 0;
-    const scMax = d3.max(scValues) || 1;
-    const sources = filteredData.map((d) => d.source || "user");
 
     dispatch("selectionChanged", {
       range: {
@@ -199,15 +229,16 @@
       dataRange: {
         scRange: { min: scMin, max: scMax },
         progressRange: { min: progressMin, max: progressMax },
-        timeRange: { min: 0, max: d3.max(chartData, (d) => d.time) },
+        timeRange: { min: tMin, max: tMax },
         sc: { sc: scValues },
       },
-      data: filteredData,
+      data: insidePoints,
       wholeData: chartData,
       sessionId: null,
       sources: sources,
     });
   }
+
 
   function brushedX(event) {
     if (!event.selection) {
@@ -216,42 +247,49 @@
       return;
     }
 
+    const [x0, x1] = event.selection;
     const zx = zoomTransform.rescaleX(xScale);
 
-    const [x0, x1] = event.selection;
     const t0 = zx.invert(x0);
     const t1 = zx.invert(x1);
-
-    // Filter points that are inside the selected time range
-    const insidePoints = chartData.filter((p) => p.time >= t0 && p.time <= t1);
+    const insidePoints = chartData.filter((d) => d.time >= t0 && d.time <= t1);
 
     if (!insidePoints.length) {
-      // No points inside selection — clear or fallback
       sharedSelection = null;
+      dispatch("selectionCleared", { sessionId: null });
       return;
     }
 
-    // First and last points inside the selection
-    const left = insidePoints[0];
-    const right = insidePoints[insidePoints.length - 1];
+    const matchedPoints = insidePoints
+      .map((d) => {
+        const matchedSim = similarityData.find(
+          (s) => s.start_progress * 100 <= d.percentage && s.end_progress * 100 >= d.percentage
+        );
 
-    // Map to their percentage/progress
-    const progressMin = Math.min(left.percentage, right.percentage);
-    const progressMax = Math.max(left.percentage, right.percentage);
+        if (!matchedSim) return null;
+
+        return {
+          ...d,
+          residual_vector_norm: matchedSim.residual_vector_norm,
+        };
+      })
+      .filter((d) => d !== null);
+
+    const scValues = matchedPoints.map((d) => d.residual_vector_norm || 0);
+    const scMin = d3.min(scValues) || 0;
+    const scMax = d3.max(scValues) || 1;
+
+    const progressMin = d3.min(insidePoints, (d) => d.percentage);
+    const progressMax = d3.max(insidePoints, (d) => d.percentage);
+    const sources = insidePoints.map((d) => d.source || "user");
+    const timeMin = d3.min(insidePoints, (d) => d.time);
+    const timeMax = d3.max(insidePoints, (d) => d.time);
 
     sharedSelection = {
       progressMin,
       progressMax,
-      timeMin: t0,
-      timeMax: t1,
       selectionSource: "lineChart_x",
     };
-
-    // 收集选中时间范围内的完整数据，像Progress模式一样
-    const scValues = insidePoints.map((d) => d.residual_vector_norm || 0);
-    const scMin = d3.min(scValues) || 0;
-    const scMax = d3.max(scValues) || 1;
-    const sources = insidePoints.map((d) => d.source || "user");
 
     dispatch("selectionChanged", {
       range: {
@@ -261,7 +299,7 @@
       dataRange: {
         scRange: { min: scMin, max: scMax },
         progressRange: { min: progressMin, max: progressMax },
-        timeRange: { min: t0, max: t1 },
+        timeRange: { min: timeMin, max: timeMax },
         sc: { sc: scValues },
       },
       data: insidePoints,
@@ -428,14 +466,6 @@
         height={height - margin.top - margin.bottom}
       />
     </clipPath>
-    <!-- <clipPath id="clip-text">
-      <rect
-        x="-5"
-        y="-20"
-        width={width - margin.left - margin.right}
-        height={height - margin.top - margin.bottom}
-      />
-    </clipPath> -->
   </defs>
 
   <g transform={`translate(${margin.left},${margin.top})`}>
@@ -484,35 +514,6 @@
 
       </g>
     </g>
-
-    <!-- <g clip-path="url(#clip-text)">
-      {#if paragraphColor.length < 10}
-        {#each paragraphColor as d, index}
-          <text
-            x={zoomTransform.applyX((scaledX(d.xMin) + scaledX(d.xMax)) / 2) + (index === 0 ? 3 : 0)}
-            y={-5}
-            text-anchor="middle"
-            font-size="12px"
-          >
-            {d.value}
-          </text>
-        {/each}
-      {/if}
-      {#if paragraphColor.length > 10}
-        {#each paragraphColor as d, index}
-          {#if index === 0 || index % 4 === 0}
-            <text
-              x={zoomTransform.applyX((scaledX(d.xMin) + scaledX(d.xMax)) / 2) + (index === 0 ? 3 : 0)}
-              y={-3}
-              text-anchor="middle"
-              font-size="12px"
-            >
-              {d.value}
-            </text>
-          {/if}
-        {/each}
-      {/if}
-    </g> -->
 
     <g
       class="x-axis"

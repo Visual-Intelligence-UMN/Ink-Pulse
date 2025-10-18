@@ -11,8 +11,8 @@
 
   // NEW: explicit opacity maps
   const opacitySettings = {
-    settings_1: { 0: 0.1, 1: 1 },
-    settings_2: { 0: 0.1, 1: 0.5, 2: 1 },
+    settings_1: { 0: 0.3, 1: 1 },
+    settings_2: { 0: 0.3, 1: 0.5, 2: 1 },
     settings_3: { 0: 0.1, 1: 0.3, 2: 0.7, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1 },
   };
 

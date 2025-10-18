@@ -68,9 +68,9 @@ We use three main data structures in this project, including raw data in the fol
 
 **`static/dataset/json`**: Contains each action, used for displaying points in line chart.
 
-**`static/dataset/sentence`**: Contains each sentence, used for calculating the data in **`static/dataset/similarity_results`**.
+**`static/dataset/segment`**: Contains each segment, used for calculating the data in **`static/dataset/segment_results`**.
 
-**`static/dataset/similarity_results`**: Contains data for each sentence, used for displaying bars in bar chart.
+**`static/dataset/segment_results`**: Contains data for each segment, used for displaying bars in bar chart.
 
 ### static/dataset/json
 Stores user actions on text, including content and event metadata.
@@ -123,8 +123,8 @@ Example
     ]
   }
   ```
-### static/dataset/sentence
-Stores intermediate sentence-level data for computing following data. **NOT** directly used in the frontend.
+### static/dataset/segment
+Stores intermediate segment-level data for computing following data. **NOT** directly used in the frontend.
 
   ```python
     [
@@ -172,8 +172,8 @@ Example
     ]
   ```
 
-### static/dataset/similarity_results
-Stores sentence-level data for analysis and visualization.
+### static/dataset/segment_results
+Stores segment-level data for analysis and visualization.
 
   ```python
     [
@@ -191,7 +191,7 @@ Stores sentence-level data for analysis and visualization.
     ]
   ```
 
-  - **sentence**: Length of the sentence, `len(current_context) / 3000`
+  - **sentence**: Length of the segment, `len(current_context) / 3000`
   - **source**: Source of current context
   - **start_progress**: Start progress of current context
   - **end_progress**: End progress of current context

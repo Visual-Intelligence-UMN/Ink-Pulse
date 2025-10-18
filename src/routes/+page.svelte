@@ -31,6 +31,7 @@
   } from "../components/cache.js";
   import RankWorker from "../workers/rankWorker.js?worker";
   import WeightPanel from "../components/weightPanel.svelte";
+  import Papa from 'papaparse';
 
   let chartRefs = {};
   let filterButton;
@@ -292,13 +293,13 @@
         originalMatches: allPatternData.length, // raw rows
       },
       searchDetail,
-      scoreSummary,
-      percentageData,
-      percentageSummaryData: processedSlice,
-      lengthData,
-      lengthSummaryData: processedSlice,
-      overallSemScoreData,
-      overallSemScoreSummaryData: processedSlice,
+      // scoreSummary,
+      // percentageData,
+      // percentageSummaryData: processedSlice,
+      // lengthData,
+      // lengthSummaryData: processedSlice,
+      // overallSemScoreData,
+      // overallSemScoreSummaryData: processedSlice,
     };
 
     // Commit & refresh UI
@@ -346,6 +347,10 @@
   let sortDirection = "none";
 
   function handleSort(column) {
+    if (column === "topic" && selectedCategoryFilter) {
+      return;
+    }
+
     if (column === "pattern") {
       // Special logic for pattern sorting: toggle between sorted and original order
       if (sortColumn === "pattern") {
@@ -375,6 +380,10 @@
   }
 
   function getSortIcon(column) {
+    if (column === "topic" && selectedCategoryFilter) {
+      return "";
+    }
+
     if (column === "pattern") {
       // Special icon for pattern column
       if (sortColumn === "pattern") {
@@ -392,22 +401,52 @@
   }
 
   // FETCH SCORES
-  const fetchLLMScore = async (sessionFile) => {
-    const url = `${base}/dataset/${selectedDataset}/eval_results/${sessionFile}.json`;
+  // const fetchLLMScore = async (sessionFile) => {
+  //   const url = `${base}/dataset/${selectedDataset}/eval_results/${sessionFile}.json`;
+  //   try {
+  //     const response = await fetch(url);
+  //     if (!response.ok) {
+  //       console.error("Response not ok:", response.status, response.statusText);
+  //       throw new Error(`Failed to fetch LLM score: ${response.status}`);
+  //     }
+
+  //     const data = await response.json();
+  //     const totalScore = data[0] || 0;
+  //     return totalScore;
+  //   } catch (error) {
+  //     console.error("Error when reading LLM score file:", error);
+  //     return null;
+  //   }
+  // };
+  const fetchCSVData = async () => {
     try {
-      const response = await fetch(url);
+      const response = await fetch(`${base}/dataset/${selectedDataset}/fine.csv`);
       if (!response.ok) {
-        console.error("Response not ok:", response.status, response.statusText);
-        throw new Error(`Failed to fetch LLM score: ${response.status}`);
+        throw new Error('Failed to fetch CSV data');
       }
 
-      const data = await response.json();
-      const totalScore = data[0] || 0;
-      return totalScore;
+      const text = await response.text();
+      const parsedData = Papa.parse(text, { header: true }).data;
+
+      return parsedData;
     } catch (error) {
-      console.error("Error when reading LLM score file:", error);
-      return null;
+      console.error("Error fetching or parsing CSV:", error);
+      return [];
     }
+  };
+
+  const fetchFeatureData = (data) => {
+    return data.map(item => {
+      const filteredItem = Object.fromEntries(
+        Object.entries(item).filter(([key]) => key !== 'prompt_code')
+      );
+      return filteredItem;
+    });
+  };
+
+  const fetchLLMScore = async (sessionId, data) => {
+    const item = data.find(item => item.session_id === sessionId);
+      return item ? item.judge_score : null;
   };
 
   function getColumnGroups() {
@@ -415,8 +454,8 @@
     // Topic
     if (sortColumn === "topic" && sortDirection !== "none") {
       sessions = [...sessions].sort((a, b) => {
-        const aCode = getPromptCode(a.sessionId);
-        const bCode = getPromptCode(b.sessionId);
+        const aCode = getPromptCode(a.session_id);
+        const bCode = getPromptCode(b.session_id);
 
         if (sortDirection === "asc") {
           return aCode.localeCompare(bCode);
@@ -467,6 +506,50 @@
 
   $: if (sortColumn || sortDirection) {
   }
+
+  // Topic page, sort filteredByCategory data
+  $: sortedFilteredByCategory = (() => {
+    if (!selectedCategoryFilter || !filteredByCategory.length) {
+      return filteredByCategory;
+    }
+
+    let sorted = [...filteredByCategory];
+
+    // Score sort
+    if (sortColumn === "score" && sortDirection !== "none") {
+      sorted = sorted.sort((a, b) => {
+        const aScore = a.llmScore || 0;
+        const bScore = b.llmScore || 0;
+        if (sortDirection === "asc") {
+          return aScore - bScore;
+        } else {
+          return bScore - aScore;
+        }
+      });
+    }
+
+    // Pattern sort
+    if (sortColumn === "pattern" && sortDirection !== "none") {
+      sorted = sorted.sort((a, b) => {
+        const aHasPattern = hasPattern(a.sessionId);
+        const bHasPattern = hasPattern(b.sessionId);
+
+        if (sortDirection === "asc") {
+          // Show sessions with patterns first
+          if (aHasPattern && !bHasPattern) return -1;
+          if (!aHasPattern && bHasPattern) return 1;
+          return 0;
+        } else {
+          // Show sessions without patterns first
+          if (aHasPattern && !bHasPattern) return 1;
+          if (!aHasPattern && bHasPattern) return -1;
+          return 0;
+        }
+      });
+    }
+
+    return sorted;
+  })();
 
   function waitForSessionData(sessionId) {
     return new Promise((resolve) => {
@@ -923,20 +1006,23 @@
     // console.log("checks:", checks);
 
     try {
-      const fileListResponse = await fetch(
-        `${base}/dataset/${selectedDataset}/session_name.json`
-      );
-      const fileList = await fileListResponse.json();
+      // const fileListResponse = await fetch(
+      //   `${base}/dataset/${selectedDataset}/session_name.json`
+      // );
+      // const fileList = await fileListResponse.json();
+      const fileList = CSVData.map(item => item.session_id);
 
       for (const fileName of fileList) {
         // const fileId = fileName.split(".")[0].replace(/_similarity$/, "");
         // if (fileId === sessionId) {
         //   continue;
         // }
+
         const dataResponse = await fetch(
-          `${base}/dataset/${selectedDataset}/similarity_results/${fileName}`
+          `${base}/dataset/${selectedDataset}/segment_results/${fileName}.json`
         );
         const data = await dataResponse.json();
+        
         if (Array.isArray(data.chartData)) {
           data.chartData = data.chartData.map(
             ({ currentText, ...rest }) => rest
@@ -966,8 +1052,6 @@
 
         const segments = findSegments(dataToProcess, checks, count);
         const extractedFileName = fileName
-          .split(".")[0]
-          .replace(/_similarity$/, "");
 
         const taggedSegments = segments.map((segment, index) =>
           segment.map((item) => ({
@@ -1364,7 +1448,9 @@
       const timeMinRaw =
         sharedSelection?.timeMin ?? effectiveDataRange.timeRange.min ?? 0;
       const timeMaxRaw =
-        sharedSelection?.timeMax ?? effectiveDataRange.timeRange.max ?? timeMinRaw;
+        sharedSelection?.timeMax ??
+        effectiveDataRange.timeRange.max ??
+        timeMinRaw;
       const timeMin = Math.min(timeMinRaw, timeMaxRaw);
       const timeMax = Math.max(timeMinRaw, timeMaxRaw);
 
@@ -1390,9 +1476,7 @@
         effectiveData = filteredSimilarity.map((segment) => ({ ...segment }));
 
         scValues = filteredSimilarity
-          .map((segment) =>
-            Number(segment?.residual_vector_norm ?? 0)
-          )
+          .map((segment) => Number(segment?.residual_vector_norm ?? 0))
           .filter((value) => Number.isFinite(value));
 
         if (scValues.length) {
@@ -1464,9 +1548,7 @@
     }
 
     if (!effectiveSources.length) {
-      effectiveSources = effectiveData.map(
-        (point) => point?.source ?? "user"
-      );
+      effectiveSources = effectiveData.map((point) => point?.source ?? "user");
     }
 
     writingProgressRange = [
@@ -1572,73 +1654,73 @@
     filterTableData.set(originalUpdatedData);
   }
 
-  const fetchLengthData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/dataset/${selectedDataset}/length.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
+  // const fetchLengthData = async () => {
+  //   try {
+  //     const response = await fetch(
+  //       `${base}/dataset/${selectedDataset}/length.json`
+  //     );
+  //     if (!response.ok) {
+  //       throw new Error(`Failed to fetch summary data: ${response.status}`);
+  //     }
 
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
+  //     const data = await response.json();
+  //     return data;
+  //   } catch (error) {
+  //     console.error("Error when reading the data file:", error);
+  //     return null;
+  //   }
+  // };
 
-  const fetchOverallSemScoreData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/dataset/${selectedDataset}/overall_sem_score.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
+  // const fetchOverallSemScoreData = async () => {
+  //   try {
+  //     const response = await fetch(
+  //       `${base}/dataset/${selectedDataset}/overall_sem_score.json`
+  //     );
+  //     if (!response.ok) {
+  //       throw new Error(`Failed to fetch summary data: ${response.status}`);
+  //     }
 
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
+  //     const data = await response.json();
+  //     return data;
+  //   } catch (error) {
+  //     console.error("Error when reading the data file:", error);
+  //     return null;
+  //   }
+  // };
 
-  const fetchPercentageData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/dataset/${selectedDataset}/percentage.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
+  // const fetchPercentageData = async () => {
+  //   try {
+  //     const response = await fetch(
+  //       `${base}/dataset/${selectedDataset}/percentage.json`
+  //     );
+  //     if (!response.ok) {
+  //       throw new Error(`Failed to fetch summary data: ${response.status}`);
+  //     }
 
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
+  //     const data = await response.json();
+  //     return data;
+  //   } catch (error) {
+  //     console.error("Error when reading the data file:", error);
+  //     return null;
+  //   }
+  // };
 
-  const fetchScoreSummaryData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/dataset/${selectedDataset}/score_summary.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
+  // const fetchScoreSummaryData = async () => {
+  //   try {
+  //     const response = await fetch(
+  //       `${base}/dataset/${selectedDataset}/score_summary.json`
+  //     );
+  //     if (!response.ok) {
+  //       throw new Error(`Failed to fetch summary data: ${response.status}`);
+  //     }
 
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
+  //     const data = await response.json();
+  //     return data;
+  //   } catch (error) {
+  //     console.error("Error when reading the data file:", error);
+  //     return null;
+  //   }
+  // };
 
   async function fetchInitData(sessionId, isDelete) {
     if (isDelete) {
@@ -1648,7 +1730,7 @@
       return;
     }
     const similarityData = await fetchSimilarityData(sessionId);
-    const llmScore = await fetchLLMScore(sessionId);
+    const llmScore = await fetchLLMScore(sessionId, CSVData);
 
     if (similarityData) {
       initData.update((sessions) => {
@@ -1677,10 +1759,17 @@
   const fetchSessions = async () => {
     try {
       const response = await fetch(
-        `${base}/dataset/${selectedDataset}/fine.json`
+        `${base}/import_dataset/${selectedDataset}.csv`
       );
-      const data = await response.json();
-      sessions = data || [];
+      if (!response.ok) {
+        throw new Error('Failed to fetch CSV data');
+      }
+      const text = await response.text();
+      const parsedData = Papa.parse(text, { header: true }).data;
+      sessions = parsedData.map((session) => ({
+        session_id: session.session_id,
+        prompt_code: session.prompt_code
+      }));
 
       if (firstSession) {
         tableData = sessions.map((session) => {
@@ -1723,7 +1812,7 @@
   const fetchDataSummary = async (sessionFile) => {
     try {
       const response = await fetch(
-        `${base}/dataset/${selectedDataset}/coauthor-json/${sessionFile}.jsonl`
+        `${base}/dataset/${selectedDataset}/json/${sessionFile}.jsonl`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -1733,8 +1822,8 @@
       const time0 = new Date(data.init_time);
       const time100 = new Date(data.end_time);
       const currentTime = (time100.getTime() - time0.getTime()) / (1000 * 60); // in minutes
-      const chartData = handleEventsSummary(data);
       const similarityData = await fetchSimilarityData(sessionFile);
+      const chartData = handleEventsSummary(data, similarityData);
       let updatedSession = {
         sessionId: sessionFile,
         time0,
@@ -1773,7 +1862,7 @@
     }
     try {
       const response = await fetch(
-        `${base}/dataset/${selectedDataset}/coauthor-json/${sessionFile}.jsonl`
+        `${base}/dataset/${selectedDataset}/json/${sessionFile}.jsonl`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -1786,7 +1875,7 @@
       currentTime = time100;
 
       const { chartData, textElements, paragraphColor, summaryData } =
-        handleEvents(data, sessionFile);
+        handleEvents(data);
       const similarityData = await fetchSimilarityData(sessionFile);
       let updatedSession = {
         sessionId: sessionFile,
@@ -1820,7 +1909,7 @@
   const fetchSimilarityData = async (sessionFile) => {
     try {
       const response = await fetch(
-        `${base}/dataset/${selectedDataset}/similarity_results/${sessionFile}_similarity.json`
+        `${base}/dataset/${selectedDataset}/segment_results/${sessionFile}.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -1834,14 +1923,16 @@
     }
   };
 
-  let scoreSummary = [];
-  let percentageData = [];
-  let percentageSummaryData = [];
-  let lengthData = [];
-  let lengthSummaryData = [];
-  let overallSemScoreData = [];
-  let overallSemScoreSummaryData = [];
+  // let scoreSummary = [];
+  // let percentageData = [];
+  // let percentageSummaryData = [];
+  // let lengthData = [];
+  // let lengthSummaryData = [];
+  // let overallSemScoreData = [];
+  // let overallSemScoreSummaryData = [];
   let isLoadOverallData = false;
+  let CSVData = [];
+  let featureData = [];
   onMount(async () => {
     document.title = "Ink-Pulse";
     const res = await fetch(`${base}/dataset_name.json`);
@@ -1851,13 +1942,18 @@
     if (datasetParam && datasets.includes(datasetParam)) {
       selectedDataset = datasetParam;
     }
-    scoreSummary = await fetchScoreSummaryData();
-    percentageData = await fetchPercentageData();
-    percentageSummaryData = [];
-    lengthData = await fetchLengthData();
-    lengthSummaryData = [];
-    overallSemScoreData = await fetchOverallSemScoreData();
-    overallSemScoreSummaryData = [];
+    CSVData = (await fetchCSVData()).filter(
+      item => item.session_id && item.session_id.trim() !== ""
+    );
+    featureData = await fetchFeatureData(CSVData);
+
+    // scoreSummary = await fetchScoreSummaryData();
+    // percentageData = await fetchPercentageData();
+    // percentageSummaryData = [];
+    // lengthData = await fetchLengthData();
+    // lengthSummaryData = [];
+    // overallSemScoreData = await fetchOverallSemScoreData();
+    // overallSemScoreSummaryData = [];
     if (isLoadOverallData == false) {
       const prefix = selectedDataset.slice(0, 2);
       const itemToSave = {
@@ -1866,13 +1962,14 @@
         dataset: selectedDataset,
         pattern: [],
         metadata: {},
-        scoreSummary,
-        percentageData,
-        percentageSummaryData,
-        lengthData,
-        lengthSummaryData,
-        overallSemScoreData,
-        overallSemScoreSummaryData,
+        featuredata: featureData,
+        // scoreSummary,
+        // percentageData,
+        // percentageSummaryData,
+        // lengthData,
+        // lengthSummaryData,
+        // overallSemScoreData,
+        // overallSemScoreSummaryData,
       };
       searchPatternSet.update((current) => {
         const index = current.findIndex(
@@ -1894,7 +1991,7 @@
     for (let i = 0; i < selectedSession.length; i++) {
       const sessionId = selectedSession[i];
       const similarityData = await fetchSimilarityData(sessionId);
-      const llmScore = await fetchLLMScore(sessionId);
+      const llmScore = await fetchLLMScore(sessionId, CSVData);
 
       initData.update((sessions) => {
         const newSession = {
@@ -1987,12 +2084,13 @@
     return newParagraphTime;
   }
 
-  const handleEventsSummary = (data) => {
+  const handleEventsSummary = (data, similarityData) => {
     const chartData = [];
     let firstTime = null;
     let index = 0;
     const totalTextLength = data.text[0].slice(0, -1).length;
     let currentCharCount = data.init_text.join("").length;
+    console.log(similarityData)
 
     data.info.forEach((event, idx) => {
       const { name, event_time, eventSource, text = "", count = 0 } = event;
@@ -2058,7 +2156,7 @@
     return chartData;
   };
 
-  const handleEvents = (data, _) => {
+  const handleEvents = (data) => {
     const initText = data.init_text.join("");
     let currentCharArray = initText.split("");
     let currentColor = new Array(currentCharArray.length).fill("#FC8D62");
@@ -2399,7 +2497,7 @@
     vtOnScroll();
 
     // setInterval(() => {
-    //   console.log("displaySessions:", getDisplaySessions());
+      // console.log("displaySessions:", getDisplaySessions());
     //   console.log("columnGroups:", getColumnGroups());
     //   console.log("vtData:", vtData);
     //   console.log("filteredByCategory:", filteredByCategory);
@@ -2485,7 +2583,6 @@
   // Export functions
   function toggleExportMenu() {
     showExportMenu = !showExportMenu;
-    // 调试信息
     if (showExportMenu) {
       console.log("=== Export Menu Debug ===");
       console.log("searchPatternSet:", $searchPatternSet);
@@ -2944,13 +3041,12 @@
                             <LineChartPreview
                               bind:this={chartRefs[sessionId]}
                               chartData={$clickSession.chartData}
-                              selectedTimeRange={
-                                pattern.selectedTimeRange ??
-                                  deriveTimeRangeFromProgress(
-                                    pattern.range?.progress,
-                                    pattern.wholeData
-                                  ) ?? null
-                              }
+                              selectedTimeRange={pattern.selectedTimeRange ??
+                                deriveTimeRangeFromProgress(
+                                  pattern.range?.progress,
+                                  pattern.wholeData
+                                ) ??
+                                null}
                             />
                           </div>
                         </div>
@@ -2992,7 +3088,9 @@
                                     ? 'exact'
                                     : 'duration'}"
                                 >
-                                  {isExactSearchProgress ? "Exact" : "Duration"}
+                                  {isExactSearchProgress
+                                      ? "Exact"
+                                      : "Duration"}
                                 </span>
                               </span>
                             </label>
@@ -3346,7 +3444,10 @@
                             class:dimmed={!isTimeChecked}
                             style="font-size: 13px;"
                           >
-                            <input type="checkbox" bind:checked={isTimeChecked} />
+                            <input
+                              type="checkbox"
+                              bind:checked={isTimeChecked}
+                            />
                             Time
                             <label
                               class="switch"
@@ -3647,13 +3748,21 @@
                       <tr>
                         <th
                           class="sortable-header"
+                          class:disabled={selectedCategoryFilter}
                           on:click={() => handleSort("topic")}
                           style="min-width: 70px;"
                         >
-                          <span style="cursor: pointer;">Topic</span>
-                          <span class="sort-icon" style="cursor: pointer;"
-                            >{getSortIcon("topic")}</span
+                          <span
+                            style="cursor: {selectedCategoryFilter
+                              ? 'default'
+                              : 'pointer'};">Topic</span
                           >
+                          <span
+                            class="sort-icon"
+                            style="cursor: {selectedCategoryFilter
+                              ? 'default'
+                              : 'pointer'};">{getSortIcon("topic")}
+                          </span>
                         </th>
                         <th
                           class="sortable-header"
@@ -3681,7 +3790,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      {#each selectedCategoryFilter ? filteredByCategory : filteredSessions as sessionData}
+                      {#each selectedCategoryFilter ? sortedFilteredByCategory : filteredSessions as sessionData}
                         <tr
                           class="session-row"
                           on:click={() => handleRowClick(sessionData)}
@@ -3938,6 +4047,7 @@
                           <LineChart
                             bind:this={chartRefs[$clickSession.sessionId]}
                             chartData={$clickSession.chartData}
+                            similarityData={$clickSession.similarityData}
                             paragraphColor={$clickSession.paragraphColor}
                             on:pointSelected={(e) =>
                               handlePointSelected(e, $clickSession.sessionId)}
@@ -3961,7 +4071,8 @@
                       <span style="width: 100%;"
                         >{($clickSession?.currentTime || 0).toFixed(2)} mins</span
                       >
-                      <progress style="width: 100%;"
+                      <progress
+                        style="width: 100%;"
                         value={$clickSession?.currentTime || 0}
                         max={$clickSession?.time100 || 1}
                       ></progress>
@@ -4689,5 +4800,14 @@
     margin-left: 8px;
     margin-top: 2px;
     color: #777;
+  }
+
+  .sortable-header.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .sortable-header.disabled span {
+    color: #999 !important;
   }
 </style>
