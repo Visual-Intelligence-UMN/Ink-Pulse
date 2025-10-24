@@ -980,6 +980,7 @@
       count,
       wholeData: sessionData.wholeData,
       range: sessionData.range,
+      selectionSource: sessionData.selectionSource ?? null,
       flag: {
         isProgressChecked,
         isTimeChecked,
@@ -1210,6 +1211,172 @@
 
   let fetchProgress = 0;
 
+  function computeHighlightRangesFromSegments(segments) {
+    if (!Array.isArray(segments) || segments.length === 0) {
+      return { time: null, progress: null, windows: [] };
+    }
+
+    const toMinutes = (secondsValue, minutesValue, fallbackValue) => {
+      if (Number.isFinite(secondsValue)) {
+        return secondsValue / 60;
+      }
+      if (Number.isFinite(minutesValue)) {
+        return minutesValue;
+      }
+      if (Number.isFinite(fallbackValue)) {
+        return fallbackValue;
+      }
+      return null;
+    };
+
+    const toPercentage = (primaryValue, fallbackValue) => {
+      if (Number.isFinite(primaryValue)) {
+        const base =
+          Math.abs(primaryValue) <= 1.0001 ? primaryValue * 100 : primaryValue;
+        return base;
+      }
+      if (Number.isFinite(fallbackValue)) {
+        const base =
+          Math.abs(fallbackValue) <= 1.0001
+            ? fallbackValue * 100
+            : fallbackValue;
+        return base;
+      }
+      return null;
+    };
+
+    const allTimes = [];
+    const allProgresses = [];
+
+    segments.forEach((item) => {
+      const startTimeSeconds = Number(item.start_time);
+      const endTimeSeconds = Number(item.end_time);
+      const startTimeMinutes = Number(item.startTime ?? item.startTimeMinutes);
+      const endTimeMinutes = Number(item.endTime ?? item.endTimeMinutes);
+      const singleTime = Number(item.time);
+
+      const startTime = toMinutes(
+        startTimeSeconds,
+        startTimeMinutes,
+        singleTime,
+      );
+      const endTime = toMinutes(
+        endTimeSeconds,
+        endTimeMinutes,
+        singleTime,
+      );
+
+      if (startTime !== null) {
+        allTimes.push(startTime);
+      }
+      if (endTime !== null) {
+        allTimes.push(endTime);
+      }
+
+      const startProgress = toPercentage(
+        Number(item.start_progress ?? item.startProgress ?? item.progressStart),
+        Number(item.percentage),
+      );
+      const endProgress = toPercentage(
+        Number(item.end_progress ?? item.endProgress ?? item.progressEnd),
+        Number(item.percentage),
+      );
+
+      if (startProgress !== null) {
+        allProgresses.push(startProgress);
+      }
+      if (endProgress !== null) {
+        allProgresses.push(endProgress);
+      }
+    });
+
+    let timeRange = null;
+    if (allTimes.length) {
+      const minTime = Math.min(...allTimes);
+      const maxTime = Math.max(...allTimes);
+      if (Number.isFinite(minTime) && Number.isFinite(maxTime)) {
+        timeRange = {
+          min: Math.min(minTime, maxTime),
+          max: Math.max(minTime, maxTime),
+        };
+      }
+    }
+
+    let progressRange = null;
+    if (allProgresses.length) {
+      const rawMin = Math.min(...allProgresses);
+      const rawMax = Math.max(...allProgresses);
+      if (Number.isFinite(rawMin) && Number.isFinite(rawMax)) {
+        const clampedMin = Math.min(Math.max(rawMin, 0), 100);
+        const clampedMax = Math.min(Math.max(rawMax, clampedMin), 100);
+        progressRange = {
+          min: clampedMin,
+          max: clampedMax,
+        };
+      }
+    }
+
+    const windows =
+      timeRange || progressRange
+        ? [
+            {
+              time: timeRange,
+              progress: progressRange,
+            },
+          ]
+        : [];
+
+    const mode =
+      timeRange && progressRange
+        ? "both"
+        : timeRange
+          ? "time"
+          : progressRange
+            ? "progress"
+            : null;
+
+    const selectionContext =
+      mode === "time"
+        ? {
+            selectionSource: "lineChart_x",
+            timeMin: timeRange?.min ?? null,
+            timeMax: timeRange?.max ?? null,
+            progressMin: progressRange?.min ?? null,
+            progressMax: progressRange?.max ?? null,
+          }
+        : mode === "progress"
+          ? {
+              selectionSource: "lineChart_y",
+              timeMin: timeRange?.min ?? null,
+              timeMax: timeRange?.max ?? null,
+              progressMin: progressRange?.min ?? null,
+              progressMax: progressRange?.max ?? null,
+            }
+          : mode === "both"
+            ? {
+                selectionSource: "lineChart_y",
+                timeMin: timeRange?.min ?? null,
+                timeMax: timeRange?.max ?? null,
+                progressMin: progressRange?.min ?? null,
+                progressMax: progressRange?.max ?? null,
+              }
+            : {
+                selectionSource: null,
+                timeMin: timeRange?.min ?? null,
+                timeMax: timeRange?.max ?? null,
+                progressMin: progressRange?.min ?? null,
+                progressMax: progressRange?.max ?? null,
+              };
+
+    return {
+      time: timeRange,
+      progress: progressRange,
+      windows,
+      mode,
+      selectionContext,
+    };
+  }
+
   async function patternDataLoad(results) {
     const ids = results.map((group) => group[0]?.id).filter(Boolean);
     const BATCH_SIZE = 100;
@@ -1243,10 +1410,38 @@
               return newItem;
             });
           }
+          const highlightRanges = computeHighlightRangesFromSegments(group);
+          const fallbackMode = resolveHighlightModeFromSource(
+            searchDetail?.selectionSource ?? null,
+          );
+          const highlightMode =
+            fallbackMode ?? highlightRanges.mode ?? null;
+          const selectionContext =
+            highlightRanges.selectionContext ??
+            {
+              selectionSource:
+                highlightMode === "time"
+                  ? "lineChart_x"
+                  : highlightMode === "progress"
+                    ? "lineChart_y"
+                    : null,
+              timeMin: highlightRanges.time?.min ?? null,
+              timeMax: highlightRanges.time?.max ?? null,
+              progressMin: highlightRanges.progress?.min ?? null,
+              progressMax: highlightRanges.progress?.max ?? null,
+            };
           return {
             ...newSessionData,
+            chartData: Array.isArray(newSessionData.chartData)
+              ? newSessionData.chartData
+              : [],
             segments: group,
             segmentId: group[0]?.segmentId,
+            highlightRanges: {
+              ...highlightRanges,
+              mode: highlightMode,
+              selectionContext,
+            },
           };
         })
         .filter(Boolean)
@@ -1261,6 +1456,12 @@
   }
 
   let selectionSrc = null;
+
+  function resolveHighlightModeFromSource(source) {
+    if (source === "lineChart_x") return "time";
+    if (source === "lineChart_y" || source === "barChart_y") return "progress";
+    return null;
+  }
 
   function handleSelectionChanged(event) {
     showResultCount.set(5);
@@ -1604,7 +1805,83 @@
       }
     }
 
-    selectedPatterns[resolvedSessionId] = {
+    const selectionHighlightWindows = [];
+    const highlightMode = resolveHighlightModeFromSource(selectionSource);
+
+    const selectionContext = {
+      selectionSource,
+      timeMin: null,
+      timeMax: null,
+      progressMin: Number.isFinite(effectiveRange.progress.min)
+        ? effectiveRange.progress.min
+        : null,
+      progressMax: Number.isFinite(effectiveRange.progress.max)
+        ? effectiveRange.progress.max
+        : null,
+    };
+
+    if (
+      (highlightMode === "progress" || highlightMode === "both") &&
+      Number.isFinite(effectiveRange.progress.min) &&
+      Number.isFinite(effectiveRange.progress.max)
+    ) {
+      selectionHighlightWindows.push({
+        progress: {
+          min: effectiveRange.progress.min,
+          max: effectiveRange.progress.max,
+        },
+      });
+    }
+
+    const resolvedSelectedTimeRangeCandidate =
+      highlightTimeRange ??
+      (highlightMode === "time" || highlightMode === "both"
+        ? {
+            min: timeRange[0],
+            max: timeRange[1],
+          }
+        : null);
+
+    if (
+      (highlightMode === "time" || highlightMode === "both") &&
+      resolvedSelectedTimeRangeCandidate &&
+      Number.isFinite(resolvedSelectedTimeRangeCandidate.min) &&
+      Number.isFinite(resolvedSelectedTimeRangeCandidate.max)
+    ) {
+      selectionContext.timeMin = resolvedSelectedTimeRangeCandidate.min;
+      selectionContext.timeMax = resolvedSelectedTimeRangeCandidate.max;
+      selectionHighlightWindows.push({
+        time: {
+          min: resolvedSelectedTimeRangeCandidate.min,
+          max: resolvedSelectedTimeRangeCandidate.max,
+        },
+      });
+    }
+
+    const highlightInfo = computeHighlightRangesFromSegments(effectiveData);
+
+    const resolvedSelectedTimeRange =
+      highlightTimeRange ?? highlightInfo.time ?? null;
+
+    const resolvedHighlightWindows =
+      selectionHighlightWindows.length > 0
+        ? selectionHighlightWindows
+        : highlightInfo.windows ?? [];
+    const resolvedSelectionContext =
+      selectionContext.timeMin !== null ||
+      selectionContext.timeMax !== null ||
+      selectionContext.progressMin !== null ||
+      selectionContext.progressMax !== null
+        ? selectionContext
+        : highlightInfo.selectionContext ?? {
+            selectionSource,
+            timeMin: highlightInfo.time?.min ?? null,
+            timeMax: highlightInfo.time?.max ?? null,
+            progressMin: highlightInfo.progress?.min ?? null,
+            progressMax: highlightInfo.progress?.max ?? null,
+          };
+
+    const updatedPattern = {
       range: effectiveRange,
       dataRange: effectiveDataRange,
       data: effectiveData,
@@ -1614,7 +1891,16 @@
       progressRange: `${effectiveRange.progress.min.toFixed(1)} - ${effectiveRange.progress.max.toFixed(1)}%`,
       count: effectiveData.length,
       // Save selected time range, used for highlight in time mode
-      selectedTimeRange: highlightTimeRange,
+      selectedTimeRange: resolvedSelectedTimeRange,
+      highlightWindows: resolvedHighlightWindows,
+      highlightMode,
+      selectionSource,
+      selectionContext: resolvedSelectionContext,
+    };
+
+    selectedPatterns = {
+      ...selectedPatterns,
+      [resolvedSessionId]: updatedPattern,
     };
   }
 
@@ -1626,7 +1912,8 @@
       lastSession?.sessionId;
 
     if (resolvedSessionId && selectedPatterns[resolvedSessionId]) {
-      delete selectedPatterns[resolvedSessionId];
+      const { [resolvedSessionId]: _, ...rest } = selectedPatterns;
+      selectedPatterns = rest;
     }
   }
 
@@ -3046,6 +3333,10 @@
                                   pattern.wholeData
                                 ) ??
                                 null}
+                              selectedProgressRange={pattern.range?.progress ?? null}
+                              highlightWindows={pattern.highlightWindows ?? []}
+                              highlightMode={pattern.highlightMode ?? null}
+                              selectionContext={pattern.selectionContext ?? null}
                             />
                           </div>
                         </div>
@@ -3215,7 +3506,7 @@
                         <!-- Time mode: Show LineChart with time selection highlight -->
                         <div
                           class="pattern-chart-preview small-preview"
-                          style="width: 100%; height: 160px;"
+                          style="height: 160px; width: fit-content; max-width: 100%;"
                         >
                           <LineChartPreview
                             bind:this={chartRefs[sessionId]}
@@ -3240,6 +3531,10 @@
                               return data;
                             })()}
                             selectedTimeRange={pattern.selectedTimeRange}
+                            selectedProgressRange={pattern.range?.progress ?? null}
+                            highlightWindows={pattern.highlightWindows ?? []}
+                            highlightMode={pattern.highlightMode ?? null}
+                            selectionContext={pattern.selectionContext ?? null}
                           />
                         </div>
                         <div
@@ -3571,6 +3866,12 @@
                               <LineChartPreview
                                 bind:this={chartRefs[sessionData.sessionId]}
                                 chartData={sessionData.chartData}
+                                selectedTimeRange={sessionData.highlightRanges?.time ?? null}
+                                selectedProgressRange={sessionData.highlightRanges?.progress ?? null}
+                                highlightWindows={sessionData.highlightRanges?.windows ?? []}
+                                highlightMode={sessionData.highlightRanges?.mode ??
+                                  resolveHighlightModeFromSource(searchDetail?.selectionSource ?? null)}
+                                selectionContext={sessionData.highlightRanges?.selectionContext ?? null}
                               />
                             </div>
                           </div>

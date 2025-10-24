@@ -145,6 +145,7 @@
           wholeData: processedData,
           sessionId,
           sources: filteredData.map((d) => d.source),
+          selectionSource: "lineChart_x",
         });
       } else {
         bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
@@ -203,6 +204,7 @@
       wholeData: processedData,
       sessionId: sessionId,
       sources: filteredData.map((d) => d.source),
+      selectionSource: "barChart_y",
     });
   }
 

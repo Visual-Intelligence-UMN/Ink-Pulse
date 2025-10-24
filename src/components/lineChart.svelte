@@ -31,6 +31,7 @@
       wholeData: any[];
       sessionId: string | null;
       sources: string[];
+      selectionSource: string | null;
     };
     selectionCleared: {
       sessionId: string | null;
@@ -236,6 +237,7 @@
       wholeData: chartData,
       sessionId: null,
       sources: sources,
+      selectionSource: "lineChart_y",
     });
   }
 
@@ -306,6 +308,7 @@
       wholeData: chartData,
       sessionId: null,
       sources: sources,
+      selectionSource: "lineChart_x",
     });
   }
 
