@@ -14,6 +14,15 @@
   let width = 150;
   let height = 120;
 
+  const colorMap = {
+  user: "#66C2A5",
+  api: "#FC8D62",
+  };
+
+  import colors from "./colors.js";
+  const colorPalette = colors("7fc97fbeaed4fdc086ffff99386cb0f0027fbf5b17666666");
+  let colorIndex = 0;
+
   onMount(() => {
     if (data && container) {
       renderChart();
@@ -136,8 +145,28 @@
         return isNaN(y1) || isNaN(y2) ? 0 : Math.abs(y1 - y2);
       })
 
-      .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
-      .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
+      .attr("fill", (d) => {
+        if (d.source === "user") {
+          return colorMap.user;
+        } else if (d.source === "api") {
+          return colorMap.api;
+        } else {
+          const color = colorPalette[colorIndex % colorPalette.length];
+          colorIndex++;
+          return color;
+        }
+      })
+      .attr("stroke", (d) => {
+        if (d.source === "user") {
+          return colorMap.user;
+        } else if (d.source === "api") {
+          return colorMap.api;
+        } else {
+          const color = colorPalette[colorIndex % colorPalette.length];
+          colorIndex++;
+          return color;
+        }
+      })
       .attr("stroke-width", 0.1)
       .attr("opacity", 0.2)
       .attr("clip-path", `url(#clip_bar_preview_${sessionId})`);
@@ -164,8 +193,28 @@
         const y2 = newyScale(d.endProgress);
         return isNaN(y1) || isNaN(y2) ? 0 : Math.abs(y1 - y2);
       })
-      .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
-      .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
+      .attr("fill", (d) => {
+        if (d.source === "user") {
+          return colorMap.user;
+        } else if (d.source === "api") {
+          return colorMap.api;
+        } else {
+          const color = colorPalette[colorIndex % colorPalette.length];
+          colorIndex++;
+          return color;
+        }
+      })
+      .attr("stroke", (d) => {
+        if (d.source === "user") {
+          return colorMap.user;
+        } else if (d.source === "api") {
+          return colorMap.api;
+        } else {
+          const color = colorPalette[colorIndex % colorPalette.length];
+          colorIndex++;
+          return color;
+        }
+      })
       .attr("stroke-width", 0.1)
       .attr("opacity", 0.9)
       .attr("clip-path", `url(#clip_bar_preview_${sessionId})`);
