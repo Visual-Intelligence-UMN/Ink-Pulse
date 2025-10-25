@@ -156,7 +156,7 @@
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
 
-    const barWidth = (CHART_WIDTH - PADDING_LEFT - PADDING_RIGHT) / binCount;
+    const barWidth = (CHART_WIDTH - PADDING_LEFT - PADDING_RIGHT) / comparisonBins.length;
     
     // Draw X-axis labels (rotated bin labels)
     comparisonBins.forEach((bin, i) => {
@@ -361,7 +361,7 @@
     ctx.fillStyle = color;
     ctx.textAlign = 'center';
     ctx.fillText(
-      truncateText(`avg(${title[0]})=${mean.toFixed(1)}`),
+      truncateText(`avg(${title[0]})=${Math.floor(mean * 100) / 100}`),
       meanX,
       y - errorBarHeight * 2.5
     );
