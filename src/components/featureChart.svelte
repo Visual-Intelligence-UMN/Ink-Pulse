@@ -16,6 +16,16 @@
   /** Legend titles for the plots: [0] = highlight (data), [1] = comparison (patternData) */
   export let title: [string, string] = ['Group 1', 'Group 2'];
 
+  const binSizes: Record<string, number> = {
+    judge_score: 1,
+    length: 500,
+    AI_ratio: 0.1,
+    sum_semantic_score: 3
+  };
+
+  const binSize = binSizes[featureName] ?? 1; // default to 1 if featureName not found
+
+
   // --- Charting Constants ---
   const HIGHLIGHT_COLOR = '#999999'; // Color for the 'data' group
   const PADDING_LEFT = 40;
@@ -82,42 +92,34 @@
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, CHART_WIDTH, CHART_HEIGHT);
     
-    // --- 2. Dynamic Binning ---
+    // --- 2. Dynamic Binning with binSize ---
     const allValues = [...highlightArr, ...overallArr];
     if (allValues.length === 0) {
       drawEmptyChart('No data to display');
       return;
     }
 
-    let globalMin = jStat.min(allValues);
-    let globalMax = jStat.max(allValues);
-    let binCount = 11; // Use 11 bins like the original
-    let binWidth = (globalMax - globalMin) / binCount;
+    const globalMin = jStat.min(allValues);
+    const globalMax = jStat.max(allValues);
 
-    // Handle edge case where all values are identical
-    if (binWidth === 0) {
-      binCount = 1;
-      binWidth = (globalMax === 0 ? 1 : globalMax) * 0.2; // Create a small bin width
-      globalMin = globalMin - binWidth / 2;
-      globalMax = globalMax + binWidth / 2;
-      binWidth = globalMax - globalMin; // Set binWidth to the new range
-    }
+    // Calculate number of bins based on given binSize
+    let binCount = Math.ceil((globalMax - globalMin) / binSize);
+    if (binCount === 0) binCount = 1;
 
-    // Create bin structures
-    let comparisonBins: any[] = []; // Striped bars (overallArr)
-    let highlightBins: any[] = [];  // Solid bars (highlightArr)
+    let comparisonBins: any[] = [];
+    let highlightBins: any[] = [];
 
     for (let i = 0; i < binCount; i++) {
-      const min = globalMin + i * binWidth;
-      const max = min + binWidth;
+      const min = globalMin + i * binSize;
+      const max = min + binSize;
       const label = `${min.toPrecision(2)}-${max.toPrecision(2)}`;
       comparisonBins.push({ label, min, max, count: 0, percent: 0 });
       highlightBins.push({ label, min, max, count: 0, nowPercent: 0 });
     }
-    // Ensure the last bin captures the max value
+
+    // Ensure the last bin captures the maximum value
     comparisonBins[comparisonBins.length - 1].max = globalMax + 0.0001;
     highlightBins[highlightBins.length - 1].max = globalMax + 0.0001;
-
 
     // --- 3. Populate Bins ---
     overallArr.forEach(val => {
@@ -129,6 +131,19 @@
       const binIndex = highlightBins.findIndex(b => val >= b.min && val < b.max);
       if (binIndex !== -1) highlightBins[binIndex].count++;
     });
+
+    // --- Trim empty bins at the start and end ---
+    const trimEmptyBins = (bins: any[]) => {
+      let start = 0;
+      while (start < bins.length && bins[start].count === 0) start++;
+      let end = bins.length - 1;
+      while (end >= 0 && bins[end].count === 0) end--;
+      return bins.slice(start, end + 1);
+    };
+
+    comparisonBins = trimEmptyBins(comparisonBins);
+    highlightBins = trimEmptyBins(highlightBins);
+
 
     // Calculate percentages
     const totalCount = comparisonBins.reduce((acc, b) => acc + b.count, 0);
@@ -226,16 +241,24 @@
     // --- 6. Calculate Stats (p-value, means) ---
     const overallMean = overallArr.length > 0 ? jStat.mean(overallArr) : 0;
     const highlightMean = highlightArr.length > 0 ? jStat.mean(highlightArr) : 0;
-    
+
     let pValue: number | null = null;
     if (overallArr.length > 1 && highlightArr.length > 1) {
-      try {
-        const t = jStat.ttest(highlightArr, overallArr, 2); // 2-sample, 2-tailed t-test
-        pValue = t;
-      } catch (e) {
-        console.warn("Could not calculate p-value:", e);
-      }
+      const mean1 = jStat.mean(overallArr);
+      const mean2 = jStat.mean(highlightArr);
+      const var1 = jStat.variance(overallArr, true);
+      const var2 = jStat.variance(highlightArr, true);
+      const n1 = overallArr.length;
+      const n2 = highlightArr.length;
+
+      const t = (mean1 - mean2) / Math.sqrt(var1 / n1 + var2 / n2);
+
+      const df = Math.pow(var1 / n1 + var2 / n2, 2) /
+                ((Math.pow(var1 / n1, 2) / (n1 - 1)) + (Math.pow(var2 / n2, 2) / (n2 - 1)));
+
+      pValue = 2 * (1 - jStat.studentt.cdf(Math.abs(t), df));
     }
+
 
     // --- 7. Draw Top Plot (StdDev Bars) ---
     const topContainerHeight = PADDING_TOP;
