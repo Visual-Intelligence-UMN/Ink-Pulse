@@ -99,7 +99,7 @@
       return;
     }
 
-    const globalMin = jStat.min(allValues);
+    const globalMin = 0;
     const globalMax = jStat.max(allValues);
 
     // Calculate number of bins based on given binSize
@@ -112,7 +112,7 @@
     for (let i = 0; i < binCount; i++) {
       const min = globalMin + i * binSize;
       const max = min + binSize;
-      const label = `${min.toPrecision(2)}-${max.toPrecision(2)}`;
+      const label = `${Math.floor(min * 100) / 100}-${Math.floor(max * 100) / 100}`;    
       comparisonBins.push({ label, min, max, count: 0, percent: 0 });
       highlightBins.push({ label, min, max, count: 0, nowPercent: 0 });
     }
@@ -133,17 +133,15 @@
     });
 
     // --- Trim empty bins at the start and end ---
-    const trimEmptyBins = (bins: any[]) => {
+    const trimEmptyBins = (binsa, binsb) => {
       let start = 0;
-      while (start < bins.length && bins[start].count === 0) start++;
-      let end = bins.length - 1;
-      while (end >= 0 && bins[end].count === 0) end--;
-      return bins.slice(start, end + 1);
+      while (binsa[start].count === 0 && binsb[start].count === 0) start++;
+      let end = Math.max(binsa.length, binsb.length) - 1;
+      while (end >= 0 && binsa[end].count === 0 && binsb[end].count === 0) end--;
+      return [binsa.slice(start, end + 1), binsb.slice(start, end + 1)];
     };
 
-    comparisonBins = trimEmptyBins(comparisonBins);
-    highlightBins = trimEmptyBins(highlightBins);
-
+    [comparisonBins, highlightBins] = trimEmptyBins(comparisonBins, highlightBins);
 
     // Calculate percentages
     const totalCount = comparisonBins.reduce((acc, b) => acc + b.count, 0);
@@ -363,7 +361,7 @@
     ctx.fillStyle = color;
     ctx.textAlign = 'center';
     ctx.fillText(
-      truncateText(`avg(${title[0]})=${meanX.toFixed(1)}`),
+      truncateText(`avg(${title[0]})=${mean.toFixed(1)}`),
       meanX,
       y - errorBarHeight * 2.5
     );
