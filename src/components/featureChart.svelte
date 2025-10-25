@@ -283,28 +283,8 @@
       } else {
         displayP = `p=${pValue.toExponential(2)}`;
       }
-      ctx.fillText(displayP, PADDING_LEFT + 5, topContainerHeight - 15);
+      ctx.fillText(displayP, PADDING_LEFT + 5, topContainerHeight + 10);
     }
-    
-    // Draw top plot labels
-    ctx.font = '10px sans-serif';
-    ctx.textBaseline = 'middle';
-    
-    ctx.fillStyle = '#000';
-    ctx.textAlign = 'right';
-    ctx.fillText(
-      truncateText(`avg(${title[0]})=${highlightMean.toFixed(1)}`),
-      CHART_WIDTH - 5,
-      topContainerHeight - 25
-    );
-
-    ctx.fillStyle = '#666';
-    ctx.textAlign = 'right';
-    ctx.fillText(
-      truncateText(`avg(${title[1]})=${overallMean.toFixed(1)}`),
-      CHART_WIDTH - 5,
-      topContainerHeight - 5
-    );
   }
 
   /**
@@ -376,6 +356,17 @@
     ctx.arc(meanX, y, 2.5, 0, 2 * Math.PI);
     ctx.fill();
 
+    // Draw top plot labels
+    ctx.font = '10px sans-serif';
+    ctx.textBaseline = 'middle';
+    
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.fillText(
+      truncateText(`avg(${title[0]})=${meanX.toFixed(1)}`),
+      meanX,
+      y - errorBarHeight * 2.5
+    );
     return meanX;
   }
 
