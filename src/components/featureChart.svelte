@@ -220,17 +220,28 @@
     ctx.textAlign = 'center';
     ctx.fillText(nameMapping[featureName], PADDING_LEFT + (CHART_WIDTH - PADDING_LEFT - PADDING_RIGHT) / 2, CHART_HEIGHT - PADDING_BOTTOM + 35);
     
-    // Draw axis lines
-    ctx.strokeStyle = '#000';
+    // --- Draw axis lines (grey + right-side boundary) ---
+    ctx.strokeStyle = '#ccc'; // grey color for all axis lines
     ctx.lineWidth = 1;
+
+    // left (Y-axis)
     ctx.beginPath();
     ctx.moveTo(PADDING_LEFT, PADDING_TOP);
     ctx.lineTo(PADDING_LEFT, CHART_HEIGHT - PADDING_BOTTOM);
     ctx.stroke();
+
+    // bottom (X-axis)
     ctx.beginPath();
     ctx.moveTo(PADDING_LEFT, CHART_HEIGHT - PADDING_BOTTOM);
     ctx.lineTo(CHART_WIDTH - PADDING_RIGHT, CHART_HEIGHT - PADDING_BOTTOM);
     ctx.stroke();
+
+    // right boundary line (same height as Y-axis)
+    ctx.beginPath();
+    ctx.moveTo(CHART_WIDTH - PADDING_RIGHT, PADDING_TOP);
+    ctx.lineTo(CHART_WIDTH - PADDING_RIGHT, CHART_HEIGHT - PADDING_BOTTOM);
+    ctx.stroke();
+
 
     // --- 5. Draw Histogram Bars ---
     const barWidthRatio = 0.4;
