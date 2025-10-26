@@ -23,6 +23,13 @@
     sum_semantic_score: 3
   };
 
+  const nameMapping: Record<string, string> = {
+    judge_score: 'Score',
+    length: 'Content Length',
+    AI_ratio: 'AI Ratio',
+    sum_semantic_score: 'Accumulative Semantic Scores'
+  };
+
   const binSize = binSizes[featureName] ?? 1; // default to 1 if featureName not found
 
 
@@ -211,7 +218,7 @@
     
     // Draw axis title
     ctx.textAlign = 'center';
-    ctx.fillText(featureName, PADDING_LEFT + (CHART_WIDTH - PADDING_LEFT - PADDING_RIGHT) / 2, CHART_HEIGHT - PADDING_BOTTOM + 35);
+    ctx.fillText(nameMapping[featureName], PADDING_LEFT + (CHART_WIDTH - PADDING_LEFT - PADDING_RIGHT) / 2, CHART_HEIGHT - PADDING_BOTTOM + 35);
     
     // Draw axis lines
     ctx.strokeStyle = '#000';
@@ -380,9 +387,11 @@
     
     ctx.fillStyle = color;
     ctx.textAlign = 'center';
+    let textMargin = 45;
+    let textX = Math.max(PADDING_LEFT + textMargin, Math.min(CHART_WIDTH - PADDING_RIGHT - textMargin, meanX));
     ctx.fillText(
       truncateText(`avg(${title[0]})=${Math.floor(mean * 100) / 100}`),
-      meanX,
+      textX,
       y - errorBarHeight * 2.5
     );
     return meanX;
