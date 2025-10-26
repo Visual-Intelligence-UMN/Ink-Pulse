@@ -17,7 +17,7 @@
   export let title: [string, string] = ['Group 1', 'Group 2'];
 
   const binSizes: Record<string, number> = {
-    judge_score: 1,
+    judge_score: -1,
     length: 500,
     AI_ratio: 0.1,
     sum_semantic_score: 3
@@ -102,24 +102,43 @@
     const globalMin = 0;
     const globalMax = jStat.max(allValues);
 
-    // Calculate number of bins based on given binSize
-    let binCount = Math.ceil((globalMax - globalMin) / binSize);
-    if (binCount === 0) binCount = 1;
-
+    let binCount: number;
     let comparisonBins: any[] = [];
     let highlightBins: any[] = [];
 
-    for (let i = 0; i < binCount; i++) {
-      const min = globalMin + i * binSize;
-      const max = min + binSize;
-      const label = `${Math.floor(min * 100) / 100}-${Math.floor(max * 100) / 100}`;    
-      comparisonBins.push({ label, min, max, count: 0, percent: 0 });
-      highlightBins.push({ label, min, max, count: 0, nowPercent: 0 });
+    if (binSize === -1) {
+      // Discrete mode: use unique values as bins (label = value, range = value-0.5 → value+0.5)
+      const uniqueSorted = Array.from(new Set(allValues)).sort((a, b) => a - b);
+      binCount = uniqueSorted.length || 1;
+
+      for (let i = 0; i < uniqueSorted.length; i++) {
+        const v = uniqueSorted[i];
+        const min = v - 0.5;
+        const max = v + 0.5;
+        const label = `${v}`; // label should be the raw value
+        comparisonBins.push({ label, min, max, count: 0, percent: 0 });
+        highlightBins.push({ label, min, max, count: 0, nowPercent: 0 });
+      }
+    } else {
+      // Original continuous/range behavior
+      binCount = Math.ceil((globalMax - globalMin) / binSize);
+      if (binCount === 0) binCount = 1;
+
+      for (let i = 0; i < binCount; i++) {
+        const min = globalMin + i * binSize;
+        const max = min + binSize;
+        const label = `${Math.floor(min * 100) / 100}-${Math.floor(max * 100) / 100}`;
+        comparisonBins.push({ label, min, max, count: 0, percent: 0 });
+        highlightBins.push({ label, min, max, count: 0, nowPercent: 0 });
+      }
     }
 
     // Ensure the last bin captures the maximum value
-    comparisonBins[comparisonBins.length - 1].max = globalMax + 0.0001;
-    highlightBins[highlightBins.length - 1].max = globalMax + 0.0001;
+    if (comparisonBins.length > 0) {
+      comparisonBins[comparisonBins.length - 1].max = globalMax + 0.0001;
+      highlightBins[highlightBins.length - 1].max = globalMax + 0.0001;
+    }
+
 
     // --- 3. Populate Bins ---
     overallArr.forEach(val => {
@@ -159,13 +178,14 @@
     const barWidth = (CHART_WIDTH - PADDING_LEFT - PADDING_RIGHT) / comparisonBins.length;
     
     // Draw X-axis labels (rotated bin labels)
+    const rotateLabel = comparisonBins.some(bin => bin.label.length > 4);
     comparisonBins.forEach((bin, i) => {
       const x = PADDING_LEFT + i * barWidth + barWidth / 2;
       const y = CHART_HEIGHT - PADDING_BOTTOM + 5;
       const angle = -Math.PI / 4;
       ctx.save();
       ctx.translate(x, y);
-      ctx.rotate(angle);
+      if (rotateLabel) ctx.rotate(angle);
       ctx.textAlign = 'right';
       ctx.fillText(bin.label, 0, 0);
       ctx.restore();
