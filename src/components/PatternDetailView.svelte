@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import SessionCell from './sessionCell.svelte';
   import { getCategoryIcon as getCategoryIconBase } from './topicIcons.js';
@@ -45,7 +45,7 @@
   $: title = [
     pattern?.name,
     normalizeName(findPatternByKey(selectedIdDataset)?.name)
-  ];
+  ] as [string, string];
   
   const dispatch = createEventDispatcher();
   

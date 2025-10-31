@@ -1806,7 +1806,10 @@
     }
 
     const selectionHighlightWindows = [];
-    const highlightMode = resolveHighlightModeFromSource(selectionSource);
+    const selectionHighlightMode = resolveHighlightModeFromSource(selectionSource);
+    const highlightInfo = computeHighlightRangesFromSegments(effectiveData);
+    const highlightMode =
+      selectionHighlightMode ?? highlightInfo.mode ?? null;
 
     const selectionContext = {
       selectionSource,
@@ -1857,8 +1860,6 @@
         },
       });
     }
-
-    const highlightInfo = computeHighlightRangesFromSegments(effectiveData);
 
     const resolvedSelectedTimeRange =
       highlightTimeRange ?? highlightInfo.time ?? null;
