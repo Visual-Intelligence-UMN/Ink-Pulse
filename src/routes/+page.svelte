@@ -1633,8 +1633,7 @@
     let effectiveData =
       data && data.length ? data.map((item) => ({ ...item })) : [];
 
-    let effectiveSources =
-      sources && sources.length ? [...sources] : [];
+    let effectiveSources = sources && sources.length ? [...sources] : [];
 
     let scValues = [...effectiveDataRange.sc.sc];
 
@@ -3574,7 +3573,9 @@
                                       ? 'exact'
                                       : 'duration'}"
                                   >
-                                    {isExactSearchProgress ? "Exact" : "Duration"}
+                                    {isExactSearchProgress
+                                      ? "Exact"
+                                      : "Duration"}
                                   </span>
                                 </span>
                               </label>
@@ -4715,13 +4716,12 @@
   }
 
   .chart-wrapper {
-    display: flex; 
+    display: flex;
     align-items: flex-start;
     padding-right: 35px;
     transform: scale(1.25);
     transform-origin: center top;
   }
-
 
   .pattern-search-panel {
     position: fixed;
