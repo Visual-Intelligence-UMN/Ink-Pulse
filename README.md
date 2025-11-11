@@ -9,7 +9,19 @@ The introduction video can be found [here](https://drive.google.com/file/d/10hUf
 
 https://github.com/user-attachments/assets/52fd3243-0cf5-4943-a456-d8fd09c1538b
 
-## Getting started
+## Quick Link
+
+[Getting Started](#getting-started)
+
+[Project Structure](#project-structure)
+
+[File Structure](#file-structure)
+
+[Data Structure](#data-structure)
+
+[How to import your own dataset](#how-to-import-your-own-dataset)
+
+## Getting Started
 
 If running for the first time, ensure you have Node.js **v18 or newer** installed. You can check your version by running:
 
@@ -37,12 +49,12 @@ bun dev
 
 Open [http://localhost:5173](http://localhost:5173) with your browser to see the result.
 
-## Project structure
+## Project Structure
 
 This project is organized with the following structure(only list main folders):
 
 
-### Structure
+### File Structure
 
 - **`/src/routes/`**  
   Contains the main application routes.
@@ -68,9 +80,9 @@ We use three main data structures in this project, including raw data in the fol
 
 **`static/dataset/json`**: Contains each action, used for displaying points in line chart.
 
-**`static/dataset/sentence`**: Contains each sentence, used for calculating the data in **`static/dataset/similarity_results`**.
+**`static/dataset/segment`**: Contains each segment, used for calculating the data in **`static/dataset/segment_results`**.
 
-**`static/dataset/similarity_results`**: Contains data for each sentence, used for displaying bars in bar chart.
+**`static/dataset/segment_results`**: Contains data for each segment, used for displaying bars in bar chart.
 
 ### static/dataset/json
 Stores user actions on text, including content and event metadata.
@@ -123,8 +135,8 @@ Example
     ]
   }
   ```
-### static/dataset/sentence
-Stores intermediate sentence-level data for computing following data. **NOT** directly used in the frontend.
+### static/dataset/segment
+Stores intermediate segment-level data for computing following data. **NOT** directly used in the frontend.
 
   ```python
     [
@@ -172,8 +184,8 @@ Example
     ]
   ```
 
-### static/dataset/similarity_results
-Stores sentence-level data for analysis and visualization.
+### static/dataset/segment_results
+Stores segment-level data for analysis and visualization.
 
   ```python
     [
@@ -191,7 +203,7 @@ Stores sentence-level data for analysis and visualization.
     ]
   ```
 
-  - **sentence**: Length of the sentence, `len(current_context) / 3000`
+  - **sentence**: Length of the segment, `len(current_context) / 3000`
   - **source**: Source of current context
   - **start_progress**: Start progress of current context
   - **end_progress**: End progress of current context
@@ -253,6 +265,8 @@ Example
 
 ## How to import your own dataset
 
+You can use **`static/backend/index.ipynb`** to preprocess the data.
+
 Before loading your dataset, please check the data structure above.
 
 Put your dataset in folder **`static/import_dataset`**
@@ -266,5 +280,3 @@ Your dataset should contains:
 session.jsonl format should be similar as the raw data above.
 
 dataset.csv should contain at least **session_id** and **prompt_code**. Sample can be checked in **`static/import_dataset/creative.csv`**.
-
-If you want to change the method for calculating **semantic score** or **writing quality score**, related code can be found in **`static/backend/process`**, in `openai_residual_vector.py` and `evaluator.py`.

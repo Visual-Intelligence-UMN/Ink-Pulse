@@ -1,11 +1,12 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import SessionCell from './sessionCell.svelte';
   import { getCategoryIcon as getCategoryIconBase } from './topicIcons.js';
-  import ScoreSummaryChart from './scoreSummaryChart.svelte';
-  import PercentageChart from './percentageChart.svelte'
-  import LengthChart from './lengthChart.svelte';
-  import OverallSemScoreChart from './overallSemScoreChart.svelte';
+  // import ScoreSummaryChart from './scoreSummaryChart.svelte';
+  // import PercentageChart from './percentageChart.svelte'
+  // import LengthChart from './lengthChart.svelte';
+  // import OverallSemScoreChart from './overallSemScoreChart.svelte';
+  import FeatureChart from './featureChart.svelte';
   import PatternChartPreview from './patternChartPreview.svelte';
   
   export let pattern;
@@ -14,24 +15,37 @@
   export let searchPatternSet;
   export let selectedDataset;
 
-  const NOWColor = '#999999';
-
   const init = searchPatternSet.find(
     (p) => p.id === "pattern_0" && p.dataset === pattern.dataset
   );
-  let scoreSummary = init.scoreSummary;
-  let percentageSummaryData = init.percentageSummaryData;
-  let percentageData = init.percentageData;
-  let lengthData = init.lengthData;
-  let lengthSummaryData = init.lengthSummaryData;
-  let overallSemScoreData = init.overallSemScoreData;
-  let overallSemScoreSummaryData = init.overallSemScoreSummaryData;
+  let featureData = init?.featuredata || [];
+
+  $: featureKeys = featureData.length > 0 
+    ? Object.keys(featureData[0]).filter(k => k !== 'session_id') 
+    : [];
+  function getFeatureValues(feature, sessionIds) {
+    return featureData
+      .filter(d => sessionIds.includes(d.session_id))
+      .map(d => ({ session_id: d.session_id, value: d[feature] }));
+  }
+
+  $: patternSessionIds = patternSessions.map(s => s.sessionId);
+
+  const NOWColor = '#999999';
+  // let scoreSummary = init.scoreSummary;
+  // let percentageSummaryData = init.percentageSummaryData;
+  // let percentageData = init.percentageData;
+  // let lengthData = init.lengthData;
+  // let lengthSummaryData = init.lengthSummaryData;
+  // let overallSemScoreData = init.overallSemScoreData;
+  // let overallSemScoreSummaryData = init.overallSemScoreSummaryData;
+  let patternData = featureData;
   let flag = "overall";
   let selectedIdDataset = `${init.id}::${init.dataset}`;
   $: title = [
     pattern?.name,
     normalizeName(findPatternByKey(selectedIdDataset)?.name)
-  ];
+  ] as [string, string];
   
   const dispatch = createEventDispatcher();
   
@@ -76,43 +90,46 @@
     if (selectedValue === "pattern_0") {
       flag = "overall";
       title = [pattern.name, normalizeName(select?.name)];
-      scoreSummary = select?.scoreSummary;
-      percentageSummaryData = select?.percentageSummaryData;
-      percentageData = select?.percentageData;
-      lengthData = select?.lengthData;
-      lengthSummaryData = select?.lengthSummaryData;
-      overallSemScoreData = select?.overallSemScoreData;
-      overallSemScoreSummaryData = select?.overallSemScoreSummaryData;
+      patternData = select?.featuredata;
+      // scoreSummary = select?.scoreSummary;
+      // percentageSummaryData = select?.percentageSummaryData;
+      // percentageData = select?.percentageData;
+      // lengthData = select?.lengthData;
+      // lengthSummaryData = select?.lengthSummaryData;
+      // overallSemScoreData = select?.overallSemScoreData;
+      // overallSemScoreSummaryData = select?.overallSemScoreSummaryData;
     } else {
       flag = selectedValue;
       title = [pattern.name, normalizeName(select?.name)];
-      const patternSessions = select.pattern || [];
-      const temp = {};
-      for (const session of patternSessions) {
-        const score = Number(session.llmScore);
-        temp[score] = (temp[score] || 0) + 1;
-      }
-      scoreSummary = Object.fromEntries(
-        Object.entries(temp).map(([k, v]) => [Number(k), v])
-      );
-      percentageSummaryData = select.pattern;
-      lengthSummaryData = select.pattern;
-      overallSemScoreSummaryData = select.pattern;
+      const selectData = select?.pattern || [];
+      patternData = selectData.map(item => item.sessionId);
+      // const patternSessions = select.pattern || [];
+      // const temp = {};
+      // for (const session of patternSessions) {
+      //   const score = Number(session.llmScore);
+      //   temp[score] = (temp[score] || 0) + 1;
+      // }
+      // scoreSummary = Object.fromEntries(
+      //   Object.entries(temp).map(([k, v]) => [Number(k), v])
+      // );
+      // percentageSummaryData = select.pattern;
+      // lengthSummaryData = select.pattern;
+      // overallSemScoreSummaryData = select.pattern;
     }
   }
 
   $: patternSessions = pattern?.pattern || [];
-  let scoreCount = {};
-  $: {
-    const temp = {};
-    for (const session of patternSessions) {
-      const score = Number(session.llmScore);
-      temp[score] = (temp[score] || 0) + 1;
-    }
-    scoreCount = Object.fromEntries(
-      Object.entries(temp).map(([k, v]) => [Number(k), v])
-    );
-  }
+  // let scoreCount = {};
+  // $: {
+  //   const temp = {};
+  //   for (const session of patternSessions) {
+  //     const score = Number(session.llmScore);
+  //     temp[score] = (temp[score] || 0) + 1;
+  //   }
+  //   scoreCount = Object.fromEntries(
+  //     Object.entries(temp).map(([k, v]) => [Number(k), v])
+  //   );
+  // }
 
   function normalizeName(s) {
     return s?.startsWith('Others-') ? 'Others' : s;
@@ -132,6 +149,7 @@
       }
     }
   }
+
 </script>
 
 <div class="pattern-detail-container">
@@ -315,8 +333,18 @@
   </div>
 
   <div class="charts-grid">
+    {#each featureKeys as key}
+      <FeatureChart
+        featureName={key}
+        data={getFeatureValues(key, patternSessionIds)}
+        {patternData}
+        {featureData}
+        {flag}
+        {title}
+      />
+    {/each}
     
-  <ScoreSummaryChart
+  <!-- <ScoreSummaryChart
     rawData={scoreSummary}
     nowData={scoreCount}
     {flag}
@@ -342,7 +370,7 @@
     {lengthSummaryData}
     {flag}
     {title}
-  />
+  /> -->
 </div>
   
   <div class="table-container">

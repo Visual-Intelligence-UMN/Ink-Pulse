@@ -23,6 +23,15 @@
   let xScale;
   let newyScale;
 
+  const colorMap = {
+  user: "#66C2A5",
+  api: "#FC8D62",
+  };
+
+  import colors from "./colors.js";
+  const colorPalette = colors("7fc97fbeaed4fdc086ffff99386cb0f0027fbf5b17666666");
+  let colorIndex = 0;
+
   onMount(() => {
     if (similarityData && container) {
       renderChart();
@@ -145,6 +154,7 @@
           wholeData: processedData,
           sessionId,
           sources: filteredData.map((d) => d.source),
+          selectionSource: "lineChart_x",
         });
       } else {
         bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
@@ -203,6 +213,7 @@
       wholeData: processedData,
       sessionId: sessionId,
       sources: filteredData.map((d) => d.source),
+      selectionSource: "barChart_y",
     });
   }
 
@@ -291,10 +302,29 @@
       .attr("height", (d) =>
         Math.abs(newyScale(d.startProgress) - newyScale(d.endProgress))
       )
-      .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
-      .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
+      .attr("fill", (d) => {
+        if (d.source === "user") {
+          return colorMap.user;
+        } else if (d.source === "api") {
+          return colorMap.api;
+        } else {
+          const color = colorPalette[colorIndex % colorPalette.length];
+          colorIndex++;
+          return color;
+        }
+      })
+      .attr("stroke", (d) => {
+        if (d.source === "user") {
+          return colorMap.user;
+        } else if (d.source === "api") {
+          return colorMap.api;
+        } else {
+          const color = colorPalette[colorIndex % colorPalette.length];
+          colorIndex++;
+          return color;
+        }
+      })
       .attr("opacity", 0.5)
-      .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
       .attr("stroke-width", 0.1)
       .attr("clip-path", "url(#clip_bar)");
 

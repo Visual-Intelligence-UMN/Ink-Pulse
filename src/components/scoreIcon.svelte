@@ -55,7 +55,7 @@
   function handleMouseEnter(event) {
     if (!showTooltip) return;
 
-    // 创建tooltip
+    // create tooltip
     tooltip = document.createElement("div");
     tooltip.className = "semantic-tooltip";
 
@@ -65,7 +65,7 @@
       <div class="tooltip-title">Writing Quality Score</div>
       <div class="tooltip-content">
         <div>Type: LLM Judge Score</div>
-        <div>Score: ${qualityScore.toFixed(0)}/10</div>
+        <div>Score: ${qualityScore}/10</div>
         <div>Level: ${levelText}</div>
         <div>Session: ${sessionId.slice(0, 6)}...</div>
       </div>

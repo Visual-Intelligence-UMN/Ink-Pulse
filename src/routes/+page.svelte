@@ -31,6 +31,7 @@
   } from "../components/cache.js";
   import RankWorker from "../workers/rankWorker.js?worker";
   import WeightPanel from "../components/weightPanel.svelte";
+  import Papa from 'papaparse';
 
   let chartRefs = {};
   let filterButton;
@@ -292,13 +293,13 @@
         originalMatches: allPatternData.length, // raw rows
       },
       searchDetail,
-      scoreSummary,
-      percentageData,
-      percentageSummaryData: processedSlice,
-      lengthData,
-      lengthSummaryData: processedSlice,
-      overallSemScoreData,
-      overallSemScoreSummaryData: processedSlice,
+      // scoreSummary,
+      // percentageData,
+      // percentageSummaryData: processedSlice,
+      // lengthData,
+      // lengthSummaryData: processedSlice,
+      // overallSemScoreData,
+      // overallSemScoreSummaryData: processedSlice,
     };
 
     // Commit & refresh UI
@@ -400,22 +401,52 @@
   }
 
   // FETCH SCORES
-  const fetchLLMScore = async (sessionFile) => {
-    const url = `${base}/dataset/${selectedDataset}/eval_results/${sessionFile}.json`;
+  // const fetchLLMScore = async (sessionFile) => {
+  //   const url = `${base}/dataset/${selectedDataset}/eval_results/${sessionFile}.json`;
+  //   try {
+  //     const response = await fetch(url);
+  //     if (!response.ok) {
+  //       console.error("Response not ok:", response.status, response.statusText);
+  //       throw new Error(`Failed to fetch LLM score: ${response.status}`);
+  //     }
+
+  //     const data = await response.json();
+  //     const totalScore = data[0] || 0;
+  //     return totalScore;
+  //   } catch (error) {
+  //     console.error("Error when reading LLM score file:", error);
+  //     return null;
+  //   }
+  // };
+  const fetchCSVData = async () => {
     try {
-      const response = await fetch(url);
+      const response = await fetch(`${base}/dataset/${selectedDataset}/fine.csv`);
       if (!response.ok) {
-        console.error("Response not ok:", response.status, response.statusText);
-        throw new Error(`Failed to fetch LLM score: ${response.status}`);
+        throw new Error('Failed to fetch CSV data');
       }
 
-      const data = await response.json();
-      const totalScore = data[0] || 0;
-      return totalScore;
+      const text = await response.text();
+      const parsedData = Papa.parse(text, { header: true }).data;
+
+      return parsedData;
     } catch (error) {
-      console.error("Error when reading LLM score file:", error);
-      return null;
+      console.error("Error fetching or parsing CSV:", error);
+      return [];
     }
+  };
+
+  const fetchFeatureData = (data) => {
+    return data.map(item => {
+      const filteredItem = Object.fromEntries(
+        Object.entries(item).filter(([key]) => key !== 'prompt_code')
+      );
+      return filteredItem;
+    });
+  };
+
+  const fetchLLMScore = async (sessionId, data) => {
+    const item = data.find(item => item.session_id === sessionId);
+      return item ? item.judge_score : null;
   };
 
   function getColumnGroups() {
@@ -423,8 +454,8 @@
     // Topic
     if (sortColumn === "topic" && sortDirection !== "none") {
       sessions = [...sessions].sort((a, b) => {
-        const aCode = getPromptCode(a.sessionId);
-        const bCode = getPromptCode(b.sessionId);
+        const aCode = getPromptCode(a.session_id);
+        const bCode = getPromptCode(b.session_id);
 
         if (sortDirection === "asc") {
           return aCode.localeCompare(bCode);
@@ -476,6 +507,7 @@
   $: if (sortColumn || sortDirection) {
   }
 
+  // Topic page, sort filteredByCategory data
   $: sortedFilteredByCategory = (() => {
     if (!selectedCategoryFilter || !filteredByCategory.length) {
       return filteredByCategory;
@@ -483,7 +515,7 @@
 
     let sorted = [...filteredByCategory];
 
-    // Score排序
+    // Score sort
     if (sortColumn === "score" && sortDirection !== "none") {
       sorted = sorted.sort((a, b) => {
         const aScore = a.llmScore || 0;
@@ -496,6 +528,7 @@
       });
     }
 
+    // Pattern sort
     if (sortColumn === "pattern" && sortDirection !== "none") {
       sorted = sorted.sort((a, b) => {
         const aHasPattern = hasPattern(a.sessionId);
@@ -947,6 +980,7 @@
       count,
       wholeData: sessionData.wholeData,
       range: sessionData.range,
+      selectionSource: sessionData.selectionSource ?? null,
       flag: {
         isProgressChecked,
         isTimeChecked,
@@ -973,20 +1007,23 @@
     // console.log("checks:", checks);
 
     try {
-      const fileListResponse = await fetch(
-        `${base}/dataset/${selectedDataset}/session_name.json`
-      );
-      const fileList = await fileListResponse.json();
+      // const fileListResponse = await fetch(
+      //   `${base}/dataset/${selectedDataset}/session_name.json`
+      // );
+      // const fileList = await fileListResponse.json();
+      const fileList = CSVData.map(item => item.session_id);
 
       for (const fileName of fileList) {
         // const fileId = fileName.split(".")[0].replace(/_similarity$/, "");
         // if (fileId === sessionId) {
         //   continue;
         // }
+
         const dataResponse = await fetch(
-          `${base}/dataset/${selectedDataset}/similarity_results/${fileName}`
+          `${base}/dataset/${selectedDataset}/segment_results/${fileName}.json`
         );
         const data = await dataResponse.json();
+        
         if (Array.isArray(data.chartData)) {
           data.chartData = data.chartData.map(
             ({ currentText, ...rest }) => rest
@@ -1016,8 +1053,6 @@
 
         const segments = findSegments(dataToProcess, checks, count);
         const extractedFileName = fileName
-          .split(".")[0]
-          .replace(/_similarity$/, "");
 
         const taggedSegments = segments.map((segment, index) =>
           segment.map((item) => ({
@@ -1176,6 +1211,172 @@
 
   let fetchProgress = 0;
 
+  function computeHighlightRangesFromSegments(segments) {
+    if (!Array.isArray(segments) || segments.length === 0) {
+      return { time: null, progress: null, windows: [] };
+    }
+
+    const toMinutes = (secondsValue, minutesValue, fallbackValue) => {
+      if (Number.isFinite(secondsValue)) {
+        return secondsValue / 60;
+      }
+      if (Number.isFinite(minutesValue)) {
+        return minutesValue;
+      }
+      if (Number.isFinite(fallbackValue)) {
+        return fallbackValue;
+      }
+      return null;
+    };
+
+    const toPercentage = (primaryValue, fallbackValue) => {
+      if (Number.isFinite(primaryValue)) {
+        const base =
+          Math.abs(primaryValue) <= 1.0001 ? primaryValue * 100 : primaryValue;
+        return base;
+      }
+      if (Number.isFinite(fallbackValue)) {
+        const base =
+          Math.abs(fallbackValue) <= 1.0001
+            ? fallbackValue * 100
+            : fallbackValue;
+        return base;
+      }
+      return null;
+    };
+
+    const allTimes = [];
+    const allProgresses = [];
+
+    segments.forEach((item) => {
+      const startTimeSeconds = Number(item.start_time);
+      const endTimeSeconds = Number(item.end_time);
+      const startTimeMinutes = Number(item.startTime ?? item.startTimeMinutes);
+      const endTimeMinutes = Number(item.endTime ?? item.endTimeMinutes);
+      const singleTime = Number(item.time);
+
+      const startTime = toMinutes(
+        startTimeSeconds,
+        startTimeMinutes,
+        singleTime,
+      );
+      const endTime = toMinutes(
+        endTimeSeconds,
+        endTimeMinutes,
+        singleTime,
+      );
+
+      if (startTime !== null) {
+        allTimes.push(startTime);
+      }
+      if (endTime !== null) {
+        allTimes.push(endTime);
+      }
+
+      const startProgress = toPercentage(
+        Number(item.start_progress ?? item.startProgress ?? item.progressStart),
+        Number(item.percentage),
+      );
+      const endProgress = toPercentage(
+        Number(item.end_progress ?? item.endProgress ?? item.progressEnd),
+        Number(item.percentage),
+      );
+
+      if (startProgress !== null) {
+        allProgresses.push(startProgress);
+      }
+      if (endProgress !== null) {
+        allProgresses.push(endProgress);
+      }
+    });
+
+    let timeRange = null;
+    if (allTimes.length) {
+      const minTime = Math.min(...allTimes);
+      const maxTime = Math.max(...allTimes);
+      if (Number.isFinite(minTime) && Number.isFinite(maxTime)) {
+        timeRange = {
+          min: Math.min(minTime, maxTime),
+          max: Math.max(minTime, maxTime),
+        };
+      }
+    }
+
+    let progressRange = null;
+    if (allProgresses.length) {
+      const rawMin = Math.min(...allProgresses);
+      const rawMax = Math.max(...allProgresses);
+      if (Number.isFinite(rawMin) && Number.isFinite(rawMax)) {
+        const clampedMin = Math.min(Math.max(rawMin, 0), 100);
+        const clampedMax = Math.min(Math.max(rawMax, clampedMin), 100);
+        progressRange = {
+          min: clampedMin,
+          max: clampedMax,
+        };
+      }
+    }
+
+    const windows =
+      timeRange || progressRange
+        ? [
+            {
+              time: timeRange,
+              progress: progressRange,
+            },
+          ]
+        : [];
+
+    const mode =
+      timeRange && progressRange
+        ? "both"
+        : timeRange
+          ? "time"
+          : progressRange
+            ? "progress"
+            : null;
+
+    const selectionContext =
+      mode === "time"
+        ? {
+            selectionSource: "lineChart_x",
+            timeMin: timeRange?.min ?? null,
+            timeMax: timeRange?.max ?? null,
+            progressMin: progressRange?.min ?? null,
+            progressMax: progressRange?.max ?? null,
+          }
+        : mode === "progress"
+          ? {
+              selectionSource: "lineChart_y",
+              timeMin: timeRange?.min ?? null,
+              timeMax: timeRange?.max ?? null,
+              progressMin: progressRange?.min ?? null,
+              progressMax: progressRange?.max ?? null,
+            }
+          : mode === "both"
+            ? {
+                selectionSource: "lineChart_y",
+                timeMin: timeRange?.min ?? null,
+                timeMax: timeRange?.max ?? null,
+                progressMin: progressRange?.min ?? null,
+                progressMax: progressRange?.max ?? null,
+              }
+            : {
+                selectionSource: null,
+                timeMin: timeRange?.min ?? null,
+                timeMax: timeRange?.max ?? null,
+                progressMin: progressRange?.min ?? null,
+                progressMax: progressRange?.max ?? null,
+              };
+
+    return {
+      time: timeRange,
+      progress: progressRange,
+      windows,
+      mode,
+      selectionContext,
+    };
+  }
+
   async function patternDataLoad(results) {
     const ids = results.map((group) => group[0]?.id).filter(Boolean);
     const BATCH_SIZE = 100;
@@ -1209,10 +1410,38 @@
               return newItem;
             });
           }
+          const highlightRanges = computeHighlightRangesFromSegments(group);
+          const fallbackMode = resolveHighlightModeFromSource(
+            searchDetail?.selectionSource ?? null,
+          );
+          const highlightMode =
+            fallbackMode ?? highlightRanges.mode ?? null;
+          const selectionContext =
+            highlightRanges.selectionContext ??
+            {
+              selectionSource:
+                highlightMode === "time"
+                  ? "lineChart_x"
+                  : highlightMode === "progress"
+                    ? "lineChart_y"
+                    : null,
+              timeMin: highlightRanges.time?.min ?? null,
+              timeMax: highlightRanges.time?.max ?? null,
+              progressMin: highlightRanges.progress?.min ?? null,
+              progressMax: highlightRanges.progress?.max ?? null,
+            };
           return {
             ...newSessionData,
+            chartData: Array.isArray(newSessionData.chartData)
+              ? newSessionData.chartData
+              : [],
             segments: group,
             segmentId: group[0]?.segmentId,
+            highlightRanges: {
+              ...highlightRanges,
+              mode: highlightMode,
+              selectionContext,
+            },
           };
         })
         .filter(Boolean)
@@ -1227,6 +1456,12 @@
   }
 
   let selectionSrc = null;
+
+  function resolveHighlightModeFromSource(source) {
+    if (source === "lineChart_x") return "time";
+    if (source === "lineChart_y" || source === "barChart_y") return "progress";
+    return null;
+  }
 
   function handleSelectionChanged(event) {
     showResultCount.set(5);
@@ -1569,7 +1804,84 @@
       }
     }
 
-    selectedPatterns[resolvedSessionId] = {
+    const selectionHighlightWindows = [];
+    const selectionHighlightMode = resolveHighlightModeFromSource(selectionSource);
+    const highlightInfo = computeHighlightRangesFromSegments(effectiveData);
+    const highlightMode =
+      selectionHighlightMode ?? highlightInfo.mode ?? null;
+
+    const selectionContext = {
+      selectionSource,
+      timeMin: null,
+      timeMax: null,
+      progressMin: Number.isFinite(effectiveRange.progress.min)
+        ? effectiveRange.progress.min
+        : null,
+      progressMax: Number.isFinite(effectiveRange.progress.max)
+        ? effectiveRange.progress.max
+        : null,
+    };
+
+    if (
+      (highlightMode === "progress" || highlightMode === "both") &&
+      Number.isFinite(effectiveRange.progress.min) &&
+      Number.isFinite(effectiveRange.progress.max)
+    ) {
+      selectionHighlightWindows.push({
+        progress: {
+          min: effectiveRange.progress.min,
+          max: effectiveRange.progress.max,
+        },
+      });
+    }
+
+    const resolvedSelectedTimeRangeCandidate =
+      highlightTimeRange ??
+      (highlightMode === "time" || highlightMode === "both"
+        ? {
+            min: timeRange[0],
+            max: timeRange[1],
+          }
+        : null);
+
+    if (
+      (highlightMode === "time" || highlightMode === "both") &&
+      resolvedSelectedTimeRangeCandidate &&
+      Number.isFinite(resolvedSelectedTimeRangeCandidate.min) &&
+      Number.isFinite(resolvedSelectedTimeRangeCandidate.max)
+    ) {
+      selectionContext.timeMin = resolvedSelectedTimeRangeCandidate.min;
+      selectionContext.timeMax = resolvedSelectedTimeRangeCandidate.max;
+      selectionHighlightWindows.push({
+        time: {
+          min: resolvedSelectedTimeRangeCandidate.min,
+          max: resolvedSelectedTimeRangeCandidate.max,
+        },
+      });
+    }
+
+    const resolvedSelectedTimeRange =
+      highlightTimeRange ?? highlightInfo.time ?? null;
+
+    const resolvedHighlightWindows =
+      selectionHighlightWindows.length > 0
+        ? selectionHighlightWindows
+        : highlightInfo.windows ?? [];
+    const resolvedSelectionContext =
+      selectionContext.timeMin !== null ||
+      selectionContext.timeMax !== null ||
+      selectionContext.progressMin !== null ||
+      selectionContext.progressMax !== null
+        ? selectionContext
+        : highlightInfo.selectionContext ?? {
+            selectionSource,
+            timeMin: highlightInfo.time?.min ?? null,
+            timeMax: highlightInfo.time?.max ?? null,
+            progressMin: highlightInfo.progress?.min ?? null,
+            progressMax: highlightInfo.progress?.max ?? null,
+          };
+
+    const updatedPattern = {
       range: effectiveRange,
       dataRange: effectiveDataRange,
       data: effectiveData,
@@ -1579,7 +1891,16 @@
       progressRange: `${effectiveRange.progress.min.toFixed(1)} - ${effectiveRange.progress.max.toFixed(1)}%`,
       count: effectiveData.length,
       // Save selected time range, used for highlight in time mode
-      selectedTimeRange: highlightTimeRange,
+      selectedTimeRange: resolvedSelectedTimeRange,
+      highlightWindows: resolvedHighlightWindows,
+      highlightMode,
+      selectionSource,
+      selectionContext: resolvedSelectionContext,
+    };
+
+    selectedPatterns = {
+      ...selectedPatterns,
+      [resolvedSessionId]: updatedPattern,
     };
   }
 
@@ -1591,7 +1912,8 @@
       lastSession?.sessionId;
 
     if (resolvedSessionId && selectedPatterns[resolvedSessionId]) {
-      delete selectedPatterns[resolvedSessionId];
+      const { [resolvedSessionId]: _, ...rest } = selectedPatterns;
+      selectedPatterns = rest;
     }
   }
 
@@ -1619,73 +1941,73 @@
     filterTableData.set(originalUpdatedData);
   }
 
-  const fetchLengthData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/dataset/${selectedDataset}/length.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
+  // const fetchLengthData = async () => {
+  //   try {
+  //     const response = await fetch(
+  //       `${base}/dataset/${selectedDataset}/length.json`
+  //     );
+  //     if (!response.ok) {
+  //       throw new Error(`Failed to fetch summary data: ${response.status}`);
+  //     }
 
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
+  //     const data = await response.json();
+  //     return data;
+  //   } catch (error) {
+  //     console.error("Error when reading the data file:", error);
+  //     return null;
+  //   }
+  // };
 
-  const fetchOverallSemScoreData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/dataset/${selectedDataset}/overall_sem_score.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
+  // const fetchOverallSemScoreData = async () => {
+  //   try {
+  //     const response = await fetch(
+  //       `${base}/dataset/${selectedDataset}/overall_sem_score.json`
+  //     );
+  //     if (!response.ok) {
+  //       throw new Error(`Failed to fetch summary data: ${response.status}`);
+  //     }
 
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
+  //     const data = await response.json();
+  //     return data;
+  //   } catch (error) {
+  //     console.error("Error when reading the data file:", error);
+  //     return null;
+  //   }
+  // };
 
-  const fetchPercentageData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/dataset/${selectedDataset}/percentage.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
+  // const fetchPercentageData = async () => {
+  //   try {
+  //     const response = await fetch(
+  //       `${base}/dataset/${selectedDataset}/percentage.json`
+  //     );
+  //     if (!response.ok) {
+  //       throw new Error(`Failed to fetch summary data: ${response.status}`);
+  //     }
 
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
+  //     const data = await response.json();
+  //     return data;
+  //   } catch (error) {
+  //     console.error("Error when reading the data file:", error);
+  //     return null;
+  //   }
+  // };
 
-  const fetchScoreSummaryData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/dataset/${selectedDataset}/score_summary.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
+  // const fetchScoreSummaryData = async () => {
+  //   try {
+  //     const response = await fetch(
+  //       `${base}/dataset/${selectedDataset}/score_summary.json`
+  //     );
+  //     if (!response.ok) {
+  //       throw new Error(`Failed to fetch summary data: ${response.status}`);
+  //     }
 
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
+  //     const data = await response.json();
+  //     return data;
+  //   } catch (error) {
+  //     console.error("Error when reading the data file:", error);
+  //     return null;
+  //   }
+  // };
 
   async function fetchInitData(sessionId, isDelete) {
     if (isDelete) {
@@ -1695,7 +2017,7 @@
       return;
     }
     const similarityData = await fetchSimilarityData(sessionId);
-    const llmScore = await fetchLLMScore(sessionId);
+    const llmScore = await fetchLLMScore(sessionId, CSVData);
 
     if (similarityData) {
       initData.update((sessions) => {
@@ -1724,10 +2046,17 @@
   const fetchSessions = async () => {
     try {
       const response = await fetch(
-        `${base}/dataset/${selectedDataset}/fine.json`
+        `${base}/import_dataset/${selectedDataset}.csv`
       );
-      const data = await response.json();
-      sessions = data || [];
+      if (!response.ok) {
+        throw new Error('Failed to fetch CSV data');
+      }
+      const text = await response.text();
+      const parsedData = Papa.parse(text, { header: true }).data;
+      sessions = parsedData.map((session) => ({
+        session_id: session.session_id,
+        prompt_code: session.prompt_code
+      }));
 
       if (firstSession) {
         tableData = sessions.map((session) => {
@@ -1770,7 +2099,7 @@
   const fetchDataSummary = async (sessionFile) => {
     try {
       const response = await fetch(
-        `${base}/dataset/${selectedDataset}/coauthor-json/${sessionFile}.jsonl`
+        `${base}/dataset/${selectedDataset}/json/${sessionFile}.jsonl`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -1780,8 +2109,8 @@
       const time0 = new Date(data.init_time);
       const time100 = new Date(data.end_time);
       const currentTime = (time100.getTime() - time0.getTime()) / (1000 * 60); // in minutes
-      const chartData = handleEventsSummary(data);
       const similarityData = await fetchSimilarityData(sessionFile);
+      const chartData = handleEventsSummary(data, similarityData);
       let updatedSession = {
         sessionId: sessionFile,
         time0,
@@ -1820,7 +2149,7 @@
     }
     try {
       const response = await fetch(
-        `${base}/dataset/${selectedDataset}/coauthor-json/${sessionFile}.jsonl`
+        `${base}/dataset/${selectedDataset}/json/${sessionFile}.jsonl`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -1833,7 +2162,7 @@
       currentTime = time100;
 
       const { chartData, textElements, paragraphColor, summaryData } =
-        handleEvents(data, sessionFile);
+        handleEvents(data);
       const similarityData = await fetchSimilarityData(sessionFile);
       let updatedSession = {
         sessionId: sessionFile,
@@ -1867,7 +2196,7 @@
   const fetchSimilarityData = async (sessionFile) => {
     try {
       const response = await fetch(
-        `${base}/dataset/${selectedDataset}/similarity_results/${sessionFile}_similarity.json`
+        `${base}/dataset/${selectedDataset}/segment_results/${sessionFile}.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -1881,14 +2210,16 @@
     }
   };
 
-  let scoreSummary = [];
-  let percentageData = [];
-  let percentageSummaryData = [];
-  let lengthData = [];
-  let lengthSummaryData = [];
-  let overallSemScoreData = [];
-  let overallSemScoreSummaryData = [];
+  // let scoreSummary = [];
+  // let percentageData = [];
+  // let percentageSummaryData = [];
+  // let lengthData = [];
+  // let lengthSummaryData = [];
+  // let overallSemScoreData = [];
+  // let overallSemScoreSummaryData = [];
   let isLoadOverallData = false;
+  let CSVData = [];
+  let featureData = [];
   onMount(async () => {
     document.title = "Ink-Pulse";
     const res = await fetch(`${base}/dataset_name.json`);
@@ -1898,13 +2229,18 @@
     if (datasetParam && datasets.includes(datasetParam)) {
       selectedDataset = datasetParam;
     }
-    scoreSummary = await fetchScoreSummaryData();
-    percentageData = await fetchPercentageData();
-    percentageSummaryData = [];
-    lengthData = await fetchLengthData();
-    lengthSummaryData = [];
-    overallSemScoreData = await fetchOverallSemScoreData();
-    overallSemScoreSummaryData = [];
+    CSVData = (await fetchCSVData()).filter(
+      item => item.session_id && item.session_id.trim() !== ""
+    );
+    featureData = await fetchFeatureData(CSVData);
+
+    // scoreSummary = await fetchScoreSummaryData();
+    // percentageData = await fetchPercentageData();
+    // percentageSummaryData = [];
+    // lengthData = await fetchLengthData();
+    // lengthSummaryData = [];
+    // overallSemScoreData = await fetchOverallSemScoreData();
+    // overallSemScoreSummaryData = [];
     if (isLoadOverallData == false) {
       const prefix = selectedDataset.slice(0, 2);
       const itemToSave = {
@@ -1913,13 +2249,14 @@
         dataset: selectedDataset,
         pattern: [],
         metadata: {},
-        scoreSummary,
-        percentageData,
-        percentageSummaryData,
-        lengthData,
-        lengthSummaryData,
-        overallSemScoreData,
-        overallSemScoreSummaryData,
+        featuredata: featureData,
+        // scoreSummary,
+        // percentageData,
+        // percentageSummaryData,
+        // lengthData,
+        // lengthSummaryData,
+        // overallSemScoreData,
+        // overallSemScoreSummaryData,
       };
       searchPatternSet.update((current) => {
         const index = current.findIndex(
@@ -1941,7 +2278,7 @@
     for (let i = 0; i < selectedSession.length; i++) {
       const sessionId = selectedSession[i];
       const similarityData = await fetchSimilarityData(sessionId);
-      const llmScore = await fetchLLMScore(sessionId);
+      const llmScore = await fetchLLMScore(sessionId, CSVData);
 
       initData.update((sessions) => {
         const newSession = {
@@ -2034,7 +2371,7 @@
     return newParagraphTime;
   }
 
-  const handleEventsSummary = (data) => {
+  const handleEventsSummary = (data, similarityData) => {
     const chartData = [];
     let firstTime = null;
     let index = 0;
@@ -2105,7 +2442,7 @@
     return chartData;
   };
 
-  const handleEvents = (data, _) => {
+  const handleEvents = (data) => {
     const initText = data.init_text.join("");
     let currentCharArray = initText.split("");
     let currentColor = new Array(currentCharArray.length).fill("#FC8D62");
@@ -2446,7 +2783,7 @@
     vtOnScroll();
 
     // setInterval(() => {
-    //   console.log("displaySessions:", getDisplaySessions());
+      // console.log("displaySessions:", getDisplaySessions());
     //   console.log("columnGroups:", getColumnGroups());
     //   console.log("vtData:", vtData);
     //   console.log("filteredByCategory:", filteredByCategory);
@@ -2532,7 +2869,6 @@
   // Export functions
   function toggleExportMenu() {
     showExportMenu = !showExportMenu;
-    // 调试信息
     if (showExportMenu) {
       console.log("=== Export Menu Debug ===");
       console.log("searchPatternSet:", $searchPatternSet);
@@ -2997,6 +3333,10 @@
                                   pattern.wholeData
                                 ) ??
                                 null}
+                              selectedProgressRange={pattern.range?.progress ?? null}
+                              highlightWindows={pattern.highlightWindows ?? []}
+                              highlightMode={pattern.highlightMode ?? null}
+                              selectionContext={pattern.selectionContext ?? null}
                             />
                           </div>
                         </div>
@@ -3038,7 +3378,9 @@
                                     ? 'exact'
                                     : 'duration'}"
                                 >
-                                  {isExactSearchProgress ? "Exact" : "Duration"}
+                                  {isExactSearchProgress
+                                      ? "Exact"
+                                      : "Duration"}
                                 </span>
                               </span>
                             </label>
@@ -3164,7 +3506,7 @@
                         <!-- Time mode: Show LineChart with time selection highlight -->
                         <div
                           class="pattern-chart-preview small-preview"
-                          style="width: 100%; height: 160px;"
+                          style="height: 160px; width: fit-content; max-width: 100%;"
                         >
                           <LineChartPreview
                             bind:this={chartRefs[sessionId]}
@@ -3189,6 +3531,10 @@
                               return data;
                             })()}
                             selectedTimeRange={pattern.selectedTimeRange}
+                            selectedProgressRange={pattern.range?.progress ?? null}
+                            highlightWindows={pattern.highlightWindows ?? []}
+                            highlightMode={pattern.highlightMode ?? null}
+                            selectionContext={pattern.selectionContext ?? null}
                           />
                         </div>
                         <div
@@ -3522,6 +3868,12 @@
                               <LineChartPreview
                                 bind:this={chartRefs[sessionData.sessionId]}
                                 chartData={sessionData.chartData}
+                                selectedTimeRange={sessionData.highlightRanges?.time ?? null}
+                                selectedProgressRange={sessionData.highlightRanges?.progress ?? null}
+                                highlightWindows={sessionData.highlightRanges?.windows ?? []}
+                                highlightMode={sessionData.highlightRanges?.mode ??
+                                  resolveHighlightModeFromSource(searchDetail?.selectionSource ?? null)}
+                                selectionContext={sessionData.highlightRanges?.selectionContext ?? null}
                               />
                             </div>
                           </div>
@@ -3711,8 +4063,8 @@
                             class="sort-icon"
                             style="cursor: {selectedCategoryFilter
                               ? 'default'
-                              : 'pointer'};">{getSortIcon("topic")}</span
-                          >
+                              : 'pointer'};">{getSortIcon("topic")}
+                          </span>
                         </th>
                         <th
                           class="sortable-header"
@@ -3997,6 +4349,7 @@
                           <LineChart
                             bind:this={chartRefs[$clickSession.sessionId]}
                             chartData={$clickSession.chartData}
+                            similarityData={$clickSession.similarityData}
                             paragraphColor={$clickSession.paragraphColor}
                             on:pointSelected={(e) =>
                               handlePointSelected(e, $clickSession.sessionId)}
