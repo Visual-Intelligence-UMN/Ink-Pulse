@@ -15,8 +15,8 @@
   let height = 120;
 
   const colorMap = {
-  user: "#66C2A5",
-  api: "#FC8D62",
+    user: "#66C2A5",
+    api: "#FC8D62",
   };
 
   import colors from "./colors.js";
@@ -260,8 +260,8 @@
 <div
   bind:this={container}
   class="chart-preview-container"
-  data-session-id={sessionId}
-></div>
+  data-session-id={sessionId}>
+</div>
 
 <style>
   .chart-preview-container {
