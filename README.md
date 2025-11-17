@@ -78,14 +78,39 @@ This project is organized with the following structure(only list main folders):
 
 We use three main data structures in this project, including raw data in the following description.
 
-**`static/dataset/json`**: Contains each action, used for displaying points in line chart.
+![description](ssa.png)
+
+**`static/import_dataset`**: Contains raw data.
+
+**`static/dataset/json`**: [**action-level**]Contains each action, used for displaying points in line chart.
 
 **`static/dataset/segment`**: Contains each segment, used for calculating the data in **`static/dataset/segment_results`**.
 
-**`static/dataset/segment_results`**: Contains data for each segment, used for displaying bars in bar chart.
+**`static/dataset/segment_results`**: [**segment-level**]Contains data for each segment, used for displaying bars in bar chart.
+
+### static/import_dataset
+Stores raw data.
+  ```python
+    {
+      "eventName": str,
+      "eventSource": str,
+      "eventTimestamp": int,
+      "textDelta": {
+          "ops": list[{
+              "retain": int,
+              "insert": str
+          }]
+      }
+    }
+  ```
+Example
+  ```python
+  {"eventName": "text-insert", "eventSource": "api", "eventTimestamp": 1629952145999, "textDelta": {"ops": [{"retain": 2793}, {"insert": "We need to be able to..."}]}, ...}
+  {"eventName": "text-insert", "eventSource": "user", "eventTimestamp": 1629952147848, "textDelta": {"ops": [{"retain": 2919}, {"insert": " "}]}, ...}
+  ```
 
 ### static/dataset/json
-Stores user actions on text, including content and event metadata.
+Stores user actions on text, including content and event metadata. Extracts featrues from raw data.
   ```python
     from_json(
       "init_text": List[str],
@@ -108,9 +133,12 @@ Stores user actions on text, including content and event metadata.
   - **info**: Present each action
     - **id**: Unique identifier of the operation
     - **name**: Name of the action
+    - **text**: The text content involved in the action
     - **eventSource**: Source of the action
     - **event_time**: Timestamp of the action
     - **event_progress**: Progress of the action
+    - **count**: Number of characters
+    - **pos**: Position of characters
 
 Example
   ```python
@@ -131,25 +159,35 @@ Example
             "eventSource": "api",
             "event_time": "2021-08-17 07:22:12"
         },
+        {
+            "id": 9,
+            "name": "text-insert",
+            "text": "\nThe world is a dangerous place, but it is also filled with wonder.\n",
+            "eventSource": "api",
+            "event_time": "2021-08-17 07:22:17",
+            "count": 68,
+            "pos": 272,
+            "progress": 0.11647824597464886
+        },
       ...
     ]
   }
   ```
 ### static/dataset/segment
-Stores intermediate segment-level data for computing following data. **NOT** directly used in the frontend.
+Stores intermediate segment-level data for computing following data. **NOT** directly used in the frontend. Segments the sentence from the json data, calculates the progress and time. 
 
   ```python
-    [
+    List[
       {
-          "text": str,
-          "source": str,
-          "start_time": float,
-          "end_time": float,
-          "last_event_time": float,
-          "start_progress": float,
-          "end_progress": float
+        text: str,
+        source: str,
+        start_time: float,
+        end_time: float,
+        last_event_time: float,
+        start_progress: float,
+        end_progress: float
       }
-  ]
+    ]
   ```
   - **text**: Current context
   - **source**: Source of current context
@@ -161,7 +199,7 @@ Stores intermediate segment-level data for computing following data. **NOT** dir
 
 Example
   ```python
-    [
+    List[
       {
           "text": "Humans once wielded formidable magical power. But with over 7 billion of us on the planet now, Mana has spread far too thinly to have any effect. When hostile aliens reduce humanity to a mere fraction, the survivors discover an old power has begun to reawaken once again.\n",
           "source": "api",
@@ -185,10 +223,10 @@ Example
   ```
 
 ### static/dataset/segment_results
-Stores segment-level data for analysis and visualization.
+Stores segment-level data for analysis and visualization. Calculates scores and covert str data(sentence) into float data. 
 
   ```python
-    [
+    List[
       {
           "sentence": float,
           "source": str,
@@ -203,7 +241,7 @@ Stores segment-level data for analysis and visualization.
     ]
   ```
 
-  - **sentence**: Length of the segment, `len(current_context) / 3000`
+  - **sentence**: Length of the segment
   - **source**: Source of current context
   - **start_progress**: Start progress of current context
   - **end_progress**: End progress of current context
@@ -240,27 +278,6 @@ Example
       },
       ...
     ]
-  ```
-
-### static/import_dataset
-Stores raw data.
-  ```python
-    {
-      "eventName": str,
-      "eventSource": str,
-      "eventTimestamp": int,
-      "textDelta": {
-          "ops": list[{
-              "retain": int,
-              "insert": str
-          }]
-      }
-    }
-  ```
-Example
-  ```python
-  {"eventName": "text-insert", "eventSource": "api", "eventTimestamp": 1629952145999, "textDelta": {"ops": [{"retain": 2793}, {"insert": "We need to be able to..."}]}, ...}
-  {"eventName": "text-insert", "eventSource": "user", "eventTimestamp": 1629952147848, "textDelta": {"ops": [{"retain": 2919}, {"insert": " "}]}, ...}
   ```
 
 ## How to import your own dataset
