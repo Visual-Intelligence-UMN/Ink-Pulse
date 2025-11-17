@@ -2578,6 +2578,32 @@
 
     totalSuggestions = chartData.filter((d) => d.isSuggestionOpen).length;
 
+    let i = 0; // code about making $text$ grey
+    while (i < combinedText.length) {
+      if (combinedText[i].text === "$") {
+        let start = i;
+        let end = -1;
+
+        for (let j = i + 1; j < combinedText.length; j++) {
+          if (combinedText[j].text === "$") {
+            end = j;
+            break;
+          }
+        }
+
+        if (end !== -1 && end > start) {
+          for (let k = start; k <= end; k++) {
+            combinedText[k].textColor = "#cccccc";
+          }
+          i = end + 1;
+        } else {
+          i++;
+        }
+      } else {
+        i++;
+      }
+    }
+
     return {
       chartData,
       textElements: combinedText,
