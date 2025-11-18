@@ -71,7 +71,7 @@ InkPulse organizes writing session data across three hierarchical levels of abst
 <!-- ![description](ssa.png) -->
 
 - **Events (Individual User Actions)**: the finest level of granularity captures each individual user action (e.g., insertion, deletion, accept AI suggestion) during a writing session. Each session is stored as a separate JSONL file named `[session_id].jsonl`, located at `static/dataset/[dataset_name]/json` folder.
-- **Event Blocks (Grouped Actions):** To facilitate analysis, individual events are grouped into event blocks. By default, an event block contains all consecutive actions a user performs while actively writing, ending when the user either requests AI suggestions or accepts an AI insertion. Each session is stored as `[session_id].jsonl` within  `static/dataset/[dataset_name]/segment_results` folder.
+- **Event Blocks (Grouped Actions):** To facilitate analysis, individual events are grouped into event blocks. By default, an event block contains all consecutive actions a user performs while actively writing, ending when the user either requests AI suggestions or accepts an AI insertion. Each session is stored as `[session_id].json` within  `static/dataset/[dataset_name]/segment_results` folder.
 - **Session Info (Session-Level Metadata):** this file (`static/dataset/[dataset_name]/session.json`) contains high-level metadata (e.g., topic, writing ID, AI model) for writing sessions. This JSON files contains all the writing sessions from a specific dataset, with each JSON object corresponds to one writing session.
 
 ### Detailed Data Specifications
