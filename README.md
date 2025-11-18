@@ -70,7 +70,7 @@ InkPulse organizes writing session data across three hierarchical levels of abst
 **Events** → **Event Blocks** → **Session Info**.
 <!-- ![description](ssa.png) -->
 
-- **Events (Individual User Actions)**: the finest level of granularity captures each individual user action (e.g., insertion, deletion, accept AI suggestion) during a writing session. Each session is stored as a separate JSONL file named `[session_id].jsonl`, located at `static/dataset/[dataset_name]/json` folder.
+- **Events (Individual User Actions)**: the finest level of granularity captures each individual user action (e.g., insertion, deletion, accept AI suggestion) during a writing session. Each session is stored as a separate JSON file named `[session_id].json`, located at `static/dataset/[dataset_name]/json` folder.
 - **Event Blocks (Grouped Actions):** To facilitate analysis, individual events are grouped into event blocks. By default, an event block contains all consecutive actions a user performs while actively writing, ending when the user either requests AI suggestions or accepts an AI insertion. Each session is stored as `[session_id].json` within  `static/dataset/[dataset_name]/segment_results` folder.
 - **Session Info (Session-Level Metadata):** this file (`static/dataset/[dataset_name]/session.json`) contains high-level metadata (e.g., topic, writing ID, AI model) for writing sessions. This JSON files contains all the writing sessions from a specific dataset, with each JSON object corresponds to one writing session.
 
@@ -80,7 +80,7 @@ Below is the structure and examples for the three levels.
 
 #### Events (Individual User Actions)
 
-  **Location:** `static/dataset/[dataset_name]/json/[session_id].jsonl`
+  **Location:** `static/dataset/[dataset_name]/json/[session_id].json`
   Each file is a writing session with the following structure
   **Schema:**
   ```typescript
@@ -104,7 +104,7 @@ Below is the structure and examples for the three levels.
     events: Event[];       // List of all actions in the session
   }
   ```
-   **Example**: [/static/dataset/creative/json/016...84f.json](https://github.com/Visual-Intelligence-UMN/Ink-Pulse/blob/main/static/dataset/creative/json/01650a401e614c38a04a904165a5784f.jsonl)
+   **Example**: [/static/dataset/creative/json/016...84f.json](https://github.com/Visual-Intelligence-UMN/Ink-Pulse/blob/main/static/dataset/creative/json/01650a401e614c38a04a904165a5784f.json)
   
 #### Event Blocks (Grouped Actions)
 
@@ -156,8 +156,6 @@ Below is the structure and examples for the three levels.
 
 ## How to import your own dataset
 
-You can use **`static/backend/index.ipynb`** to preprocess the data, a Google olab version is available [here]().
+You can use **`static/backend/index.ipynb`** to preprocess the data, a Google olab version is available [here](https://drive.google.com/file/d/1ODkYqNn1siQ_x27KbnhK5h59wIOrjW79/view?usp=sharing). You need to use `[dataset_name].zip` instead of folder `[dataset_name]`.
 
 This script takes in two files (i) `data/session.jsonl`, which saves the complete writing action logs as the format specified in the [CoAuther Dataset Schema](https://coauthor.stanford.edu), and (ii) `data.csv`, which specific the session level data at least **session_id** and **prompt_code**. Sample can be checked in **`static/import_dataset/creative.csv`**. The outputed folder `[dataset_name]` will contain all the files as described in [Data Structure](#data-structure). Put the folder within `static/dataset`, you can then start the visual exploration.
-
-You can use **`static/backend/index.ipynb`** to preprocess the data, a Google olab version is available [here](https://drive.google.com/file/d/1ODkYqNn1siQ_x27KbnhK5h59wIOrjW79/view?usp=sharing). You need to use `[dataset_name].zip` instead of folder `[dataset_name]`.
