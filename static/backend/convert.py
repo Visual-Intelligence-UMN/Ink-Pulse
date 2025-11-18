@@ -242,175 +242,168 @@
 
 # update_fine_files()
 
+# import os
+# import json
+# from datetime import datetime
 
-import os
-import json
-from datetime import datetime
-
-def convert_and_calculate(data):
-    info = data["info"]
-    total_length = len(data['text'][0])
-    for i in info:
-        i['progress'] = len(i['current_text']) / total_length
-        i.pop('current_text', None)
+# def convert_and_calculate(data):
+#     info = data["info"]
+#     total_length = len(data['text'][0])
+#     for i in info:
+#         i['progress'] = len(i['current_text']) / total_length
+#         i.pop('current_text', None)
         
-    return data
+#     return data
 
 
-def write_json(data, file_path, session):
-    actual_session = session+'.jsonl'
-    new_file_path = os.path.join(file_path, actual_session)
-    with open(new_file_path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
-    print(f"Data written to {new_file_path}")
+# def write_json(data, file_path, session):
+#     actual_session = session+'.jsonl'
+#     new_file_path = os.path.join(file_path, actual_session)
+#     with open(new_file_path, 'w', encoding='utf-8') as f:
+#         json.dump(data, f, ensure_ascii=False, indent=4)
+#     print(f"Data written to {new_file_path}")
 
-info_data = []
-sentence_data = []
-def get_data(dataset_name, session_id_collection, static_dir, is_json):
-    if is_json:
-        json_path = os.path.join(static_dir, f"dataset/{dataset_name}/json")
-    else:
-        json_path = os.path.join(static_dir, f"dataset/{dataset_name}/segment")
-    for session in session_id_collection:
-        extracted_data = {'init_text': [], 'init_time': [], 'json': [], 'text': [], 'info': [], 'end_time': [], 'snapshots': []}
-        file_path = os.path.join(static_dir, "import_dataset", f"{dataset_name}")
-        actual_session = session + '.jsonl'
-        new_file_path = os.path.join(file_path, actual_session)
-        with open(new_file_path, 'r', encoding='utf-8') as file:
-            for line_number, line in enumerate(file, start=1):
-                cleaned_line = line.replace('\0', '')
-                if cleaned_line.strip():
-                    json_data = json.loads(cleaned_line)
-                    if line_number == 1:
-                        init_text = json_data.get('currentDoc', '')
-                        init_timestamp = json_data.get('eventTimestamp')
-                        init_time = datetime.fromtimestamp(init_timestamp / 1000).strftime("%Y-%m-%d %H:%M:%S")
-                    event_num = json_data.get('eventNum')
-                    event_name = json_data.get('eventName')
-                    event_source = json_data.get('eventSource')
-                    event_timestamp = json_data.get('eventTimestamp')
-                    event_time = datetime.fromtimestamp(event_timestamp / 1000).strftime("%Y-%m-%d %H:%M:%S")
-                    last_event_time = event_time
-                    text_delta = json_data.get('textDelta', {})
-                    current_suggestions = json_data.get('currentSuggestions', {})
-                    entry = {'eventNum': event_num, 'eventName': event_name, 'eventSource': event_source, 'event_time': event_time, 'textDelta': text_delta, 'currentSuggestions': current_suggestions}
-                    extracted_data['json'].append(entry)
-        extracted_data['init_time'].append(init_time)
-        extracted_data['init_text'].append(init_text)
-        text = ''.join(extracted_data['init_text'])
-        previous_event_name = None
-        if text != "" and text != "\n":
-            extracted_data['snapshots'].append({
-                'text': text,
-                'eventName': '',
-                'eventSource': 'api',
-                'event_time': init_time,
-                'eventNum': 0
-            })
-        for entry in extracted_data['json']:
-            text_delta = entry.get('textDelta', {})
-            if not isinstance(text_delta, dict):
-                if isinstance(text_delta, str) and text_delta.strip():
-                    try:
-                        text_delta = json.loads(text_delta)
-                    except json.JSONDecodeError:
-                        text_delta = {}
-                else:
-                    text_delta = {}
-            ops = text_delta.get('ops', [])
-            event_name = entry.get('eventName')
-            event_source = entry.get('eventSource', 'unknown')
-            event_time = entry.get('event_time')
-            event_num = entry.get('eventNum')
-            pos = entry.get('currentCursor', 0)
-            for op in ops:
-                if 'retain' in op:
-                    pos += op['retain']
-                elif 'insert' in op:
-                    inserts = op['insert']
-                    if not isinstance(inserts, str):
-                        # print(f"skip image insert: {inserts}")
-                        continue
-                    source = event_source
-                    if previous_event_name == "suggestion-close" and len(inserts) > 5:
-                        source = "api"
-                    text = text[:pos] + inserts + text[pos:]
-                    extracted_data['info'].append({
-                        'id': event_num,
-                        'name': 'text-insert',
-                        'text': inserts,
-                        'eventSource': source,
-                        'event_time': event_time,
-                        'count': len(inserts),
-                        'pos': pos,
-                        'current_text': text,
-                    })
-                    pos += len(inserts)
-                elif 'delete' in op:
-                    delete_count = op['delete']
-                    deleted_text = text[pos:pos + delete_count]
-                    text = text[:pos] + text[pos + delete_count:]
-                    extracted_data['info'].append({
-                        'id': event_num,
-                        'name': 'text-delete',
-                        'text': deleted_text,
-                        'eventSource': event_source,
-                        'event_time': event_time,
-                        'count': delete_count,
-                        'pos': pos,
-                        'current_text': text,
-                    })
-            if event_name == 'suggestion-open':
-                extracted_data['info'].append({
-                    'id': event_num,
-                    'name': event_name,
-                    'eventSource': event_source,
-                    'event_time': event_time,
-                    'current_text': text,
-                })
-                extracted_data['snapshots'].append({
-                    'text': text,
-                    'eventName': event_name,
-                    'eventSource': event_source,
-                    'event_time': event_time,
-                    'eventNum': event_num
-                })
-            if ops:
-                extracted_data['snapshots'].append({
-                    'text': text,
-                    'eventName': event_name,
-                    'eventSource': source,
-                    'event_time': event_time,
-                    'eventNum': event_num
-                })
-            previous_event_name = event_name
-        if entry['eventNum'] == None:
-            for entry in extracted_data['info']:
-                if 'id' in entry:
-                    del entry['id']
-        # print(text)
-        extracted_data['text'].append(text)
-        extracted_data['end_time'] = last_event_time
-        extracted_data = convert_and_calculate(extracted_data)
-        extracted_data.pop('json', None)
-        extracted_data.pop('snapshots', None)
-        if is_json:
-            write_json(extracted_data, json_path, session)
-        # else:
-        #     write_json(data, json_path, session)
+# info_data = []
+# sentence_data = []
+# def get_data(dataset_name, session_id_collection, static_dir, is_json):
+#     if is_json:
+#         json_path = os.path.join(static_dir, f"dataset/{dataset_name}/json")
+#     else:
+#         json_path = os.path.join(static_dir, f"dataset/{dataset_name}/segment")
+#     for session in session_id_collection:
+#         extracted_data = {'init_text': [], 'init_time': [], 'json': [], 'text': [], 'info': [], 'end_time': [], 'snapshots': []}
+#         file_path = os.path.join(static_dir, "import_dataset", f"{dataset_name}")
+#         actual_session = session + '.jsonl'
+#         new_file_path = os.path.join(file_path, actual_session)
+#         with open(new_file_path, 'r', encoding='utf-8') as file:
+#             for line_number, line in enumerate(file, start=1):
+#                 cleaned_line = line.replace('\0', '')
+#                 if cleaned_line.strip():
+#                     json_data = json.loads(cleaned_line)
+#                     if line_number == 1:
+#                         init_text = json_data.get('currentDoc', '')
+#                         init_timestamp = json_data.get('eventTimestamp')
+#                         init_time = datetime.fromtimestamp(init_timestamp / 1000).strftime("%Y-%m-%d %H:%M:%S")
+#                     event_num = json_data.get('eventNum')
+#                     event_name = json_data.get('eventName')
+#                     event_source = json_data.get('eventSource')
+#                     event_timestamp = json_data.get('eventTimestamp')
+#                     event_time = datetime.fromtimestamp(event_timestamp / 1000).strftime("%Y-%m-%d %H:%M:%S")
+#                     last_event_time = event_time
+#                     text_delta = json_data.get('textDelta', {})
+#                     current_suggestions = json_data.get('currentSuggestions', {})
+#                     entry = {'eventNum': event_num, 'eventName': event_name, 'eventSource': event_source, 'event_time': event_time, 'textDelta': text_delta, 'currentSuggestions': current_suggestions}
+#                     extracted_data['json'].append(entry)
+#         extracted_data['init_time'].append(init_time)
+#         extracted_data['init_text'].append(init_text)
+#         text = ''.join(extracted_data['init_text'])
+#         previous_event_name = None
+#         if text != "" and text != "\n":
+#             extracted_data['snapshots'].append({
+#                 'text': text,
+#                 'eventName': '',
+#                 'eventSource': 'api',
+#                 'event_time': init_time,
+#                 'eventNum': 0
+#             })
+#         for entry in extracted_data['json']:
+#             text_delta = entry.get('textDelta', {})
+#             if not isinstance(text_delta, dict):
+#                 if isinstance(text_delta, str) and text_delta.strip():
+#                     try:
+#                         text_delta = json.loads(text_delta)
+#                     except json.JSONDecodeError:
+#                         text_delta = {}
+#                 else:
+#                     text_delta = {}
+#             ops = text_delta.get('ops', [])
+#             event_name = entry.get('eventName')
+#             event_source = entry.get('eventSource', 'unknown')
+#             event_time = entry.get('event_time')
+#             event_num = entry.get('eventNum')
+#             pos = entry.get('currentCursor', 0)
+#             for op in ops:
+#                 if 'retain' in op:
+#                     pos += op['retain']
+#                 elif 'insert' in op:
+#                     inserts = op['insert']
+#                     if not isinstance(inserts, str):
+#                         # print(f"skip image insert: {inserts}")
+#                         continue
+#                     source = event_source
+#                     if previous_event_name == "suggestion-close" and len(inserts) > 5:
+#                         source = "api"
+#                     text = text[:pos] + inserts + text[pos:]
+#                     extracted_data['info'].append({
+#                         'id': event_num,
+#                         'name': 'text-insert',
+#                         'text': inserts,
+#                         'eventSource': source,
+#                         'event_time': event_time,
+#                         'count': len(inserts),
+#                         'pos': pos,
+#                         'current_text': text,
+#                     })
+#                     pos += len(inserts)
+#                 elif 'delete' in op:
+#                     delete_count = op['delete']
+#                     deleted_text = text[pos:pos + delete_count]
+#                     text = text[:pos] + text[pos + delete_count:]
+#                     extracted_data['info'].append({
+#                         'id': event_num,
+#                         'name': 'text-delete',
+#                         'text': deleted_text,
+#                         'eventSource': event_source,
+#                         'event_time': event_time,
+#                         'count': delete_count,
+#                         'pos': pos,
+#                         'current_text': text,
+#                     })
+#             if event_name == 'suggestion-open':
+#                 extracted_data['info'].append({
+#                     'id': event_num,
+#                     'name': event_name,
+#                     'eventSource': event_source,
+#                     'event_time': event_time,
+#                     'current_text': text,
+#                 })
+#                 extracted_data['snapshots'].append({
+#                     'text': text,
+#                     'eventName': event_name,
+#                     'eventSource': event_source,
+#                     'event_time': event_time,
+#                     'eventNum': event_num
+#                 })
+#             if ops:
+#                 extracted_data['snapshots'].append({
+#                     'text': text,
+#                     'eventName': event_name,
+#                     'eventSource': source,
+#                     'event_time': event_time,
+#                     'eventNum': event_num
+#                 })
+#             previous_event_name = event_name
+#         if entry['eventNum'] == None:
+#             for entry in extracted_data['info']:
+#                 if 'id' in entry:
+#                     del entry['id']
+#         # print(text)
+#         extracted_data['text'].append(text)
+#         extracted_data['end_time'] = last_event_time
+#         extracted_data = convert_and_calculate(extracted_data)
+#         extracted_data.pop('json', None)
+#         extracted_data.pop('snapshots', None)
+#         if is_json:
+#             write_json(extracted_data, json_path, session)
+#         # else:
+#         #     write_json(data, json_path, session)
 
-if __name__ == "__main__":
-    dataset_name = "legislation_formal_study"
-    static_dir = "D:\Study\Lab\Vitualization\Ink-Pulse\static"
-    json_path = os.path.join(static_dir, "import_dataset", f"{dataset_name}")
-    session_id_collection = []
-    for filename in os.listdir(json_path):
-        filename = filename.removesuffix(".jsonl")
-        session_id_collection.append(filename)
-    get_data(dataset_name, session_id_collection, static_dir, is_json=True)
-
-
-
-
-
-
+# if __name__ == "__main__":
+#     dataset_name = "legislation_formal_study"
+#     static_dir = "D:\Study\Lab\Vitualization\Ink-Pulse\static"
+#     json_path = os.path.join(static_dir, "import_dataset", f"{dataset_name}")
+#     session_id_collection = []
+#     for filename in os.listdir(json_path):
+#         filename = filename.removesuffix(".jsonl")
+#         session_id_collection.append(filename)
+#     get_data(dataset_name, session_id_collection, static_dir, is_json=True)
