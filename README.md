@@ -81,87 +81,53 @@ Below is the structure and examples for the three levels.
 #### Events (Individual User Actions)
 
   **Location:** `static/dataset/[dataset_name]/json/[session_id].jsonl`
-  Each file is a writing session with the following structure: 
-  ```json
-  {
-    "init_text": [ "..." ],
-    "init_time": [ "..." ],
-    "events": [
-      {
-        "id": num,
-        "name": "suggestion-open | text-insert | text-delete",
-        "text": "...",
-        "eventSource": "user | api",
-        "event_time": "YYYY-MM-DD hh:mm:ss",
-        "progress": num,
-        "count": num,
-        "pos": num
-      }
-    ]
-  }
-  ```
+  Each file is a writing session with the following structure
+  **Schema:**
+  ```typescript
 
-  - **init_text**: Initial text representing the topic
-  - **init_time**: Timestamp indicating when the initial text was presented
-  - **text**: Full text content
-  - **events**: Present each action
-    - **id**: Unique identifier of the operation
-    - **name**: Name of the action
-    - **text**: The text content involved in the action
-    - **eventSource**: Source of the action
-    - **event_time**: Timestamp of the action
-    - **event_progress**: Progress of the action
-    - **count**: Number of characters
-    - **pos**: Position of characters
-  
-  **Example:**
-  ```json
-  {
-    "init_text": [
-      "Humans once wielded formidable magical power..."
-    ],
-    "init_time": [
-      "2021-08-17 07:22:04"
-    ],
-    "events": [
-      {
-        "id": 2,
-        "name": "suggestion-open",
-        "eventSource": "api",
-        "event_time": "2021-08-17 07:22:12"
-      },
-      {
-        "id": 9,
-        "name": "text-insert",
-        "text": "\nThe world is a dangerous place, but it is also filled with wonder.\n",
-        "eventSource": "api",
-        "event_time": "2021-08-17 07:22:17",
-        "count": 68,
-        "pos": 272,
-        "progress": 0.11647824597464886
-      }
-    ]
+  interface Event {
+    id: number;            // Unique identifier of the operation
+    // Type of action
+    name: "suggestion-open" | "text-insert" | "text-delete" | string;       
+    text?: string;         // Text content involved in the action (if applicable)
+    eventSource: "user" | "api"; // Source of the action
+    event_time: string;    // Timestamp, e.g., "YYYY-MM-DD hh:mm:ss"
+    progress: number;      // Document-level progress (0–1)
+    count: number;         // Number of characters affected
+    pos: number;           // Character position in the document
   }
 
+  interface SessionEvents {
+    init_text: string[];   // Initial text representing the topic
+    init_time: string[];   // Timestamp(s) when the initial text was presented
+    text: string[];        // Full text content (after applying actions)
+    events: Event[];       // List of all actions in the session
+  }
   ```
+   **Example**: [/static/dataset/creative/json/016...84f.json](https://github.com/Visual-Intelligence-UMN/Ink-Pulse/blob/main/static/dataset/creative/json/01650a401e614c38a04a904165a5784f.jsonl)
   
 #### Event Blocks (Grouped Actions)
 
   **Location:** `static/dataset/[dataset_name]/segment_results/[session_id].json`
   **Schema:**
-  ```
-    List[
-      {
-        "start_progress": float,       # Document progress at segment start
-        "end_progress": float,         # Document progress at segment end
-        "start_time": float,           # Start time (seconds)
-        "end_time": float,             # End time (seconds)
-        "actions": List[num],          # list of action IDs
-        "residual_vector_norm": float, # Semantic expansion score
-      }
-    ]
+  ```typescript
+    type EventBlock = {
+      start_progress: number; // Document progress at segment start (0–1)
+      end_progress: number;   // Document progress at segment end (0–1)
+      start_time: number;     // Start time in seconds since session start
+      end_time: number;       // End time in seconds since session start
+      actions: number[];      // List of action IDs in this block
+
+      // Other user-defined attributes (e.g., scores, text length)
+      [key: string]: number | string | boolean | number[] | string[] | null;
+    };
+
+    type EventBlocksFile = EventBlock[];
+
   ```
   Additional, user-defined attributes (e.g., scores, text length) can be added as needed.
+
+  **Example**: [/static/dataset/creative/segment_results/016...84f.json](https://github.com/Visual-Intelligence-UMN/Ink-Pulse/blob/main/static/dataset/creative/segment_results/01650a401e614c38a04a904165a5784f.json)
 
 
 #### Session Info (Session-Level Metadata)
@@ -171,14 +137,22 @@ Below is the structure and examples for the three levels.
   High-level metadata for all writing sessions. Each JSON object represents one complete session. Only `session_id` is required; all other fields are user-defined based on analysis needs.
 
   **Schema:**
-  ```JSON
-  {
-    "session_id": str,        # Unique session identifier
-    "writer_id": str,         # Unique writer identifier
-    "topic": str,             # Writing prompt/topic
-    ...
-  }
+  ```typescript
+  type SessionInfo = {
+    session_id: string; // Required: unique session identifier
+
+    // Optional / user-defined fields:
+    writer_id?: string; // Unique writer identifier
+    topic?: string;     // Writing prompt/topic
+
+    // Other user-defined attributes
+    [key: string]: string | number | boolean | null | undefined;
+  };
+
+  type SessionInfoFile = SessionInfo[];
   ```
+
+  **Example**: [/static/dataset/creative/session.json](https://github.com/Visual-Intelligence-UMN/Ink-Pulse/blob/main/static/dataset/creative/fine.json)
   
 
 
