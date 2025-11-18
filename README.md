@@ -1,25 +1,22 @@
-# InkPulse: Understanding Interactions in Human-AI Co-writing through Fuzzy Visual Patterns
+# InkPulse
 
-## Introduction
+The repository is for InkPulse, a visual analytics system that supports the identification, search, and analysis of key interactions in human-AI co-writing.
 
-The repository is for InkPulse, a visual analytics system that supports the identification, search, and
-analysis of key interactions in human-AI co-writing.
-
-The introduction video can be found [here](https://drive.google.com/file/d/10hUfbSWKgs8HGooqmY0QcR2q3_x5e5AH/view?usp=sharing).
+The introduction video can be found [here](https://github.com/user-attachments/assets/52fd3243-0cf5-4943-a456-d8fd09c1538b)
 
 https://github.com/user-attachments/assets/52fd3243-0cf5-4943-a456-d8fd09c1538b
+## Table of Contents
 
-## Quick Link
-
-[Getting Started](#getting-started)
-
-[Project Structure](#project-structure)
-
-[File Structure](#file-structure)
-
-[Data Structure](#data-structure)
-
-[How to import your own dataset](#how-to-import-your-own-dataset)
+- [InkPulse](#inkpulse)
+  - [Table of Contents](#table-of-contents)
+  - [Getting Started](#getting-started)
+  - [Project Structure](#project-structure)
+  - [Data Structure](#data-structure)
+    - [Detailed Data Specifications](#detailed-data-specifications)
+      - [Events (Individual User Actions)](#events-individual-user-actions)
+      - [Event Blocks (Grouped Actions)](#event-blocks-grouped-actions)
+      - [Session Info (Session-Level Metadata)](#session-info-session-level-metadata)
+  - [How to import your own dataset](#how-to-import-your-own-dataset)
 
 ## Getting Started
 
@@ -39,261 +36,129 @@ Then, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:5173](http://localhost:5173) with your browser to see the result.
 
 ## Project Structure
 
-This project is organized with the following structure(only list main folders):
-
-
-### File Structure
-
-- **`/src/routes/`**  
-  Contains the main application routes.
-
-- **`/src/components/`**  
-  Contains the key components used throughout the project, such as charts.
-
-- **`/static/backend/`**  
-  Contains code related to data processing. The main file for data processing is `index.py`, and additional processing logic is contained in `/static/backend/process`.
-
-- **`/static/dataset/`**  
-  Contains the processed datasets that are used by the application.
-
-- **`/static/import_dataset/`**  
-  Contains the raw data files.
-
-- **`/static/pattern/`**  
-  Contains saved patterns.
+```text
+.
+├── .github/
+│   └── workflows/        # github action files for app building and delopyment
+│ 
+├── src/
+│   ├── components/       # Svelte UI components (charts, dialogs, panels)
+│   ├── lib/              # Shared utilities/helpers
+│   ├── routes/           # SvelteKit routes (pages + endpoints)
+│   ├── workers/          # Web workers for background tasks
+│   ├── app.d.ts          # App-level TypeScript declarations
+│   └── app.html          # HTML template
+│ 
+├── static/
+│   ├── backend/          # Python backend for data processing
+│   ├── dataset/          # Processed datasets used by the app
+│   └── patterns/         # User-saved patterns from visual exploration
+│ 
+├── package.json
+└── README.md
+```
 
 ## Data Structure
 
-We use three main data structures in this project, including raw data in the following description.
+InkPulse organizes writing session data across three hierarchical levels of abstraction: 
+**Events** → **Event Blocks** → **Session Info**.
+<!-- ![description](ssa.png) -->
 
-![description](ssa.png)
+- **Events (Individual User Actions)**: the finest level of granularity captures each individual user action (e.g., insertion, deletion, accept AI suggestion) during a writing session. Each session is stored as a separate JSONL file named `[session_id].jsonl`, located at `static/dataset/[dataset_name]/json` folder.
+- **Event Blocks (Grouped Actions):** To facilitate analysis, individual events are grouped into event blocks. By default, an event block contains all consecutive actions a user performs while actively writing, ending when the user either requests AI suggestions or accepts an AI insertion. Each session is stored as `[session_id].json` within  `static/dataset/[dataset_name]/segment_results` folder.
+- **Session Info (Session-Level Metadata):** this file (`static/dataset/[dataset_name]/session.json`) contains high-level metadata (e.g., topic, writing ID, AI model) for writing sessions. This JSON files contains all the writing sessions from a specific dataset, with each JSON object corresponds to one writing session.
 
-**`static/import_dataset`**: Contains raw data.
+### Detailed Data Specifications
 
-**`static/dataset/json`**: [**action-level**]Contains each action, used for displaying points in line chart.
+Below is the structure and examples for the three levels.
 
-**`static/dataset/segment`**: Contains each segment, used for calculating the data in **`static/dataset/segment_results`**.
+#### Events (Individual User Actions)
 
-**`static/dataset/segment_results`**: [**segment-level**]Contains data for each segment, used for displaying bars in bar chart.
+  **Location:** `static/dataset/[dataset_name]/json/[session_id].jsonl`
+  Each file is a writing session with the following structure
+  **Schema:**
+  ```typescript
 
-### static/import_dataset
-Stores raw data.
-  ```python
-    {
-      "eventName": str,
-      "eventSource": str,
-      "eventTimestamp": int,
-      "textDelta": {
-          "ops": list[{
-              "retain": int,
-              "insert": str
-          }]
-      }
-    }
-  ```
-Example
-  ```python
-  {"eventName": "text-insert", "eventSource": "api", "eventTimestamp": 1629952145999, "textDelta": {"ops": [{"retain": 2793}, {"insert": "We need to be able to..."}]}, ...}
-  {"eventName": "text-insert", "eventSource": "user", "eventTimestamp": 1629952147848, "textDelta": {"ops": [{"retain": 2919}, {"insert": " "}]}, ...}
-  ```
+  interface Event {
+    id: number;            // Unique identifier of the operation
+    // Type of action
+    name: "suggestion-open" | "text-insert" | "text-delete" | string;       
+    text?: string;         // Text content involved in the action (if applicable)
+    eventSource: "user" | "api"; // Source of the action
+    event_time: string;    // Timestamp, e.g., "YYYY-MM-DD hh:mm:ss"
+    progress: number;      // Document-level progress (0–1)
+    count: number;         // Number of characters affected
+    pos: number;           // Character position in the document
+  }
 
-### static/dataset/json
-Stores user actions on text, including content and event metadata. Extracts featrues from raw data.
-  ```python
-    from_json(
-      "init_text": List[str],
-      "init_time": List[str],
-      "text": List[str],
-      "info": List[Dict[str, Any]]
-        [
-          id: int,
-          name: "suggestion-open" | "text-insert" | "text-delete",
-          eventSource: str,
-          event_time: str,
-          event_progress: float
-        ]
-    )
-  ```
-
-  - **init_text**: Initial text representing the topic
-  - **init_time**: Timestamp indicating when the initial text was presented
-  - **text**: Full text content
-  - **info**: Present each action
-    - **id**: Unique identifier of the operation
-    - **name**: Name of the action
-    - **text**: The text content involved in the action
-    - **eventSource**: Source of the action
-    - **event_time**: Timestamp of the action
-    - **event_progress**: Progress of the action
-    - **count**: Number of characters
-    - **pos**: Position of characters
-
-Example
-  ```python
-  {
-    "init_text": [
-        "Humans once wielded formidable magical power..."
-    ],
-    "init_time": [
-        "2021-08-17 07:22:04"
-    ],
-    "text": [
-        "Humans once wielded formidable magical power..."
-    ],
-    "info": [
-        {
-            "id": 2,
-            "name": "suggestion-open",
-            "eventSource": "api",
-            "event_time": "2021-08-17 07:22:12"
-        },
-        {
-            "id": 9,
-            "name": "text-insert",
-            "text": "\nThe world is a dangerous place, but it is also filled with wonder.\n",
-            "eventSource": "api",
-            "event_time": "2021-08-17 07:22:17",
-            "count": 68,
-            "pos": 272,
-            "progress": 0.11647824597464886
-        },
-      ...
-    ]
+  interface SessionEvents {
+    init_text: string[];   // Initial text representing the topic
+    init_time: string[];   // Timestamp(s) when the initial text was presented
+    text: string[];        // Full text content (after applying actions)
+    events: Event[];       // List of all actions in the session
   }
   ```
-### static/dataset/segment
-Stores intermediate segment-level data for computing following data. **NOT** directly used in the frontend. Segments the sentence from the json data, calculates the progress and time. 
+   **Example**: [/static/dataset/creative/json/016...84f.json](https://github.com/Visual-Intelligence-UMN/Ink-Pulse/blob/main/static/dataset/creative/json/01650a401e614c38a04a904165a5784f.jsonl)
+  
+#### Event Blocks (Grouped Actions)
 
-  ```python
-    List[
-      {
-        text: str,
-        source: str,
-        start_time: float,
-        end_time: float,
-        last_event_time: float,
-        start_progress: float,
-        end_progress: float
-      }
-    ]
+  **Location:** `static/dataset/[dataset_name]/segment_results/[session_id].json`
+  **Schema:**
+  ```typescript
+    type EventBlock = {
+      start_progress: number; // Document progress at segment start (0–1)
+      end_progress: number;   // Document progress at segment end (0–1)
+      start_time: number;     // Start time in seconds since session start
+      end_time: number;       // End time in seconds since session start
+      actions: number[];      // List of action IDs in this block
+
+      // Other user-defined attributes (e.g., scores, text length)
+      [key: string]: number | string | boolean | number[] | string[] | null;
+    };
+
+    type EventBlocksFile = EventBlock[];
+
   ```
-  - **text**: Current context
-  - **source**: Source of current context
-  - **start_time**: Start time of current context
-  - **end_time**: End time of current context
-  - **last_event_time**: End time of the session
-  - **start_progress**: Start progress of current context
-  - **end_progress**: End progress of current context
+  Additional, user-defined attributes (e.g., scores, text length) can be added as needed.
 
-Example
-  ```python
-    List[
-      {
-          "text": "Humans once wielded formidable magical power. But with over 7 billion of us on the planet now, Mana has spread far too thinly to have any effect. When hostile aliens reduce humanity to a mere fraction, the survivors discover an old power has begun to reawaken once again.\n",
-          "source": "api",
-          "start_time": 0.0,
-          "end_time": 0.0,
-          "last_event_time": 0.0,
-          "start_progress": 0,
-          "end_progress": 0.09318259677971909
-      },
-      {
-          "text": "Humans once wielded formidable magical power. But with over 7 billion of us on the planet now, Mana has spread far too thinly to have any effect. When hostile aliens reduce humanity to a mere fraction, the survivors discover an old power has begun to reawaken once again.\n\nThe world is a dangerous place, but it is also filled with wonder.\n",
-          "source": "api",
-          "start_time": 8.0,
-          "end_time": 13.0,
-          "last_event_time": 13.0,
-          "start_progress": 0.09318259677971909,
-          "end_progress": 0.11647824597464886
-      },
-      ...
-    ]
-  ```
+  **Example**: [/static/dataset/creative/segment_results/016...84f.json](https://github.com/Visual-Intelligence-UMN/Ink-Pulse/blob/main/static/dataset/creative/segment_results/01650a401e614c38a04a904165a5784f.json)
 
-### static/dataset/segment_results
-Stores segment-level data for analysis and visualization. Calculates scores and covert str data(sentence) into float data. 
 
-  ```python
-    List[
-      {
-          "sentence": float,
-          "source": str,
-          "start_progress": float,
-          "end_progress": float,
-          "start_time": float,
-          "end_time": float,
-          "last_event_time": float,
-          "residual_vector_norm": float,
-          "score": int
-      }
-    ]
+#### Session Info (Session-Level Metadata)
+
+  **Location:** `static/dataset/[dataset_name]/session.json`
+
+  High-level metadata for all writing sessions. Each JSON object represents one complete session. Only `session_id` is required; all other fields are user-defined based on analysis needs.
+
+  **Schema:**
+  ```typescript
+  type SessionInfo = {
+    session_id: string; // Required: unique session identifier
+
+    // Optional / user-defined fields:
+    writer_id?: string; // Unique writer identifier
+    topic?: string;     // Writing prompt/topic
+
+    // Other user-defined attributes
+    [key: string]: string | number | boolean | null | undefined;
+  };
+
+  type SessionInfoFile = SessionInfo[];
   ```
 
-  - **sentence**: Length of the segment
-  - **source**: Source of current context
-  - **start_progress**: Start progress of current context
-  - **end_progress**: End progress of current context
-  - **start_time**: Start time of current context
-  - **end_time**: End time of current context
-  - **last_event_time**: End time of the session
-  - **residual_vector_norm**: Semantic expansion score
-  - **score**: LLM evaluation score for the full context
+  **Example**: [/static/dataset/creative/session.json](https://github.com/Visual-Intelligence-UMN/Ink-Pulse/blob/main/static/dataset/creative/fine.json)
+  
 
-Example
-  ```python
-    [
-      {
-          "sentence": 0.09066666666666667,
-          "source": "api",
-          "start_progress": 0,
-          "end_progress": 0.09318259677971909,
-          "start_time": 0.0,
-          "end_time": 0.0,
-          "last_event_time": 0.0,
-          "residual_vector_norm": 0.0,
-          "score": 6
-      },
-      {
-          "sentence": 0.11333333333333333,
-          "source": "api",
-          "start_progress": 0.09318259677971909,
-          "end_progress": 0.11647824597464886,
-          "start_time": 8.0,
-          "end_time": 13.0,
-          "last_event_time": 13.0,
-          "residual_vector_norm": 0.7351918841534578,
-          "score": 6
-      },
-      ...
-    ]
-  ```
+
 
 ## How to import your own dataset
 
-You can use **`static/backend/index.ipynb`** to preprocess the data.
+You can use **`static/backend/index.ipynb`** to preprocess the data, a Google olab version is available [here]().
 
-Before loading your dataset, please check the data structure above.
-
-Put your dataset in folder **`static/import_dataset`**
-
-Your dataset should contains:
-
-1. data/session.jsonl
-
-2. data.csv
-
-session.jsonl format should be similar as the raw data above.
-
-dataset.csv should contain at least **session_id** and **prompt_code**. Sample can be checked in **`static/import_dataset/creative.csv`**.
+This script takes in two files (i) `data/session.jsonl`, which saves the complete writing action logs as the format specified in the [CoAuther Dataset Schema](https://coauthor.stanford.edu), and (ii) `data.csv`, which specific the session level data at least **session_id** and **prompt_code**. Sample can be checked in **`static/import_dataset/creative.csv`**. The outputed folder `[dataset_name]` will contain all the files as described in [Data Structure](#data-structure). Put the folder within `static/dataset`, you can then start the visual exploration.
