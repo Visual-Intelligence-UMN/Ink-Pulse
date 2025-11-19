@@ -151,7 +151,7 @@ Below is the structure and examples for the three levels.
   type SessionInfoFile = SessionInfo[];
   ```
 
-  **Example**: [/static/dataset/creative/session.json](https://github.com/Visual-Intelligence-UMN/Ink-Pulse/blob/main/static/dataset/creative/fine.json)
+  **Example**: [/static/dataset/creative/session.json](https://github.com/Visual-Intelligence-UMN/Ink-Pulse/blob/main/static/dataset/creative/session.json)
 
 ## How to import your own dataset
 
