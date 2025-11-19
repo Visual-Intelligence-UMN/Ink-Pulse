@@ -81,6 +81,7 @@ Below is the structure and examples for the three levels.
 
   **Location:** `static/dataset/[dataset_name]/json/[session_id].json`
   Each file is a writing session with the following structure
+  
   **Schema:**
   ```typescript
 
@@ -108,6 +109,7 @@ Below is the structure and examples for the three levels.
 #### Event Blocks (Grouped Actions)
 
   **Location:** `static/dataset/[dataset_name]/segment_results/[session_id].json`
+  
   **Schema:**
   ```typescript
     type EventBlock = {
