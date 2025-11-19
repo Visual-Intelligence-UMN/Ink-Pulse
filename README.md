@@ -84,7 +84,7 @@ Below is the structure and examples for the three levels.
   **Schema:**
   ```typescript
 
-  interface Event {
+  type Event {
     id: number;            // Unique identifier of the operation
     // Type of action
     name: "suggestion-open" | "text-insert" | "text-delete" | string;       
@@ -96,7 +96,7 @@ Below is the structure and examples for the three levels.
     pos: number;           // Character position in the document
   }
 
-  interface SessionEvents {
+  type SessionEvents {
     init_text: string[];   // Initial text representing the topic
     init_time: string[];   // Timestamp(s) when the initial text was presented
     text: string[];        // Full text content (after applying actions)
