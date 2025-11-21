@@ -157,6 +157,8 @@ export async function exportSinglePattern(patternId) {
   });
 }
 
+const patternKey = (item) => `${item?.id ?? 'unknown'}::${item?.dataset ?? 'default'}`;
+
 async function importDBFromFile(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -183,8 +185,8 @@ async function importDBFromFile(file) {
               const existingItems = Array.isArray(existingValue) ? existingValue : [];
               const incomingItems = Array.isArray(importedValue) ? importedValue : [];
 
-              const existingIds = new Set(existingItems.map(item => item.id));
-              const newItems = incomingItems.filter(item => !existingIds.has(item.id));
+              const existingKeys = new Set(existingItems.map(item => patternKey(item)));
+              const newItems = incomingItems.filter(item => !existingKeys.has(patternKey(item)));
               mergedValue = [...existingItems, ...newItems];
 
               console.log(`Merged ${newItems.length} new items into ${key}`);
