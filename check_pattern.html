@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head><title>Check Pattern Data</title></head>
+<body>
+<h3>Open Console (F12) and paste this:</h3>
+<pre>
+// Open IndexedDB
+const req = indexedDB.open('myCacheDB', 1);
+req.onsuccess = () => {
+  const db = req.result;
+  const tx = db.transaction('cacheStore', 'readonly');
+  const store = tx.objectStore('cacheStore');
+  const getReq = store.get('searchPatternSet');
+  getReq.onsuccess = () => {
+    const patterns = getReq.result || [];
+    console.log('Total patterns:', patterns.length);
+    
+    // Find the latest pattern
+    const latest = patterns[patterns.length - 1];
+    if (latest && latest.pattern && latest.pattern[0]) {
+      const firstSession = latest.pattern[0];
+      console.log('First session keys:', Object.keys(firstSession));
+      console.log('pattern_indices:', firstSession.pattern_indices);
+      console.log('pattern_indices length:', firstSession.pattern_indices?.length);
+      console.log('Non-zero indices:', 
+        firstSession.pattern_indices?.map((v, i) => v > 0 ? i : null).filter(x => x !== null)
+      );
+    }
+  };
+};
+</pre>
+</body>
+</html>

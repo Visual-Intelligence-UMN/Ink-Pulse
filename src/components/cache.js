@@ -6,6 +6,11 @@ const CACHE_KEY = 'searchPatternSet';
 
 function openDB() {
   return new Promise((resolve, reject) => {
+    // Check if running in browser environment
+    if (typeof indexedDB === 'undefined') {
+      reject(new Error('IndexedDB is not available (SSR context)'));
+      return;
+    }
     const request = indexedDB.open(DB_NAME, 1);
     request.onupgradeneeded = () => {
       const db = request.result;
@@ -152,6 +157,8 @@ export async function exportSinglePattern(patternId) {
   });
 }
 
+const patternKey = (item) => `${item?.id ?? 'unknown'}::${item?.dataset ?? 'default'}`;
+
 async function importDBFromFile(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -178,8 +185,8 @@ async function importDBFromFile(file) {
               const existingItems = Array.isArray(existingValue) ? existingValue : [];
               const incomingItems = Array.isArray(importedValue) ? importedValue : [];
 
-              const existingIds = new Set(existingItems.map(item => item.id));
-              const newItems = incomingItems.filter(item => !existingIds.has(item.id));
+              const existingKeys = new Set(existingItems.map(item => patternKey(item)));
+              const newItems = incomingItems.filter(item => !existingKeys.has(patternKey(item)));
               mergedValue = [...existingItems, ...newItems];
 
               console.log(`Merged ${newItems.length} new items into ${key}`);
@@ -261,20 +268,23 @@ export function triggerImport() {
 // Svelte writable store synced to IndexedDB
 export const searchPatternSet = writable([]);
 
-getFromDB(CACHE_KEY)
-  .then(initialValue => {
-    searchPatternSet.set(initialValue);
-    // console.log('Loaded from IndexedDB:', initialValue);
+// Only initialize IndexedDB in browser environment
+if (typeof window !== 'undefined' && typeof indexedDB !== 'undefined') {
+  getFromDB(CACHE_KEY)
+    .then(initialValue => {
+      searchPatternSet.set(initialValue);
+      // console.log('Loaded from IndexedDB:', initialValue);
 
-    searchPatternSet.subscribe(value => {
-      saveToDB(CACHE_KEY, value)
-        // .then(() => console.log('Saved to IndexedDB:', value))
-        .catch(err => console.warn('Failed to save to IndexedDB:', err));
+      searchPatternSet.subscribe(value => {
+        saveToDB(CACHE_KEY, value)
+          // .then(() => console.log('Saved to IndexedDB:', value))
+          .catch(err => console.warn('Failed to save to IndexedDB:', err));
+      });
+    })
+    .catch(err => {
+      console.warn('Failed to load from IndexedDB:', err);
     });
-  })
-  .catch(err => {
-    console.warn('Failed to load from IndexedDB:', err);
-  });
+}
 
   export async function loadPattern(dir = '/static/patterns/load') {
   try {
