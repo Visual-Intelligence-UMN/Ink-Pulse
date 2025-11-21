@@ -77,12 +77,12 @@
   });
 
   let dataDict = {
-    init_text: [], // Initial text
-    init_time: [], // Start time
+    init_text: "", // Initial text
+    init_time: "", // Start time
     json: [], // all operation
-    text: [], // final text
-    info: [], // insert, delete and suggestion-open operation
-    end_time: [],
+    text: "", // final text
+    action: [], // insert, delete and suggestion-open operation
+    end_time: "",
   };
   let chartData = []; // chart data
   let currentTime = 0;
@@ -420,9 +420,11 @@
   // };
   const fetchCSVData = async () => {
     try {
+
       const response = await fetch(
         `${base}/dataset/${selectedDataset}/fine.csv`
       );
+
       if (!response.ok) {
         throw new Error("Failed to fetch CSV data");
       }
@@ -2094,7 +2096,7 @@
   const fetchDataSummary = async (sessionFile) => {
     try {
       const response = await fetch(
-        `${base}/dataset/${selectedDataset}/json/${sessionFile}.jsonl`
+        `${base}/dataset/${selectedDataset}/json/${sessionFile}.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -2144,7 +2146,7 @@
     }
     try {
       const response = await fetch(
-        `${base}/dataset/${selectedDataset}/json/${sessionFile}.jsonl`
+        `${base}/dataset/${selectedDataset}/json/${sessionFile}.json`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -2205,13 +2207,6 @@
     }
   };
 
-  // let scoreSummary = [];
-  // let percentageData = [];
-  // let percentageSummaryData = [];
-  // let lengthData = [];
-  // let lengthSummaryData = [];
-  // let overallSemScoreData = [];
-  // let overallSemScoreSummaryData = [];
   let isLoadOverallData = false;
   let CSVData = [];
   let featureData = [];
@@ -2229,13 +2224,6 @@
     );
     featureData = await fetchFeatureData(CSVData);
 
-    // scoreSummary = await fetchScoreSummaryData();
-    // percentageData = await fetchPercentageData();
-    // percentageSummaryData = [];
-    // lengthData = await fetchLengthData();
-    // lengthSummaryData = [];
-    // overallSemScoreData = await fetchOverallSemScoreData();
-    // overallSemScoreSummaryData = [];
     if (isLoadOverallData == false) {
       const prefix = selectedDataset.slice(0, 2);
       const itemToSave = {
@@ -2245,13 +2233,6 @@
         pattern: [],
         metadata: {},
         featuredata: featureData,
-        // scoreSummary,
-        // percentageData,
-        // percentageSummaryData,
-        // lengthData,
-        // lengthSummaryData,
-        // overallSemScoreData,
-        // overallSemScoreSummaryData,
       };
       searchPatternSet.update((current) => {
         const index = current.findIndex(
@@ -2371,9 +2352,9 @@
     let firstTime = null;
     let index = 0;
     const totalTextLength = data.text[0].slice(0, -1).length;
-    let currentCharCount = data.init_text.join("").length;
+    let currentCharCount = data.init_text.length;
 
-    data.info.forEach((event, idx) => {
+    data.action.forEach((event, idx) => {
       const { name, event_time, eventSource, text = "", count = 0 } = event;
 
       const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
@@ -2413,8 +2394,8 @@
       } else {
         percentage = (currentCharCount / totalTextLength) * 100;
         let isSuggestionAccept = false;
-        if (name === "suggestion-open" && data.info[idx + 1]) {
-          const nextEvent = data.info[idx + 1];
+        if (name === "suggestion-open" && data.action[idx + 1]) {
+          const nextEvent = data.action[idx + 1];
           if (
             nextEvent.eventSource === "api" &&
             nextEvent.name === "text-insert"
@@ -2438,20 +2419,20 @@
   };
 
   const handleEvents = (data) => {
-    const initText = data.init_text.join("");
+    const initText = data.init_text;
     let currentCharArray = initText.split("");
     let currentColor = new Array(currentCharArray.length).fill("#FC8D62");
     let chartData = [];
     let paragraphColor = [];
     let firstTime = null;
     let indexOfAct = 0;
-    const wholeText = data.text[0].slice(0, -1);
+    const wholeText = data.text.slice(0, -1);
     const totalTextLength = wholeText.length;
     let totalInsertions = 0;
     let totalDeletions = 0;
     let totalSuggestions = 0;
     let totalProcessedCharacters = totalTextLength;
-    const sortedEvents = [...data.info].sort((a, b) => a.id - b.id);
+    const sortedEvents = [...data.action].sort((a, b) => a.id - b.id);
 
     let combinedText = [...initText].map((ch) => ({
       text: ch,
@@ -2572,6 +2553,32 @@
     }
 
     totalSuggestions = chartData.filter((d) => d.isSuggestionOpen).length;
+
+    let i = 0; // code about making $text$ grey
+    while (i < combinedText.length) {
+      if (combinedText[i].text === "$") {
+        let start = i;
+        let end = -1;
+
+        for (let j = i + 1; j < combinedText.length; j++) {
+          if (combinedText[j].text === "$") {
+            end = j;
+            break;
+          }
+        }
+
+        if (end !== -1 && end > start) {
+          for (let k = start; k <= end; k++) {
+            combinedText[k].textColor = "#cccccc";
+          }
+          i = end + 1;
+        } else {
+          i++;
+        }
+      } else {
+        i++;
+      }
+    }
 
     return {
       chartData,
