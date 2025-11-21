@@ -31,7 +31,7 @@
   } from "../components/cache.js";
   import RankWorker from "../workers/rankWorker.js?worker";
   import WeightPanel from "../components/weightPanel.svelte";
-  import Papa from 'papaparse';
+  import Papa from "papaparse";
 
   let chartRefs = {};
   let filterButton;
@@ -234,7 +234,7 @@
   function handleSave(event) {
     const { name, color } = event.detail;
 
-    // Top-N rows we’re saving from the visible results
+    // Top-N rows we're saving from the visible results
     const allPatternData = get(patternDataList).slice(0, get(showResultCount));
 
     // Group rows by sessionId so we can accumulate counts per session
@@ -243,12 +243,14 @@
     const getOrInitSession = (row) => {
       if (!sessionsById.has(row.sessionId)) {
         const sim = Array.isArray(row.similarityData) ? row.similarityData : [];
+        // ✅ Only save essential fields to reduce file size
+        // Keep similarityData for chart rendering, but remove large arrays like chartData
         sessionsById.set(row.sessionId, {
-          ...row,
-          // fresh counter array aligned to similarityData
+          sessionId: row.sessionId,
+          similarityData: sim, // Keep for chart display (small: ~5KB per session)
           pattern_indices: Array(sim.length).fill(0),
-          // keep score behavior consistent with your original code
           llmScore: sim?.[0]?.score ?? 0,
+          // Removed: chartData (~586KB), time0, time100, segments, etc.
         });
       }
       return sessionsById.get(row.sessionId);
@@ -257,12 +259,10 @@
     const findIndex = (sim, time, field) =>
       sim.findIndex((x) => x?.[field] === time);
 
-    // For each pattern occurrence (row), mark its segments into that session’s counters
+    // For each pattern occurrence (row), mark its segments into that session's counters
     for (const row of allPatternData) {
       const session = getOrInitSession(row);
-      const sim = Array.isArray(session.similarityData)
-        ? session.similarityData
-        : [];
+      const sim = Array.isArray(row.similarityData) ? row.similarityData : [];
       const segs = Array.isArray(row.segments) ? row.segments : [];
 
       for (const seg of segs) {
@@ -420,9 +420,11 @@
   // };
   const fetchCSVData = async () => {
     try {
-      const response = await fetch(`${base}/dataset/${selectedDataset}/fine.csv`);
+      const response = await fetch(
+        `${base}/dataset/${selectedDataset}/fine.csv`
+      );
       if (!response.ok) {
-        throw new Error('Failed to fetch CSV data');
+        throw new Error("Failed to fetch CSV data");
       }
 
       const text = await response.text();
@@ -436,17 +438,17 @@
   };
 
   const fetchFeatureData = (data) => {
-    return data.map(item => {
+    return data.map((item) => {
       const filteredItem = Object.fromEntries(
-        Object.entries(item).filter(([key]) => key !== 'prompt_code')
+        Object.entries(item).filter(([key]) => key !== "prompt_code")
       );
       return filteredItem;
     });
   };
 
   const fetchLLMScore = async (sessionId, data) => {
-    const item = data.find(item => item.session_id === sessionId);
-      return item ? item.judge_score : null;
+    const item = data.find((item) => item.session_id === sessionId);
+    return item ? item.judge_score : null;
   };
 
   function getColumnGroups() {
@@ -1011,7 +1013,7 @@
       //   `${base}/dataset/${selectedDataset}/session_name.json`
       // );
       // const fileList = await fileListResponse.json();
-      const fileList = CSVData.map(item => item.session_id);
+      const fileList = CSVData.map((item) => item.session_id);
 
       for (const fileName of fileList) {
         // const fileId = fileName.split(".")[0].replace(/_similarity$/, "");
@@ -1023,7 +1025,7 @@
           `${base}/dataset/${selectedDataset}/segment_results/${fileName}.json`
         );
         const data = await dataResponse.json();
-        
+
         if (Array.isArray(data.chartData)) {
           data.chartData = data.chartData.map(
             ({ currentText, ...rest }) => rest
@@ -1052,7 +1054,7 @@
         // console.log("Count:", count);
 
         const segments = findSegments(dataToProcess, checks, count);
-        const extractedFileName = fileName
+        const extractedFileName = fileName;
 
         const taggedSegments = segments.map((segment, index) =>
           segment.map((item) => ({
@@ -1258,13 +1260,9 @@
       const startTime = toMinutes(
         startTimeSeconds,
         startTimeMinutes,
-        singleTime,
+        singleTime
       );
-      const endTime = toMinutes(
-        endTimeSeconds,
-        endTimeMinutes,
-        singleTime,
-      );
+      const endTime = toMinutes(endTimeSeconds, endTimeMinutes, singleTime);
 
       if (startTime !== null) {
         allTimes.push(startTime);
@@ -1275,11 +1273,11 @@
 
       const startProgress = toPercentage(
         Number(item.start_progress ?? item.startProgress ?? item.progressStart),
-        Number(item.percentage),
+        Number(item.percentage)
       );
       const endProgress = toPercentage(
         Number(item.end_progress ?? item.endProgress ?? item.progressEnd),
-        Number(item.percentage),
+        Number(item.percentage)
       );
 
       if (startProgress !== null) {
@@ -1412,24 +1410,21 @@
           }
           const highlightRanges = computeHighlightRangesFromSegments(group);
           const fallbackMode = resolveHighlightModeFromSource(
-            searchDetail?.selectionSource ?? null,
+            searchDetail?.selectionSource ?? null
           );
-          const highlightMode =
-            fallbackMode ?? highlightRanges.mode ?? null;
-          const selectionContext =
-            highlightRanges.selectionContext ??
-            {
-              selectionSource:
-                highlightMode === "time"
-                  ? "lineChart_x"
-                  : highlightMode === "progress"
-                    ? "lineChart_y"
-                    : null,
-              timeMin: highlightRanges.time?.min ?? null,
-              timeMax: highlightRanges.time?.max ?? null,
-              progressMin: highlightRanges.progress?.min ?? null,
-              progressMax: highlightRanges.progress?.max ?? null,
-            };
+          const highlightMode = fallbackMode ?? highlightRanges.mode ?? null;
+          const selectionContext = highlightRanges.selectionContext ?? {
+            selectionSource:
+              highlightMode === "time"
+                ? "lineChart_x"
+                : highlightMode === "progress"
+                  ? "lineChart_y"
+                  : null,
+            timeMin: highlightRanges.time?.min ?? null,
+            timeMax: highlightRanges.time?.max ?? null,
+            progressMin: highlightRanges.progress?.min ?? null,
+            progressMax: highlightRanges.progress?.max ?? null,
+          };
           return {
             ...newSessionData,
             chartData: Array.isArray(newSessionData.chartData)
@@ -1805,10 +1800,10 @@
     }
 
     const selectionHighlightWindows = [];
-    const selectionHighlightMode = resolveHighlightModeFromSource(selectionSource);
+    const selectionHighlightMode =
+      resolveHighlightModeFromSource(selectionSource);
     const highlightInfo = computeHighlightRangesFromSegments(effectiveData);
-    const highlightMode =
-      selectionHighlightMode ?? highlightInfo.mode ?? null;
+    const highlightMode = selectionHighlightMode ?? highlightInfo.mode ?? null;
 
     const selectionContext = {
       selectionSource,
@@ -1866,20 +1861,20 @@
     const resolvedHighlightWindows =
       selectionHighlightWindows.length > 0
         ? selectionHighlightWindows
-        : highlightInfo.windows ?? [];
+        : (highlightInfo.windows ?? []);
     const resolvedSelectionContext =
       selectionContext.timeMin !== null ||
       selectionContext.timeMax !== null ||
       selectionContext.progressMin !== null ||
       selectionContext.progressMax !== null
         ? selectionContext
-        : highlightInfo.selectionContext ?? {
+        : (highlightInfo.selectionContext ?? {
             selectionSource,
             timeMin: highlightInfo.time?.min ?? null,
             timeMax: highlightInfo.time?.max ?? null,
             progressMin: highlightInfo.progress?.min ?? null,
             progressMax: highlightInfo.progress?.max ?? null,
-          };
+          });
 
     const updatedPattern = {
       range: effectiveRange,
@@ -2049,13 +2044,13 @@
         `${base}/import_dataset/${selectedDataset}.csv`
       );
       if (!response.ok) {
-        throw new Error('Failed to fetch CSV data');
+        throw new Error("Failed to fetch CSV data");
       }
       const text = await response.text();
       const parsedData = Papa.parse(text, { header: true }).data;
       sessions = parsedData.map((session) => ({
         session_id: session.session_id,
-        prompt_code: session.prompt_code
+        prompt_code: session.prompt_code,
       }));
 
       if (firstSession) {
@@ -2230,7 +2225,7 @@
       selectedDataset = datasetParam;
     }
     CSVData = (await fetchCSVData()).filter(
-      item => item.session_id && item.session_id.trim() !== ""
+      (item) => item.session_id && item.session_id.trim() !== ""
     );
     featureData = await fetchFeatureData(CSVData);
 
@@ -2783,7 +2778,7 @@
     vtOnScroll();
 
     // setInterval(() => {
-      // console.log("displaySessions:", getDisplaySessions());
+    // console.log("displaySessions:", getDisplaySessions());
     //   console.log("columnGroups:", getColumnGroups());
     //   console.log("vtData:", vtData);
     //   console.log("filteredByCategory:", filteredByCategory);
@@ -3333,10 +3328,12 @@
                                   pattern.wholeData
                                 ) ??
                                 null}
-                              selectedProgressRange={pattern.range?.progress ?? null}
+                              selectedProgressRange={pattern.range?.progress ??
+                                null}
                               highlightWindows={pattern.highlightWindows ?? []}
                               highlightMode={pattern.highlightMode ?? null}
-                              selectionContext={pattern.selectionContext ?? null}
+                              selectionContext={pattern.selectionContext ??
+                                null}
                             />
                           </div>
                         </div>
@@ -3378,9 +3375,7 @@
                                     ? 'exact'
                                     : 'duration'}"
                                 >
-                                  {isExactSearchProgress
-                                      ? "Exact"
-                                      : "Duration"}
+                                  {isExactSearchProgress ? "Exact" : "Duration"}
                                 </span>
                               </span>
                             </label>
@@ -3531,7 +3526,8 @@
                               return data;
                             })()}
                             selectedTimeRange={pattern.selectedTimeRange}
-                            selectedProgressRange={pattern.range?.progress ?? null}
+                            selectedProgressRange={pattern.range?.progress ??
+                              null}
                             highlightWindows={pattern.highlightWindows ?? []}
                             highlightMode={pattern.highlightMode ?? null}
                             selectionContext={pattern.selectionContext ?? null}
@@ -3868,12 +3864,19 @@
                               <LineChartPreview
                                 bind:this={chartRefs[sessionData.sessionId]}
                                 chartData={sessionData.chartData}
-                                selectedTimeRange={sessionData.highlightRanges?.time ?? null}
-                                selectedProgressRange={sessionData.highlightRanges?.progress ?? null}
-                                highlightWindows={sessionData.highlightRanges?.windows ?? []}
-                                highlightMode={sessionData.highlightRanges?.mode ??
-                                  resolveHighlightModeFromSource(searchDetail?.selectionSource ?? null)}
-                                selectionContext={sessionData.highlightRanges?.selectionContext ?? null}
+                                selectedTimeRange={sessionData.highlightRanges
+                                  ?.time ?? null}
+                                selectedProgressRange={sessionData
+                                  .highlightRanges?.progress ?? null}
+                                highlightWindows={sessionData.highlightRanges
+                                  ?.windows ?? []}
+                                highlightMode={sessionData.highlightRanges
+                                  ?.mode ??
+                                  resolveHighlightModeFromSource(
+                                    searchDetail?.selectionSource ?? null
+                                  )}
+                                selectionContext={sessionData.highlightRanges
+                                  ?.selectionContext ?? null}
                               />
                             </div>
                           </div>
@@ -4063,7 +4066,8 @@
                             class="sort-icon"
                             style="cursor: {selectedCategoryFilter
                               ? 'default'
-                              : 'pointer'};">{getSortIcon("topic")}
+                              : 'pointer'};"
+                            >{getSortIcon("topic")}
                           </span>
                         </th>
                         <th
