@@ -66,11 +66,6 @@
   }
   $: filterButton && initTippy(filterButton, "Filter based on prompt type");
   $: collapseButton && initTippy(collapseButton, "Collapse/Expand table view");
-  // $: exactSourceButton && initTippy(exactSourceButton, "Open/Close exact search");
-  // $: exactTrendButton && initTippy(exactTrendButton, "Open/Close exact search");
-  // $: exactProgressButton &&
-  //   initTippy(exactProgressButton, "Open/Close exact search");
-  // $: exactTimeButton && initTippy(exactTimeButton, "Open/Close exact search");
 
   onMount(() => {
     loadPattern("patterns/load");
@@ -243,7 +238,6 @@
     const getOrInitSession = (row) => {
       if (!sessionsById.has(row.sessionId)) {
         const sim = Array.isArray(row.similarityData) ? row.similarityData : [];
-        // ✅ Only save essential fields to reduce file size
         // Keep similarityData for chart rendering, but remove large arrays like chartData
         sessionsById.set(row.sessionId, {
           sessionId: row.sessionId,
@@ -293,13 +287,6 @@
         originalMatches: allPatternData.length, // raw rows
       },
       searchDetail,
-      // scoreSummary,
-      // percentageData,
-      // percentageSummaryData: processedSlice,
-      // lengthData,
-      // lengthSummaryData: processedSlice,
-      // overallSemScoreData,
-      // overallSemScoreSummaryData: processedSlice,
     };
 
     // Commit & refresh UI
@@ -400,29 +387,11 @@
     }
   }
 
-  // FETCH SCORES
-  // const fetchLLMScore = async (sessionFile) => {
-  //   const url = `${base}/dataset/${selectedDataset}/eval_results/${sessionFile}.json`;
-  //   try {
-  //     const response = await fetch(url);
-  //     if (!response.ok) {
-  //       console.error("Response not ok:", response.status, response.statusText);
-  //       throw new Error(`Failed to fetch LLM score: ${response.status}`);
-  //     }
-
-  //     const data = await response.json();
-  //     const totalScore = data[0] || 0;
-  //     return totalScore;
-  //   } catch (error) {
-  //     console.error("Error when reading LLM score file:", error);
-  //     return null;
-  //   }
-  // };
   const fetchCSVData = async () => {
     try {
 
       const response = await fetch(
-        `${base}/dataset/${selectedDataset}/fine.csv`
+        `${base}/dataset/${selectedDataset}/session.csv`
       );
 
       if (!response.ok) {
@@ -738,11 +707,6 @@
   }
 
   function findSegments(data, checks, minCount) {
-    // console.log("=== findSegments Debug ===");
-    // console.log("data.length:", data.length);
-    // console.log("checks:", checks);
-    // console.log("minCount:", minCount);
-
     const segments = [];
     const isSourceCheckRequired =
       isExactSearchSource && checks.source && checks.source[0];
@@ -752,13 +716,6 @@
       isExactSearchProgress && checks.progress && checks.progress[0];
     const isTimeCheckRequired =
       isExactSearchTime && checks.time && checks.time[0];
-
-    // console.log("Check requirements:", {
-    //   isSourceCheckRequired,
-    //   isTrendCheckRequired,
-    //   isProgressCheckRequired,
-    //   isTimeCheckRequired,
-    // });
 
     for (let i = 1; i <= data.length - minCount; i++) {
       const window = data.slice(i, i + minCount);
@@ -828,14 +785,6 @@
         const startTime = window[0].start_time;
         const endTime = window[window.length - 1].end_time;
         const deltaTime = endTime - startTime;
-        // console.log("Time check - converted range:", minTime, maxTime);
-        // console.log(
-        //   "Window time range:",
-        //   startTime,
-        //   endTime,
-        //   "delta:",
-        //   deltaTime
-        // );
         const relaxedStartMin = minTime - relax;
         const relaxedStartMax = minTime + relax;
         const relaxedEndMin = maxTime - relax;
@@ -967,16 +916,6 @@
     const sessionData = selectedPatterns[sessionId];
     const count =
       sessionData.count || Math.max(1, sessionData.data?.length || 1);
-
-    // console.log("=== Search Pattern Debug ===");
-    // console.log("sessionData:", sessionData);
-    // console.log("sessionData.count:", sessionData.count);
-    // console.log("sessionData.data length:", sessionData.data?.length);
-    // console.log("isTimeChecked:", isTimeChecked);
-    // console.log("timeRange:", timeRange);
-    // console.log("isProgressChecked:", isProgressChecked);
-    // console.log("writingProgressRange:", writingProgressRange);
-
     searchDetail = {
       sessionId,
       data: sessionData.data,
@@ -1008,21 +947,10 @@
       trend: [isValueTrendChecked, semanticTrend],
     };
 
-    // console.log("checks:", checks);
-
     try {
-      // const fileListResponse = await fetch(
-      //   `${base}/dataset/${selectedDataset}/session_name.json`
-      // );
-      // const fileList = await fileListResponse.json();
       const fileList = CSVData.map((item) => item.session_id);
 
       for (const fileName of fileList) {
-        // const fileId = fileName.split(".")[0].replace(/_similarity$/, "");
-        // if (fileId === sessionId) {
-        //   continue;
-        // }
-
         const dataResponse = await fetch(
           `${base}/dataset/${selectedDataset}/segment_results/${fileName}.json`
         );
@@ -1035,26 +963,10 @@
         }
         delete data.paragraphColor;
         delete data.textElements;
-
-        // console.log("Processing file:", fileName);
-        // console.log("Data structure keys:", Object.keys(data));
-        // console.log("Data.chartData length:", data.chartData?.length);
-        // console.log("Data is array?", Array.isArray(data));
-        // console.log("Data length:", data.length);
-        // if (Array.isArray(data) && data.length > 0) {
-        //   console.log("Sample data item:", data[0]);
-        // } else if (data.chartData && data.chartData.length > 0) {
-        //   console.log("Sample chartData item:", data.chartData[0]);
-        // }
-
         // Use the correct data structure
         const dataToProcess = Array.isArray(data)
           ? data
           : data.chartData || data.totalSimilarityData || [];
-
-        // console.log("Data to process length:", dataToProcess.length);
-        // console.log("Count:", count);
-
         const segments = findSegments(dataToProcess, checks, count);
         const extractedFileName = fileName;
 
@@ -1116,17 +1028,11 @@
   let initialWeights = get(weights);
 
   $: if (xScaleBarChartFactor || xScaleLineChartFactor) {
-    // console.log("yScaleFactor:", yScaleFactor);
-    // console.log("xScaleBarChartFactor:", xScaleBarChartFactor);
-    // console.log("xScaleLineChartFactor:", xScaleLineChartFactor);
-
     initialWeights.p = Math.round((yScaleFactor + Number.EPSILON) * 100) / 100;
     initialWeights.sem =
       Math.round((xScaleBarChartFactor + Number.EPSILON) * 100) / 100;
     initialWeights.t =
       Math.round((xScaleLineChartFactor + Number.EPSILON) * 1e2) / 1e2;
-
-    // console.log("Initial Weights:", initialWeights);
   }
 
   $: if (zoomTransforms && $clickSession?.sessionId && initialWeights) {
@@ -1478,14 +1384,6 @@
       isExactSearchProgress = true;
       isExactSearchSource = false;
       isExactSearchTrend = false;
-      // console.log(
-      //   "After setting lineChart_x - isProgressChecked:",
-      //   isProgressChecked,
-      //   "isTimeChecked:",
-      //   isTimeChecked,
-      //   "isSourceChecked:",
-      //   isSourceChecked
-      // );
     } else if (
       sharedSelection &&
       sharedSelection.selectionSource === "lineChart_y"
@@ -1527,13 +1425,6 @@
       isExactSearchTrend = true;
     }
 
-    // if (sharedSelection && sharedSelection.selectionSource === "barChart_y") {
-    //   isExactSearchSource = true;/
-    //   isExactSearchTrend = true;
-    // } else {
-    //   isExactSearchSource = false;
-    //   isExactSearchTrend = false;
-    // }
     semanticTrend = [];
     selectedPatterns = {};
     patternData = [];
@@ -1937,75 +1828,7 @@
     }));
     filterTableData.set(originalUpdatedData);
   }
-
-  // const fetchLengthData = async () => {
-  //   try {
-  //     const response = await fetch(
-  //       `${base}/dataset/${selectedDataset}/length.json`
-  //     );
-  //     if (!response.ok) {
-  //       throw new Error(`Failed to fetch summary data: ${response.status}`);
-  //     }
-
-  //     const data = await response.json();
-  //     return data;
-  //   } catch (error) {
-  //     console.error("Error when reading the data file:", error);
-  //     return null;
-  //   }
-  // };
-
-  // const fetchOverallSemScoreData = async () => {
-  //   try {
-  //     const response = await fetch(
-  //       `${base}/dataset/${selectedDataset}/overall_sem_score.json`
-  //     );
-  //     if (!response.ok) {
-  //       throw new Error(`Failed to fetch summary data: ${response.status}`);
-  //     }
-
-  //     const data = await response.json();
-  //     return data;
-  //   } catch (error) {
-  //     console.error("Error when reading the data file:", error);
-  //     return null;
-  //   }
-  // };
-
-  // const fetchPercentageData = async () => {
-  //   try {
-  //     const response = await fetch(
-  //       `${base}/dataset/${selectedDataset}/percentage.json`
-  //     );
-  //     if (!response.ok) {
-  //       throw new Error(`Failed to fetch summary data: ${response.status}`);
-  //     }
-
-  //     const data = await response.json();
-  //     return data;
-  //   } catch (error) {
-  //     console.error("Error when reading the data file:", error);
-  //     return null;
-  //   }
-  // };
-
-  // const fetchScoreSummaryData = async () => {
-  //   try {
-  //     const response = await fetch(
-  //       `${base}/dataset/${selectedDataset}/score_summary.json`
-  //     );
-  //     if (!response.ok) {
-  //       throw new Error(`Failed to fetch summary data: ${response.status}`);
-  //     }
-
-  //     const data = await response.json();
-  //     return data;
-  //   } catch (error) {
-  //     console.error("Error when reading the data file:", error);
-  //     return null;
-  //   }
-  // };
-
+  
   async function fetchInitData(sessionId, isDelete) {
     if (isDelete) {
       initData.update((data) =>
@@ -2354,7 +2177,7 @@
     const totalTextLength = data.text[0].slice(0, -1).length;
     let currentCharCount = data.init_text.length;
 
-    data.action.forEach((event, idx) => {
+    data.actions.forEach((event, idx) => {
       const { name, event_time, eventSource, text = "", count = 0 } = event;
 
       const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
@@ -2394,8 +2217,8 @@
       } else {
         percentage = (currentCharCount / totalTextLength) * 100;
         let isSuggestionAccept = false;
-        if (name === "suggestion-open" && data.action[idx + 1]) {
-          const nextEvent = data.action[idx + 1];
+        if (name === "suggestion-open" && data.actions[idx + 1]) {
+          const nextEvent = data.actions[idx + 1];
           if (
             nextEvent.eventSource === "api" &&
             nextEvent.name === "text-insert"
@@ -2432,7 +2255,7 @@
     let totalDeletions = 0;
     let totalSuggestions = 0;
     let totalProcessedCharacters = totalTextLength;
-    const sortedEvents = [...data.action].sort((a, b) => a.id - b.id);
+    const sortedEvents = [...data.actions].sort((a, b) => a.id - b.id);
 
     let combinedText = [...initText].map((ch) => ({
       text: ch,
@@ -4892,41 +4715,6 @@
     margin-top: 15px;
     padding-top: 15px;
     border-top: 1px solid #e0e0e0;
-  }
-
-  .pattern-action-button {
-    flex: 1;
-    padding: 10px 16px;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-  }
-
-  .save-button {
-    background-color: #10b981;
-    color: white;
-  }
-
-  .save-button:hover {
-    background-color: #059669;
-    transform: translateY(-1px);
-  }
-
-  .load-button {
-    background-color: #3b82f6;
-    color: white;
-  }
-
-  .load-button:hover {
-    background-color: #2563eb;
-    transform: translateY(-1px);
   }
 
   .no-patterns-message {
