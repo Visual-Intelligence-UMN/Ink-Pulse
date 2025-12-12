@@ -473,17 +473,15 @@
 
   <g transform={`translate(${margin.left},${margin.top})`}>
     <g clip-path="url(#clip)">
-      <g transform={zoomTransform.toString()}>
-        {#each paragraphColor as d}
-          <rect
-            x={scaledX(d.xMin)}
-            width={scaledX(d.xMax) - scaledX(d.xMin)}
-            y={scaledY(d.yMax)}
-            height={scaledY(d.yMin) - scaledY(d.yMax)}
-            fill={d.backgroundColor}
-          />
-        {/each}
-      </g>
+      {#each paragraphColor as d}
+        <rect
+          x={zoomTransform.applyX(scaledX(d.xMin))}
+          width={zoomTransform.k * (scaledX(d.xMax) - scaledX(d.xMin))}
+          y={zoomTransform.applyY(scaledY(d.yMax))}
+          height={zoomTransform.k * (scaledY(d.yMin) - scaledY(d.yMax))}
+          fill={d.backgroundColor}
+        />
+      {/each}
 
       <g>
         {#each chartData.filter((d) => !d.isSuggestionOpen) as d (d.index)}

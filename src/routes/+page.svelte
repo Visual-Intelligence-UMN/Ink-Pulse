@@ -48,7 +48,7 @@
 
   let lastSharedSelection = null;
   $: if (sharedSelection) {
-    // console.log("selectedPatterns", selectedPatterns);
+    console.log("selectedPatterns", selectedPatterns);
     // console.log("sharedSelection", sharedSelection);
     if (sharedSelection !== lastSharedSelection) {
       isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
@@ -2074,22 +2074,48 @@
     }
 
     await fetchSessions();
-    for (let i = 0; i < selectedSession.length; i++) {
-      const sessionId = selectedSession[i];
-      const similarityData = await fetchSimilarityData(sessionId);
-      const llmScore = await fetchLLMScore(sessionId, CSVData);
 
-      initData.update((sessions) => {
-        const newSession = {
-          sessionId: sessionId,
-          similarityData: similarityData,
-          totalSimilarityData: similarityData,
-          llmScore: llmScore,
-        };
-        sessions.push(newSession);
-        return [...sessions];
-      });
-    }
+    const segmentDB = await fetch(`${base}/api/getSegment?group=${selectedDataset}`);
+    const {segmentData} = await segmentDB.json()
+    const scoreMap = new Map(
+    CSVData.map(row => [row.session_id, row.judge_score])
+    );
+
+    const initArray = segmentData.map(item => {
+      const sessionId = item.id.replace(/\.json$/, "");
+      const content = JSON.parse(item.content);
+
+      return {
+        sessionId,
+        similarityData: content,
+        totalSimilarityData: content,
+        llmScore: scoreMap.get(sessionId) ?? null,
+      };
+    });
+
+    initData.set(initArray);
+    // init.subscribe(value => {
+    //   console.log("store value:", value);
+    // });
+
+    // for (let i = 0; i < selectedSession.length; i++) {
+    //   const sessionId = selectedSession[i];
+    //   const similarityData = await fetchSimilarityData(sessionId);
+    //   // console.log("check: ", similarityData)
+    //   const llmScore = await fetchLLMScore(sessionId, CSVData);
+
+    //   initData.update((sessions) => {
+    //     const newSession = {
+    //       sessionId: sessionId,
+    //       similarityData: similarityData,
+    //       totalSimilarityData: similarityData,
+    //       llmScore: llmScore,
+    //     };
+    //     sessions.push(newSession);
+    //     return [...sessions];
+    //   });
+    // }
+
   });
 
   function handleChartZoom(event) {
