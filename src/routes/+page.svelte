@@ -32,6 +32,7 @@
   import RankWorker from "../workers/rankWorker.js?worker";
   import WeightPanel from "../components/weightPanel.svelte";
   import Papa from "papaparse";
+  import JSZip from "jszip";
 
   let chartRefs = {};
   let filterButton;
@@ -387,21 +388,43 @@
     }
   }
 
+  async function getUploadedZipByName(name) {
+    await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction("uploadedZips", "readonly");
+      const store = tx.objectStore("uploadedZips");
+      const request = store.getAll();
+      request.onsuccess = () => {
+        const files = request.result;
+        const zipFile = files.find(f => f.name.replace(/\.zip$/i, "") === name);
+        resolve(zipFile?.blob || null);
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   const fetchCSVData = async () => {
     try {
+      const datasetInfo = datasets.find(d => d.name === selectedDataset);
+      if (!datasetInfo) return [];
+      if (datasetInfo.source === "repo") {
+        const response = await fetch(`${base}/dataset/${selectedDataset}/session.csv`);
+        if (!response.ok) throw new Error("Failed to fetch CSV data");
+        const text = await response.text();
+        const parsedData = Papa.parse(text, { header: true }).data;
 
-      const response = await fetch(
-        `${base}/dataset/${selectedDataset}/session.csv`
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch CSV data");
+        return parsedData;
       }
+      if (datasetInfo.source === "upload") {
+        const zipBlob = await getUploadedZipByName(selectedDataset);
+        const zip = await JSZip.loadAsync(zipBlob);
+        const sessionFile = zip.file(`${selectedDataset}/session.csv`);
+        if (!sessionFile) throw new Error("session.csv not found in zip");
+        const text = await sessionFile.async("string");
+        const parsedData = Papa.parse(text, { header: true }).data;
 
-      const text = await response.text();
-      const parsedData = Papa.parse(text, { header: true }).data;
-
-      return parsedData;
+        return parsedData;
+      }
     } catch (error) {
       console.error("Error fetching or parsing CSV:", error);
       return [];
@@ -949,13 +972,30 @@
 
     try {
       const fileList = CSVData.map((item) => item.session_id);
-
+      const datasetInfo = datasets.find(d => d.name === selectedDataset);
       for (const fileName of fileList) {
-        const dataResponse = await fetch(
-          `${base}/dataset/${selectedDataset}/segment_results/${fileName}.json`
-        );
-        const data = await dataResponse.json();
-
+        let data;
+        if (datasetInfo.source === "repo") {
+          const dataResponse = await fetch(
+            `${base}/dataset/${selectedDataset}/segment_results/${fileName}.json`
+          );
+          data = await dataResponse.json();
+        }
+        if (datasetInfo.source === "upload") {
+          const zipBlob = await getUploadedZipByName(selectedDataset);
+          if (!zipBlob) throw new Error("Uploaded zip not found");
+          const zip = await JSZip.loadAsync(zipBlob);
+          const filePathRegex = new RegExp(`^${selectedDataset}/segment_results/${fileName}\\.json$`, 'i');
+          const files = zip.file(filePathRegex);
+          if (!files || files.length === 0) throw new Error(`${fileName}.json not found in zip`);
+          const file = files[0];
+          const text = await file.async("string");
+          data = JSON.parse(text);
+        }
+        
+        if (Array.isArray(data.chartData)) {
+          data.chartData = data.chartData.map(({ currentText, ...rest }) => rest);
+        }
         if (Array.isArray(data.chartData)) {
           data.chartData = data.chartData.map(
             ({ currentText, ...rest }) => rest
@@ -1865,13 +1905,22 @@
 
   const fetchSessions = async () => {
     try {
-      const response = await fetch(
-        `${base}/import_dataset/${selectedDataset}.csv`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch CSV data");
+      const datasetInfo = datasets.find(d => d.name === selectedDataset);
+      let text;
+      if (datasetInfo.source === "repo") {
+        const response = await fetch(`${base}/dataset/${selectedDataset}/session.csv`);
+        if (!response.ok) throw new Error("Failed to fetch CSV data");
+        text = await response.text();
+      } 
+      if (datasetInfo.source === "upload") {
+        const zipBlob = await getUploadedZipByName(selectedDataset);
+        if (!zipBlob) throw new Error("Uploaded zip not found");
+        const zip = await JSZip.loadAsync(zipBlob);
+        const sessionFiles = zip.file(new RegExp(`^${selectedDataset}/session\\.csv$`, 'i'));
+        if (!sessionFiles || sessionFiles.length === 0) throw new Error("session.csv not found in zip");
+        const sessionFile = sessionFiles[0];
+        text = await sessionFile.async("string");
       }
-      const text = await response.text();
       const parsedData = Papa.parse(text, { header: true }).data;
       sessions = parsedData.map((session) => ({
         session_id: session.session_id,
@@ -1918,14 +1967,27 @@
 
   const fetchDataSummary = async (sessionFile) => {
     try {
-      const response = await fetch(
-        `${base}/dataset/${selectedDataset}/json/${sessionFile}.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch session data: ${response.status}`);
+      let data;
+      const datasetInfo = datasets.find(d => d.name === selectedDataset);
+      if (datasetInfo.source === "repo") {
+        const response = await fetch(
+          `${base}/dataset/${selectedDataset}/json/${sessionFile}.json`
+        );
+        if (!response.ok) throw new Error(`Failed to fetch session data: ${response.status}`);
+        data = await response.json();
+      } 
+      if (datasetInfo.source === "upload") {
+        const zipBlob = await getUploadedZipByName(selectedDataset);
+        if (!zipBlob) throw new Error("Uploaded zip not found");
+        const zip = await JSZip.loadAsync(zipBlob);
+        const filePathRegex = new RegExp(`^${selectedDataset}/json/${sessionFile}\\.json$`, "i");
+        const files = zip.file(filePathRegex);
+        if (!files || files.length === 0) throw new Error(`${sessionFile}.json not found in zip`);
+        const file = files[0];
+        const text = await file.async("string");
+        data = JSON.parse(text);
       }
 
-      const data = await response.json();
       const time0 = new Date(data.init_time);
       const time100 = new Date(data.end_time);
       const currentTime = (time100.getTime() - time0.getTime()) / (1000 * 60); // in minutes
@@ -1968,13 +2030,26 @@
       return;
     }
     try {
-      const response = await fetch(
-        `${base}/dataset/${selectedDataset}/json/${sessionFile}.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch session data: ${response.status}`);
+      const datasetInfo = datasets.find(d => d.name === selectedDataset);
+      let data;
+      if (datasetInfo.source === "repo") {
+        const response = await fetch(
+          `${base}/dataset/${selectedDataset}/json/${sessionFile}.json`
+        );
+        if (!response.ok) throw new Error(`Failed to fetch session data: ${response.status}`);
+        data = await response.json();
+      } 
+      if (datasetInfo.source === "upload") {
+        const zipBlob = await getUploadedZipByName(selectedDataset);
+        if (!zipBlob) throw new Error("Uploaded zip not found");
+        const zip = await JSZip.loadAsync(zipBlob);
+        const filePathRegex = new RegExp(`^${selectedDataset}/json/${sessionFile}\\.json$`, "i");
+        const files = zip.file(filePathRegex);
+        if (!files || files.length === 0) throw new Error(`${sessionFile}.json not found in zip`);
+        const file = files[0];
+        const text = await file.async("string");
+        data = JSON.parse(text);
       }
-      const data = await response.json();
 
       time0 = new Date(data.init_time);
       time100 = new Date(data.end_time);
@@ -2015,14 +2090,27 @@
 
   const fetchSimilarityData = async (sessionFile) => {
     try {
-      const response = await fetch(
-        `${base}/dataset/${selectedDataset}/segment_results/${sessionFile}.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch session data: ${response.status}`);
+      const datasetInfo = datasets.find(d => d.name === selectedDataset);
+      let data;
+      if (datasetInfo.source === "repo") {
+        const response = await fetch(
+          `${base}/dataset/${selectedDataset}/segment_results/${sessionFile}.json`
+        );
+        if (!response.ok) throw new Error(`Failed to fetch session data: ${response.status}`);
+        data = (await response.json()) || [];
+      } 
+      if (datasetInfo.source === "upload") {
+        const zipBlob = await getUploadedZipByName(selectedDataset);
+        if (!zipBlob) throw new Error("Uploaded zip not found");
+        const zip = await JSZip.loadAsync(zipBlob);
+        const filePathRegex = new RegExp(`^${selectedDataset}/segment_results/${sessionFile}\\.json$`, "i");
+        const files = zip.file(filePathRegex);
+        if (!files || files.length === 0) throw new Error(`${sessionFile}.json not found in zip`);
+        const file = files[0];
+        const text = await file.async("string");
+        data = JSON.parse(text) || [];
       }
 
-      const data = (await response.json()) || [];
       return data;
     } catch (error) {
       console.error("Error when reading the data file:", error);
@@ -2030,16 +2118,87 @@
     }
   };
 
+  let db;
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open("InkPulseDB", 1);
+
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains("uploadedZips")) {
+          db.createObjectStore("uploadedZips", { keyPath: "id", autoIncrement: true });
+        }
+      };
+
+      request.onsuccess = () => {
+        db = request.result;
+        resolve(db);
+      };
+
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  function addZip(file) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction("uploadedZips", "readwrite");
+      const store = tx.objectStore("uploadedZips");
+      const request = store.add({ name: file.name, blob: file, date: new Date() });
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  function getAllZips() {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction("uploadedZips", "readonly");
+      const store = tx.objectStore("uploadedZips");
+      const request = store.getAll();
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   let isLoadOverallData = false;
   let CSVData = [];
   let featureData = [];
   onMount(async () => {
     document.title = "Ink-Pulse";
+    await openDB();
     const res = await fetch(`${base}/dataset_name.json`);
-    datasets = await res.json();
+    const staticDatasets = await res.json();
+    datasets = staticDatasets.map(name => ({ name, source: "repo" }));
+    const uploaded = await getAllZips();
+    datasets = [
+      ...datasets,
+      ...uploaded.filter(u => !datasets.find(d => d.name === u.name)).map(u => ({ name: u.name.replace(/\.zip$/i, ""), source: "upload" }))
+    ];
+
+    const btn = document.getElementById("uploadBtn");
+    const uploadInput = document.getElementById("uploadZip");
+    if (!btn || !uploadInput) return;
+    btn.onclick = () => uploadInput.click();
+
+    uploadInput.addEventListener("change", async (e) => {
+      const input = e.target;
+      if (!(input instanceof HTMLInputElement)) return;
+      const file = input.files?.[0];
+      if (!file) return;
+
+      const datasetName = file.name.replace(/\.zip$/i, "");
+      if (!datasets.find(d => d.name === datasetName)) {
+        await addZip(file);
+        const newDataset = { name: datasetName, source: "upload" };
+        datasets = [...datasets, newDataset];
+      }
+      input.value = "";
+    });
+
     const params = new URLSearchParams(window.location.search);
     const datasetParam = params.get("dataset");
-    if (datasetParam && datasets.includes(datasetParam)) {
+    if (datasetParam && datasets.some(d => d.name === datasetParam)) {
       selectedDataset = datasetParam;
     }
     CSVData = (await fetchCSVData()).filter(
@@ -2077,20 +2236,6 @@
 
     let useDB = true;
     let segmentData = [];
-    try {
-      const segmentDB = await fetch(`${base}/api/getSegment?group=${selectedDataset}`);
-      if (!segmentDB.ok) {
-        useDB = false;
-      } else {
-        const json = await segmentDB.json();
-        segmentData = json.segmentData;
-        if (!Array.isArray(segmentData) || segmentData.length === 0) {
-          useDB = false;
-        }
-      }
-    } catch (e) {
-      useDB = false;
-    }
 
     if (useDB) {
       const scoreMap = new Map(
@@ -2127,7 +2272,6 @@
       }
       console.log("Use .json file to init data.");
     }
-
   });
 
   function handleChartZoom(event) {
@@ -2943,6 +3087,10 @@
       <div style="flex: 1;"></div>
       <div style="display: flex; gap: 0.5em; align-items: center;">
         <div style="margin-right: 30px;">
+          <a id="uploadBtn" class="upload-icon">
+            <span class="material-symbols--upload-file-rounded"></span>
+          </a>
+          <input type="file" id="uploadZip" accept=".zip" style="display: none;">
           <label for="dataset-select" style="font-size: 14px;">Dataset:</label>
           <select
             id="dataset-select"
@@ -2951,7 +3099,7 @@
             style="width: min-content;"
           >
             {#each datasets as dataset}
-              <option value={dataset}>{dataset}</option>
+              <option value={dataset.name}>{dataset.name}</option>
             {/each}
           </select>
         </div>
