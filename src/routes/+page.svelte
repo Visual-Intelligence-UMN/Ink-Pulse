@@ -31,7 +31,7 @@
   } from "../components/cache.js";
   import RankWorker from "../workers/rankWorker.js?worker";
   import WeightPanel from "../components/weightPanel.svelte";
-  import Papa from 'papaparse';
+  import Papa from "papaparse";
 
   let chartRefs = {};
   let filterButton;
@@ -156,6 +156,12 @@
   let isSemanticChecked = true;
   let isValueRangeChecked = true;
   let isValueTrendChecked = true;
+  let isPlaying = false;
+  let playbackIndex = 0;
+  let playbackTimer = null;
+  let playbackSpeed = 1; // Default 1x speed (real-time)
+  const SPEED_OPTIONS = [1, 10, 50, 100]; // Available speed options: 1x, 10x, 50x, 100x
+  $: TIME_PER_MIN_MS = 60000 / playbackSpeed; // 1 real minute -> calculated seconds based on speed
   $: if (!isSemanticChecked) {
     isValueRangeChecked = false;
     isValueTrendChecked = false;
@@ -234,7 +240,7 @@
   function handleSave(event) {
     const { name, color } = event.detail;
 
-    // Top-N rows we’re saving from the visible results
+    // Top-N rows we're saving from the visible results
     const allPatternData = get(patternDataList).slice(0, get(showResultCount));
 
     // Group rows by sessionId so we can accumulate counts per session
@@ -243,12 +249,14 @@
     const getOrInitSession = (row) => {
       if (!sessionsById.has(row.sessionId)) {
         const sim = Array.isArray(row.similarityData) ? row.similarityData : [];
+        // ✅ Only save essential fields to reduce file size
+        // Keep similarityData for chart rendering, but remove large arrays like chartData
         sessionsById.set(row.sessionId, {
-          ...row,
-          // fresh counter array aligned to similarityData
+          sessionId: row.sessionId,
+          similarityData: sim, // Keep for chart display (small: ~5KB per session)
           pattern_indices: Array(sim.length).fill(0),
-          // keep score behavior consistent with your original code
           llmScore: sim?.[0]?.score ?? 0,
+          // Removed: chartData (~586KB), time0, time100, segments, etc.
         });
       }
       return sessionsById.get(row.sessionId);
@@ -257,12 +265,10 @@
     const findIndex = (sim, time, field) =>
       sim.findIndex((x) => x?.[field] === time);
 
-    // For each pattern occurrence (row), mark its segments into that session’s counters
+    // For each pattern occurrence (row), mark its segments into that session's counters
     for (const row of allPatternData) {
       const session = getOrInitSession(row);
-      const sim = Array.isArray(session.similarityData)
-        ? session.similarityData
-        : [];
+      const sim = Array.isArray(row.similarityData) ? row.similarityData : [];
       const segs = Array.isArray(row.segments) ? row.segments : [];
 
       for (const seg of segs) {
@@ -420,9 +426,11 @@
   // };
   const fetchCSVData = async () => {
     try {
-      const response = await fetch(`${base}/dataset/${selectedDataset}/fine.csv`);
+      const response = await fetch(
+        `${base}/dataset/${selectedDataset}/fine.csv`
+      );
       if (!response.ok) {
-        throw new Error('Failed to fetch CSV data');
+        throw new Error("Failed to fetch CSV data");
       }
 
       const text = await response.text();
@@ -436,17 +444,17 @@
   };
 
   const fetchFeatureData = (data) => {
-    return data.map(item => {
+    return data.map((item) => {
       const filteredItem = Object.fromEntries(
-        Object.entries(item).filter(([key]) => key !== 'prompt_code')
+        Object.entries(item).filter(([key]) => key !== "prompt_code")
       );
       return filteredItem;
     });
   };
 
   const fetchLLMScore = async (sessionId, data) => {
-    const item = data.find(item => item.session_id === sessionId);
-      return item ? item.judge_score : null;
+    const item = data.find((item) => item.session_id === sessionId);
+    return item ? item.judge_score : null;
   };
 
   function getColumnGroups() {
@@ -572,6 +580,20 @@
   let sortedSessions = [];
   let filteredSessions = [];
   let filteredByCategory = [];
+  let lastPlaybackSessionId = null;
+  $: if ($clickSession?.sessionId !== lastPlaybackSessionId) {
+    lastPlaybackSessionId = $clickSession?.sessionId || null;
+    if ($clickSession?.chartData?.length) {
+      playbackIndex = findIndexFromTime(
+        $clickSession.chartData,
+        $clickSession.currentTime || 0
+      );
+    } else {
+      playbackIndex = 0;
+    }
+    clearPlaybackTimer();
+    isPlaying = false;
+  }
   function handleCategoryIconClick(category) {
     if (selectedCategoryFilter === category) {
       selectedCategoryFilter = null;
@@ -1011,7 +1033,7 @@
       //   `${base}/dataset/${selectedDataset}/session_name.json`
       // );
       // const fileList = await fileListResponse.json();
-      const fileList = CSVData.map(item => item.session_id);
+      const fileList = CSVData.map((item) => item.session_id);
 
       for (const fileName of fileList) {
         // const fileId = fileName.split(".")[0].replace(/_similarity$/, "");
@@ -1023,7 +1045,7 @@
           `${base}/dataset/${selectedDataset}/segment_results/${fileName}.json`
         );
         const data = await dataResponse.json();
-        
+
         if (Array.isArray(data.chartData)) {
           data.chartData = data.chartData.map(
             ({ currentText, ...rest }) => rest
@@ -1052,7 +1074,7 @@
         // console.log("Count:", count);
 
         const segments = findSegments(dataToProcess, checks, count);
-        const extractedFileName = fileName
+        const extractedFileName = fileName;
 
         const taggedSegments = segments.map((segment, index) =>
           segment.map((item) => ({
@@ -1258,13 +1280,9 @@
       const startTime = toMinutes(
         startTimeSeconds,
         startTimeMinutes,
-        singleTime,
+        singleTime
       );
-      const endTime = toMinutes(
-        endTimeSeconds,
-        endTimeMinutes,
-        singleTime,
-      );
+      const endTime = toMinutes(endTimeSeconds, endTimeMinutes, singleTime);
 
       if (startTime !== null) {
         allTimes.push(startTime);
@@ -1275,11 +1293,11 @@
 
       const startProgress = toPercentage(
         Number(item.start_progress ?? item.startProgress ?? item.progressStart),
-        Number(item.percentage),
+        Number(item.percentage)
       );
       const endProgress = toPercentage(
         Number(item.end_progress ?? item.endProgress ?? item.progressEnd),
-        Number(item.percentage),
+        Number(item.percentage)
       );
 
       if (startProgress !== null) {
@@ -1412,24 +1430,21 @@
           }
           const highlightRanges = computeHighlightRangesFromSegments(group);
           const fallbackMode = resolveHighlightModeFromSource(
-            searchDetail?.selectionSource ?? null,
+            searchDetail?.selectionSource ?? null
           );
-          const highlightMode =
-            fallbackMode ?? highlightRanges.mode ?? null;
-          const selectionContext =
-            highlightRanges.selectionContext ??
-            {
-              selectionSource:
-                highlightMode === "time"
-                  ? "lineChart_x"
-                  : highlightMode === "progress"
-                    ? "lineChart_y"
-                    : null,
-              timeMin: highlightRanges.time?.min ?? null,
-              timeMax: highlightRanges.time?.max ?? null,
-              progressMin: highlightRanges.progress?.min ?? null,
-              progressMax: highlightRanges.progress?.max ?? null,
-            };
+          const highlightMode = fallbackMode ?? highlightRanges.mode ?? null;
+          const selectionContext = highlightRanges.selectionContext ?? {
+            selectionSource:
+              highlightMode === "time"
+                ? "lineChart_x"
+                : highlightMode === "progress"
+                  ? "lineChart_y"
+                  : null,
+            timeMin: highlightRanges.time?.min ?? null,
+            timeMax: highlightRanges.time?.max ?? null,
+            progressMin: highlightRanges.progress?.min ?? null,
+            progressMax: highlightRanges.progress?.max ?? null,
+          };
           return {
             ...newSessionData,
             chartData: Array.isArray(newSessionData.chartData)
@@ -1805,10 +1820,10 @@
     }
 
     const selectionHighlightWindows = [];
-    const selectionHighlightMode = resolveHighlightModeFromSource(selectionSource);
+    const selectionHighlightMode =
+      resolveHighlightModeFromSource(selectionSource);
     const highlightInfo = computeHighlightRangesFromSegments(effectiveData);
-    const highlightMode =
-      selectionHighlightMode ?? highlightInfo.mode ?? null;
+    const highlightMode = selectionHighlightMode ?? highlightInfo.mode ?? null;
 
     const selectionContext = {
       selectionSource,
@@ -1866,20 +1881,20 @@
     const resolvedHighlightWindows =
       selectionHighlightWindows.length > 0
         ? selectionHighlightWindows
-        : highlightInfo.windows ?? [];
+        : (highlightInfo.windows ?? []);
     const resolvedSelectionContext =
       selectionContext.timeMin !== null ||
       selectionContext.timeMax !== null ||
       selectionContext.progressMin !== null ||
       selectionContext.progressMax !== null
         ? selectionContext
-        : highlightInfo.selectionContext ?? {
+        : (highlightInfo.selectionContext ?? {
             selectionSource,
             timeMin: highlightInfo.time?.min ?? null,
             timeMax: highlightInfo.time?.max ?? null,
             progressMin: highlightInfo.progress?.min ?? null,
             progressMax: highlightInfo.progress?.max ?? null,
-          };
+          });
 
     const updatedPattern = {
       range: effectiveRange,
@@ -2049,13 +2064,13 @@
         `${base}/import_dataset/${selectedDataset}.csv`
       );
       if (!response.ok) {
-        throw new Error('Failed to fetch CSV data');
+        throw new Error("Failed to fetch CSV data");
       }
       const text = await response.text();
       const parsedData = Papa.parse(text, { header: true }).data;
       sessions = parsedData.map((session) => ({
         session_id: session.session_id,
-        prompt_code: session.prompt_code
+        prompt_code: session.prompt_code,
       }));
 
       if (firstSession) {
@@ -2230,7 +2245,7 @@
       selectedDataset = datasetParam;
     }
     CSVData = (await fetchCSVData()).filter(
-      item => item.session_id && item.session_id.trim() !== ""
+      (item) => item.session_id && item.session_id.trim() !== ""
     );
     featureData = await fetchFeatureData(CSVData);
 
@@ -2620,6 +2635,131 @@
     });
   }
 
+  function clearPlaybackTimer() {
+    if (playbackTimer) {
+      clearTimeout(playbackTimer);
+      playbackTimer = null;
+    }
+  }
+
+  function findIndexFromTime(data, time) {
+    if (!data || !data.length) return 0;
+    const idx = data.findIndex((d) => d.time >= time - 1e-6);
+    return idx === -1 ? data.length - 1 : idx;
+  }
+
+  function applyPlaybackFrame(sessionId, index) {
+    clickSession.update((session) => {
+      if (!session || session.sessionId !== sessionId) return session;
+      const data = session.chartData || [];
+      const point = data[index];
+      if (!point) return session;
+      const textElements = (point.currentText || "")
+        .split("")
+        .map((char, i) => ({
+          text: char,
+          textColor: point.currentColor?.[i] ?? "#000",
+        }));
+      const chartData = data.map((p) => ({
+        ...p,
+        opacity: p.index > point.index ? 0.01 : 1,
+      }));
+      const similarityData = session.totalSimilarityData || [];
+      const endIndex = similarityData.findIndex(
+        (item) => point.percentage < item.end_progress * 100
+      );
+      const selectedData =
+        endIndex === -1 ? similarityData : similarityData.slice(0, endIndex);
+
+      return {
+        ...session,
+        textElements,
+        currentTime: point.time,
+        chartData,
+        similarityData: selectedData,
+      };
+    });
+  }
+
+  function schedulePlayback(sessionId, startIndex) {
+    clearPlaybackTimer();
+    const session = get(clickSession);
+    if (!session || session.sessionId !== sessionId) {
+      isPlaying = false;
+      return;
+    }
+    const data = session.chartData || [];
+    if (!isPlaying || !data.length || startIndex >= data.length - 1) {
+      isPlaying = false;
+      return;
+    }
+
+    const current = data[startIndex];
+    const next = data[startIndex + 1];
+    const deltaMinutes = Math.max((next.time || 0) - (current.time || 0), 0.01);
+    const delay = Math.max(50, deltaMinutes * TIME_PER_MIN_MS);
+
+    playbackTimer = setTimeout(() => {
+      if (!isPlaying) return;
+      const latest = get(clickSession);
+      if (!latest || latest.sessionId !== sessionId) {
+        isPlaying = false;
+        return;
+      }
+      playbackIndex = Math.min(startIndex + 1, data.length - 1);
+      applyPlaybackFrame(sessionId, playbackIndex);
+      schedulePlayback(sessionId, playbackIndex);
+    }, delay);
+  }
+
+  function togglePlayback() {
+    const session = get(clickSession);
+    if (!session || !session.chartData?.length) return;
+    if (isPlaying) {
+      isPlaying = false;
+      clearPlaybackTimer();
+      return;
+    }
+    // Continue from current position, but restart from 0 if at the end
+    const currentTime = session.currentTime || 0;
+    const maxTime = session.time100 || 0;
+    const isAtEnd = currentTime >= maxTime - 0.01; // Consider "at end" if within 0.01 minutes
+    const start = isAtEnd
+      ? 0
+      : findIndexFromTime(session.chartData, currentTime);
+    playbackIndex = start;
+    applyPlaybackFrame(session.sessionId, start);
+    isPlaying = true;
+    schedulePlayback(session.sessionId, start);
+  }
+
+  function handleScrub(event) {
+    const session = get(clickSession);
+    if (!session || !session.chartData?.length) return;
+    const maxTime = session.time100 || 0;
+    const targetTime = Math.min(
+      Math.max(Number(event.target.value) || 0, 0),
+      maxTime
+    );
+    const idx = findIndexFromTime(session.chartData, targetTime);
+    playbackIndex = idx;
+    applyPlaybackFrame(session.sessionId, idx);
+    if (isPlaying) schedulePlayback(session.sessionId, idx);
+  }
+
+  function togglePlaybackSpeed() {
+    const currentIndex = SPEED_OPTIONS.indexOf(playbackSpeed);
+    const nextIndex = (currentIndex + 1) % SPEED_OPTIONS.length;
+    playbackSpeed = SPEED_OPTIONS[nextIndex];
+    // If playing, restart playback with new speed
+    if (isPlaying) {
+      const session = get(clickSession);
+      if (session) {
+        schedulePlayback(session.sessionId, playbackIndex);
+      }
+    }
+  }
+
   function handlePatternClick(event) {
     const { pattern } = event.detail;
     selectedPatternForDetail = pattern;
@@ -2783,7 +2923,7 @@
     vtOnScroll();
 
     // setInterval(() => {
-      // console.log("displaySessions:", getDisplaySessions());
+    // console.log("displaySessions:", getDisplaySessions());
     //   console.log("columnGroups:", getColumnGroups());
     //   console.log("vtData:", vtData);
     //   console.log("filteredByCategory:", filteredByCategory);
@@ -2798,6 +2938,10 @@
       window.removeEventListener("scroll", vtOnScroll);
       window.removeEventListener("resize", vtOnResize);
     });
+  });
+
+  onDestroy(() => {
+    clearPlaybackTimer();
   });
 
   function scrollToTop() {
@@ -3333,10 +3477,12 @@
                                   pattern.wholeData
                                 ) ??
                                 null}
-                              selectedProgressRange={pattern.range?.progress ?? null}
+                              selectedProgressRange={pattern.range?.progress ??
+                                null}
                               highlightWindows={pattern.highlightWindows ?? []}
                               highlightMode={pattern.highlightMode ?? null}
-                              selectionContext={pattern.selectionContext ?? null}
+                              selectionContext={pattern.selectionContext ??
+                                null}
                             />
                           </div>
                         </div>
@@ -3378,9 +3524,7 @@
                                     ? 'exact'
                                     : 'duration'}"
                                 >
-                                  {isExactSearchProgress
-                                      ? "Exact"
-                                      : "Duration"}
+                                  {isExactSearchProgress ? "Exact" : "Duration"}
                                 </span>
                               </span>
                             </label>
@@ -3531,7 +3675,8 @@
                               return data;
                             })()}
                             selectedTimeRange={pattern.selectedTimeRange}
-                            selectedProgressRange={pattern.range?.progress ?? null}
+                            selectedProgressRange={pattern.range?.progress ??
+                              null}
                             highlightWindows={pattern.highlightWindows ?? []}
                             highlightMode={pattern.highlightMode ?? null}
                             selectionContext={pattern.selectionContext ?? null}
@@ -3868,12 +4013,19 @@
                               <LineChartPreview
                                 bind:this={chartRefs[sessionData.sessionId]}
                                 chartData={sessionData.chartData}
-                                selectedTimeRange={sessionData.highlightRanges?.time ?? null}
-                                selectedProgressRange={sessionData.highlightRanges?.progress ?? null}
-                                highlightWindows={sessionData.highlightRanges?.windows ?? []}
-                                highlightMode={sessionData.highlightRanges?.mode ??
-                                  resolveHighlightModeFromSource(searchDetail?.selectionSource ?? null)}
-                                selectionContext={sessionData.highlightRanges?.selectionContext ?? null}
+                                selectedTimeRange={sessionData.highlightRanges
+                                  ?.time ?? null}
+                                selectedProgressRange={sessionData
+                                  .highlightRanges?.progress ?? null}
+                                highlightWindows={sessionData.highlightRanges
+                                  ?.windows ?? []}
+                                highlightMode={sessionData.highlightRanges
+                                  ?.mode ??
+                                  resolveHighlightModeFromSource(
+                                    searchDetail?.selectionSource ?? null
+                                  )}
+                                selectionContext={sessionData.highlightRanges
+                                  ?.selectionContext ?? null}
                               />
                             </div>
                           </div>
@@ -4063,7 +4215,8 @@
                             class="sort-icon"
                             style="cursor: {selectedCategoryFilter
                               ? 'default'
-                              : 'pointer'};">{getSortIcon("topic")}
+                              : 'pointer'};"
+                            >{getSortIcon("topic")}
                           </span>
                         </th>
                         <th
@@ -4369,15 +4522,45 @@
                     </div>
                   </div>
                   <div class="content-box" style="height:65vh">
-                    <div class="progress-container" style="width: 100%;">
-                      <span style="width: 100%;"
-                        >{($clickSession?.currentTime || 0).toFixed(2)} mins</span
-                      >
-                      <progress
-                        style="width: 100%;"
-                        value={$clickSession?.currentTime || 0}
-                        max={$clickSession?.time100 || 1}
-                      ></progress>
+                    <div class="playback-row">
+                      <div class="progress-container" style="width: 100%;">
+                        <input
+                          type="range"
+                          class="progress-slider"
+                          min="0"
+                          max={$clickSession?.time100 || 1}
+                          step="0.01"
+                          bind:value={$clickSession.currentTime}
+                          style={`--progress-ratio:${(
+                            Math.min(
+                              Math.max(
+                                ($clickSession?.currentTime || 0) /
+                                  ($clickSession?.time100 || 1 || 1),
+                                0
+                              ),
+                              1
+                            ) * 100
+                          ).toFixed(2)}%;`}
+                          on:input={handleScrub}
+                          aria-label="Playback scrubber"
+                        />
+                        <span class="progress-label"
+                          >{($clickSession?.currentTime || 0).toFixed(2)} mins</span
+                        >
+                      </div>
+                      {#if $clickSession?.chartData?.length}
+                        <div class="playback-controls">
+                          <button class="play-button" on:click={togglePlayback}>
+                            {isPlaying ? "Pause" : "Play"}
+                          </button>
+                          <button
+                            class="speed-button"
+                            on:click={togglePlaybackSpeed}
+                          >
+                            {playbackSpeed}x
+                          </button>
+                        </div>
+                      {/if}
                     </div>
                     <div class="scale-container">
                       <div class="scale" id="scale"></div>
@@ -4499,19 +4682,122 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: hsl(6, 100%, 90%);
-    border-radius: 20px;
-    color: white;
-    width: fit-content;
+    width: 100%;
     position: relative;
   }
 
-  .progress-container span {
-    background-color: transparent;
-    position: absolute;
+  .progress-slider {
+    width: 100%;
+    appearance: none;
+    background: var(--progBackgroundColor);
+    border-radius: 20px;
+    height: var(--progHeight);
+    outline: none;
+    padding: 6px 0;
+    position: relative;
     z-index: 1;
-    text-align: center;
-    top: 10%;
+  }
+
+  .progress-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    border: 3px solid var(--progColor);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.35);
+  }
+
+  .progress-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    border: 3px solid var(--progColor);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.35);
+  }
+
+  .progress-slider::-webkit-slider-runnable-track {
+    height: var(--progHeight);
+    border-radius: 20px;
+    background: linear-gradient(
+      to right,
+      var(--progColor) 0%,
+      var(--progColor) var(--progress-ratio, 0%),
+      var(--progBackgroundColor) var(--progress-ratio, 0%),
+      var(--progBackgroundColor) 100%
+    );
+  }
+
+  .progress-slider::-moz-range-track {
+    height: var(--progHeight);
+    border-radius: 20px;
+    background: linear-gradient(
+      to right,
+      var(--progColor) 0%,
+      var(--progColor) var(--progress-ratio, 0%),
+      var(--progBackgroundColor) var(--progress-ratio, 0%),
+      var(--progBackgroundColor) 100%
+    );
+  }
+
+  .progress-label {
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font-weight: 700;
+    pointer-events: none;
+  }
+
+  .playback-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .playback-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .play-button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 8px;
+    background: var(--progColor);
+    color: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  .play-button:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+
+  .speed-button {
+    padding: 6px 12px;
+    border: 2px solid var(--progColor);
+    border-radius: 8px;
+    background: white;
+    color: var(--progColor);
+    cursor: pointer;
+    font-weight: 600;
+    min-width: 50px;
+    transition: all 0.2s ease;
+  }
+
+  .speed-button:hover {
+    background: var(--progColor);
+    color: white;
+    transform: scale(1.02);
   }
 
   progress {
