@@ -164,3 +164,19 @@ This script takes in two files (i) `data/session.jsonl`, which saves the complet
 **Loading Data into InkPulse:** 
 - Method One: Running InkPulse Locally. Fork this repo and run InkPulse locally following the [Getting Started](#getting-started) instructions. Place the folder generated from last step within `static/dataset` and register your dataset (`[dataset_name]`) at `static/dataset/dataset_name.json`. You can then start your visual exploration.
 - Method Two: Upload Directly to the Website. Direct upload support is currently under development. Stay tuned for updates!
+
+Use the following code to convert your dataset into local database. NOTE: only folder that in **`static/dataset`** will be detected.
+
+```bash
+npx drizzle-kit generate --schema ./src/lib/db/schema.ts --out ./drizzle --dialect sqlite
+```
+
+```bash
+npx drizzle-kit push
+```
+
+```bash
+npx tsx scripts/import-groups.ts
+```
+
+Or, you can upload a `.zip` file on the website.
