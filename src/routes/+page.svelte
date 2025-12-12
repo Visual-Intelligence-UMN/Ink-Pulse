@@ -2234,8 +2234,20 @@
 
     await fetchSessions();
 
-    let useDB = true;
+    let useDB = false;
     let segmentData = [];
+    try {
+      const segmentDB = await fetch(`${base}/api/getSegment?group=${selectedDataset}`);
+      if (segmentDB.ok) {
+        const json = await segmentDB.json();
+        if (json.exists && Array.isArray(json.segmentData) && json.segmentData.length > 0) {
+          segmentData = json.segmentData;
+          useDB = true;
+        }
+      }
+    } catch (e) {
+      console.log("No .db file or .db file is empty.");
+    }
 
     if (useDB) {
       const scoreMap = new Map(
@@ -2252,7 +2264,6 @@
           llmScore: scoreMap.get(sessionId) ?? null,
         };
       });
-
       initData.set(initArray);
       console.log("Use .db file to init data.");
     } else {
