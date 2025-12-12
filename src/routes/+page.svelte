@@ -2264,7 +2264,6 @@
           llmScore: scoreMap.get(sessionId) ?? null,
         };
       });
-
       initData.set(initArray);
       console.log("Use .db file to init data.");
     } else {
