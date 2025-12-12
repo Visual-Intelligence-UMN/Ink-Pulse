@@ -442,9 +442,7 @@
         const text = await response.text();
         const parsedData = Papa.parse(text, { header: true }).data;
 
-        return parsedData.filter(
-          (row) => row.session_id && row.session_id.trim() !== ""
-        );
+        return parsedData;
       }
       if (datasetInfo.source === "upload") {
         const zipBlob = await getUploadedZipByName(selectedDataset);
@@ -454,9 +452,7 @@
         const text = await sessionFile.async("string");
         const parsedData = Papa.parse(text, { header: true }).data;
 
-        return parsedData.filter(
-          (row) => row.session_id && row.session_id.trim() !== ""
-        );
+        return parsedData;
       }
     } catch (error) {
       console.error("Error fetching or parsing CSV:", error);
@@ -1004,9 +1000,7 @@
     };
 
     try {
-      const fileList = CSVData.map((item) => item.session_id).filter(
-        (id) => id && id.trim() !== ""
-      );
+      const fileList = CSVData.map((item) => item.session_id);
       const datasetInfo = datasets.find((d) => d.name === selectedDataset);
       for (const fileName of fileList) {
         let data;
@@ -1968,14 +1962,10 @@
         text = await sessionFile.async("string");
       }
       const parsedData = Papa.parse(text, { header: true }).data;
-      sessions = parsedData
-        .filter(
-          (session) => session.session_id && session.session_id.trim() !== ""
-        )
-        .map((session) => ({
-          session_id: session.session_id,
-          prompt_code: session.prompt_code,
-        }));
+      sessions = parsedData.map((session) => ({
+        session_id: session.session_id,
+        prompt_code: session.prompt_code,
+      }));
 
       if (firstSession) {
         tableData = sessions.map((session) => {
@@ -2352,7 +2342,6 @@
     } else {
       for (let i = 0; i < selectedSession.length; i++) {
         const sessionId = selectedSession[i];
-        if (!sessionId || sessionId.trim() === "") continue; // Skip empty session IDs
         const similarityData = await fetchSimilarityData(sessionId);
         const llmScore = await fetchLLMScore(sessionId, CSVData);
         initData.update((sessions) => {
