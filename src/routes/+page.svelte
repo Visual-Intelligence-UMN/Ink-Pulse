@@ -152,6 +152,15 @@
   let isSemanticChecked = true;
   let isValueRangeChecked = true;
   let isValueTrendChecked = true;
+
+  // Playback control variables
+  let isPlaying = false;
+  let playbackIndex = 0;
+  let playbackTimer = null;
+  let playbackSpeed = 1; // Default 1x speed (real-time)
+  const SPEED_OPTIONS = [1, 10, 50, 100]; // Available speed options: 1x, 10x, 50x, 100x
+  $: TIME_PER_MIN_MS = 60000 / playbackSpeed; // 1 real minute -> calculated seconds based on speed
+
   $: if (!isSemanticChecked) {
     isValueRangeChecked = false;
     isValueTrendChecked = false;
@@ -159,6 +168,22 @@
   let lastSession = null;
   let datasets = [];
   let selectedDataset = "creative";
+
+  // Reset playback state when session changes
+  let lastPlaybackSessionId = null;
+  $: if ($clickSession?.sessionId !== lastPlaybackSessionId) {
+    lastPlaybackSessionId = $clickSession?.sessionId || null;
+    if ($clickSession?.chartData?.length) {
+      playbackIndex = findIndexFromTime(
+        $clickSession.chartData,
+        $clickSession.currentTime || 0
+      );
+    } else {
+      playbackIndex = 0;
+    }
+    clearPlaybackTimer();
+    isPlaying = false;
+  }
 
   export const patternDataList = writable([]);
   export const initData = writable([]);
@@ -396,7 +421,9 @@
       const request = store.getAll();
       request.onsuccess = () => {
         const files = request.result;
-        const zipFile = files.find(f => f.name.replace(/\.zip$/i, "") === name);
+        const zipFile = files.find(
+          (f) => f.name.replace(/\.zip$/i, "") === name
+        );
         resolve(zipFile?.blob || null);
       };
       request.onerror = () => reject(request.error);
@@ -405,10 +432,12 @@
 
   const fetchCSVData = async () => {
     try {
-      const datasetInfo = datasets.find(d => d.name === selectedDataset);
+      const datasetInfo = datasets.find((d) => d.name === selectedDataset);
       if (!datasetInfo) return [];
       if (datasetInfo.source === "repo") {
-        const response = await fetch(`${base}/dataset/${selectedDataset}/session.csv`);
+        const response = await fetch(
+          `${base}/dataset/${selectedDataset}/session.csv`
+        );
         if (!response.ok) throw new Error("Failed to fetch CSV data");
         const text = await response.text();
         const parsedData = Papa.parse(text, { header: true }).data;
@@ -972,7 +1001,7 @@
 
     try {
       const fileList = CSVData.map((item) => item.session_id);
-      const datasetInfo = datasets.find(d => d.name === selectedDataset);
+      const datasetInfo = datasets.find((d) => d.name === selectedDataset);
       for (const fileName of fileList) {
         let data;
         if (datasetInfo.source === "repo") {
@@ -985,16 +1014,22 @@
           const zipBlob = await getUploadedZipByName(selectedDataset);
           if (!zipBlob) throw new Error("Uploaded zip not found");
           const zip = await JSZip.loadAsync(zipBlob);
-          const filePathRegex = new RegExp(`^${selectedDataset}/segment_results/${fileName}\\.json$`, 'i');
+          const filePathRegex = new RegExp(
+            `^${selectedDataset}/segment_results/${fileName}\\.json$`,
+            "i"
+          );
           const files = zip.file(filePathRegex);
-          if (!files || files.length === 0) throw new Error(`${fileName}.json not found in zip`);
+          if (!files || files.length === 0)
+            throw new Error(`${fileName}.json not found in zip`);
           const file = files[0];
           const text = await file.async("string");
           data = JSON.parse(text);
         }
-        
+
         if (Array.isArray(data.chartData)) {
-          data.chartData = data.chartData.map(({ currentText, ...rest }) => rest);
+          data.chartData = data.chartData.map(
+            ({ currentText, ...rest }) => rest
+          );
         }
         if (Array.isArray(data.chartData)) {
           data.chartData = data.chartData.map(
@@ -1868,7 +1903,7 @@
     }));
     filterTableData.set(originalUpdatedData);
   }
-  
+
   async function fetchInitData(sessionId, isDelete) {
     if (isDelete) {
       initData.update((data) =>
@@ -1905,19 +1940,24 @@
 
   const fetchSessions = async () => {
     try {
-      const datasetInfo = datasets.find(d => d.name === selectedDataset);
+      const datasetInfo = datasets.find((d) => d.name === selectedDataset);
       let text;
       if (datasetInfo.source === "repo") {
-        const response = await fetch(`${base}/dataset/${selectedDataset}/session.csv`);
+        const response = await fetch(
+          `${base}/dataset/${selectedDataset}/session.csv`
+        );
         if (!response.ok) throw new Error("Failed to fetch CSV data");
         text = await response.text();
-      } 
+      }
       if (datasetInfo.source === "upload") {
         const zipBlob = await getUploadedZipByName(selectedDataset);
         if (!zipBlob) throw new Error("Uploaded zip not found");
         const zip = await JSZip.loadAsync(zipBlob);
-        const sessionFiles = zip.file(new RegExp(`^${selectedDataset}/session\\.csv$`, 'i'));
-        if (!sessionFiles || sessionFiles.length === 0) throw new Error("session.csv not found in zip");
+        const sessionFiles = zip.file(
+          new RegExp(`^${selectedDataset}/session\\.csv$`, "i")
+        );
+        if (!sessionFiles || sessionFiles.length === 0)
+          throw new Error("session.csv not found in zip");
         const sessionFile = sessionFiles[0];
         text = await sessionFile.async("string");
       }
@@ -1968,21 +2008,26 @@
   const fetchDataSummary = async (sessionFile) => {
     try {
       let data;
-      const datasetInfo = datasets.find(d => d.name === selectedDataset);
+      const datasetInfo = datasets.find((d) => d.name === selectedDataset);
       if (datasetInfo.source === "repo") {
         const response = await fetch(
           `${base}/dataset/${selectedDataset}/json/${sessionFile}.json`
         );
-        if (!response.ok) throw new Error(`Failed to fetch session data: ${response.status}`);
+        if (!response.ok)
+          throw new Error(`Failed to fetch session data: ${response.status}`);
         data = await response.json();
-      } 
+      }
       if (datasetInfo.source === "upload") {
         const zipBlob = await getUploadedZipByName(selectedDataset);
         if (!zipBlob) throw new Error("Uploaded zip not found");
         const zip = await JSZip.loadAsync(zipBlob);
-        const filePathRegex = new RegExp(`^${selectedDataset}/json/${sessionFile}\\.json$`, "i");
+        const filePathRegex = new RegExp(
+          `^${selectedDataset}/json/${sessionFile}\\.json$`,
+          "i"
+        );
         const files = zip.file(filePathRegex);
-        if (!files || files.length === 0) throw new Error(`${sessionFile}.json not found in zip`);
+        if (!files || files.length === 0)
+          throw new Error(`${sessionFile}.json not found in zip`);
         const file = files[0];
         const text = await file.async("string");
         data = JSON.parse(text);
@@ -2030,22 +2075,27 @@
       return;
     }
     try {
-      const datasetInfo = datasets.find(d => d.name === selectedDataset);
+      const datasetInfo = datasets.find((d) => d.name === selectedDataset);
       let data;
       if (datasetInfo.source === "repo") {
         const response = await fetch(
           `${base}/dataset/${selectedDataset}/json/${sessionFile}.json`
         );
-        if (!response.ok) throw new Error(`Failed to fetch session data: ${response.status}`);
+        if (!response.ok)
+          throw new Error(`Failed to fetch session data: ${response.status}`);
         data = await response.json();
-      } 
+      }
       if (datasetInfo.source === "upload") {
         const zipBlob = await getUploadedZipByName(selectedDataset);
         if (!zipBlob) throw new Error("Uploaded zip not found");
         const zip = await JSZip.loadAsync(zipBlob);
-        const filePathRegex = new RegExp(`^${selectedDataset}/json/${sessionFile}\\.json$`, "i");
+        const filePathRegex = new RegExp(
+          `^${selectedDataset}/json/${sessionFile}\\.json$`,
+          "i"
+        );
         const files = zip.file(filePathRegex);
-        if (!files || files.length === 0) throw new Error(`${sessionFile}.json not found in zip`);
+        if (!files || files.length === 0)
+          throw new Error(`${sessionFile}.json not found in zip`);
         const file = files[0];
         const text = await file.async("string");
         data = JSON.parse(text);
@@ -2090,22 +2140,27 @@
 
   const fetchSimilarityData = async (sessionFile) => {
     try {
-      const datasetInfo = datasets.find(d => d.name === selectedDataset);
+      const datasetInfo = datasets.find((d) => d.name === selectedDataset);
       let data;
       if (datasetInfo.source === "repo") {
         const response = await fetch(
           `${base}/dataset/${selectedDataset}/segment_results/${sessionFile}.json`
         );
-        if (!response.ok) throw new Error(`Failed to fetch session data: ${response.status}`);
+        if (!response.ok)
+          throw new Error(`Failed to fetch session data: ${response.status}`);
         data = (await response.json()) || [];
-      } 
+      }
       if (datasetInfo.source === "upload") {
         const zipBlob = await getUploadedZipByName(selectedDataset);
         if (!zipBlob) throw new Error("Uploaded zip not found");
         const zip = await JSZip.loadAsync(zipBlob);
-        const filePathRegex = new RegExp(`^${selectedDataset}/segment_results/${sessionFile}\\.json$`, "i");
+        const filePathRegex = new RegExp(
+          `^${selectedDataset}/segment_results/${sessionFile}\\.json$`,
+          "i"
+        );
         const files = zip.file(filePathRegex);
-        if (!files || files.length === 0) throw new Error(`${sessionFile}.json not found in zip`);
+        if (!files || files.length === 0)
+          throw new Error(`${sessionFile}.json not found in zip`);
         const file = files[0];
         const text = await file.async("string");
         data = JSON.parse(text) || [];
@@ -2126,7 +2181,10 @@
       request.onupgradeneeded = () => {
         const db = request.result;
         if (!db.objectStoreNames.contains("uploadedZips")) {
-          db.createObjectStore("uploadedZips", { keyPath: "id", autoIncrement: true });
+          db.createObjectStore("uploadedZips", {
+            keyPath: "id",
+            autoIncrement: true,
+          });
         }
       };
 
@@ -2143,7 +2201,11 @@
     return new Promise((resolve, reject) => {
       const tx = db.transaction("uploadedZips", "readwrite");
       const store = tx.objectStore("uploadedZips");
-      const request = store.add({ name: file.name, blob: file, date: new Date() });
+      const request = store.add({
+        name: file.name,
+        blob: file,
+        date: new Date(),
+      });
 
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
@@ -2169,11 +2231,16 @@
     await openDB();
     const res = await fetch(`${base}/dataset_name.json`);
     const staticDatasets = await res.json();
-    datasets = staticDatasets.map(name => ({ name, source: "repo" }));
+    datasets = staticDatasets.map((name) => ({ name, source: "repo" }));
     const uploaded = await getAllZips();
     datasets = [
       ...datasets,
-      ...uploaded.filter(u => !datasets.find(d => d.name === u.name)).map(u => ({ name: u.name.replace(/\.zip$/i, ""), source: "upload" }))
+      ...uploaded
+        .filter((u) => !datasets.find((d) => d.name === u.name))
+        .map((u) => ({
+          name: u.name.replace(/\.zip$/i, ""),
+          source: "upload",
+        })),
     ];
 
     const btn = document.getElementById("uploadBtn");
@@ -2188,7 +2255,7 @@
       if (!file) return;
 
       const datasetName = file.name.replace(/\.zip$/i, "");
-      if (!datasets.find(d => d.name === datasetName)) {
+      if (!datasets.find((d) => d.name === datasetName)) {
         await addZip(file);
         const newDataset = { name: datasetName, source: "upload" };
         datasets = [...datasets, newDataset];
@@ -2198,7 +2265,7 @@
 
     const params = new URLSearchParams(window.location.search);
     const datasetParam = params.get("dataset");
-    if (datasetParam && datasets.some(d => d.name === datasetParam)) {
+    if (datasetParam && datasets.some((d) => d.name === datasetParam)) {
       selectedDataset = datasetParam;
     }
     CSVData = (await fetchCSVData()).filter(
@@ -2237,10 +2304,16 @@
     let useDB = false;
     let segmentData = [];
     try {
-      const segmentDB = await fetch(`${base}/api/getSegment?group=${selectedDataset}`);
+      const segmentDB = await fetch(
+        `${base}/api/getSegment?group=${selectedDataset}`
+      );
       if (segmentDB.ok) {
         const json = await segmentDB.json();
-        if (json.exists && Array.isArray(json.segmentData) && json.segmentData.length > 0) {
+        if (
+          json.exists &&
+          Array.isArray(json.segmentData) &&
+          json.segmentData.length > 0
+        ) {
           segmentData = json.segmentData;
           useDB = true;
         }
@@ -2251,9 +2324,9 @@
 
     if (useDB) {
       const scoreMap = new Map(
-        CSVData.map(row => [row.session_id, row.judge_score])
+        CSVData.map((row) => [row.session_id, row.judge_score])
       );
-      const initArray = segmentData.map(item => {
+      const initArray = segmentData.map((item) => {
         const sessionId = item.id.replace(/\.json$/, "");
         const content = JSON.parse(item.content);
 
@@ -2276,7 +2349,7 @@
             sessionId,
             similarityData,
             totalSimilarityData: similarityData,
-            llmScore
+            llmScore,
           };
           return [...sessions, newSession];
         });
@@ -2638,6 +2711,132 @@
     });
   }
 
+  // Playback control functions
+  function clearPlaybackTimer() {
+    if (playbackTimer) {
+      clearTimeout(playbackTimer);
+      playbackTimer = null;
+    }
+  }
+
+  function findIndexFromTime(data, time) {
+    if (!data || !data.length) return 0;
+    const idx = data.findIndex((d) => d.time >= time - 1e-6);
+    return idx === -1 ? data.length - 1 : idx;
+  }
+
+  function applyPlaybackFrame(sessionId, index) {
+    clickSession.update((session) => {
+      if (!session || session.sessionId !== sessionId) return session;
+      const data = session.chartData || [];
+      const point = data[index];
+      if (!point) return session;
+      const textElements = (point.currentText || "")
+        .split("")
+        .map((char, i) => ({
+          text: char,
+          textColor: point.currentColor?.[i] ?? "#000",
+        }));
+      const chartData = data.map((p) => ({
+        ...p,
+        opacity: p.index > point.index ? 0.01 : 1,
+      }));
+      const similarityData = session.totalSimilarityData || [];
+      const endIndex = similarityData.findIndex(
+        (item) => point.percentage < item.end_progress * 100
+      );
+      const selectedData =
+        endIndex === -1 ? similarityData : similarityData.slice(0, endIndex);
+
+      return {
+        ...session,
+        textElements,
+        currentTime: point.time,
+        chartData,
+        similarityData: selectedData,
+      };
+    });
+  }
+
+  function schedulePlayback(sessionId, startIndex) {
+    clearPlaybackTimer();
+    const session = get(clickSession);
+    if (!session || session.sessionId !== sessionId) {
+      isPlaying = false;
+      return;
+    }
+    const data = session.chartData || [];
+    if (!isPlaying || !data.length || startIndex >= data.length - 1) {
+      isPlaying = false;
+      return;
+    }
+
+    const current = data[startIndex];
+    const next = data[startIndex + 1];
+    const deltaMinutes = Math.max((next.time || 0) - (current.time || 0), 0.01);
+    const delay = Math.max(50, deltaMinutes * TIME_PER_MIN_MS);
+
+    playbackTimer = setTimeout(() => {
+      if (!isPlaying) return;
+      const latest = get(clickSession);
+      if (!latest || latest.sessionId !== sessionId) {
+        isPlaying = false;
+        return;
+      }
+      playbackIndex = Math.min(startIndex + 1, data.length - 1);
+      applyPlaybackFrame(sessionId, playbackIndex);
+      schedulePlayback(sessionId, playbackIndex);
+    }, delay);
+  }
+
+  function togglePlayback() {
+    const session = get(clickSession);
+    if (!session || !session.chartData?.length) return;
+    if (isPlaying) {
+      isPlaying = false;
+      clearPlaybackTimer();
+      return;
+    }
+    // Continue from current position, but restart from 0 if at the end
+    const currentTime = session.currentTime || 0;
+    const maxTime = session.time100 || 0;
+    const isAtEnd = currentTime >= maxTime - 0.01; // Consider "at end" if within 0.01 minutes
+    const start = isAtEnd
+      ? 0
+      : findIndexFromTime(session.chartData, currentTime);
+    playbackIndex = start;
+    applyPlaybackFrame(session.sessionId, start);
+    isPlaying = true;
+    schedulePlayback(session.sessionId, start);
+  }
+
+  function handleScrub(event) {
+    const session = get(clickSession);
+    if (!session || !session.chartData?.length) return;
+    const maxTime = session.time100 || 0;
+    const targetTime = Math.min(
+      Math.max(Number(event.target.value) || 0, 0),
+      maxTime
+    );
+    const idx = findIndexFromTime(session.chartData, targetTime);
+    playbackIndex = idx;
+    applyPlaybackFrame(session.sessionId, idx);
+    if (isPlaying) schedulePlayback(session.sessionId, idx);
+  }
+
+  function togglePlaybackSpeed() {
+    const currentIndex = SPEED_OPTIONS.indexOf(playbackSpeed);
+    const nextIndex = (currentIndex + 1) % SPEED_OPTIONS.length;
+    playbackSpeed = SPEED_OPTIONS[nextIndex];
+    // If playing, restart playback with new speed
+    if (isPlaying) {
+      const session = get(clickSession);
+      if (session) {
+        schedulePlayback(session.sessionId, playbackIndex);
+      }
+    }
+  }
+
   function handlePatternClick(event) {
     const { pattern } = event.detail;
     selectedPatternForDetail = pattern;
@@ -2815,6 +3014,7 @@
     onDestroy(() => {
       window.removeEventListener("scroll", vtOnScroll);
       window.removeEventListener("resize", vtOnResize);
+      clearPlaybackTimer();
     });
   });
 
@@ -3101,7 +3301,12 @@
           <a id="uploadBtn" class="upload-icon">
             <span class="material-symbols--upload-file-rounded"></span>
           </a>
-          <input type="file" id="uploadZip" accept=".zip" style="display: none;">
+          <input
+            type="file"
+            id="uploadZip"
+            accept=".zip"
+            style="display: none;"
+          />
           <label for="dataset-select" style="font-size: 14px;">Dataset:</label>
           <select
             id="dataset-select"
@@ -4400,15 +4605,45 @@
                     </div>
                   </div>
                   <div class="content-box" style="height:65vh">
-                    <div class="progress-container" style="width: 100%;">
-                      <span style="width: 100%;"
-                        >{($clickSession?.currentTime || 0).toFixed(2)} mins</span
-                      >
-                      <progress
-                        style="width: 100%;"
-                        value={$clickSession?.currentTime || 0}
-                        max={$clickSession?.time100 || 1}
-                      ></progress>
+                    <div class="playback-row">
+                      <div class="progress-container-new" style="width: 100%;">
+                        <input
+                          type="range"
+                          class="progress-slider"
+                          min="0"
+                          max={$clickSession?.time100 || 1}
+                          step="0.01"
+                          bind:value={$clickSession.currentTime}
+                          style={`--progress-ratio:${(
+                            Math.min(
+                              Math.max(
+                                ($clickSession?.currentTime || 0) /
+                                  ($clickSession?.time100 || 1 || 1),
+                                0
+                              ),
+                              1
+                            ) * 100
+                          ).toFixed(2)}%;`}
+                          on:input={handleScrub}
+                          aria-label="Playback scrubber"
+                        />
+                        <span class="progress-label"
+                          >{($clickSession?.currentTime || 0).toFixed(2)} mins</span
+                        >
+                      </div>
+                      {#if $clickSession?.chartData?.length}
+                        <div class="playback-controls">
+                          <button class="play-button" on:click={togglePlayback}>
+                            {isPlaying ? "Pause" : "Play"}
+                          </button>
+                          <button
+                            class="speed-button"
+                            on:click={togglePlaybackSpeed}
+                          >
+                            {playbackSpeed}x
+                          </button>
+                        </div>
+                      {/if}
                     </div>
                     <div class="scale-container">
                       <div class="scale" id="scale"></div>
@@ -4543,6 +4778,129 @@
     z-index: 1;
     text-align: center;
     top: 10%;
+  }
+
+  /* New playback controls styles */
+  .progress-container-new {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    position: relative;
+  }
+
+  .progress-slider {
+    width: 100%;
+    appearance: none;
+    background: var(--progBackgroundColor);
+    border-radius: 20px;
+    height: var(--progHeight);
+    outline: none;
+    padding: 6px 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .progress-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    border: 3px solid var(--progColor);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.35);
+  }
+
+  .progress-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    border: 3px solid var(--progColor);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.35);
+  }
+
+  .progress-slider::-webkit-slider-runnable-track {
+    height: var(--progHeight);
+    border-radius: 20px;
+    background: linear-gradient(
+      to right,
+      var(--progColor) 0%,
+      var(--progColor) var(--progress-ratio, 0%),
+      var(--progBackgroundColor) var(--progress-ratio, 0%),
+      var(--progBackgroundColor) 100%
+    );
+  }
+
+  .progress-slider::-moz-range-track {
+    height: var(--progHeight);
+    border-radius: 20px;
+    background: linear-gradient(
+      to right,
+      var(--progColor) 0%,
+      var(--progColor) var(--progress-ratio, 0%),
+      var(--progBackgroundColor) var(--progress-ratio, 0%),
+      var(--progBackgroundColor) 100%
+    );
+  }
+
+  .progress-label {
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font-weight: 700;
+    pointer-events: none;
+  }
+
+  .playback-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .playback-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .play-button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 8px;
+    background: var(--progColor);
+    color: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  .play-button:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+
+  .speed-button {
+    padding: 6px 12px;
+    border: 2px solid var(--progColor);
+    border-radius: 8px;
+    background: white;
+    color: var(--progColor);
+    cursor: pointer;
+    font-weight: 600;
+    min-width: 50px;
+    transition: all 0.2s ease;
+  }
+
+  .speed-button:hover {
+    background: var(--progColor);
+    color: white;
+    transform: scale(1.02);
   }
 
   progress {
