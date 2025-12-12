@@ -157,6 +157,10 @@ Below is the structure and examples for the three levels.
 
 ## How to import your own dataset
 
-You can use **`static/backend/index.ipynb`** to preprocess the data, a Google olab version is available [here](https://drive.google.com/file/d/1ODkYqNn1siQ_x27KbnhK5h59wIOrjW79/view?usp=sharing). You need to use `[dataset_name].zip` instead of folder `[dataset_name]`.
+**Data Preprocessing:** You can use **`static/backend/index.ipynb`** to preprocess the data, a Google olab version is available [here](https://drive.google.com/file/d/1ODkYqNn1siQ_x27KbnhK5h59wIOrjW79/view?usp=sharing). You need to use `[dataset_name].zip` instead of folder `[dataset_name]`.
 
-This script takes in two files (i) `data/session.jsonl`, which saves the complete writing action logs as the format specified in the [CoAuther Dataset Schema](https://coauthor.stanford.edu), and (ii) `data.csv`, which specific the session level data at least **session_id** and **prompt_code**. Sample can be checked in **`static/import_dataset/creative.csv`**. The outputed folder `[dataset_name]` will contain all the files as described in [Data Structure](#data-structure). Put the folder within `static/dataset`, you can then start the visual exploration.
+This script takes in two files (i) `data/session.jsonl`, which saves the complete writing action logs as the format specified in the [CoAuther Dataset Schema](https://coauthor.stanford.edu), and (ii) `data.csv`, which specific the session level data at least **session_id** and **prompt_code**. Sample can be checked in **`static/import_dataset/creative.csv`**. The outputed folder `[dataset_name]` will contain all the files as described in [Data Structure](#data-structure). 
+
+**Loading Data into InkPulse:** 
+- Method One: Running InkPulse Locally. Fork this repo and run InkPulse locally following the [Getting Started](#getting-started) instructions. Place the folder generated from last step within `static/dataset` and register your dataset (`[dataset_name]`) at `static/dataset/dataset_name.json`. You can then start your visual exploration.
+- Method Two: Upload Directly to the Website. Direct upload support is currently under development. Stay tuned for updates!
