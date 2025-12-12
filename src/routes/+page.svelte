@@ -2075,46 +2075,58 @@
 
     await fetchSessions();
 
-    const segmentDB = await fetch(`${base}/api/getSegment?group=${selectedDataset}`);
-    const {segmentData} = await segmentDB.json()
-    const scoreMap = new Map(
-    CSVData.map(row => [row.session_id, row.judge_score])
-    );
+    let useDB = true;
+    let segmentData = [];
+    try {
+      const segmentDB = await fetch(`${base}/api/getSegment?group=${selectedDataset}`);
+      if (!segmentDB.ok) {
+        useDB = false;
+      } else {
+        const json = await segmentDB.json();
+        segmentData = json.segmentData;
+        if (!Array.isArray(segmentData) || segmentData.length === 0) {
+          useDB = false;
+        }
+      }
+    } catch (e) {
+      useDB = false;
+    }
 
-    const initArray = segmentData.map(item => {
-      const sessionId = item.id.replace(/\.json$/, "");
-      const content = JSON.parse(item.content);
+    if (useDB) {
+      const scoreMap = new Map(
+        CSVData.map(row => [row.session_id, row.judge_score])
+      );
+      const initArray = segmentData.map(item => {
+        const sessionId = item.id.replace(/\.json$/, "");
+        const content = JSON.parse(item.content);
 
-      return {
-        sessionId,
-        similarityData: content,
-        totalSimilarityData: content,
-        llmScore: scoreMap.get(sessionId) ?? null,
-      };
-    });
+        return {
+          sessionId,
+          similarityData: content,
+          totalSimilarityData: content,
+          llmScore: scoreMap.get(sessionId) ?? null,
+        };
+      });
 
-    initData.set(initArray);
-    // init.subscribe(value => {
-    //   console.log("store value:", value);
-    // });
-
-    // for (let i = 0; i < selectedSession.length; i++) {
-    //   const sessionId = selectedSession[i];
-    //   const similarityData = await fetchSimilarityData(sessionId);
-    //   // console.log("check: ", similarityData)
-    //   const llmScore = await fetchLLMScore(sessionId, CSVData);
-
-    //   initData.update((sessions) => {
-    //     const newSession = {
-    //       sessionId: sessionId,
-    //       similarityData: similarityData,
-    //       totalSimilarityData: similarityData,
-    //       llmScore: llmScore,
-    //     };
-    //     sessions.push(newSession);
-    //     return [...sessions];
-    //   });
-    // }
+      initData.set(initArray);
+      console.log("Use .db file to init data.");
+    } else {
+      for (let i = 0; i < selectedSession.length; i++) {
+        const sessionId = selectedSession[i];
+        const similarityData = await fetchSimilarityData(sessionId);
+        const llmScore = await fetchLLMScore(sessionId, CSVData);
+        initData.update((sessions) => {
+          const newSession = {
+            sessionId,
+            similarityData,
+            totalSimilarityData: similarityData,
+            llmScore
+          };
+          return [...sessions, newSession];
+        });
+      }
+      console.log("Use .json file to init data.");
+    }
 
   });
 
