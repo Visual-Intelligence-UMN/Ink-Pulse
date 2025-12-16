@@ -1443,6 +1443,7 @@
 
   function handleSelectionChanged(event) {
     showResultCount.set(5);
+
     if (sharedSelection) {
       selectionSrc = sharedSelection.selectionSource;
     }
@@ -1865,6 +1866,14 @@
       ...selectedPatterns,
       [resolvedSessionId]: updatedPattern,
     };
+
+    // console.log("-------------------------------");
+    // console.log("Debug Selection Changed:");
+    // console.log("event selection dataRange_progressRange", event.detail.dataRange.progressRange);
+    // console.log("shared selection", sharedSelection);
+    // console.log("updated pattern progressRange", updatedPattern.progressRange);
+    // console.log("updated pattern dataRange_progressRange", updatedPattern.dataRange.progressRange);
+    // console.log("-------------------------------");
   }
 
   function handleSelectionCleared(event) {
