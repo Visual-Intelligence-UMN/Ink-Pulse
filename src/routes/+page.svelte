@@ -2550,13 +2550,17 @@
         const insertChars = [...text];
         const insertPos = Math.min(pos, currentCharArray.length);
 
-        insertChars.forEach((ch, i) => {
-          currentCharArray.splice(insertPos + i, 0, ch);
-          currentColor.splice(insertPos + i, 0, textColor);
-          combinedText.splice(insertPos + i, 0, { text: ch, textColor });
+        // For API (AI-generated) text, add the entire chunk at once
+        if (eventSource === "api") {
+          // Add all characters to the arrays
+          insertChars.forEach((ch, i) => {
+            currentCharArray.splice(insertPos + i, 0, ch);
+            currentColor.splice(insertPos + i, 0, textColor);
+            combinedText.splice(insertPos + i, 0, { text: ch, textColor });
+          });
 
+          // Create only ONE chartData entry for the entire AI chunk
           const percentage = (currentCharArray.length / totalTextLength) * 100;
-
           chartData.push({
             time: relativeTime,
             percentage,
@@ -2570,8 +2574,33 @@
             index: indexOfAct++,
           });
 
-          totalInsertions++;
-        });
+          totalInsertions += insertChars.length;
+        } else {
+          // For user input, add character by character (original behavior)
+          insertChars.forEach((ch, i) => {
+            currentCharArray.splice(insertPos + i, 0, ch);
+            currentColor.splice(insertPos + i, 0, textColor);
+            combinedText.splice(insertPos + i, 0, { text: ch, textColor });
+
+            const percentage =
+              (currentCharArray.length / totalTextLength) * 100;
+
+            chartData.push({
+              time: relativeTime,
+              percentage,
+              eventSource,
+              color: textColor,
+              currentText: currentCharArray.join(""),
+              currentColor: [...currentColor],
+              opacity: 1,
+              isSuggestionOpen: name === "suggestion-open",
+              isSuggestionAccept: false,
+              index: indexOfAct++,
+            });
+
+            totalInsertions++;
+          });
+        }
       }
 
       if (name === "text-delete") {
@@ -2766,8 +2795,14 @@
       return;
     }
     const data = session.chartData || [];
+
+    // If at or past the last frame, stop playing
     if (!isPlaying || !data.length || startIndex >= data.length - 1) {
       isPlaying = false;
+      // Make sure we're at the last frame
+      if (data.length > 0 && startIndex < data.length) {
+        applyPlaybackFrame(sessionId, data.length - 1);
+      }
       return;
     }
 
@@ -2800,7 +2835,12 @@
     // Continue from current position, but restart from 0 if at the end
     const currentTime = session.currentTime || 0;
     const maxTime = session.time100 || 0;
-    const isAtEnd = currentTime >= maxTime - 0.01; // Consider "at end" if within 0.01 minutes
+    const data = session.chartData;
+    const lastDataTime = data[data.length - 1]?.time || maxTime;
+
+    const isAtEnd =
+      currentTime >= maxTime - 0.05 || currentTime >= lastDataTime - 0.01;
+
     const start = isAtEnd
       ? 0
       : findIndexFromTime(session.chartData, currentTime);
@@ -4559,29 +4599,44 @@
                         </div>
                       </div>
                     </div>
-                    <div class="chart-container">
-                      <div class="chart-wrapper" on:wheel={handleChartZoom}>
-                        {#if $clickSession.similarityData}
-                          <BarChartY
-                            sessionId={$clickSession.sessionId}
-                            similarityData={$clickSession.similarityData}
-                            {yScale}
-                            {height}
-                            bind:zoomTransform={
-                              zoomTransforms[$clickSession.sessionId]
-                            }
-                            {selectionMode}
-                            bind:sharedSelection
-                            on:selectionChanged={handleSelectionChanged}
-                            on:selectionCleared={handleSelectionCleared}
-                            bind:this={
-                              chartRefs[$clickSession.sessionId + "-barChart"]
-                            }
-                            on:chartLoaded={handleChartLoaded}
-                            bind:xScaleBarChartFactor
-                          />
-                        {/if}
-                        <div>
+                    <div class="chart-container-split">
+                      <!-- Left: BarChart (Semantic Similarity) -->
+                      <div class="chart-section">
+                        <h4 class="chart-title">Semantic Similarity</h4>
+                        <div
+                          class="chart-wrapper-independent"
+                          on:wheel={handleChartZoom}
+                        >
+                          {#if $clickSession.similarityData}
+                            <BarChartY
+                              sessionId={$clickSession.sessionId}
+                              similarityData={$clickSession.similarityData}
+                              {yScale}
+                              {height}
+                              bind:zoomTransform={
+                                zoomTransforms[$clickSession.sessionId]
+                              }
+                              {selectionMode}
+                              bind:sharedSelection
+                              on:selectionChanged={handleSelectionChanged}
+                              on:selectionCleared={handleSelectionCleared}
+                              bind:this={
+                                chartRefs[$clickSession.sessionId + "-barChart"]
+                              }
+                              on:chartLoaded={handleChartLoaded}
+                              bind:xScaleBarChartFactor
+                            />
+                          {/if}
+                        </div>
+                      </div>
+
+                      <!-- Right: LineChart (Writing Progress) -->
+                      <div class="chart-section">
+                        <h4 class="chart-title">Writing Progress</h4>
+                        <div
+                          class="chart-wrapper-independent"
+                          on:wheel={handleChartZoom}
+                        >
                           <LineChart
                             bind:this={chartRefs[$clickSession.sessionId]}
                             chartData={$clickSession.chartData}
@@ -5110,6 +5165,39 @@
     padding-right: 35px;
     transform: scale(1.25);
     transform-origin: center top;
+  }
+
+  /* New split layout for charts */
+  .chart-container-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    width: 100%;
+    padding: 20px;
+  }
+
+  .chart-section {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    background: #fafafa;
+  }
+
+  .chart-title {
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    text-align: center;
+  }
+
+  .chart-wrapper-independent {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: visible;
   }
 
   .pattern-search-panel {

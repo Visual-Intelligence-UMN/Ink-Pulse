@@ -42,7 +42,7 @@
   let svgContainer: SVGSVGElement;
   let width = 300;
   export let height;
-  const margin = { top: 20, right: 0, bottom: 30, left: 0 };
+  const margin = { top: 20, right: 50, bottom: 30, left: 0 };
 
   let xScale: any;
   export let yScale;
@@ -530,7 +530,17 @@
     >
       Time (min)
     </text>
-    <g class="y-axis" bind:this={yAxisG} style="display: none"></g>
+    <g class="y-axis" bind:this={yAxisG} transform="translate({chartWidth}, 0)"></g>
+    <text
+      transform="rotate(-90)"
+      x={-chartHeight / 2}
+      y={width - 10}
+      text-anchor="middle"
+      font-size="10px"
+      fill="black"
+    >
+      Writing length
+    </text>
   </g>
 </svg>
 
