@@ -41,7 +41,7 @@
     : [];
 </script>
 
-{#if sessionData}
+{#if sessionData && sessionData.sessionId}
   <td class="topic-cell">
     <button
       class="topic-icon-btn"

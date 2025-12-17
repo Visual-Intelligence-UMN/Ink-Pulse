@@ -1,5372 +1,828 @@
 {
     "init_text": "Your entire life, you've been told you're deathly allergic to bees. You've always had people protecting you from them, be it your mother or a hired hand. Today, one slips through and lands on your shoulder. You hear a tiny voice say \"Your Majesty, what are your orders?\"\n",
     "init_time": "2021-08-18 04:02:36",
-    "text": "Your entire life, you've been told you're deathly allergic to bees. You've always had people protecting you from them, be it your mother or a hired hand. Today, one slips through and lands on your shoulder. You hear a tiny voice say \"Your Majesty, what are your orders?\"\n\nYou freeze.\n\nWhat?\n\n\"Your Majesty, what are your orders?\"\n\nYou know that voice came from the bee, even if you don't want to believe it. It can't be true.\n\n\"Is this real?\"\n\nYou ask that to yourself, but the bee responds, \"Of course it is.\"\n\n\"But bees can't talk,\" you reply, a little more uncertainly.\n\n\"Yes we can.\"\n\n\"But I thought I was allergic to you guys. Everyone has always kept me away my entire life.\"\n\nIf a bee can chuckle, that is definitely what they did.\n\n\"They kept you away because they were afraid of you knowing your true potential. Come with me.\"\n",
-    "end_time": "2021-08-18 04:12:38",
+    "text": 836,
     "actions": [
         {
-            "id": 1,
             "name": "text-insert",
             "text": "\n",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:18",
-            "count": 1,
             "pos": 270,
-            "progress": 0.3253588516746411
+            "progress": 0.33
         },
         {
-            "id": 2,
             "name": "text-insert",
             "text": "\n",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:21",
-            "count": 1,
             "pos": 271,
-            "progress": 0.326555023923445
+            "progress": 0.33
         },
         {
-            "id": 3,
             "name": "text-insert",
-            "text": "Y",
+            "text": "You",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:23",
-            "count": 1,
             "pos": 272,
-            "progress": 0.3277511961722488
+            "progress": 0.33
         },
         {
-            "id": 4,
             "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:23",
-            "count": 1,
-            "pos": 273,
-            "progress": 0.32894736842105265
-        },
-        {
-            "id": 5,
-            "name": "text-insert",
-            "text": "u",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:23",
-            "count": 1,
-            "pos": 274,
-            "progress": 0.33014354066985646
-        },
-        {
-            "id": 6,
-            "name": "text-insert",
-            "text": " ",
+            "text": " freeze",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:24",
-            "count": 1,
             "pos": 275,
-            "progress": 0.33133971291866027
+            "progress": 0.33
         },
         {
-            "id": 7,
             "name": "text-insert",
-            "text": "f",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:24",
-            "count": 1,
-            "pos": 276,
-            "progress": 0.33253588516746413
-        },
-        {
-            "id": 8,
-            "name": "text-insert",
-            "text": "r",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:24",
-            "count": 1,
-            "pos": 277,
-            "progress": 0.33373205741626794
-        },
-        {
-            "id": 9,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:24",
-            "count": 1,
-            "pos": 278,
-            "progress": 0.3349282296650718
-        },
-        {
-            "id": 10,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:24",
-            "count": 1,
-            "pos": 279,
-            "progress": 0.3361244019138756
-        },
-        {
-            "id": 11,
-            "name": "text-insert",
-            "text": "z",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:24",
-            "count": 1,
-            "pos": 280,
-            "progress": 0.3373205741626794
-        },
-        {
-            "id": 12,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:24",
-            "count": 1,
-            "pos": 281,
-            "progress": 0.33851674641148327
-        },
-        {
-            "id": 13,
-            "name": "text-insert",
-            "text": ".",
+            "text": ".\n\nWhat",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:25",
-            "count": 1,
             "pos": 282,
-            "progress": 0.3397129186602871
+            "progress": 0.34
         },
         {
-            "id": 14,
             "name": "text-insert",
-            "text": "\n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:25",
-            "count": 1,
-            "pos": 283,
-            "progress": 0.3409090909090909
-        },
-        {
-            "id": 15,
-            "name": "text-insert",
-            "text": "\n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:25",
-            "count": 1,
-            "pos": 284,
-            "progress": 0.34210526315789475
-        },
-        {
-            "id": 16,
-            "name": "text-insert",
-            "text": "W",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:25",
-            "count": 1,
-            "pos": 285,
-            "progress": 0.34330143540669855
-        },
-        {
-            "id": 17,
-            "name": "text-insert",
-            "text": "h",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:25",
-            "count": 1,
-            "pos": 286,
-            "progress": 0.3444976076555024
-        },
-        {
-            "id": 18,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:25",
-            "count": 1,
-            "pos": 287,
-            "progress": 0.3456937799043062
-        },
-        {
-            "id": 19,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:25",
-            "count": 1,
-            "pos": 288,
-            "progress": 0.34688995215311
-        },
-        {
-            "id": 20,
-            "name": "text-insert",
-            "text": "?",
+            "text": "?\n\n\"",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:26",
-            "count": 1,
             "pos": 289,
-            "progress": 0.3480861244019139
+            "progress": 0.35
         },
         {
-            "id": 21,
             "name": "text-insert",
-            "text": "\n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:26",
-            "count": 1,
-            "pos": 290,
-            "progress": 0.3492822966507177
-        },
-        {
-            "id": 22,
-            "name": "text-insert",
-            "text": "\n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:26",
-            "count": 1,
-            "pos": 291,
-            "progress": 0.35047846889952156
-        },
-        {
-            "id": 23,
-            "name": "text-insert",
-            "text": "\"",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:26",
-            "count": 1,
-            "pos": 292,
-            "progress": 0.35167464114832536
-        },
-        {
-            "id": 24,
-            "name": "text-insert",
-            "text": "Y",
+            "text": "Your Ma",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:27",
-            "count": 1,
             "pos": 293,
-            "progress": 0.35287081339712917
+            "progress": 0.35
         },
         {
-            "id": 25,
             "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:27",
-            "count": 1,
-            "pos": 294,
-            "progress": 0.35406698564593303
-        },
-        {
-            "id": 26,
-            "name": "text-insert",
-            "text": "u",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:27",
-            "count": 1,
-            "pos": 295,
-            "progress": 0.35526315789473684
-        },
-        {
-            "id": 27,
-            "name": "text-insert",
-            "text": "r",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:27",
-            "count": 1,
-            "pos": 296,
-            "progress": 0.35645933014354064
-        },
-        {
-            "id": 28,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:27",
-            "count": 1,
-            "pos": 297,
-            "progress": 0.3576555023923445
-        },
-        {
-            "id": 29,
-            "name": "text-insert",
-            "text": "M",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:27",
-            "count": 1,
-            "pos": 298,
-            "progress": 0.3588516746411483
-        },
-        {
-            "id": 30,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:27",
-            "count": 1,
-            "pos": 299,
-            "progress": 0.36004784688995217
-        },
-        {
-            "id": 31,
-            "name": "text-insert",
-            "text": "j",
+            "text": "jj",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:28",
-            "count": 1,
             "pos": 300,
-            "progress": 0.361244019138756
+            "progress": 0.36
         },
         {
-            "id": 32,
-            "name": "text-insert",
-            "text": "j",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:28",
-            "count": 1,
-            "pos": 301,
-            "progress": 0.3624401913875598
-        },
-        {
-            "id": 33,
             "name": "text-delete",
             "text": "j",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:28",
-            "count": 1,
             "pos": 301,
-            "progress": 0.361244019138756
+            "progress": 0.36
         },
         {
-            "id": 34,
             "name": "text-insert",
-            "text": "e",
+            "text": "est",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:28",
-            "count": 1,
             "pos": 301,
-            "progress": 0.3624401913875598
+            "progress": 0.36
         },
         {
-            "id": 35,
             "name": "text-insert",
-            "text": "s",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:28",
-            "count": 1,
-            "pos": 302,
-            "progress": 0.36363636363636365
-        },
-        {
-            "id": 36,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:28",
-            "count": 1,
-            "pos": 303,
-            "progress": 0.36483253588516745
-        },
-        {
-            "id": 37,
-            "name": "text-insert",
-            "text": "y",
+            "text": "y, what a",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:29",
-            "count": 1,
             "pos": 304,
-            "progress": 0.3660287081339713
+            "progress": 0.37
         },
         {
-            "id": 38,
             "name": "text-insert",
-            "text": ",",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:29",
-            "count": 1,
-            "pos": 305,
-            "progress": 0.3672248803827751
-        },
-        {
-            "id": 39,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:29",
-            "count": 1,
-            "pos": 306,
-            "progress": 0.3684210526315789
-        },
-        {
-            "id": 40,
-            "name": "text-insert",
-            "text": "w",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:29",
-            "count": 1,
-            "pos": 307,
-            "progress": 0.3696172248803828
-        },
-        {
-            "id": 41,
-            "name": "text-insert",
-            "text": "h",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:29",
-            "count": 1,
-            "pos": 308,
-            "progress": 0.3708133971291866
-        },
-        {
-            "id": 42,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:29",
-            "count": 1,
-            "pos": 309,
-            "progress": 0.37200956937799046
-        },
-        {
-            "id": 43,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:29",
-            "count": 1,
-            "pos": 310,
-            "progress": 0.37320574162679426
-        },
-        {
-            "id": 44,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:29",
-            "count": 1,
-            "pos": 311,
-            "progress": 0.37440191387559807
-        },
-        {
-            "id": 45,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:29",
-            "count": 1,
-            "pos": 312,
-            "progress": 0.37559808612440193
-        },
-        {
-            "id": 46,
-            "name": "text-insert",
-            "text": "r",
+            "text": "re your od",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:30",
-            "count": 1,
             "pos": 313,
-            "progress": 0.37679425837320574
+            "progress": 0.38
         },
         {
-            "id": 47,
             "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:30",
-            "count": 1,
-            "pos": 314,
-            "progress": 0.37799043062200954
-        },
-        {
-            "id": 48,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:30",
-            "count": 1,
-            "pos": 315,
-            "progress": 0.3791866028708134
-        },
-        {
-            "id": 49,
-            "name": "text-insert",
-            "text": "y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:30",
-            "count": 1,
-            "pos": 316,
-            "progress": 0.3803827751196172
-        },
-        {
-            "id": 50,
-            "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:30",
-            "count": 1,
-            "pos": 317,
-            "progress": 0.3815789473684211
-        },
-        {
-            "id": 51,
-            "name": "text-insert",
-            "text": "u",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:30",
-            "count": 1,
-            "pos": 318,
-            "progress": 0.3827751196172249
-        },
-        {
-            "id": 52,
-            "name": "text-insert",
-            "text": "r",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:30",
-            "count": 1,
-            "pos": 319,
-            "progress": 0.3839712918660287
-        },
-        {
-            "id": 53,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:30",
-            "count": 1,
-            "pos": 320,
-            "progress": 0.38516746411483255
-        },
-        {
-            "id": 54,
-            "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:30",
-            "count": 1,
-            "pos": 321,
-            "progress": 0.38636363636363635
-        },
-        {
-            "id": 55,
-            "name": "text-insert",
-            "text": "d",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:30",
-            "count": 1,
-            "pos": 322,
-            "progress": 0.3875598086124402
-        },
-        {
-            "id": 56,
-            "name": "text-insert",
-            "text": "e",
+            "text": "ers",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:31",
-            "count": 1,
             "pos": 323,
-            "progress": 0.388755980861244
+            "progress": 0.39
         },
         {
-            "id": 57,
-            "name": "text-insert",
-            "text": "r",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:31",
-            "count": 1,
-            "pos": 324,
-            "progress": 0.38995215311004783
-        },
-        {
-            "id": 58,
-            "name": "text-insert",
-            "text": "s",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:31",
-            "count": 1,
-            "pos": 325,
-            "progress": 0.3911483253588517
-        },
-        {
-            "id": 59,
             "name": "text-delete",
             "text": "s",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:31",
-            "count": 1,
             "pos": 325,
-            "progress": 0.38995215311004783
+            "progress": 0.39
         },
         {
-            "id": 60,
             "name": "text-delete",
             "text": "r",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:31",
-            "count": 1,
             "pos": 324,
-            "progress": 0.388755980861244
+            "progress": 0.39
         },
         {
-            "id": 61,
             "name": "text-delete",
             "text": "e",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:31",
-            "count": 1,
             "pos": 323,
-            "progress": 0.3875598086124402
+            "progress": 0.39
         },
         {
-            "id": 62,
             "name": "text-delete",
             "text": "d",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:31",
-            "count": 1,
             "pos": 322,
-            "progress": 0.38636363636363635
+            "progress": 0.39
         },
         {
-            "id": 63,
             "name": "text-insert",
-            "text": "r",
+            "text": "rders?",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:32",
-            "count": 1,
             "pos": 322,
-            "progress": 0.3875598086124402
+            "progress": 0.39
         },
         {
-            "id": 64,
             "name": "text-insert",
-            "text": "d",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:32",
-            "count": 1,
-            "pos": 323,
-            "progress": 0.388755980861244
-        },
-        {
-            "id": 65,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:32",
-            "count": 1,
-            "pos": 324,
-            "progress": 0.38995215311004783
-        },
-        {
-            "id": 66,
-            "name": "text-insert",
-            "text": "r",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:32",
-            "count": 1,
-            "pos": 325,
-            "progress": 0.3911483253588517
-        },
-        {
-            "id": 67,
-            "name": "text-insert",
-            "text": "s",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:32",
-            "count": 1,
-            "pos": 326,
-            "progress": 0.3923444976076555
-        },
-        {
-            "id": 68,
-            "name": "text-insert",
-            "text": "?",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:32",
-            "count": 1,
-            "pos": 327,
-            "progress": 0.39354066985645936
-        },
-        {
-            "id": 69,
-            "name": "text-insert",
-            "text": "\"",
+            "text": "\"\n\n",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:33",
-            "count": 1,
             "pos": 328,
-            "progress": 0.39473684210526316
+            "progress": 0.39
         },
         {
-            "id": 70,
             "name": "text-insert",
-            "text": "\n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:33",
-            "count": 1,
-            "pos": 329,
-            "progress": 0.39593301435406697
-        },
-        {
-            "id": 71,
-            "name": "text-insert",
-            "text": "\n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:33",
-            "count": 1,
-            "pos": 330,
-            "progress": 0.39712918660287083
-        },
-        {
-            "id": 72,
-            "name": "text-insert",
-            "text": "T",
+            "text": "Tou",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:35",
-            "count": 1,
             "pos": 331,
-            "progress": 0.39832535885167464
+            "progress": 0.4
         },
         {
-            "id": 73,
-            "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:35",
-            "count": 1,
-            "pos": 332,
-            "progress": 0.39952153110047844
-        },
-        {
-            "id": 74,
-            "name": "text-insert",
-            "text": "u",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:35",
-            "count": 1,
-            "pos": 333,
-            "progress": 0.4007177033492823
-        },
-        {
-            "id": 75,
             "name": "text-delete",
             "text": "u",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:35",
-            "count": 1,
             "pos": 333,
-            "progress": 0.39952153110047844
+            "progress": 0.4
         },
         {
-            "id": 76,
             "name": "text-delete",
             "text": "o",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:36",
-            "count": 1,
             "pos": 332,
-            "progress": 0.39832535885167464
+            "progress": 0.4
         },
         {
-            "id": 77,
             "name": "text-insert",
             "text": "Y",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:36",
-            "count": 1,
             "pos": 332,
-            "progress": 0.39952153110047844
+            "progress": 0.4
         },
         {
-            "id": 78,
             "name": "text-delete",
             "text": "Y",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:36",
-            "count": 1,
             "pos": 332,
-            "progress": 0.39832535885167464
+            "progress": 0.4
         },
         {
-            "id": 79,
             "name": "text-delete",
             "text": "T",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:36",
-            "count": 1,
             "pos": 331,
-            "progress": 0.39712918660287083
+            "progress": 0.4
         },
         {
-            "id": 80,
             "name": "text-insert",
-            "text": "Y",
+            "text": "You k",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:37",
-            "count": 1,
             "pos": 331,
-            "progress": 0.39832535885167464
+            "progress": 0.4
         },
         {
-            "id": 81,
             "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:37",
-            "count": 1,
-            "pos": 332,
-            "progress": 0.39952153110047844
-        },
-        {
-            "id": 82,
-            "name": "text-insert",
-            "text": "u",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:37",
-            "count": 1,
-            "pos": 333,
-            "progress": 0.4007177033492823
-        },
-        {
-            "id": 83,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:37",
-            "count": 1,
-            "pos": 334,
-            "progress": 0.4019138755980861
-        },
-        {
-            "id": 84,
-            "name": "text-insert",
-            "text": "k",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:37",
-            "count": 1,
-            "pos": 335,
-            "progress": 0.40311004784689
-        },
-        {
-            "id": 85,
-            "name": "text-insert",
-            "text": "n",
+            "text": "now that ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:38",
-            "count": 1,
             "pos": 336,
-            "progress": 0.4043062200956938
+            "progress": 0.4
         },
         {
-            "id": 86,
             "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:38",
-            "count": 1,
-            "pos": 337,
-            "progress": 0.4055023923444976
-        },
-        {
-            "id": 87,
-            "name": "text-insert",
-            "text": "w",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:38",
-            "count": 1,
-            "pos": 338,
-            "progress": 0.40669856459330145
-        },
-        {
-            "id": 88,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:38",
-            "count": 1,
-            "pos": 339,
-            "progress": 0.40789473684210525
-        },
-        {
-            "id": 89,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:38",
-            "count": 1,
-            "pos": 340,
-            "progress": 0.4090909090909091
-        },
-        {
-            "id": 90,
-            "name": "text-insert",
-            "text": "h",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:38",
-            "count": 1,
-            "pos": 341,
-            "progress": 0.4102870813397129
-        },
-        {
-            "id": 91,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:38",
-            "count": 1,
-            "pos": 342,
-            "progress": 0.41148325358851673
-        },
-        {
-            "id": 92,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:38",
-            "count": 1,
-            "pos": 343,
-            "progress": 0.4126794258373206
-        },
-        {
-            "id": 93,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:38",
-            "count": 1,
-            "pos": 344,
-            "progress": 0.4138755980861244
-        },
-        {
-            "id": 94,
-            "name": "text-insert",
-            "text": "v",
+            "text": "voice came ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:39",
-            "count": 1,
             "pos": 345,
-            "progress": 0.4150717703349282
+            "progress": 0.42
         },
         {
-            "id": 95,
             "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:39",
-            "count": 1,
-            "pos": 346,
-            "progress": 0.41626794258373206
-        },
-        {
-            "id": 96,
-            "name": "text-insert",
-            "text": "i",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:39",
-            "count": 1,
-            "pos": 347,
-            "progress": 0.41746411483253587
-        },
-        {
-            "id": 97,
-            "name": "text-insert",
-            "text": "c",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:39",
-            "count": 1,
-            "pos": 348,
-            "progress": 0.41866028708133973
-        },
-        {
-            "id": 98,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:39",
-            "count": 1,
-            "pos": 349,
-            "progress": 0.41985645933014354
-        },
-        {
-            "id": 99,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:39",
-            "count": 1,
-            "pos": 350,
-            "progress": 0.42105263157894735
-        },
-        {
-            "id": 100,
-            "name": "text-insert",
-            "text": "c",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:39",
-            "count": 1,
-            "pos": 351,
-            "progress": 0.4222488038277512
-        },
-        {
-            "id": 101,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:39",
-            "count": 1,
-            "pos": 352,
-            "progress": 0.423444976076555
-        },
-        {
-            "id": 102,
-            "name": "text-insert",
-            "text": "m",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:39",
-            "count": 1,
-            "pos": 353,
-            "progress": 0.4246411483253589
-        },
-        {
-            "id": 103,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:39",
-            "count": 1,
-            "pos": 354,
-            "progress": 0.4258373205741627
-        },
-        {
-            "id": 104,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:39",
-            "count": 1,
-            "pos": 355,
-            "progress": 0.4270334928229665
-        },
-        {
-            "id": 105,
-            "name": "text-insert",
-            "text": "f",
+            "text": "from the be",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:40",
-            "count": 1,
             "pos": 356,
-            "progress": 0.42822966507177035
+            "progress": 0.43
         },
         {
-            "id": 106,
             "name": "text-insert",
-            "text": "r",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:40",
-            "count": 1,
-            "pos": 357,
-            "progress": 0.42942583732057416
-        },
-        {
-            "id": 107,
-            "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:40",
-            "count": 1,
-            "pos": 358,
-            "progress": 0.430622009569378
-        },
-        {
-            "id": 108,
-            "name": "text-insert",
-            "text": "m",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:40",
-            "count": 1,
-            "pos": 359,
-            "progress": 0.4318181818181818
-        },
-        {
-            "id": 109,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:40",
-            "count": 1,
-            "pos": 360,
-            "progress": 0.43301435406698563
-        },
-        {
-            "id": 110,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:40",
-            "count": 1,
-            "pos": 361,
-            "progress": 0.4342105263157895
-        },
-        {
-            "id": 111,
-            "name": "text-insert",
-            "text": "h",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:40",
-            "count": 1,
-            "pos": 362,
-            "progress": 0.4354066985645933
-        },
-        {
-            "id": 112,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:40",
-            "count": 1,
-            "pos": 363,
-            "progress": 0.4366028708133971
-        },
-        {
-            "id": 113,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:40",
-            "count": 1,
-            "pos": 364,
-            "progress": 0.43779904306220097
-        },
-        {
-            "id": 114,
-            "name": "text-insert",
-            "text": "b",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:40",
-            "count": 1,
-            "pos": 365,
-            "progress": 0.43899521531100477
-        },
-        {
-            "id": 115,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:40",
-            "count": 1,
-            "pos": 366,
-            "progress": 0.44019138755980863
-        },
-        {
-            "id": 116,
-            "name": "text-insert",
-            "text": "e",
+            "text": "e, even",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:41",
-            "count": 1,
             "pos": 367,
-            "progress": 0.44138755980861244
+            "progress": 0.44
         },
         {
-            "id": 117,
             "name": "text-insert",
-            "text": ",",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:41",
-            "count": 1,
-            "pos": 368,
-            "progress": 0.44258373205741625
-        },
-        {
-            "id": 118,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:41",
-            "count": 1,
-            "pos": 369,
-            "progress": 0.4437799043062201
-        },
-        {
-            "id": 119,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:41",
-            "count": 1,
-            "pos": 370,
-            "progress": 0.4449760765550239
-        },
-        {
-            "id": 120,
-            "name": "text-insert",
-            "text": "v",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:41",
-            "count": 1,
-            "pos": 371,
-            "progress": 0.4461722488038278
-        },
-        {
-            "id": 121,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:41",
-            "count": 1,
-            "pos": 372,
-            "progress": 0.4473684210526316
-        },
-        {
-            "id": 122,
-            "name": "text-insert",
-            "text": "n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:41",
-            "count": 1,
-            "pos": 373,
-            "progress": 0.4485645933014354
-        },
-        {
-            "id": 123,
-            "name": "text-insert",
-            "text": " ",
+            "text": " if you do",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:42",
-            "count": 1,
             "pos": 374,
-            "progress": 0.44976076555023925
+            "progress": 0.45
         },
         {
-            "id": 124,
             "name": "text-insert",
-            "text": "i",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:42",
-            "count": 1,
-            "pos": 375,
-            "progress": 0.45095693779904306
-        },
-        {
-            "id": 125,
-            "name": "text-insert",
-            "text": "f",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:42",
-            "count": 1,
-            "pos": 376,
-            "progress": 0.45215311004784686
-        },
-        {
-            "id": 126,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:42",
-            "count": 1,
-            "pos": 377,
-            "progress": 0.4533492822966507
-        },
-        {
-            "id": 127,
-            "name": "text-insert",
-            "text": "y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:42",
-            "count": 1,
-            "pos": 378,
-            "progress": 0.45454545454545453
-        },
-        {
-            "id": 128,
-            "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:42",
-            "count": 1,
-            "pos": 379,
-            "progress": 0.4557416267942584
-        },
-        {
-            "id": 129,
-            "name": "text-insert",
-            "text": "u",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:42",
-            "count": 1,
-            "pos": 380,
-            "progress": 0.4569377990430622
-        },
-        {
-            "id": 130,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:42",
-            "count": 1,
-            "pos": 381,
-            "progress": 0.458133971291866
-        },
-        {
-            "id": 131,
-            "name": "text-insert",
-            "text": "d",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:42",
-            "count": 1,
-            "pos": 382,
-            "progress": 0.45933014354066987
-        },
-        {
-            "id": 132,
-            "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:42",
-            "count": 1,
-            "pos": 383,
-            "progress": 0.4605263157894737
-        },
-        {
-            "id": 133,
-            "name": "text-insert",
-            "text": "n",
+            "text": "nt '",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:43",
-            "count": 1,
             "pos": 384,
-            "progress": 0.46172248803827753
+            "progress": 0.46
         },
         {
-            "id": 134,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:43",
-            "count": 1,
-            "pos": 385,
-            "progress": 0.46291866028708134
-        },
-        {
-            "id": 135,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:43",
-            "count": 1,
-            "pos": 386,
-            "progress": 0.46411483253588515
-        },
-        {
-            "id": 136,
-            "name": "text-insert",
-            "text": "'",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:43",
-            "count": 1,
-            "pos": 385,
-            "progress": 0.465311004784689
-        },
-        {
-            "id": 138,
             "name": "text-delete",
             "text": " ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:43",
-            "count": 1,
             "pos": 387,
-            "progress": 0.46411483253588515
+            "progress": 0.46
         },
         {
-            "id": 139,
             "name": "text-delete",
             "text": "t",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:43",
-            "count": 1,
             "pos": 386,
-            "progress": 0.46291866028708134
+            "progress": 0.46
         },
         {
-            "id": 140,
             "name": "text-insert",
-            "text": "t",
+            "text": "t want ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:44",
-            "count": 1,
             "pos": 386,
-            "progress": 0.46411483253588515
+            "progress": 0.46
         },
         {
-            "id": 141,
             "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:44",
-            "count": 1,
-            "pos": 387,
-            "progress": 0.465311004784689
-        },
-        {
-            "id": 142,
-            "name": "text-insert",
-            "text": "w",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:44",
-            "count": 1,
-            "pos": 388,
-            "progress": 0.4665071770334928
-        },
-        {
-            "id": 143,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:44",
-            "count": 1,
-            "pos": 389,
-            "progress": 0.4677033492822967
-        },
-        {
-            "id": 144,
-            "name": "text-insert",
-            "text": "n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:44",
-            "count": 1,
-            "pos": 390,
-            "progress": 0.4688995215311005
-        },
-        {
-            "id": 145,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:44",
-            "count": 1,
-            "pos": 391,
-            "progress": 0.4700956937799043
-        },
-        {
-            "id": 146,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:44",
-            "count": 1,
-            "pos": 392,
-            "progress": 0.47129186602870815
-        },
-        {
-            "id": 147,
-            "name": "text-insert",
-            "text": "t",
+            "text": "to believe ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:45",
-            "count": 1,
             "pos": 393,
-            "progress": 0.47248803827751196
+            "progress": 0.47
         },
         {
-            "id": 148,
             "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:45",
-            "count": 1,
-            "pos": 394,
-            "progress": 0.47368421052631576
-        },
-        {
-            "id": 149,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:45",
-            "count": 1,
-            "pos": 395,
-            "progress": 0.4748803827751196
-        },
-        {
-            "id": 150,
-            "name": "text-insert",
-            "text": "b",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:45",
-            "count": 1,
-            "pos": 396,
-            "progress": 0.47607655502392343
-        },
-        {
-            "id": 151,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:45",
-            "count": 1,
-            "pos": 397,
-            "progress": 0.4772727272727273
-        },
-        {
-            "id": 152,
-            "name": "text-insert",
-            "text": "l",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:45",
-            "count": 1,
-            "pos": 398,
-            "progress": 0.4784688995215311
-        },
-        {
-            "id": 153,
-            "name": "text-insert",
-            "text": "i",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:45",
-            "count": 1,
-            "pos": 399,
-            "progress": 0.4796650717703349
-        },
-        {
-            "id": 154,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:45",
-            "count": 1,
-            "pos": 400,
-            "progress": 0.48086124401913877
-        },
-        {
-            "id": 155,
-            "name": "text-insert",
-            "text": "v",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:45",
-            "count": 1,
-            "pos": 401,
-            "progress": 0.4820574162679426
-        },
-        {
-            "id": 156,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:45",
-            "count": 1,
-            "pos": 402,
-            "progress": 0.48325358851674644
-        },
-        {
-            "id": 157,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:45",
-            "count": 1,
-            "pos": 403,
-            "progress": 0.48444976076555024
-        },
-        {
-            "id": 158,
-            "name": "text-insert",
-            "text": "i",
+            "text": "it.",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:46",
-            "count": 1,
             "pos": 404,
-            "progress": 0.48564593301435405
+            "progress": 0.49
         },
         {
-            "id": 159,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:46",
-            "count": 1,
-            "pos": 405,
-            "progress": 0.4868421052631579
-        },
-        {
-            "id": 160,
-            "name": "text-insert",
-            "text": ".",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:46",
-            "count": 1,
-            "pos": 406,
-            "progress": 0.4880382775119617
-        },
-        {
-            "id": 162,
             "name": "suggestion-open",
             "eventSource": "api",
             "event_time": "2021-08-18 04:03:48",
-            "progress": 0.4880382775119617
+            "progress": 0.49
         },
         {
-            "id": 171,
             "name": "text-insert",
             "text": " It can't be true.",
             "eventSource": "api",
             "event_time": "2021-08-18 04:03:53",
-            "count": 18,
             "pos": 407,
-            "progress": 0.5095693779904307
+            "progress": 0.51
         },
         {
-            "id": 174,
             "name": "text-insert",
-            "text": "\n",
+            "text": "\n\n",
             "eventSource": "user",
             "event_time": "2021-08-18 04:03:57",
-            "count": 1,
             "pos": 425,
-            "progress": 0.5107655502392344
+            "progress": 0.51
         },
         {
-            "id": 175,
             "name": "text-insert",
-            "text": "\n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:03:57",
-            "count": 1,
-            "pos": 426,
-            "progress": 0.5119617224880383
-        },
-        {
-            "id": 176,
-            "name": "text-insert",
-            "text": "\"",
+            "text": "\"Is ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:08",
-            "count": 1,
             "pos": 427,
-            "progress": 0.5131578947368421
+            "progress": 0.51
         },
         {
-            "id": 177,
             "name": "text-insert",
-            "text": "I",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:08",
-            "count": 1,
-            "pos": 428,
-            "progress": 0.5143540669856459
-        },
-        {
-            "id": 178,
-            "name": "text-insert",
-            "text": "s",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:08",
-            "count": 1,
-            "pos": 429,
-            "progress": 0.5155502392344498
-        },
-        {
-            "id": 179,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:08",
-            "count": 1,
-            "pos": 430,
-            "progress": 0.5167464114832536
-        },
-        {
-            "id": 180,
-            "name": "text-insert",
-            "text": "t",
+            "text": "this real",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:09",
-            "count": 1,
             "pos": 431,
-            "progress": 0.5179425837320574
+            "progress": 0.52
         },
         {
-            "id": 181,
             "name": "text-insert",
-            "text": "h",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:09",
-            "count": 1,
-            "pos": 432,
-            "progress": 0.5191387559808612
-        },
-        {
-            "id": 182,
-            "name": "text-insert",
-            "text": "i",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:09",
-            "count": 1,
-            "pos": 433,
-            "progress": 0.5203349282296651
-        },
-        {
-            "id": 183,
-            "name": "text-insert",
-            "text": "s",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:09",
-            "count": 1,
-            "pos": 434,
-            "progress": 0.5215311004784688
-        },
-        {
-            "id": 184,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:09",
-            "count": 1,
-            "pos": 435,
-            "progress": 0.5227272727272727
-        },
-        {
-            "id": 185,
-            "name": "text-insert",
-            "text": "r",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:09",
-            "count": 1,
-            "pos": 436,
-            "progress": 0.5239234449760766
-        },
-        {
-            "id": 186,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:09",
-            "count": 1,
-            "pos": 437,
-            "progress": 0.5251196172248804
-        },
-        {
-            "id": 187,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:09",
-            "count": 1,
-            "pos": 438,
-            "progress": 0.5263157894736842
-        },
-        {
-            "id": 188,
-            "name": "text-insert",
-            "text": "l",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:09",
-            "count": 1,
-            "pos": 439,
-            "progress": 0.527511961722488
-        },
-        {
-            "id": 189,
-            "name": "text-insert",
-            "text": "?",
+            "text": "?\"\n",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:10",
-            "count": 1,
             "pos": 440,
-            "progress": 0.5287081339712919
+            "progress": 0.53
         },
         {
-            "id": 190,
             "name": "text-insert",
-            "text": "\"",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:10",
-            "count": 1,
-            "pos": 441,
-            "progress": 0.5299043062200957
-        },
-        {
-            "id": 191,
-            "name": "text-insert",
-            "text": "\n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:10",
-            "count": 1,
-            "pos": 442,
-            "progress": 0.5311004784688995
-        },
-        {
-            "id": 192,
-            "name": "text-insert",
-            "text": "\n",
+            "text": "\nYou",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:11",
-            "count": 1,
             "pos": 443,
-            "progress": 0.5322966507177034
+            "progress": 0.53
         },
         {
-            "id": 193,
             "name": "text-insert",
-            "text": "Y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:11",
-            "count": 1,
-            "pos": 444,
-            "progress": 0.5334928229665071
-        },
-        {
-            "id": 194,
-            "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:11",
-            "count": 1,
-            "pos": 445,
-            "progress": 0.534688995215311
-        },
-        {
-            "id": 195,
-            "name": "text-insert",
-            "text": "u",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:11",
-            "count": 1,
-            "pos": 446,
-            "progress": 0.5358851674641149
-        },
-        {
-            "id": 196,
-            "name": "text-insert",
-            "text": " ",
+            "text": " ask that y",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:12",
-            "count": 1,
             "pos": 447,
-            "progress": 0.5370813397129187
+            "progress": 0.54
         },
         {
-            "id": 197,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:12",
-            "count": 1,
-            "pos": 448,
-            "progress": 0.5382775119617225
-        },
-        {
-            "id": 198,
-            "name": "text-insert",
-            "text": "s",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:12",
-            "count": 1,
-            "pos": 449,
-            "progress": 0.5394736842105263
-        },
-        {
-            "id": 199,
-            "name": "text-insert",
-            "text": "k",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:12",
-            "count": 1,
-            "pos": 450,
-            "progress": 0.5406698564593302
-        },
-        {
-            "id": 200,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:12",
-            "count": 1,
-            "pos": 451,
-            "progress": 0.5418660287081339
-        },
-        {
-            "id": 201,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:12",
-            "count": 1,
-            "pos": 452,
-            "progress": 0.5430622009569378
-        },
-        {
-            "id": 202,
-            "name": "text-insert",
-            "text": "h",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:12",
-            "count": 1,
-            "pos": 453,
-            "progress": 0.5442583732057417
-        },
-        {
-            "id": 203,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:12",
-            "count": 1,
-            "pos": 454,
-            "progress": 0.5454545454545454
-        },
-        {
-            "id": 204,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:12",
-            "count": 1,
-            "pos": 455,
-            "progress": 0.5466507177033493
-        },
-        {
-            "id": 205,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:12",
-            "count": 1,
-            "pos": 456,
-            "progress": 0.5478468899521531
-        },
-        {
-            "id": 206,
-            "name": "text-insert",
-            "text": "y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:12",
-            "count": 1,
-            "pos": 457,
-            "progress": 0.5490430622009569
-        },
-        {
-            "id": 207,
             "name": "text-delete",
             "text": "y",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:13",
-            "count": 1,
             "pos": 457,
-            "progress": 0.5478468899521531
+            "progress": 0.55
         },
         {
-            "id": 208,
             "name": "text-insert",
-            "text": "t",
+            "text": "to yo",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:13",
-            "count": 1,
             "pos": 457,
-            "progress": 0.5490430622009569
+            "progress": 0.55
         },
         {
-            "id": 209,
             "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:13",
-            "count": 1,
-            "pos": 458,
-            "progress": 0.5502392344497608
-        },
-        {
-            "id": 210,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:13",
-            "count": 1,
-            "pos": 459,
-            "progress": 0.5514354066985646
-        },
-        {
-            "id": 211,
-            "name": "text-insert",
-            "text": "y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:13",
-            "count": 1,
-            "pos": 460,
-            "progress": 0.5526315789473685
-        },
-        {
-            "id": 212,
-            "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:13",
-            "count": 1,
-            "pos": 461,
-            "progress": 0.5538277511961722
-        },
-        {
-            "id": 213,
-            "name": "text-insert",
-            "text": "u",
+            "text": "urself, b",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:14",
-            "count": 1,
             "pos": 462,
-            "progress": 0.5550239234449761
+            "progress": 0.56
         },
         {
-            "id": 214,
             "name": "text-insert",
-            "text": "r",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:14",
-            "count": 1,
-            "pos": 463,
-            "progress": 0.55622009569378
-        },
-        {
-            "id": 215,
-            "name": "text-insert",
-            "text": "s",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:14",
-            "count": 1,
-            "pos": 464,
-            "progress": 0.5574162679425837
-        },
-        {
-            "id": 216,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:14",
-            "count": 1,
-            "pos": 465,
-            "progress": 0.5586124401913876
-        },
-        {
-            "id": 217,
-            "name": "text-insert",
-            "text": "l",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:14",
-            "count": 1,
-            "pos": 466,
-            "progress": 0.5598086124401914
-        },
-        {
-            "id": 218,
-            "name": "text-insert",
-            "text": "f",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:14",
-            "count": 1,
-            "pos": 467,
-            "progress": 0.5610047846889952
-        },
-        {
-            "id": 219,
-            "name": "text-insert",
-            "text": ",",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:14",
-            "count": 1,
-            "pos": 468,
-            "progress": 0.562200956937799
-        },
-        {
-            "id": 220,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:14",
-            "count": 1,
-            "pos": 469,
-            "progress": 0.5633971291866029
-        },
-        {
-            "id": 221,
-            "name": "text-insert",
-            "text": "b",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:14",
-            "count": 1,
-            "pos": 470,
-            "progress": 0.5645933014354066
-        },
-        {
-            "id": 222,
-            "name": "text-insert",
-            "text": "u",
+            "text": "ut the f",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:15",
-            "count": 1,
             "pos": 471,
-            "progress": 0.5657894736842105
+            "progress": 0.57
         },
         {
-            "id": 223,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:15",
-            "count": 1,
-            "pos": 472,
-            "progress": 0.5669856459330144
-        },
-        {
-            "id": 224,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:15",
-            "count": 1,
-            "pos": 473,
-            "progress": 0.5681818181818182
-        },
-        {
-            "id": 225,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:15",
-            "count": 1,
-            "pos": 474,
-            "progress": 0.569377990430622
-        },
-        {
-            "id": 226,
-            "name": "text-insert",
-            "text": "h",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:15",
-            "count": 1,
-            "pos": 475,
-            "progress": 0.5705741626794258
-        },
-        {
-            "id": 227,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:15",
-            "count": 1,
-            "pos": 476,
-            "progress": 0.5717703349282297
-        },
-        {
-            "id": 228,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:15",
-            "count": 1,
-            "pos": 477,
-            "progress": 0.5729665071770335
-        },
-        {
-            "id": 229,
-            "name": "text-insert",
-            "text": "f",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:15",
-            "count": 1,
-            "pos": 478,
-            "progress": 0.5741626794258373
-        },
-        {
-            "id": 230,
             "name": "text-delete",
             "text": "f",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:15",
-            "count": 1,
             "pos": 478,
-            "progress": 0.5729665071770335
+            "progress": 0.57
         },
         {
-            "id": 231,
             "name": "text-insert",
-            "text": "b",
+            "text": "bee respo",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:16",
-            "count": 1,
             "pos": 478,
-            "progress": 0.5741626794258373
+            "progress": 0.57
         },
         {
-            "id": 232,
             "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:16",
-            "count": 1,
-            "pos": 479,
-            "progress": 0.5753588516746412
-        },
-        {
-            "id": 233,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:16",
-            "count": 1,
-            "pos": 480,
-            "progress": 0.5765550239234449
-        },
-        {
-            "id": 234,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:16",
-            "count": 1,
-            "pos": 481,
-            "progress": 0.5777511961722488
-        },
-        {
-            "id": 235,
-            "name": "text-insert",
-            "text": "r",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:16",
-            "count": 1,
-            "pos": 482,
-            "progress": 0.5789473684210527
-        },
-        {
-            "id": 236,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:16",
-            "count": 1,
-            "pos": 483,
-            "progress": 0.5801435406698564
-        },
-        {
-            "id": 237,
-            "name": "text-insert",
-            "text": "s",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:16",
-            "count": 1,
-            "pos": 484,
-            "progress": 0.5813397129186603
-        },
-        {
-            "id": 238,
-            "name": "text-insert",
-            "text": "p",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:16",
-            "count": 1,
-            "pos": 485,
-            "progress": 0.5825358851674641
-        },
-        {
-            "id": 239,
-            "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:16",
-            "count": 1,
-            "pos": 486,
-            "progress": 0.583732057416268
-        },
-        {
-            "id": 240,
-            "name": "text-insert",
-            "text": "n",
+            "text": "nds, \"O",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:17",
-            "count": 1,
             "pos": 487,
-            "progress": 0.5849282296650717
+            "progress": 0.58
         },
         {
-            "id": 241,
             "name": "text-insert",
-            "text": "d",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:17",
-            "count": 1,
-            "pos": 488,
-            "progress": 0.5861244019138756
-        },
-        {
-            "id": 242,
-            "name": "text-insert",
-            "text": "s",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:17",
-            "count": 1,
-            "pos": 489,
-            "progress": 0.5873205741626795
-        },
-        {
-            "id": 243,
-            "name": "text-insert",
-            "text": ",",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:17",
-            "count": 1,
-            "pos": 490,
-            "progress": 0.5885167464114832
-        },
-        {
-            "id": 244,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:17",
-            "count": 1,
-            "pos": 491,
-            "progress": 0.5897129186602871
-        },
-        {
-            "id": 245,
-            "name": "text-insert",
-            "text": "\"",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:17",
-            "count": 1,
-            "pos": 492,
-            "progress": 0.5909090909090909
-        },
-        {
-            "id": 246,
-            "name": "text-insert",
-            "text": "O",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:17",
-            "count": 1,
-            "pos": 493,
-            "progress": 0.5921052631578947
-        },
-        {
-            "id": 247,
-            "name": "text-insert",
-            "text": "f",
+            "text": "f cou",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:18",
-            "count": 1,
             "pos": 494,
-            "progress": 0.5933014354066986
+            "progress": 0.59
         },
         {
-            "id": 248,
             "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:18",
-            "count": 1,
-            "pos": 495,
-            "progress": 0.5944976076555024
-        },
-        {
-            "id": 249,
-            "name": "text-insert",
-            "text": "c",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:18",
-            "count": 1,
-            "pos": 496,
-            "progress": 0.5956937799043063
-        },
-        {
-            "id": 250,
-            "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:18",
-            "count": 1,
-            "pos": 497,
-            "progress": 0.59688995215311
-        },
-        {
-            "id": 251,
-            "name": "text-insert",
-            "text": "u",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:18",
-            "count": 1,
-            "pos": 498,
-            "progress": 0.5980861244019139
-        },
-        {
-            "id": 252,
-            "name": "text-insert",
-            "text": "r",
+            "text": "rse it is",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:19",
-            "count": 1,
             "pos": 499,
-            "progress": 0.5992822966507177
+            "progress": 0.6
         },
         {
-            "id": 253,
             "name": "text-insert",
-            "text": "s",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:19",
-            "count": 1,
-            "pos": 500,
-            "progress": 0.6004784688995215
-        },
-        {
-            "id": 254,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:19",
-            "count": 1,
-            "pos": 501,
-            "progress": 0.6016746411483254
-        },
-        {
-            "id": 255,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:19",
-            "count": 1,
-            "pos": 502,
-            "progress": 0.6028708133971292
-        },
-        {
-            "id": 256,
-            "name": "text-insert",
-            "text": "i",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:19",
-            "count": 1,
-            "pos": 503,
-            "progress": 0.604066985645933
-        },
-        {
-            "id": 257,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:19",
-            "count": 1,
-            "pos": 504,
-            "progress": 0.6052631578947368
-        },
-        {
-            "id": 258,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:19",
-            "count": 1,
-            "pos": 505,
-            "progress": 0.6064593301435407
-        },
-        {
-            "id": 259,
-            "name": "text-insert",
-            "text": "i",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:19",
-            "count": 1,
-            "pos": 506,
-            "progress": 0.6076555023923444
-        },
-        {
-            "id": 260,
-            "name": "text-insert",
-            "text": "s",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:19",
-            "count": 1,
-            "pos": 507,
-            "progress": 0.6088516746411483
-        },
-        {
-            "id": 261,
-            "name": "text-insert",
-            "text": ".",
+            "text": ".\"",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:20",
-            "count": 1,
             "pos": 508,
-            "progress": 0.6100478468899522
+            "progress": 0.61
         },
         {
-            "id": 262,
-            "name": "text-insert",
-            "text": "\"",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:20",
-            "count": 1,
-            "pos": 509,
-            "progress": 0.611244019138756
-        },
-        {
-            "id": 265,
             "name": "suggestion-open",
             "eventSource": "api",
             "event_time": "2021-08-18 04:06:42",
-            "progress": 0.611244019138756
+            "progress": 0.61
         },
         {
-            "id": 274,
             "name": "text-insert",
             "text": "\n\"But bees can't talk,\" you reply, a little more uncertainly.\n",
             "eventSource": "api",
             "event_time": "2021-08-18 04:06:45",
-            "count": 62,
             "pos": 511,
-            "progress": 0.6854066985645934
+            "progress": 0.69
         },
         {
-            "id": 275,
             "name": "text-insert",
-            "text": "\n",
+            "text": "\n\n",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:46",
-            "count": 1,
             "pos": 572,
-            "progress": 0.6866028708133971
+            "progress": 0.69
         },
         {
-            "id": 276,
             "name": "text-insert",
-            "text": "\n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:46",
-            "count": 1,
-            "pos": 573,
-            "progress": 0.687799043062201
-        },
-        {
-            "id": 277,
-            "name": "text-insert",
-            "text": "\"",
+            "text": "\"Yes we ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:47",
-            "count": 1,
             "pos": 574,
-            "progress": 0.6889952153110048
+            "progress": 0.69
         },
         {
-            "id": 278,
             "name": "text-insert",
-            "text": "Y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:47",
-            "count": 1,
-            "pos": 575,
-            "progress": 0.6901913875598086
-        },
-        {
-            "id": 279,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:47",
-            "count": 1,
-            "pos": 576,
-            "progress": 0.6913875598086124
-        },
-        {
-            "id": 280,
-            "name": "text-insert",
-            "text": "s",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:47",
-            "count": 1,
-            "pos": 577,
-            "progress": 0.6925837320574163
-        },
-        {
-            "id": 281,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:47",
-            "count": 1,
-            "pos": 578,
-            "progress": 0.69377990430622
-        },
-        {
-            "id": 282,
-            "name": "text-insert",
-            "text": "w",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:47",
-            "count": 1,
-            "pos": 579,
-            "progress": 0.6949760765550239
-        },
-        {
-            "id": 283,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:47",
-            "count": 1,
-            "pos": 580,
-            "progress": 0.6961722488038278
-        },
-        {
-            "id": 284,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:47",
-            "count": 1,
-            "pos": 581,
-            "progress": 0.6973684210526315
-        },
-        {
-            "id": 285,
-            "name": "text-insert",
-            "text": "c",
+            "text": "can.\"\n\n",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:48",
-            "count": 1,
             "pos": 582,
-            "progress": 0.6985645933014354
+            "progress": 0.7
         },
         {
-            "id": 286,
             "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:48",
-            "count": 1,
-            "pos": 583,
-            "progress": 0.6997607655502392
-        },
-        {
-            "id": 287,
-            "name": "text-insert",
-            "text": "n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:48",
-            "count": 1,
-            "pos": 584,
-            "progress": 0.7009569377990431
-        },
-        {
-            "id": 288,
-            "name": "text-insert",
-            "text": ".",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:48",
-            "count": 1,
-            "pos": 585,
-            "progress": 0.7021531100478469
-        },
-        {
-            "id": 289,
-            "name": "text-insert",
-            "text": "\"",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:48",
-            "count": 1,
-            "pos": 586,
-            "progress": 0.7033492822966507
-        },
-        {
-            "id": 290,
-            "name": "text-insert",
-            "text": "\n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:48",
-            "count": 1,
-            "pos": 587,
-            "progress": 0.7045454545454546
-        },
-        {
-            "id": 291,
-            "name": "text-insert",
-            "text": "\n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:48",
-            "count": 1,
-            "pos": 588,
-            "progress": 0.7057416267942583
-        },
-        {
-            "id": 292,
-            "name": "text-insert",
-            "text": "\"",
+            "text": "\"Bu",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:49",
-            "count": 1,
             "pos": 589,
-            "progress": 0.7069377990430622
+            "progress": 0.71
         },
         {
-            "id": 293,
             "name": "text-insert",
-            "text": "B",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:49",
-            "count": 1,
-            "pos": 590,
-            "progress": 0.7081339712918661
-        },
-        {
-            "id": 294,
-            "name": "text-insert",
-            "text": "u",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:49",
-            "count": 1,
-            "pos": 591,
-            "progress": 0.7093301435406698
-        },
-        {
-            "id": 295,
-            "name": "text-insert",
-            "text": "t",
+            "text": "t I thought ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:50",
-            "count": 1,
             "pos": 592,
-            "progress": 0.7105263157894737
+            "progress": 0.71
         },
         {
-            "id": 296,
             "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:50",
-            "count": 1,
-            "pos": 593,
-            "progress": 0.7117224880382775
-        },
-        {
-            "id": 297,
-            "name": "text-insert",
-            "text": "I",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:50",
-            "count": 1,
-            "pos": 594,
-            "progress": 0.7129186602870813
-        },
-        {
-            "id": 298,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:50",
-            "count": 1,
-            "pos": 595,
-            "progress": 0.7141148325358851
-        },
-        {
-            "id": 299,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:50",
-            "count": 1,
-            "pos": 596,
-            "progress": 0.715311004784689
-        },
-        {
-            "id": 300,
-            "name": "text-insert",
-            "text": "h",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:50",
-            "count": 1,
-            "pos": 597,
-            "progress": 0.7165071770334929
-        },
-        {
-            "id": 301,
-            "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:50",
-            "count": 1,
-            "pos": 598,
-            "progress": 0.7177033492822966
-        },
-        {
-            "id": 302,
-            "name": "text-insert",
-            "text": "u",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:50",
-            "count": 1,
-            "pos": 599,
-            "progress": 0.7188995215311005
-        },
-        {
-            "id": 303,
-            "name": "text-insert",
-            "text": "g",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:50",
-            "count": 1,
-            "pos": 600,
-            "progress": 0.7200956937799043
-        },
-        {
-            "id": 304,
-            "name": "text-insert",
-            "text": "h",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:50",
-            "count": 1,
-            "pos": 601,
-            "progress": 0.7212918660287081
-        },
-        {
-            "id": 305,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:50",
-            "count": 1,
-            "pos": 602,
-            "progress": 0.722488038277512
-        },
-        {
-            "id": 306,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:50",
-            "count": 1,
-            "pos": 603,
-            "progress": 0.7236842105263158
-        },
-        {
-            "id": 307,
-            "name": "text-insert",
-            "text": "I",
+            "text": "I was all",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:51",
-            "count": 1,
             "pos": 604,
-            "progress": 0.7248803827751196
+            "progress": 0.72
         },
         {
-            "id": 308,
             "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:51",
-            "count": 1,
-            "pos": 605,
-            "progress": 0.7260765550239234
-        },
-        {
-            "id": 309,
-            "name": "text-insert",
-            "text": "w",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:51",
-            "count": 1,
-            "pos": 606,
-            "progress": 0.7272727272727273
-        },
-        {
-            "id": 310,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:51",
-            "count": 1,
-            "pos": 607,
-            "progress": 0.7284688995215312
-        },
-        {
-            "id": 311,
-            "name": "text-insert",
-            "text": "s",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:51",
-            "count": 1,
-            "pos": 608,
-            "progress": 0.7296650717703349
-        },
-        {
-            "id": 312,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:51",
-            "count": 1,
-            "pos": 609,
-            "progress": 0.7308612440191388
-        },
-        {
-            "id": 313,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:51",
-            "count": 1,
-            "pos": 610,
-            "progress": 0.7320574162679426
-        },
-        {
-            "id": 314,
-            "name": "text-insert",
-            "text": "l",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:51",
-            "count": 1,
-            "pos": 611,
-            "progress": 0.7332535885167464
-        },
-        {
-            "id": 315,
-            "name": "text-insert",
-            "text": "l",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:51",
-            "count": 1,
-            "pos": 612,
-            "progress": 0.7344497607655502
-        },
-        {
-            "id": 316,
-            "name": "text-insert",
-            "text": "e",
+            "text": "ergic to ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:52",
-            "count": 1,
             "pos": 613,
-            "progress": 0.7356459330143541
+            "progress": 0.74
         },
         {
-            "id": 317,
             "name": "text-insert",
-            "text": "r",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:52",
-            "count": 1,
-            "pos": 614,
-            "progress": 0.7368421052631579
-        },
-        {
-            "id": 318,
-            "name": "text-insert",
-            "text": "g",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:52",
-            "count": 1,
-            "pos": 615,
-            "progress": 0.7380382775119617
-        },
-        {
-            "id": 319,
-            "name": "text-insert",
-            "text": "i",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:52",
-            "count": 1,
-            "pos": 616,
-            "progress": 0.7392344497607656
-        },
-        {
-            "id": 320,
-            "name": "text-insert",
-            "text": "c",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:52",
-            "count": 1,
-            "pos": 617,
-            "progress": 0.7404306220095693
-        },
-        {
-            "id": 321,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:52",
-            "count": 1,
-            "pos": 618,
-            "progress": 0.7416267942583732
-        },
-        {
-            "id": 322,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:52",
-            "count": 1,
-            "pos": 619,
-            "progress": 0.742822966507177
-        },
-        {
-            "id": 323,
-            "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:52",
-            "count": 1,
-            "pos": 620,
-            "progress": 0.7440191387559809
-        },
-        {
-            "id": 324,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:52",
-            "count": 1,
-            "pos": 621,
-            "progress": 0.7452153110047847
-        },
-        {
-            "id": 325,
-            "name": "text-insert",
-            "text": "y",
+            "text": "you guys",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:53",
-            "count": 1,
             "pos": 622,
-            "progress": 0.7464114832535885
-        },
-        {
-            "id": 326,
-            "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:53",
-            "count": 1,
-            "pos": 623,
-            "progress": 0.7476076555023924
-        },
-        {
-            "id": 327,
-            "name": "text-insert",
-            "text": "u",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:53",
-            "count": 1,
-            "pos": 624,
-            "progress": 0.7488038277511961
-        },
-        {
-            "id": 328,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:53",
-            "count": 1,
-            "pos": 625,
             "progress": 0.75
         },
         {
-            "id": 329,
             "name": "text-insert",
-            "text": "g",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:53",
-            "count": 1,
-            "pos": 626,
-            "progress": 0.7511961722488039
-        },
-        {
-            "id": 330,
-            "name": "text-insert",
-            "text": "u",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:53",
-            "count": 1,
-            "pos": 627,
-            "progress": 0.7523923444976076
-        },
-        {
-            "id": 331,
-            "name": "text-insert",
-            "text": "y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:53",
-            "count": 1,
-            "pos": 628,
-            "progress": 0.7535885167464115
-        },
-        {
-            "id": 332,
-            "name": "text-insert",
-            "text": "s",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:53",
-            "count": 1,
-            "pos": 629,
-            "progress": 0.7547846889952153
-        },
-        {
-            "id": 333,
-            "name": "text-insert",
-            "text": ".",
+            "text": ". Every",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:54",
-            "count": 1,
             "pos": 630,
-            "progress": 0.7559808612440191
+            "progress": 0.76
         },
         {
-            "id": 334,
             "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:54",
-            "count": 1,
-            "pos": 631,
-            "progress": 0.757177033492823
-        },
-        {
-            "id": 335,
-            "name": "text-insert",
-            "text": "E",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:54",
-            "count": 1,
-            "pos": 632,
-            "progress": 0.7583732057416268
-        },
-        {
-            "id": 336,
-            "name": "text-insert",
-            "text": "v",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:54",
-            "count": 1,
-            "pos": 633,
-            "progress": 0.7595693779904307
-        },
-        {
-            "id": 337,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:54",
-            "count": 1,
-            "pos": 634,
-            "progress": 0.7607655502392344
-        },
-        {
-            "id": 338,
-            "name": "text-insert",
-            "text": "r",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:54",
-            "count": 1,
-            "pos": 635,
-            "progress": 0.7619617224880383
-        },
-        {
-            "id": 339,
-            "name": "text-insert",
-            "text": "y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:54",
-            "count": 1,
-            "pos": 636,
-            "progress": 0.7631578947368421
-        },
-        {
-            "id": 340,
-            "name": "text-insert",
-            "text": "o",
+            "text": "one has alw",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:55",
-            "count": 1,
             "pos": 637,
-            "progress": 0.7643540669856459
+            "progress": 0.76
         },
         {
-            "id": 341,
             "name": "text-insert",
-            "text": "n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:55",
-            "count": 1,
-            "pos": 638,
-            "progress": 0.7655502392344498
-        },
-        {
-            "id": 342,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:55",
-            "count": 1,
-            "pos": 639,
-            "progress": 0.7667464114832536
-        },
-        {
-            "id": 343,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:55",
-            "count": 1,
-            "pos": 640,
-            "progress": 0.7679425837320574
-        },
-        {
-            "id": 344,
-            "name": "text-insert",
-            "text": "h",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:55",
-            "count": 1,
-            "pos": 641,
-            "progress": 0.7691387559808612
-        },
-        {
-            "id": 345,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:55",
-            "count": 1,
-            "pos": 642,
-            "progress": 0.7703349282296651
-        },
-        {
-            "id": 346,
-            "name": "text-insert",
-            "text": "s",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:55",
-            "count": 1,
-            "pos": 643,
-            "progress": 0.7715311004784688
-        },
-        {
-            "id": 347,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:55",
-            "count": 1,
-            "pos": 644,
-            "progress": 0.7727272727272727
-        },
-        {
-            "id": 348,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:55",
-            "count": 1,
-            "pos": 645,
-            "progress": 0.7739234449760766
-        },
-        {
-            "id": 349,
-            "name": "text-insert",
-            "text": "l",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:55",
-            "count": 1,
-            "pos": 646,
-            "progress": 0.7751196172248804
-        },
-        {
-            "id": 350,
-            "name": "text-insert",
-            "text": "w",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:55",
-            "count": 1,
-            "pos": 647,
-            "progress": 0.7763157894736842
-        },
-        {
-            "id": 351,
-            "name": "text-insert",
-            "text": "a",
+            "text": "ays kept me ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:56",
-            "count": 1,
             "pos": 648,
-            "progress": 0.777511961722488
+            "progress": 0.78
         },
         {
-            "id": 352,
             "name": "text-insert",
-            "text": "y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:56",
-            "count": 1,
-            "pos": 649,
-            "progress": 0.7787081339712919
-        },
-        {
-            "id": 353,
-            "name": "text-insert",
-            "text": "s",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:56",
-            "count": 1,
-            "pos": 650,
-            "progress": 0.7799043062200957
-        },
-        {
-            "id": 354,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:56",
-            "count": 1,
-            "pos": 651,
-            "progress": 0.7811004784688995
-        },
-        {
-            "id": 355,
-            "name": "text-insert",
-            "text": "k",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:56",
-            "count": 1,
-            "pos": 652,
-            "progress": 0.7822966507177034
-        },
-        {
-            "id": 356,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:56",
-            "count": 1,
-            "pos": 653,
-            "progress": 0.7834928229665071
-        },
-        {
-            "id": 357,
-            "name": "text-insert",
-            "text": "p",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:56",
-            "count": 1,
-            "pos": 654,
-            "progress": 0.784688995215311
-        },
-        {
-            "id": 358,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:56",
-            "count": 1,
-            "pos": 655,
-            "progress": 0.7858851674641149
-        },
-        {
-            "id": 359,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:56",
-            "count": 1,
-            "pos": 656,
-            "progress": 0.7870813397129187
-        },
-        {
-            "id": 360,
-            "name": "text-insert",
-            "text": "m",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:56",
-            "count": 1,
-            "pos": 657,
-            "progress": 0.7882775119617225
-        },
-        {
-            "id": 361,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:56",
-            "count": 1,
-            "pos": 658,
-            "progress": 0.7894736842105263
-        },
-        {
-            "id": 362,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:56",
-            "count": 1,
-            "pos": 659,
-            "progress": 0.7906698564593302
-        },
-        {
-            "id": 363,
-            "name": "text-insert",
-            "text": "a",
+            "text": "away, m y",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:57",
-            "count": 1,
             "pos": 660,
-            "progress": 0.7918660287081339
+            "progress": 0.79
         },
         {
-            "id": 364,
-            "name": "text-insert",
-            "text": "w",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:57",
-            "count": 1,
-            "pos": 661,
-            "progress": 0.7930622009569378
-        },
-        {
-            "id": 365,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:57",
-            "count": 1,
-            "pos": 662,
-            "progress": 0.7942583732057417
-        },
-        {
-            "id": 366,
-            "name": "text-insert",
-            "text": "y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:57",
-            "count": 1,
-            "pos": 663,
-            "progress": 0.7954545454545454
-        },
-        {
-            "id": 367,
-            "name": "text-insert",
-            "text": ",",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:57",
-            "count": 1,
-            "pos": 664,
-            "progress": 0.7966507177033493
-        },
-        {
-            "id": 368,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:57",
-            "count": 1,
-            "pos": 665,
-            "progress": 0.7978468899521531
-        },
-        {
-            "id": 369,
-            "name": "text-insert",
-            "text": "m",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:57",
-            "count": 1,
-            "pos": 666,
-            "progress": 0.7990430622009569
-        },
-        {
-            "id": 370,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:57",
-            "count": 1,
-            "pos": 667,
-            "progress": 0.8002392344497608
-        },
-        {
-            "id": 371,
-            "name": "text-insert",
-            "text": "y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:57",
-            "count": 1,
-            "pos": 668,
-            "progress": 0.8014354066985646
-        },
-        {
-            "id": 372,
             "name": "text-insert",
             "text": " ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:58",
-            "count": 1,
             "pos": 669,
-            "progress": 0.8026315789473685
+            "progress": 0.8
         },
         {
-            "id": 373,
             "name": "text-delete",
             "text": " ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:58",
-            "count": 1,
             "pos": 669,
-            "progress": 0.8014354066985646
+            "progress": 0.8
         },
         {
-            "id": 374,
             "name": "text-delete",
             "text": "y",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:58",
-            "count": 1,
             "pos": 668,
-            "progress": 0.8002392344497608
+            "progress": 0.8
         },
         {
-            "id": 375,
             "name": "text-delete",
             "text": " ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:58",
-            "count": 1,
             "pos": 667,
-            "progress": 0.7990430622009569
+            "progress": 0.8
         },
         {
-            "id": 376,
             "name": "text-delete",
             "text": "m",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:58",
-            "count": 1,
             "pos": 666,
-            "progress": 0.7978468899521531
+            "progress": 0.8
         },
         {
-            "id": 377,
             "name": "text-delete",
             "text": " ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:59",
-            "count": 1,
             "pos": 665,
-            "progress": 0.7966507177033493
+            "progress": 0.8
         },
         {
-            "id": 378,
             "name": "text-insert",
-            "text": " ",
+            "text": " my ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:59",
-            "count": 1,
             "pos": 665,
-            "progress": 0.7978468899521531
+            "progress": 0.8
         },
         {
-            "id": 379,
-            "name": "text-insert",
-            "text": "m",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:59",
-            "count": 1,
-            "pos": 666,
-            "progress": 0.7990430622009569
-        },
-        {
-            "id": 380,
-            "name": "text-insert",
-            "text": "y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:59",
-            "count": 1,
-            "pos": 667,
-            "progress": 0.8002392344497608
-        },
-        {
-            "id": 381,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:06:59",
-            "count": 1,
-            "pos": 668,
-            "progress": 0.8014354066985646
-        },
-        {
-            "id": 382,
             "name": "text-delete",
             "text": " ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:59",
-            "count": 1,
             "pos": 668,
-            "progress": 0.8002392344497608
+            "progress": 0.8
         },
         {
-            "id": 383,
             "name": "text-delete",
             "text": "y",
             "eventSource": "user",
             "event_time": "2021-08-18 04:06:59",
-            "count": 1,
             "pos": 667,
-            "progress": 0.7990430622009569
+            "progress": 0.8
         },
         {
-            "id": 384,
             "name": "text-delete",
             "text": "m",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:00",
-            "count": 1,
             "pos": 666,
-            "progress": 0.7978468899521531
+            "progress": 0.8
         },
         {
-            "id": 385,
             "name": "text-delete",
             "text": " ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:00",
-            "count": 1,
             "pos": 665,
-            "progress": 0.7966507177033493
+            "progress": 0.8
         },
         {
-            "id": 386,
             "name": "text-delete",
             "text": ",",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:00",
-            "count": 1,
             "pos": 664,
-            "progress": 0.7954545454545454
+            "progress": 0.8
         },
         {
-            "id": 387,
             "name": "text-insert",
-            "text": " ",
+            "text": " my en",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:00",
-            "count": 1,
             "pos": 664,
-            "progress": 0.7966507177033493
+            "progress": 0.8
         },
         {
-            "id": 388,
             "name": "text-insert",
-            "text": "m",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:00",
-            "count": 1,
-            "pos": 665,
-            "progress": 0.7978468899521531
-        },
-        {
-            "id": 389,
-            "name": "text-insert",
-            "text": "y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:00",
-            "count": 1,
-            "pos": 666,
-            "progress": 0.7990430622009569
-        },
-        {
-            "id": 390,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:00",
-            "count": 1,
-            "pos": 667,
-            "progress": 0.8002392344497608
-        },
-        {
-            "id": 391,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:00",
-            "count": 1,
-            "pos": 668,
-            "progress": 0.8014354066985646
-        },
-        {
-            "id": 392,
-            "name": "text-insert",
-            "text": "n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:00",
-            "count": 1,
-            "pos": 669,
-            "progress": 0.8026315789473685
-        },
-        {
-            "id": 393,
-            "name": "text-insert",
-            "text": "t",
+            "text": "tire l",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:01",
-            "count": 1,
             "pos": 670,
-            "progress": 0.8038277511961722
+            "progress": 0.8
         },
         {
-            "id": 394,
             "name": "text-insert",
-            "text": "i",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:01",
-            "count": 1,
-            "pos": 671,
-            "progress": 0.8050239234449761
-        },
-        {
-            "id": 395,
-            "name": "text-insert",
-            "text": "r",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:01",
-            "count": 1,
-            "pos": 672,
-            "progress": 0.80622009569378
-        },
-        {
-            "id": 396,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:01",
-            "count": 1,
-            "pos": 673,
-            "progress": 0.8074162679425837
-        },
-        {
-            "id": 397,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:01",
-            "count": 1,
-            "pos": 674,
-            "progress": 0.8086124401913876
-        },
-        {
-            "id": 398,
-            "name": "text-insert",
-            "text": "l",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:01",
-            "count": 1,
-            "pos": 675,
-            "progress": 0.8098086124401914
-        },
-        {
-            "id": 399,
-            "name": "text-insert",
-            "text": "i",
+            "text": "ife.\"",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:02",
-            "count": 1,
             "pos": 676,
-            "progress": 0.8110047846889952
+            "progress": 0.81
         },
         {
-            "id": 400,
             "name": "text-insert",
-            "text": "f",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:02",
-            "count": 1,
-            "pos": 677,
-            "progress": 0.812200956937799
-        },
-        {
-            "id": 401,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:02",
-            "count": 1,
-            "pos": 678,
-            "progress": 0.8133971291866029
-        },
-        {
-            "id": 402,
-            "name": "text-insert",
-            "text": ".",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:02",
-            "count": 1,
-            "pos": 679,
-            "progress": 0.8145933014354066
-        },
-        {
-            "id": 403,
-            "name": "text-insert",
-            "text": "\"",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:02",
-            "count": 1,
-            "pos": 680,
-            "progress": 0.8157894736842105
-        },
-        {
-            "id": 404,
-            "name": "text-insert",
-            "text": "\n",
+            "text": "\n\nI",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:03",
-            "count": 1,
             "pos": 681,
-            "progress": 0.8169856459330144
+            "progress": 0.82
         },
         {
-            "id": 405,
             "name": "text-insert",
-            "text": "\n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:03",
-            "count": 1,
-            "pos": 682,
-            "progress": 0.8181818181818182
-        },
-        {
-            "id": 406,
-            "name": "text-insert",
-            "text": "I",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:03",
-            "count": 1,
-            "pos": 683,
-            "progress": 0.819377990430622
-        },
-        {
-            "id": 407,
-            "name": "text-insert",
-            "text": "f",
+            "text": "f a bee",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:04",
-            "count": 1,
             "pos": 684,
-            "progress": 0.8205741626794258
+            "progress": 0.82
         },
         {
-            "id": 408,
             "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:04",
-            "count": 1,
-            "pos": 685,
-            "progress": 0.8217703349282297
-        },
-        {
-            "id": 409,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:04",
-            "count": 1,
-            "pos": 686,
-            "progress": 0.8229665071770335
-        },
-        {
-            "id": 410,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:04",
-            "count": 1,
-            "pos": 687,
-            "progress": 0.8241626794258373
-        },
-        {
-            "id": 411,
-            "name": "text-insert",
-            "text": "b",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:04",
-            "count": 1,
-            "pos": 688,
-            "progress": 0.8253588516746412
-        },
-        {
-            "id": 412,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:04",
-            "count": 1,
-            "pos": 689,
-            "progress": 0.8265550239234449
-        },
-        {
-            "id": 413,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:04",
-            "count": 1,
-            "pos": 690,
-            "progress": 0.8277511961722488
-        },
-        {
-            "id": 414,
-            "name": "text-insert",
-            "text": " ",
+            "text": " can ch",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:05",
-            "count": 1,
             "pos": 691,
-            "progress": 0.8289473684210527
+            "progress": 0.83
         },
         {
-            "id": 415,
             "name": "text-insert",
-            "text": "c",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:05",
-            "count": 1,
-            "pos": 692,
-            "progress": 0.8301435406698564
-        },
-        {
-            "id": 416,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:05",
-            "count": 1,
-            "pos": 693,
-            "progress": 0.8313397129186603
-        },
-        {
-            "id": 417,
-            "name": "text-insert",
-            "text": "n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:05",
-            "count": 1,
-            "pos": 694,
-            "progress": 0.8325358851674641
-        },
-        {
-            "id": 418,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:05",
-            "count": 1,
-            "pos": 695,
-            "progress": 0.833732057416268
-        },
-        {
-            "id": 419,
-            "name": "text-insert",
-            "text": "c",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:05",
-            "count": 1,
-            "pos": 696,
-            "progress": 0.8349282296650717
-        },
-        {
-            "id": 420,
-            "name": "text-insert",
-            "text": "h",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:05",
-            "count": 1,
-            "pos": 697,
-            "progress": 0.8361244019138756
-        },
-        {
-            "id": 421,
-            "name": "text-insert",
-            "text": "u",
+            "text": "uckle, t",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:06",
-            "count": 1,
             "pos": 698,
-            "progress": 0.8373205741626795
+            "progress": 0.84
         },
         {
-            "id": 422,
             "name": "text-insert",
-            "text": "c",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:06",
-            "count": 1,
-            "pos": 699,
-            "progress": 0.8385167464114832
-        },
-        {
-            "id": 423,
-            "name": "text-insert",
-            "text": "k",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:06",
-            "count": 1,
-            "pos": 700,
-            "progress": 0.8397129186602871
-        },
-        {
-            "id": 424,
-            "name": "text-insert",
-            "text": "l",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:06",
-            "count": 1,
-            "pos": 701,
-            "progress": 0.8409090909090909
-        },
-        {
-            "id": 425,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:06",
-            "count": 1,
-            "pos": 702,
-            "progress": 0.8421052631578947
-        },
-        {
-            "id": 426,
-            "name": "text-insert",
-            "text": ",",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:06",
-            "count": 1,
-            "pos": 703,
-            "progress": 0.8433014354066986
-        },
-        {
-            "id": 427,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:06",
-            "count": 1,
-            "pos": 704,
-            "progress": 0.8444976076555024
-        },
-        {
-            "id": 428,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:06",
-            "count": 1,
-            "pos": 705,
-            "progress": 0.8456937799043063
-        },
-        {
-            "id": 429,
-            "name": "text-insert",
-            "text": "h",
+            "text": "hat is d",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:07",
-            "count": 1,
             "pos": 706,
-            "progress": 0.84688995215311
+            "progress": 0.85
         },
         {
-            "id": 430,
             "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:07",
-            "count": 1,
-            "pos": 707,
-            "progress": 0.8480861244019139
-        },
-        {
-            "id": 431,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:07",
-            "count": 1,
-            "pos": 708,
-            "progress": 0.8492822966507177
-        },
-        {
-            "id": 432,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:07",
-            "count": 1,
-            "pos": 709,
-            "progress": 0.8504784688995215
-        },
-        {
-            "id": 433,
-            "name": "text-insert",
-            "text": "i",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:07",
-            "count": 1,
-            "pos": 710,
-            "progress": 0.8516746411483254
-        },
-        {
-            "id": 434,
-            "name": "text-insert",
-            "text": "s",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:07",
-            "count": 1,
-            "pos": 711,
-            "progress": 0.8528708133971292
-        },
-        {
-            "id": 435,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:07",
-            "count": 1,
-            "pos": 712,
-            "progress": 0.854066985645933
-        },
-        {
-            "id": 436,
-            "name": "text-insert",
-            "text": "d",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:07",
-            "count": 1,
-            "pos": 713,
-            "progress": 0.8552631578947368
-        },
-        {
-            "id": 437,
-            "name": "text-insert",
-            "text": "e",
+            "text": "efinetely i",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:08",
-            "count": 1,
             "pos": 714,
-            "progress": 0.8564593301435407
+            "progress": 0.86
         },
         {
-            "id": 438,
-            "name": "text-insert",
-            "text": "f",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:08",
-            "count": 1,
-            "pos": 715,
-            "progress": 0.8576555023923444
-        },
-        {
-            "id": 439,
-            "name": "text-insert",
-            "text": "i",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:08",
-            "count": 1,
-            "pos": 716,
-            "progress": 0.8588516746411483
-        },
-        {
-            "id": 440,
-            "name": "text-insert",
-            "text": "n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:08",
-            "count": 1,
-            "pos": 717,
-            "progress": 0.8600478468899522
-        },
-        {
-            "id": 441,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:08",
-            "count": 1,
-            "pos": 718,
-            "progress": 0.861244019138756
-        },
-        {
-            "id": 442,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:08",
-            "count": 1,
-            "pos": 719,
-            "progress": 0.8624401913875598
-        },
-        {
-            "id": 443,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:08",
-            "count": 1,
-            "pos": 720,
-            "progress": 0.8636363636363636
-        },
-        {
-            "id": 444,
-            "name": "text-insert",
-            "text": "l",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:08",
-            "count": 1,
-            "pos": 721,
-            "progress": 0.8648325358851675
-        },
-        {
-            "id": 445,
-            "name": "text-insert",
-            "text": "y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:08",
-            "count": 1,
-            "pos": 722,
-            "progress": 0.8660287081339713
-        },
-        {
-            "id": 446,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:08",
-            "count": 1,
-            "pos": 723,
-            "progress": 0.8672248803827751
-        },
-        {
-            "id": 447,
-            "name": "text-insert",
-            "text": "i",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:08",
-            "count": 1,
-            "pos": 718,
-            "progress": 0.868421052631579
-        },
-        {
-            "id": 447,
             "name": "text-delete",
             "text": "e",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:08",
-            "count": 1,
             "pos": 719,
-            "progress": 0.8672248803827751
+            "progress": 0.87
         },
         {
-            "id": 449,
             "name": "text-insert",
-            "text": "w",
+            "text": "what they di",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:09",
-            "count": 1,
             "pos": 724,
-            "progress": 0.868421052631579
+            "progress": 0.87
         },
         {
-            "id": 450,
             "name": "text-insert",
-            "text": "h",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:09",
-            "count": 1,
-            "pos": 725,
-            "progress": 0.8696172248803827
-        },
-        {
-            "id": 451,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:09",
-            "count": 1,
-            "pos": 726,
-            "progress": 0.8708133971291866
-        },
-        {
-            "id": 452,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:09",
-            "count": 1,
-            "pos": 727,
-            "progress": 0.8720095693779905
-        },
-        {
-            "id": 453,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:09",
-            "count": 1,
-            "pos": 728,
-            "progress": 0.8732057416267942
-        },
-        {
-            "id": 454,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:09",
-            "count": 1,
-            "pos": 729,
-            "progress": 0.8744019138755981
-        },
-        {
-            "id": 455,
-            "name": "text-insert",
-            "text": "h",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:09",
-            "count": 1,
-            "pos": 730,
-            "progress": 0.8755980861244019
-        },
-        {
-            "id": 456,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:09",
-            "count": 1,
-            "pos": 731,
-            "progress": 0.8767942583732058
-        },
-        {
-            "id": 457,
-            "name": "text-insert",
-            "text": "y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:09",
-            "count": 1,
-            "pos": 732,
-            "progress": 0.8779904306220095
-        },
-        {
-            "id": 458,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:09",
-            "count": 1,
-            "pos": 733,
-            "progress": 0.8791866028708134
-        },
-        {
-            "id": 459,
-            "name": "text-insert",
-            "text": "d",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:09",
-            "count": 1,
-            "pos": 734,
-            "progress": 0.8803827751196173
-        },
-        {
-            "id": 460,
-            "name": "text-insert",
-            "text": "i",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:09",
-            "count": 1,
-            "pos": 735,
-            "progress": 0.881578947368421
-        },
-        {
-            "id": 461,
-            "name": "text-insert",
-            "text": "d",
+            "text": "d.\n\n\"",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:10",
-            "count": 1,
             "pos": 736,
-            "progress": 0.8827751196172249
+            "progress": 0.88
         },
         {
-            "id": 462,
             "name": "text-insert",
-            "text": ".",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:10",
-            "count": 1,
-            "pos": 737,
-            "progress": 0.8839712918660287
-        },
-        {
-            "id": 463,
-            "name": "text-insert",
-            "text": "\n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:10",
-            "count": 1,
-            "pos": 738,
-            "progress": 0.8851674641148325
-        },
-        {
-            "id": 464,
-            "name": "text-insert",
-            "text": "\n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:10",
-            "count": 1,
-            "pos": 739,
-            "progress": 0.8863636363636364
-        },
-        {
-            "id": 465,
-            "name": "text-insert",
-            "text": "\"",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:10",
-            "count": 1,
-            "pos": 740,
-            "progress": 0.8875598086124402
-        },
-        {
-            "id": 466,
-            "name": "text-insert",
-            "text": "T",
+            "text": "They ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:11",
-            "count": 1,
             "pos": 741,
-            "progress": 0.888755980861244
+            "progress": 0.89
         },
         {
-            "id": 467,
             "name": "text-insert",
-            "text": "h",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:11",
-            "count": 1,
-            "pos": 742,
-            "progress": 0.8899521531100478
-        },
-        {
-            "id": 468,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:11",
-            "count": 1,
-            "pos": 743,
-            "progress": 0.8911483253588517
-        },
-        {
-            "id": 469,
-            "name": "text-insert",
-            "text": "y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:11",
-            "count": 1,
-            "pos": 744,
-            "progress": 0.8923444976076556
-        },
-        {
-            "id": 470,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:11",
-            "count": 1,
-            "pos": 745,
-            "progress": 0.8935406698564593
-        },
-        {
-            "id": 471,
-            "name": "text-insert",
-            "text": "k",
+            "text": "kept you ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:12",
-            "count": 1,
             "pos": 746,
-            "progress": 0.8947368421052632
+            "progress": 0.89
         },
         {
-            "id": 472,
             "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:12",
-            "count": 1,
-            "pos": 747,
-            "progress": 0.895933014354067
-        },
-        {
-            "id": 473,
-            "name": "text-insert",
-            "text": "p",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:12",
-            "count": 1,
-            "pos": 748,
-            "progress": 0.8971291866028708
-        },
-        {
-            "id": 474,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:12",
-            "count": 1,
-            "pos": 749,
-            "progress": 0.8983253588516746
-        },
-        {
-            "id": 475,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:12",
-            "count": 1,
-            "pos": 750,
-            "progress": 0.8995215311004785
-        },
-        {
-            "id": 476,
-            "name": "text-insert",
-            "text": "y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:12",
-            "count": 1,
-            "pos": 751,
-            "progress": 0.9007177033492823
-        },
-        {
-            "id": 477,
-            "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:12",
-            "count": 1,
-            "pos": 752,
-            "progress": 0.9019138755980861
-        },
-        {
-            "id": 478,
-            "name": "text-insert",
-            "text": "u",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:12",
-            "count": 1,
-            "pos": 753,
-            "progress": 0.90311004784689
-        },
-        {
-            "id": 479,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:12",
-            "count": 1,
-            "pos": 754,
-            "progress": 0.9043062200956937
-        },
-        {
-            "id": 480,
-            "name": "text-insert",
-            "text": "a",
+            "text": "away becaus",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:13",
-            "count": 1,
             "pos": 755,
-            "progress": 0.9055023923444976
+            "progress": 0.91
         },
         {
-            "id": 481,
             "name": "text-insert",
-            "text": "w",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:13",
-            "count": 1,
-            "pos": 756,
-            "progress": 0.9066985645933014
-        },
-        {
-            "id": 482,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:13",
-            "count": 1,
-            "pos": 757,
-            "progress": 0.9078947368421053
-        },
-        {
-            "id": 483,
-            "name": "text-insert",
-            "text": "y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:13",
-            "count": 1,
-            "pos": 758,
-            "progress": 0.9090909090909091
-        },
-        {
-            "id": 484,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:13",
-            "count": 1,
-            "pos": 759,
-            "progress": 0.9102870813397129
-        },
-        {
-            "id": 485,
-            "name": "text-insert",
-            "text": "b",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:13",
-            "count": 1,
-            "pos": 760,
-            "progress": 0.9114832535885168
-        },
-        {
-            "id": 486,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:13",
-            "count": 1,
-            "pos": 761,
-            "progress": 0.9126794258373205
-        },
-        {
-            "id": 487,
-            "name": "text-insert",
-            "text": "c",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:13",
-            "count": 1,
-            "pos": 762,
-            "progress": 0.9138755980861244
-        },
-        {
-            "id": 488,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:13",
-            "count": 1,
-            "pos": 763,
-            "progress": 0.9150717703349283
-        },
-        {
-            "id": 489,
-            "name": "text-insert",
-            "text": "u",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:13",
-            "count": 1,
-            "pos": 764,
-            "progress": 0.916267942583732
-        },
-        {
-            "id": 490,
-            "name": "text-insert",
-            "text": "s",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:13",
-            "count": 1,
-            "pos": 765,
-            "progress": 0.9174641148325359
-        },
-        {
-            "id": 491,
-            "name": "text-insert",
-            "text": "e",
+            "text": "e they were ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:14",
-            "count": 1,
             "pos": 766,
-            "progress": 0.9186602870813397
+            "progress": 0.92
         },
         {
-            "id": 492,
             "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:14",
-            "count": 1,
-            "pos": 767,
-            "progress": 0.9198564593301436
-        },
-        {
-            "id": 493,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:14",
-            "count": 1,
-            "pos": 768,
-            "progress": 0.9210526315789473
-        },
-        {
-            "id": 494,
-            "name": "text-insert",
-            "text": "h",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:14",
-            "count": 1,
-            "pos": 769,
-            "progress": 0.9222488038277512
-        },
-        {
-            "id": 495,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:14",
-            "count": 1,
-            "pos": 770,
-            "progress": 0.9234449760765551
-        },
-        {
-            "id": 496,
-            "name": "text-insert",
-            "text": "y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:14",
-            "count": 1,
-            "pos": 771,
-            "progress": 0.9246411483253588
-        },
-        {
-            "id": 497,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:14",
-            "count": 1,
-            "pos": 772,
-            "progress": 0.9258373205741627
-        },
-        {
-            "id": 498,
-            "name": "text-insert",
-            "text": "w",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:14",
-            "count": 1,
-            "pos": 773,
-            "progress": 0.9270334928229665
-        },
-        {
-            "id": 499,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:14",
-            "count": 1,
-            "pos": 774,
-            "progress": 0.9282296650717703
-        },
-        {
-            "id": 500,
-            "name": "text-insert",
-            "text": "r",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:14",
-            "count": 1,
-            "pos": 775,
-            "progress": 0.9294258373205742
-        },
-        {
-            "id": 501,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:14",
-            "count": 1,
-            "pos": 776,
-            "progress": 0.930622009569378
-        },
-        {
-            "id": 502,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:14",
-            "count": 1,
-            "pos": 777,
-            "progress": 0.9318181818181818
-        },
-        {
-            "id": 503,
-            "name": "text-insert",
-            "text": "a",
+            "text": "afraid of ",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:15",
-            "count": 1,
             "pos": 778,
-            "progress": 0.9330143540669856
+            "progress": 0.93
         },
         {
-            "id": 504,
             "name": "text-insert",
-            "text": "f",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:15",
-            "count": 1,
-            "pos": 779,
-            "progress": 0.9342105263157895
-        },
-        {
-            "id": 505,
-            "name": "text-insert",
-            "text": "r",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:15",
-            "count": 1,
-            "pos": 780,
-            "progress": 0.9354066985645934
-        },
-        {
-            "id": 506,
-            "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:15",
-            "count": 1,
-            "pos": 781,
-            "progress": 0.9366028708133971
-        },
-        {
-            "id": 507,
-            "name": "text-insert",
-            "text": "i",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:15",
-            "count": 1,
-            "pos": 782,
-            "progress": 0.937799043062201
-        },
-        {
-            "id": 508,
-            "name": "text-insert",
-            "text": "d",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:15",
-            "count": 1,
-            "pos": 783,
-            "progress": 0.9389952153110048
-        },
-        {
-            "id": 509,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:15",
-            "count": 1,
-            "pos": 784,
-            "progress": 0.9401913875598086
-        },
-        {
-            "id": 510,
-            "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:15",
-            "count": 1,
-            "pos": 785,
-            "progress": 0.9413875598086124
-        },
-        {
-            "id": 511,
-            "name": "text-insert",
-            "text": "f",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:15",
-            "count": 1,
-            "pos": 786,
-            "progress": 0.9425837320574163
-        },
-        {
-            "id": 512,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:15",
-            "count": 1,
-            "pos": 787,
-            "progress": 0.94377990430622
-        },
-        {
-            "id": 513,
-            "name": "text-insert",
-            "text": "y",
+            "text": "you knowi",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:16",
-            "count": 1,
             "pos": 788,
-            "progress": 0.9449760765550239
+            "progress": 0.94
         },
         {
-            "id": 514,
             "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:16",
-            "count": 1,
-            "pos": 789,
-            "progress": 0.9461722488038278
-        },
-        {
-            "id": 515,
-            "name": "text-insert",
-            "text": "u",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:16",
-            "count": 1,
-            "pos": 790,
-            "progress": 0.9473684210526315
-        },
-        {
-            "id": 516,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:16",
-            "count": 1,
-            "pos": 791,
-            "progress": 0.9485645933014354
-        },
-        {
-            "id": 517,
-            "name": "text-insert",
-            "text": "k",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:16",
-            "count": 1,
-            "pos": 792,
-            "progress": 0.9497607655502392
-        },
-        {
-            "id": 518,
-            "name": "text-insert",
-            "text": "n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:16",
-            "count": 1,
-            "pos": 793,
-            "progress": 0.9509569377990431
-        },
-        {
-            "id": 519,
-            "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:16",
-            "count": 1,
-            "pos": 794,
-            "progress": 0.9521531100478469
-        },
-        {
-            "id": 520,
-            "name": "text-insert",
-            "text": "w",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:16",
-            "count": 1,
-            "pos": 795,
-            "progress": 0.9533492822966507
-        },
-        {
-            "id": 521,
-            "name": "text-insert",
-            "text": "i",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:16",
-            "count": 1,
-            "pos": 796,
-            "progress": 0.9545454545454546
-        },
-        {
-            "id": 522,
-            "name": "text-insert",
-            "text": "n",
+            "text": "ng your tr",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:17",
-            "count": 1,
             "pos": 797,
-            "progress": 0.9557416267942583
+            "progress": 0.96
         },
         {
-            "id": 523,
             "name": "text-insert",
-            "text": "g",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:17",
-            "count": 1,
-            "pos": 798,
-            "progress": 0.9569377990430622
-        },
-        {
-            "id": 524,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:17",
-            "count": 1,
-            "pos": 799,
-            "progress": 0.9581339712918661
-        },
-        {
-            "id": 525,
-            "name": "text-insert",
-            "text": "y",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:17",
-            "count": 1,
-            "pos": 800,
-            "progress": 0.9593301435406698
-        },
-        {
-            "id": 526,
-            "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:17",
-            "count": 1,
-            "pos": 801,
-            "progress": 0.9605263157894737
-        },
-        {
-            "id": 527,
-            "name": "text-insert",
-            "text": "u",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:17",
-            "count": 1,
-            "pos": 802,
-            "progress": 0.9617224880382775
-        },
-        {
-            "id": 528,
-            "name": "text-insert",
-            "text": "r",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:17",
-            "count": 1,
-            "pos": 803,
-            "progress": 0.9629186602870813
-        },
-        {
-            "id": 529,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:17",
-            "count": 1,
-            "pos": 804,
-            "progress": 0.9641148325358851
-        },
-        {
-            "id": 530,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:17",
-            "count": 1,
-            "pos": 805,
-            "progress": 0.965311004784689
-        },
-        {
-            "id": 531,
-            "name": "text-insert",
-            "text": "r",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:17",
-            "count": 1,
-            "pos": 806,
-            "progress": 0.9665071770334929
-        },
-        {
-            "id": 532,
-            "name": "text-insert",
-            "text": "u",
+            "text": "ue potent",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:18",
-            "count": 1,
             "pos": 807,
-            "progress": 0.9677033492822966
+            "progress": 0.97
         },
         {
-            "id": 533,
             "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:18",
-            "count": 1,
-            "pos": 808,
-            "progress": 0.9688995215311005
-        },
-        {
-            "id": 534,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:18",
-            "count": 1,
-            "pos": 809,
-            "progress": 0.9700956937799043
-        },
-        {
-            "id": 535,
-            "name": "text-insert",
-            "text": "p",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:18",
-            "count": 1,
-            "pos": 810,
-            "progress": 0.9712918660287081
-        },
-        {
-            "id": 536,
-            "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:18",
-            "count": 1,
-            "pos": 811,
-            "progress": 0.972488038277512
-        },
-        {
-            "id": 537,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:18",
-            "count": 1,
-            "pos": 812,
-            "progress": 0.9736842105263158
-        },
-        {
-            "id": 538,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:18",
-            "count": 1,
-            "pos": 813,
-            "progress": 0.9748803827751196
-        },
-        {
-            "id": 539,
-            "name": "text-insert",
-            "text": "n",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:18",
-            "count": 1,
-            "pos": 814,
-            "progress": 0.9760765550239234
-        },
-        {
-            "id": 540,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:18",
-            "count": 1,
-            "pos": 815,
-            "progress": 0.9772727272727273
-        },
-        {
-            "id": 541,
-            "name": "text-insert",
-            "text": "i",
+            "text": "ial. Come",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:19",
-            "count": 1,
             "pos": 816,
-            "progress": 0.9784688995215312
+            "progress": 0.98
         },
         {
-            "id": 542,
             "name": "text-insert",
-            "text": "a",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:19",
-            "count": 1,
-            "pos": 817,
-            "progress": 0.9796650717703349
-        },
-        {
-            "id": 543,
-            "name": "text-insert",
-            "text": "l",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:19",
-            "count": 1,
-            "pos": 818,
-            "progress": 0.9808612440191388
-        },
-        {
-            "id": 544,
-            "name": "text-insert",
-            "text": ".",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:19",
-            "count": 1,
-            "pos": 819,
-            "progress": 0.9820574162679426
-        },
-        {
-            "id": 545,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:19",
-            "count": 1,
-            "pos": 820,
-            "progress": 0.9832535885167464
-        },
-        {
-            "id": 546,
-            "name": "text-insert",
-            "text": "C",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:19",
-            "count": 1,
-            "pos": 821,
-            "progress": 0.9844497607655502
-        },
-        {
-            "id": 547,
-            "name": "text-insert",
-            "text": "o",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:19",
-            "count": 1,
-            "pos": 822,
-            "progress": 0.9856459330143541
-        },
-        {
-            "id": 548,
-            "name": "text-insert",
-            "text": "m",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:19",
-            "count": 1,
-            "pos": 823,
-            "progress": 0.9868421052631579
-        },
-        {
-            "id": 549,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:19",
-            "count": 1,
-            "pos": 824,
-            "progress": 0.9880382775119617
-        },
-        {
-            "id": 550,
-            "name": "text-insert",
-            "text": " ",
+            "text": " with me.\"",
             "eventSource": "user",
             "event_time": "2021-08-18 04:07:20",
-            "count": 1,
             "pos": 825,
-            "progress": 0.9892344497607656
-        },
-        {
-            "id": 551,
-            "name": "text-insert",
-            "text": "w",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:20",
-            "count": 1,
-            "pos": 826,
-            "progress": 0.9904306220095693
-        },
-        {
-            "id": 552,
-            "name": "text-insert",
-            "text": "i",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:20",
-            "count": 1,
-            "pos": 827,
-            "progress": 0.9916267942583732
-        },
-        {
-            "id": 553,
-            "name": "text-insert",
-            "text": "t",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:20",
-            "count": 1,
-            "pos": 828,
-            "progress": 0.992822966507177
-        },
-        {
-            "id": 554,
-            "name": "text-insert",
-            "text": "h",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:20",
-            "count": 1,
-            "pos": 829,
-            "progress": 0.9940191387559809
-        },
-        {
-            "id": 555,
-            "name": "text-insert",
-            "text": " ",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:20",
-            "count": 1,
-            "pos": 830,
-            "progress": 0.9952153110047847
-        },
-        {
-            "id": 556,
-            "name": "text-insert",
-            "text": "m",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:20",
-            "count": 1,
-            "pos": 831,
-            "progress": 0.9964114832535885
-        },
-        {
-            "id": 557,
-            "name": "text-insert",
-            "text": "e",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:20",
-            "count": 1,
-            "pos": 832,
-            "progress": 0.9976076555023924
-        },
-        {
-            "id": 558,
-            "name": "text-insert",
-            "text": ".",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:20",
-            "count": 1,
-            "pos": 833,
-            "progress": 0.9988038277511961
-        },
-        {
-            "id": 559,
-            "name": "text-insert",
-            "text": "\"",
-            "eventSource": "user",
-            "event_time": "2021-08-18 04:07:20",
-            "count": 1,
-            "pos": 834,
-            "progress": 1.0
+            "progress": 0.99
         }
-    ]
+    ],
+    "end_time": "2021-08-18 04:12:38"
 }
