@@ -2449,7 +2449,7 @@
     const chartData = [];
     let firstTime = null;
     let index = 0;
-    const totalTextLength = data.text[0].slice(0, -1).length;
+    const totalTextLength = data.text;
     let currentCharCount = data.init_text.length;
 
     data.actions.forEach((event, idx) => {
@@ -2524,8 +2524,7 @@
     let paragraphColor = [];
     let firstTime = null;
     let indexOfAct = 0;
-    const wholeText = data.text.slice(0, -1);
-    const totalTextLength = wholeText.length;
+    const totalTextLength = data.text;
     let totalInsertions = 0;
     let totalDeletions = 0;
     let totalSuggestions = 0;

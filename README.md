@@ -86,14 +86,12 @@ Below is the structure and examples for the three levels.
   ```typescript
 
   type Event {
-    id: number;            // Unique identifier of the operation
     // Type of action
     name: "suggestion-open" | "text-insert" | "text-delete" | string;       
     text?: string;         // Text content involved in the action (if applicable)
     eventSource: "user" | "api"; // Source of the action
     event_time: string;    // Timestamp, e.g., "YYYY-MM-DD hh:mm:ss"
     progress: number;      // Document-level progress (0–1)
-    count: number;         // Number of characters affected
     pos: number;           // Character position in the document
   }
 
