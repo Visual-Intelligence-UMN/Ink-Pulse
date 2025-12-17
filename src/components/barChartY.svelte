@@ -108,59 +108,59 @@
     if (!newyScale) return;
     if (!xScale) return;
 
-    if (sharedSelection.selectionSource === "lineChart_x") {
-      // Handle time-based selection from lineChart_x
-      if (
-        sharedSelection.timeMin !== undefined &&
-        sharedSelection.timeMax !== undefined
-      ) {
-        const { timeMin, timeMax } = sharedSelection;
+    // if (sharedSelection.selectionSource === "lineChart_x") {
+    //   // Handle time-based selection from lineChart_x
+    //   if (
+    //     sharedSelection.timeMin !== undefined &&
+    //     sharedSelection.timeMax !== undefined
+    //   ) {
+    //     const { timeMin, timeMax } = sharedSelection;
 
-        // Filter bars that fall within the time range
-        const filteredData = processedData.filter((d) => {
-          // Assuming each bar has start_time and end_time properties
-          return (
-            (d.start_time >= timeMin && d.start_time <= timeMax) ||
-            (d.end_time >= timeMin && d.end_time <= timeMax) ||
-            (d.start_time <= timeMin && d.end_time >= timeMax)
-          );
-        });
+    //     // Filter bars that fall within the time range
+    //     const filteredData = processedData.filter((d) => {
+    //       // Assuming each bar has start_time and end_time properties
+    //       return (
+    //         (d.start_time >= timeMin && d.start_time <= timeMax) ||
+    //         (d.end_time >= timeMin && d.end_time <= timeMax) ||
+    //         (d.start_time <= timeMin && d.end_time >= timeMax)
+    //       );
+    //     });
 
-        const selectedIds = new Set(filteredData.map((d) => d.id));
-        bars.attr("opacity", (d) => (selectedIds.has(d.id) ? 0.9 : 0.1));
+    //     const selectedIds = new Set(filteredData.map((d) => d.id));
+    //     bars.attr("opacity", (d) => (selectedIds.has(d.id) ? 0.9 : 0.1));
 
-        // Calculate semantic range from filtered data for potential search
-        const scMin = d3.min(filteredData, (d) => d.residual_vector_norm) ?? 0;
-        const scMax = d3.max(filteredData, (d) => d.residual_vector_norm) ?? 0;
+    //     // Calculate semantic range from filtered data for potential search
+    //     const scMin = d3.min(filteredData, (d) => d.residual_vector_norm) ?? 0;
+    //     const scMax = d3.max(filteredData, (d) => d.residual_vector_norm) ?? 0;
 
-        dispatch("selectionChanged", {
-          range: {
-            sc: { min: scMin, max: scMax },
-            progress: {
-              min: sharedSelection.progressMin,
-              max: sharedSelection.progressMax,
-            },
-          },
-          dataRange: {
-            scRange: { min: scMin, max: scMax },
-            progressRange: {
-              min: sharedSelection.progressMin,
-              max: sharedSelection.progressMax,
-            },
-            timeRange: { min: timeMin, max: timeMax },
-            sc: { sc: filteredData.map((d) => d.residual_vector_norm) },
-          },
-          data: filteredData,
-          wholeData: processedData,
-          sessionId,
-          sources: filteredData.map((d) => d.source),
-          selectionSource: "lineChart_x",
-        });
-      } else {
-        bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
-      }
-      return;
-    }
+    //     dispatch("selectionChanged", {
+    //       range: {
+    //         sc: { min: scMin, max: scMax },
+    //         progress: {
+    //           min: sharedSelection.progressMin,
+    //           max: sharedSelection.progressMax,
+    //         },
+    //       },
+    //       dataRange: {
+    //         scRange: { min: scMin, max: scMax },
+    //         progressRange: {
+    //           min: sharedSelection.progressMin,
+    //           max: sharedSelection.progressMax,
+    //         },
+    //         timeRange: { min: timeMin, max: timeMax },
+    //         sc: { sc: filteredData.map((d) => d.residual_vector_norm) },
+    //       },
+    //       data: filteredData,
+    //       wholeData: processedData,
+    //       sessionId,
+    //       sources: filteredData.map((d) => d.source),
+    //       selectionSource: "lineChart_x",
+    //     });
+    //   } else {
+    //     bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
+    //   }
+    //   return;
+    // }
 
     function highlightBars(filteredData) {
       if (

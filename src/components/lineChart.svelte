@@ -222,23 +222,23 @@
       selectionSource: "lineChart_y",
     };
 
-    dispatch("selectionChanged", {
-      range: {
-        sc: { min: scMin, max: scMax },
-        progress: { min: progressMin, max: progressMax },
-      },
-      dataRange: {
-        scRange: { min: scMin, max: scMax },
-        progressRange: { min: progressMin, max: progressMax },
-        timeRange: { min: tMin, max: tMax },
-        sc: { sc: scValues },
-      },
-      data: insidePoints,
-      wholeData: chartData,
-      sessionId: null,
-      sources: sources,
-      selectionSource: "lineChart_y",
-    });
+    // dispatch("selectionChanged", {
+    //   range: {
+    //     sc: { min: scMin, max: scMax },
+    //     progress: { min: progressMin, max: progressMax },
+    //   },
+    //   dataRange: {
+    //     scRange: { min: scMin, max: scMax },
+    //     progressRange: { min: progressMin, max: progressMax },
+    //     timeRange: { min: tMin, max: tMax },
+    //     sc: { sc: scValues },
+    //   },
+    //   data: insidePoints,
+    //   wholeData: chartData,
+    //   sessionId: null,
+    //   sources: sources,
+    //   selectionSource: "lineChart_y",
+    // });
   }
 
 
@@ -293,23 +293,23 @@
       selectionSource: "lineChart_x",
     };
 
-    dispatch("selectionChanged", {
-      range: {
-        sc: { min: scMin, max: scMax },
-        progress: { min: progressMin, max: progressMax },
-      },
-      dataRange: {
-        scRange: { min: scMin, max: scMax },
-        progressRange: { min: progressMin, max: progressMax },
-        timeRange: { min: timeMin, max: timeMax },
-        sc: { sc: scValues },
-      },
-      data: insidePoints,
-      wholeData: chartData,
-      sessionId: null,
-      sources: sources,
-      selectionSource: "lineChart_x",
-    });
+    // dispatch("selectionChanged", {
+    //   range: {
+    //     sc: { min: scMin, max: scMax },
+    //     progress: { min: progressMin, max: progressMax },
+    //   },
+    //   dataRange: {
+    //     scRange: { min: scMin, max: scMax },
+    //     progressRange: { min: progressMin, max: progressMax },
+    //     timeRange: { min: timeMin, max: timeMax },
+    //     sc: { sc: scValues },
+    //   },
+    //   data: insidePoints,
+    //   wholeData: chartData,
+    //   sessionId: null,
+    //   sources: sources,
+    //   selectionSource: "lineChart_x",
+    // });
   }
 
   export function resetZoom() {
