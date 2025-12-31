@@ -17,7 +17,7 @@ export async function readSegmentResultsNode(dataset: string) {
   db.close();
 
   return rows.map((r) => ({
-    sessionId: r.id.replace(/\.json$/, ""),
-    data: JSON.parse(r.content),
+    id: r.id.replace(/\.json$/, ""),
+    content: JSON.parse(r.content),
   }));
 }

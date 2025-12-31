@@ -2338,7 +2338,7 @@
       const isLocalBrowser =
         browser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
       console.log('Is local browser?', isLocalBrowser);
-      if (isLocalBrowser) {
+      if (!isLocalBrowser) {
         const segmentDB = await fetch(`${base}/api/getSegment?dataset=${selectedDataset}`);
         if (segmentDB.ok) {
           const json = await segmentDB.json();
@@ -2363,8 +2363,8 @@
         const contentIdx = columns.indexOf('content');
 
         segmentData = values.map(row => ({
-          sessionId: row[idIdx].replace(/\.json$/, ''),
-          data: JSON.parse(row[contentIdx]),
+          id: row[idIdx].replace(/\.json$/, ''),
+          content: JSON.parse(row[contentIdx]),
         }));
         useDB = true;
       }
@@ -2373,6 +2373,7 @@
     } catch (e) {
       console.log('No .db file or .db file is empty.', e);
     }
+
     if (useDB) {
       const scoreMap = new Map(
       CSVData.map((row) => [row.session_id, row.judge_score])
