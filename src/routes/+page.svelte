@@ -33,6 +33,10 @@
   import WeightPanel from "../components/weightPanel.svelte";
   import Papa from "papaparse";
   import JSZip from "jszip";
+  import initSqlJs from "sql.js";
+  import { getDB } from "$lib/dbLoader";
+  import { readSegmentResults } from "$lib/db/read";
+  import { browser } from '$app/environment';
 
   let chartRefs = {};
   let filterButton;
@@ -701,28 +705,6 @@
     } else {
       closePatternSearch();
     }
-  }
-
-  async function loadSegmentData(dataset) {
-    try {
-      const res = await fetch(
-        `${base}/api/getSegment?dataset=${dataset}`
-      );
-      if (!res.ok) return { useDB: false };
-
-      const json = await res.json();
-      if (Array.isArray(json.segmentData) && json.segmentData.length > 0) {
-        return {
-          useDB: true,
-          data: json.segmentData.map((item) => ({
-            id: item.id,
-            content: JSON.parse(item.content),
-          })),
-        };
-      }
-    } catch {}
-
-    return { useDB: false };
   }
 
   function deletePattern(sessionId) {
@@ -2353,18 +2335,43 @@
     let useDB = false;
     let segmentData = [];
     try {
-      const segmentDB = await fetch(
-        `${base}/api/getSegment?dataset=${selectedDataset}`
-      );
-      if (segmentDB.ok) {
-        const json = await segmentDB.json();
-        if (Array.isArray(json.segmentData) && json.segmentData.length > 0) {
-          segmentData = json.segmentData;
-          useDB = true;
+      const isLocalBrowser =
+        browser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      console.log('Is local browser?', isLocalBrowser);
+      if (isLocalBrowser) {
+        const segmentDB = await fetch(`${base}/api/getSegment?dataset=${selectedDataset}`);
+        if (segmentDB.ok) {
+          const json = await segmentDB.json();
+          if (Array.isArray(json.segmentData) && json.segmentData.length > 0) {
+            segmentData = json.segmentData;
+            useDB = true;
+          }
         }
+      } else {
+        const SQL = await initSqlJs({
+          locateFile: (file) => `${base}/sql-wasm/${file}`,
+        });
+
+        const res = await fetch(`${base}/db/${selectedDataset}_segment_results.db`);
+        if (!res.ok) throw new Error('DB not found');
+        const buf = await res.arrayBuffer();
+        const db = new SQL.Database(new Uint8Array(buf));
+        const result = db.exec('SELECT id, content FROM data');
+        if (!result.length) throw new Error('DB empty');
+        const { columns, values } = result[0];
+        const idIdx = columns.indexOf('id');
+        const contentIdx = columns.indexOf('content');
+
+        segmentData = values.map(row => ({
+          sessionId: row[idIdx].replace(/\.json$/, ''),
+          data: JSON.parse(row[contentIdx]),
+        }));
+        useDB = true;
       }
+
+      console.log('Use DB:', useDB, 'Segment data length:', segmentData.length);
     } catch (e) {
-      console.log("No .db file or .db file is empty.");
+      console.log('No .db file or .db file is empty.', e);
     }
     if (useDB) {
       const scoreMap = new Map(
