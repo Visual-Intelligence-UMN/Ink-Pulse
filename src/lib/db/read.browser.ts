@@ -29,8 +29,8 @@ export async function readSegmentResultsBrowser(dataset: string) {
   const contentIdx = columns.indexOf("content");
 
   const data = values.map((row) => ({
-    sessionId: row[idIdx].replace(/\.json$/, ""),
-    data: JSON.parse(row[contentIdx]),
+    id: row[idIdx].replace(/\.json$/, ""),
+    content: JSON.parse(row[contentIdx]),
   }));
 
   dbCache.set(dataset, data);
