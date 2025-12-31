@@ -2338,7 +2338,7 @@
       const isLocalBrowser =
         browser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
       console.log('Is local browser?', isLocalBrowser);
-      if (!isLocalBrowser) {
+      if (isLocalBrowser) {
         const segmentDB = await fetch(`${base}/api/getSegment?dataset=${selectedDataset}`);
         if (segmentDB.ok) {
           const json = await segmentDB.json();
