@@ -1008,22 +1008,43 @@
       let segmentSources = [];
       let useDB = false;
       try {
-        const dbRes = await fetch(
-          `${base}/api/getSegment?dataset=${selectedDataset}`
-        );
-        if (dbRes.ok) {
-          const json = await dbRes.json();
-          if (Array.isArray(json.segmentData) && json.segmentData.length > 0) {
-            segmentSources = json.segmentData.map((item) => ({
-              sessionId: item.id,
-              data: JSON.parse(item.content),
-            }));
-            useDB = true;
-            console.log("Use segment DB for search");
+        const isLocalBrowser =
+          browser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+        console.log('Is local browser?', isLocalBrowser);
+        if (isLocalBrowser) {
+          const dbRes = await fetch(`${base}/api/getSegment?dataset=${selectedDataset}`);
+          if (dbRes.ok) {
+            const json = await dbRes.json();
+            if (Array.isArray(json.segmentData) && json.segmentData.length > 0) {
+              segmentSources = json.segmentData.map((item) => ({
+                sessionId: item.id.replace(/\.json$/, ''),
+                data: JSON.parse(item.content),
+              }));
+              useDB = true;
+            }
           }
+        } else {
+          const SQL = await initSqlJs({
+            locateFile: (file) => `${base}/sql-wasm/${file}`,
+          });
+          const res = await fetch(`${base}/db/${selectedDataset}_segment_results.db`);
+          if (!res.ok) throw new Error('DB not found');
+          const buf = await res.arrayBuffer();
+          const db = new SQL.Database(new Uint8Array(buf));
+          const result = db.exec('SELECT id, content FROM data');
+          if (!result.length) throw new Error('DB empty');
+          const { columns, values } = result[0];
+          const idIdx = columns.indexOf('id');
+          const contentIdx = columns.indexOf('content');
+
+          segmentSources = values.map((row) => ({
+            sessionId: row[idIdx].replace(/\.json$/, ''),
+            data: JSON.parse(row[contentIdx]),
+          }));
+          useDB = true;
         }
-      } catch {
-        // ignore db errors, fallback to file
+      } catch (e) {
+        console.log('No .db file or .db file is empty.', e);
       }
       if (!useDB) {
         const fileList = CSVData.map((item) => item.session_id);
