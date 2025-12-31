@@ -5,7 +5,7 @@ import Database from "better-sqlite3";
 import * as schema from "./schema.js";
 
 export function connectDB(dbName: string) {
-  const dbDir = path.join(process.cwd(), "db");
+  const dbDir = path.join(process.cwd(), "static", "db");
   if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
   const dbFile = path.join(dbDir, `${dbName}.db`);
   const sqlite = new Database(dbFile);
