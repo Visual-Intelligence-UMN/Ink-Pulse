@@ -4,12 +4,13 @@ import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 import * as schema from "./schema.js";
 
-export function connectDB() {
+export function connectDB(dbName: string) {
   const dbDir = path.join(process.cwd(), "db");
-  console.log("index dbDir", dbDir)
   if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
-
-  const dbFile = path.join(dbDir, "local.db");
+  const dbFile = path.join(dbDir, `${dbName}.db`);
   const sqlite = new Database(dbFile);
-  return drizzle(sqlite, { schema });
+  return {
+    db: drizzle(sqlite, { schema }),
+    dbFile,
+  };
 }

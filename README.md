@@ -165,13 +165,6 @@ This script takes in two files (i) `data/session.jsonl`, which saves the complet
 
 Use the following code to convert your dataset into local database. NOTE: only folder that in **`static/dataset`** will be detected.
 
-```bash
-npx drizzle-kit generate --schema ./src/lib/db/schema.ts --out ./drizzle --dialect sqlite
-```
-
-```bash
-npx drizzle-kit push
-```
 
 ```bash
 npx tsx scripts/import-groups.ts

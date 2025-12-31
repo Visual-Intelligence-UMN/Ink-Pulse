@@ -703,6 +703,28 @@
     }
   }
 
+  async function loadSegmentData(dataset) {
+    try {
+      const res = await fetch(
+        `${base}/api/getSegment?dataset=${dataset}`
+      );
+      if (!res.ok) return { useDB: false };
+
+      const json = await res.json();
+      if (Array.isArray(json.segmentData) && json.segmentData.length > 0) {
+        return {
+          useDB: true,
+          data: json.segmentData.map((item) => ({
+            id: item.id,
+            content: JSON.parse(item.content),
+          })),
+        };
+      }
+    } catch {}
+
+    return { useDB: false };
+  }
+
   function deletePattern(sessionId) {
     isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
     const newSelectedPatterns = { ...selectedPatterns };
@@ -1000,37 +1022,60 @@
     };
 
     try {
-      const fileList = CSVData.map((item) => item.session_id);
       const datasetInfo = datasets.find((d) => d.name === selectedDataset);
-      for (const fileName of fileList) {
-        let data;
-        if (datasetInfo.source === "repo") {
-          const dataResponse = await fetch(
-            `${base}/dataset/${selectedDataset}/segment_results/${fileName}.json`
-          );
-          data = await dataResponse.json();
+      let segmentSources = [];
+      let useDB = false;
+      try {
+        const dbRes = await fetch(
+          `${base}/api/getSegment?dataset=${selectedDataset}`
+        );
+        if (dbRes.ok) {
+          const json = await dbRes.json();
+          if (Array.isArray(json.segmentData) && json.segmentData.length > 0) {
+            segmentSources = json.segmentData.map((item) => ({
+              sessionId: item.id,
+              data: JSON.parse(item.content),
+            }));
+            useDB = true;
+            console.log("Use segment DB for search");
+          }
         }
-        if (datasetInfo.source === "upload") {
-          const zipBlob = await getUploadedZipByName(selectedDataset);
-          if (!zipBlob) throw new Error("Uploaded zip not found");
-          const zip = await JSZip.loadAsync(zipBlob);
-          const filePathRegex = new RegExp(
-            `^${selectedDataset}/segment_results/${fileName}\\.json$`,
-            "i"
-          );
-          const files = zip.file(filePathRegex);
-          if (!files || files.length === 0)
-            throw new Error(`${fileName}.json not found in zip`);
-          const file = files[0];
-          const text = await file.async("string");
-          data = JSON.parse(text);
+      } catch {
+        // ignore db errors, fallback to file
+      }
+      if (!useDB) {
+        const fileList = CSVData.map((item) => item.session_id);
+        for (const fileName of fileList) {
+          let data;
+          if (datasetInfo.source === "repo") {
+            const dataResponse = await fetch(
+              `${base}/dataset/${selectedDataset}/segment_results/${fileName}.json`
+            );
+            data = await dataResponse.json();
+          }
+          if (datasetInfo.source === "upload") {
+            const zipBlob = await getUploadedZipByName(selectedDataset);
+            if (!zipBlob) throw new Error("Uploaded zip not found");
+            const zip = await JSZip.loadAsync(zipBlob);
+            const filePathRegex = new RegExp(
+              `^${selectedDataset}/segment_results/${fileName}\\.json$`,
+              "i"
+            );
+            const files = zip.file(filePathRegex);
+            if (!files || files.length === 0)
+              throw new Error(`${fileName}.json not found in zip`);
+            const file = files[0];
+            const text = await file.async("string");
+            data = JSON.parse(text);
+          }
+          segmentSources.push({
+            sessionId: fileName,
+            data,
+          });
         }
-
-        if (Array.isArray(data.chartData)) {
-          data.chartData = data.chartData.map(
-            ({ currentText, ...rest }) => rest
-          );
-        }
+        console.log("Use json files for search");
+      }
+      for (const { sessionId, data } of segmentSources) {
         if (Array.isArray(data.chartData)) {
           data.chartData = data.chartData.map(
             ({ currentText, ...rest }) => rest
@@ -1038,28 +1083,23 @@
         }
         delete data.paragraphColor;
         delete data.textElements;
-        // Use the correct data structure
         const dataToProcess = Array.isArray(data)
           ? data
           : data.chartData || data.totalSimilarityData || [];
         const segments = findSegments(dataToProcess, checks, count);
-        const extractedFileName = fileName;
-
         const taggedSegments = segments.map((segment, index) =>
           segment.map((item) => ({
             ...item,
-            id: extractedFileName,
-            segmentId: `${extractedFileName}_${index}`,
+            id: sessionId,
+            segmentId: `${sessionId}_${index}`,
           }))
         );
-
         for (const segment of taggedSegments) {
           const vector = buildVectorFromSegment(segment, checks);
           vector.id = segment[0]?.id ?? null;
           vector.segmentId = segment[0]?.segmentId ?? null;
           patternVectors.push(vector);
         }
-
         results.push(...taggedSegments);
       }
       const currentVector = buildVectorForCurrentSegment(
@@ -1075,7 +1115,7 @@
       searchCount = fullData.length;
       patternDataLoad(fullData);
     } catch (error) {
-      isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
+      isSearch = 0;
       console.error("Search failed", error);
     }
   }
@@ -2314,15 +2354,11 @@
     let segmentData = [];
     try {
       const segmentDB = await fetch(
-        `${base}/api/getSegment?group=${selectedDataset}`
+        `${base}/api/getSegment?dataset=${selectedDataset}`
       );
       if (segmentDB.ok) {
         const json = await segmentDB.json();
-        if (
-          json.exists &&
-          Array.isArray(json.segmentData) &&
-          json.segmentData.length > 0
-        ) {
+        if (Array.isArray(json.segmentData) && json.segmentData.length > 0) {
           segmentData = json.segmentData;
           useDB = true;
         }
@@ -2330,24 +2366,27 @@
     } catch (e) {
       console.log("No .db file or .db file is empty.");
     }
-
     if (useDB) {
       const scoreMap = new Map(
-        CSVData.map((row) => [row.session_id, row.judge_score])
-      );
-      const initArray = segmentData.map((item) => {
-        const sessionId = item.id.replace(/\.json$/, "");
-        const content = JSON.parse(item.content);
+      CSVData.map((row) => [row.session_id, row.judge_score])
+    );
+    const initArray = segmentData.map((item) => {
+      const sessionId = item.id;
+      const content =
+        typeof item.content === "string"
+          ? JSON.parse(item.content)
+          : item.content;
 
-        return {
-          sessionId,
-          similarityData: content,
-          totalSimilarityData: content,
-          llmScore: scoreMap.get(sessionId) ?? null,
-        };
-      });
-      initData.set(initArray);
-      console.log("Use .db file to init data.");
+      return {
+        sessionId,
+        similarityData: content,
+        totalSimilarityData: content,
+        llmScore: scoreMap.get(sessionId) ?? null,
+      };
+    });
+
+    initData.set(initArray);
+    console.log("Use .db file to init data.");
     } else {
       for (let i = 0; i < selectedSession.length; i++) {
         const sessionId = selectedSession[i];
