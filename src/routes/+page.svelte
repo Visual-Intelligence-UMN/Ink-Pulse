@@ -4735,7 +4735,7 @@
                       </div>
                     </div>
                   </div>
-                  <div class="content-box" style="height:65vh">
+                  <div class="content-box" style="height:65vh; width:35vw; margin-left: 20px;">
                     <div class="playback-row">
                       <div class="progress-container-new" style="width: 100%;">
                         <input
@@ -4885,6 +4885,7 @@
     width: 100%;
     max-height: 100%;
     overflow-y: auto;
+    scrollbar-gutter: stable;
     margin-top: 20px;
   }
 
