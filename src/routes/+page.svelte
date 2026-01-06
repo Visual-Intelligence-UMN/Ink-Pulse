@@ -162,7 +162,8 @@
   let playbackIndex = 0;
   let playbackTimer = null;
   let playbackSpeed = 1; // Default 1x speed (real-time)
-  const SPEED_OPTIONS = [1, 10, 50, 100]; // Available speed options: 1x, 10x, 50x, 100x
+  const SPEED_OPTIONS = [1, 10, 50]; // Available speed options: 1x, 10x, 50x
+  const icons = [`${base}/play.svg`, `${base}/doubleplay.svg`, `${base}/tripleplay.svg`];
   $: TIME_PER_MIN_MS = 60000 / playbackSpeed; // 1 real minute -> calculated ms based on speed
 
   $: if (!isSemanticChecked) {
@@ -4774,7 +4775,11 @@
                             class="speed-button"
                             on:click={togglePlaybackSpeed}
                           >
-                            {playbackSpeed}x
+                            <img
+                              src={icons[SPEED_OPTIONS.indexOf(playbackSpeed)]}
+                              alt="Playback speed"
+                              height="12"
+                            />
                           </button>
                         </div>
                       {/if}
@@ -5021,10 +5026,13 @@
   }
 
   .speed-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 6px 12px;
     border: 2px solid var(--progColor);
     border-radius: 8px;
-    background: white;
+    background: #ff8c80;
     color: var(--progColor);
     cursor: pointer;
     font-weight: 600;
@@ -5033,8 +5041,7 @@
   }
 
   .speed-button:hover {
-    background: var(--progColor);
-    color: white;
+    opacity: 0.9;
     transform: scale(1.02);
   }
 
