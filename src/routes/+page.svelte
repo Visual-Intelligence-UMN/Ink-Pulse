@@ -2789,31 +2789,34 @@
 
   function handlePointSelected(e, sessionId) {
     const d = e.detail;
-    clickSession.update((currentSession) => {
-      if (currentSession.sessionId !== sessionId) return currentSession;
-      const textElements = d.currentText.split("").map((char, index) => ({
-        text: char,
-        textColor: d.currentColor?.[index] ?? "#000",
-      }));
-      const chartData = currentSession.chartData.map((point) => ({
-        ...point,
-        opacity: point.index > d.index ? 0.01 : 1,
-      }));
-      const similarityData = currentSession.totalSimilarityData;
-      const endIndex = similarityData.findIndex(
-        (item) => d.percentage < item.end_progress * 100
-      );
-      const selectedData =
-        endIndex === -1 ? similarityData : similarityData.slice(0, endIndex);
+    // clickSession.update((currentSession) => {
+    //   if (currentSession.sessionId !== sessionId) return currentSession;
+    //   const textElements = d.currentText.split("").map((char, index) => ({
+    //     text: char,
+    //     textColor: d.currentColor?.[index] ?? "#000",
+    //   }));
+    //   const chartData = currentSession.chartData.map((point) => ({
+    //     ...point,
+    //     opacity: point.index > d.index ? 0.01 : 1,
+    //   }));
+    //   const similarityData = currentSession.totalSimilarityData;
+    //   const endIndex = similarityData.findIndex(
+    //     (item) => d.percentage < item.end_progress * 100
+    //   );
+    //   const selectedData =
+    //     endIndex === -1 ? similarityData : similarityData.slice(0, endIndex);
 
-      return {
-        ...currentSession,
-        textElements,
-        currentTime: d.time,
-        chartData,
-        similarityData: selectedData,
-      };
-    });
+    //   return {
+    //     ...currentSession,
+    //     textElements,
+    //     currentTime: d.time,
+    //     chartData,
+    //     similarityData: selectedData,
+    //   };
+    // });
+    let idx = findIndexFromTime(get(clickSession)?.chartData, d.time);
+    applyPlaybackFrame(sessionId, idx);
+    if (isPlaying) schedulePlayback(sessionId, idx);
   }
 
   // Playback control functions
