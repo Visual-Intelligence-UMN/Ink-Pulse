@@ -162,7 +162,7 @@
   let playbackIndex = 0;
   let playbackTimer = null;
   let playbackSpeed = 1; // Default 1x speed (real-time)
-  const SPEED_OPTIONS = [1, 10, 50]; // Available speed options: 1x, 10x, 50x
+  const SPEED_OPTIONS = [1, 5, 100]; // Available speed options: 1x, 5x, 100x
   const icons = [`${base}/play.svg`, `${base}/doubleplay.svg`, `${base}/tripleplay.svg`];
   $: TIME_PER_MIN_MS = 60000 / playbackSpeed; // 1 real minute -> calculated ms based on speed
 
@@ -4768,7 +4768,7 @@
                       </div>
                       {#if $clickSession?.chartData?.length}
                         <div class="playback-controls">
-                          <button class="play-button" on:click={togglePlayback}>
+                          <button class="play-button" on:click={togglePlayback} style="width:8.5ch; text-align:center;">
                             {isPlaying ? "Pause" : "Play"}
                           </button>
                           <button
