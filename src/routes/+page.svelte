@@ -163,7 +163,7 @@
   let playbackTimer = null;
   let playbackSpeed = 1; // Default 1x speed (real-time)
   const SPEED_OPTIONS = [1, 10, 50, 100]; // Available speed options: 1x, 10x, 50x, 100x
-  $: TIME_PER_MIN_MS = 60000 / playbackSpeed; // 1 real minute -> calculated seconds based on speed
+  $: TIME_PER_MIN_MS = 60000 / playbackSpeed; // 1 real minute -> calculated ms based on speed
 
   $: if (!isSemanticChecked) {
     isValueRangeChecked = false;
@@ -2887,8 +2887,8 @@
 
     const current = data[startIndex];
     const next = data[startIndex + 1];
-    const deltaMinutes = Math.max((next.time || 0) - (current.time || 0), 0.01);
-    const delay = Math.max(50, deltaMinutes * TIME_PER_MIN_MS);
+    const deltaMinutes = Math.max((next.time || 0) - (current.time || 0), 1/60 * 0.01); // Minimum 10ms to avoid too fast playback
+    const delay = deltaMinutes * TIME_PER_MIN_MS;
 
     playbackTimer = setTimeout(() => {
       if (!isPlaying) return;
