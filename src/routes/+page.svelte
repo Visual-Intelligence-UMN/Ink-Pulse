@@ -162,8 +162,9 @@
   let playbackIndex = 0;
   let playbackTimer = null;
   let playbackSpeed = 1; // Default 1x speed (real-time)
-  const SPEED_OPTIONS = [1, 10, 50, 100]; // Available speed options: 1x, 10x, 50x, 100x
-  $: TIME_PER_MIN_MS = 60000 / playbackSpeed; // 1 real minute -> calculated seconds based on speed
+  const SPEED_OPTIONS = [1, 5, 100]; // Available speed options: 1x, 5x, 100x
+  const icons = [`${base}/play.svg`, `${base}/doubleplay.svg`, `${base}/tripleplay.svg`];
+  $: TIME_PER_MIN_MS = 60000 / playbackSpeed; // 1 real minute -> calculated ms based on speed
 
   $: if (!isSemanticChecked) {
     isValueRangeChecked = false;
@@ -2085,7 +2086,7 @@
         data = JSON.parse(text);
       }
 
-      const time0 = new Date(data.init_time);
+      const time0 = new Date(data.actions[0].event_time);
       const time100 = new Date(data.end_time);
       const currentTime = (time100.getTime() - time0.getTime()) / (1000 * 60); // in minutes
       const similarityData = await fetchSimilarityData(sessionFile);
@@ -2153,7 +2154,7 @@
         data = JSON.parse(text);
       }
 
-      time0 = new Date(data.init_time);
+      time0 = new Date(data.actions[0].event_time);
       time100 = new Date(data.end_time);
       time100 = (time100.getTime() - time0.getTime()) / (1000 * 60);
       currentTime = time100;
@@ -2789,31 +2790,34 @@
 
   function handlePointSelected(e, sessionId) {
     const d = e.detail;
-    clickSession.update((currentSession) => {
-      if (currentSession.sessionId !== sessionId) return currentSession;
-      const textElements = d.currentText.split("").map((char, index) => ({
-        text: char,
-        textColor: d.currentColor?.[index] ?? "#000",
-      }));
-      const chartData = currentSession.chartData.map((point) => ({
-        ...point,
-        opacity: point.index > d.index ? 0.01 : 1,
-      }));
-      const similarityData = currentSession.totalSimilarityData;
-      const endIndex = similarityData.findIndex(
-        (item) => d.percentage < item.end_progress * 100
-      );
-      const selectedData =
-        endIndex === -1 ? similarityData : similarityData.slice(0, endIndex);
+    // clickSession.update((currentSession) => {
+    //   if (currentSession.sessionId !== sessionId) return currentSession;
+    //   const textElements = d.currentText.split("").map((char, index) => ({
+    //     text: char,
+    //     textColor: d.currentColor?.[index] ?? "#000",
+    //   }));
+    //   const chartData = currentSession.chartData.map((point) => ({
+    //     ...point,
+    //     opacity: point.index > d.index ? 0.01 : 1,
+    //   }));
+    //   const similarityData = currentSession.totalSimilarityData;
+    //   const endIndex = similarityData.findIndex(
+    //     (item) => d.percentage < item.end_progress * 100
+    //   );
+    //   const selectedData =
+    //     endIndex === -1 ? similarityData : similarityData.slice(0, endIndex);
 
-      return {
-        ...currentSession,
-        textElements,
-        currentTime: d.time,
-        chartData,
-        similarityData: selectedData,
-      };
-    });
+    //   return {
+    //     ...currentSession,
+    //     textElements,
+    //     currentTime: d.time,
+    //     chartData,
+    //     similarityData: selectedData,
+    //   };
+    // });
+    let idx = findIndexFromTime(get(clickSession)?.chartData, d.time);
+    applyPlaybackFrame(sessionId, idx);
+    if (isPlaying) schedulePlayback(sessionId, idx);
   }
 
   // Playback control functions
@@ -2884,8 +2888,8 @@
 
     const current = data[startIndex];
     const next = data[startIndex + 1];
-    const deltaMinutes = Math.max((next.time || 0) - (current.time || 0), 0.01);
-    const delay = Math.max(50, deltaMinutes * TIME_PER_MIN_MS);
+    const deltaMinutes = Math.max((next.time || 0) - (current.time || 0), 1/60 * 0.01); // Minimum 10ms to avoid too fast playback
+    const delay = deltaMinutes * TIME_PER_MIN_MS;
 
     playbackTimer = setTimeout(() => {
       if (!isPlaying) return;
@@ -4735,7 +4739,7 @@
                       </div>
                     </div>
                   </div>
-                  <div class="content-box" style="height:65vh">
+                  <div class="content-box" style="height:65vh; width:35vw; margin-left: 20px;">
                     <div class="playback-row">
                       <div class="progress-container-new" style="width: 100%;">
                         <input
@@ -4764,14 +4768,18 @@
                       </div>
                       {#if $clickSession?.chartData?.length}
                         <div class="playback-controls">
-                          <button class="play-button" on:click={togglePlayback}>
+                          <button class="play-button" on:click={togglePlayback} style="width:8.5ch; text-align:center;">
                             {isPlaying ? "Pause" : "Play"}
                           </button>
                           <button
                             class="speed-button"
                             on:click={togglePlaybackSpeed}
                           >
-                            {playbackSpeed}x
+                            <img
+                              src={icons[SPEED_OPTIONS.indexOf(playbackSpeed)]}
+                              alt="Playback speed"
+                              height="12"
+                            />
                           </button>
                         </div>
                       {/if}
@@ -4885,6 +4893,7 @@
     width: 100%;
     max-height: 100%;
     overflow-y: auto;
+    scrollbar-gutter: stable;
     margin-top: 20px;
   }
 
@@ -5017,10 +5026,13 @@
   }
 
   .speed-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 6px 12px;
     border: 2px solid var(--progColor);
     border-radius: 8px;
-    background: white;
+    background: #ff8c80;
     color: var(--progColor);
     cursor: pointer;
     font-weight: 600;
@@ -5029,8 +5041,7 @@
   }
 
   .speed-button:hover {
-    background: var(--progColor);
-    color: white;
+    opacity: 0.9;
     transform: scale(1.02);
   }
 
