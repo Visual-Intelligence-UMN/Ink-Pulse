@@ -2087,7 +2087,7 @@
       }
 
       const time0 = new Date(data.actions[0].event_time);
-      const time100 = new Date(data.end_time);
+      const time100 = new Date(data.actions[data.actions.length - 1].event_time);
       const currentTime = (time100.getTime() - time0.getTime()) / (1000 * 60); // in minutes
       const similarityData = await fetchSimilarityData(sessionFile);
       const chartData = handleEventsSummary(data, similarityData);
@@ -2155,7 +2155,7 @@
       }
 
       time0 = new Date(data.actions[0].event_time);
-      time100 = new Date(data.end_time);
+      time100 = new Date(data.actions[data.actions.length - 1].event_time);
       time100 = (time100.getTime() - time0.getTime()) / (1000 * 60);
       currentTime = time100;
 
