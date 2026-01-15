@@ -184,12 +184,12 @@
 
     const filteredData = processedData.filter((d) => {
       if (xConfig.hasRange) {
-        // X 轴是范围类型（progress/time）
+        // X axis is range type
         const barX = Math.min(xScale(d.xStart), xScale(d.xEnd));
         const barWidth = Math.abs(xScale(d.xStart) - xScale(d.xEnd));
         return barX + barWidth >= x0 && barX <= x1;
       } else {
-        // X 轴是点值类型（semantic_change）
+        // X axis is point value type (semantic_change)
         const barX = xScale(d.xValue);
         return barX >= x0 && barX <= x1;
       }
@@ -256,7 +256,7 @@
     const xConfig = attributeConfig[xAxisField];
     const yConfig = attributeConfig[yAxisField];
 
-    // 处理数据，计算所有属性值
+    // process the data, calculate all the attribute values
     processedData = similarityData.map((item, i) => {
       const dataPoint = {
         id: i,
@@ -271,7 +271,7 @@
         yValue: yConfig.getValue(item),
       };
 
-      // 如果是范围类型，添加范围值
+      // if the x axis is range type, add the range values
       if (xConfig.hasRange) {
         dataPoint.xStart = xConfig.getStart(item);
         dataPoint.xEnd = xConfig.getEnd(item);
@@ -298,10 +298,10 @@
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-    // 动态计算 domain
+    // dynamically calculate the domain
     let xDomain = xConfig.domain;
     if (!xDomain) {
-      // 自动计算（如 time）
+      // automatically calculate the domain (e.g. time)
       const xValues = processedData.flatMap((d) =>
         xConfig.hasRange ? [d.xStart, d.xEnd] : [d.xValue]
       );
@@ -316,7 +316,7 @@
       yDomain = [Math.min(...yValues), Math.max(...yValues)];
     }
 
-    // 创建 scale
+    // create scale
     const baseXScale = d3.scaleLinear().domain(xDomain).range([0, chartWidth]);
     xScale = zoomTransform.rescaleX(baseXScale);
     xScaleBarChartFactor = chartWidth / (xDomain[1] - xDomain[0]);
@@ -357,7 +357,7 @@
       .style("font-size", "10px")
       .text(yConfig.label);
 
-    // 计算固定条形宽度/高度（用于点值）
+    // calculate the fixed bar width/height (for point value)
     const fixedBarWidth = chartWidth * 0.02;
     const fixedBarHeight = chartHeight * 0.02;
 
@@ -369,37 +369,37 @@
       .attr("class", "bar")
       .attr("x", (d) => {
         if (xConfig.hasRange) {
-          // X轴是范围：使用起点
+          // X axis is range: use the start point
           return Math.min(xScale(d.xStart), xScale(d.xEnd));
         } else {
-          // X轴是点值：居中
+          // X axis is point value: center
           return xScale(d.xValue) - fixedBarWidth / 2;
         }
       })
       .attr("y", (d) => {
         if (yConfig.hasRange) {
-          // Y轴是范围：使用端点（较大的 Y 坐标）
+          // Y axis is range: use the end point (larger Y coordinate)
           return Math.min(newyScale(d.yStart), newyScale(d.yEnd));
         } else {
-          // Y轴是点值：从该点向下延伸
+          // Y axis is point value: extend from the point downward
           return newyScale(d.yValue);
         }
       })
       .attr("width", (d) => {
         if (xConfig.hasRange) {
-          // X轴是范围：宽度 = 范围跨度
+          // X axis is range: width = range span
           return Math.abs(xScale(d.xEnd) - xScale(d.xStart));
         } else {
-          // X轴是点值：固定宽度
+          // X axis is point value: fixed width
           return fixedBarWidth;
         }
       })
       .attr("height", (d) => {
         if (yConfig.hasRange) {
-          // Y轴是范围：高度 = 范围跨度
+          // Y axis is range: height = range span
           return Math.abs(newyScale(d.yStart) - newyScale(d.yEnd));
         } else {
-          // Y轴是点值：从该点到底部
+          // Y axis is point value: extend from the point downward
           return newyScale(yDomain[0]) - newyScale(d.yValue);
         }
       })
@@ -461,14 +461,14 @@
       const xMin = xScale.invert(x0);
       const xMax = xScale.invert(x1);
 
-      // 通用格式：包含字段信息
+      // general format: contains field information
       sharedSelection = {
         xMin,
         xMax,
         xField: xAxisField,
         yField: yAxisField,
         selectionSource: "barChart_y",
-        // 向后兼容：如果 X 轴是 progress，保留旧字段
+        // backward compatibility: if the x axis is progress, keep the old field
         progressMin: xAxisField === "progress" ? xMin : null,
         progressMax: xAxisField === "progress" ? xMax : null,
         timeMin: xAxisField === "time" ? xMin : null,
