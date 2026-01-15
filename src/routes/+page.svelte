@@ -44,6 +44,14 @@
   let selectionMode = false;
   let brushIsX = false;
   let selectedPatterns = {};
+
+  // Chart axis selection
+  let barChartXAxis = "progress";
+  let barChartYAxis = "semantic_change";
+
+  // LineChart axis selection
+  let lineChartXAxis = "time";
+  let lineChartYAxis = "progress";
   let showPatternSearch = false;
   let exactSourceButton;
   let exactTrendButton;
@@ -4710,10 +4718,59 @@
                         </div>
                       </div>
                     </div>
+
+                    <!-- Chart Axis Controls -->
+                    <div class="chart-axis-controls">
+                      <div class="axis-control-row">
+                        <label>
+                          <span class="control-label">BarChart X:</span>
+                          <select bind:value={barChartXAxis}>
+                            <option value="progress">Progress</option>
+                            <option value="time">Time</option>
+                            <option value="semantic_change"
+                              >Semantic Change</option
+                            >
+                          </select>
+                        </label>
+                        <label>
+                          <span class="control-label">LineChart X:</span>
+                          <select bind:value={lineChartXAxis}>
+                            <option value="time">Time</option>
+                            <option value="progress">Progress</option>
+                          </select>
+                        </label>
+                      </div>
+                      <div class="axis-control-row">
+                        <label>
+                          <span class="control-label">BarChart Y:</span>
+                          <select bind:value={barChartYAxis}>
+                            <option value="progress">Progress</option>
+                            <option value="time">Time</option>
+                            <option value="semantic_change"
+                              >Semantic Change</option
+                            >
+                          </select>
+                        </label>
+                        <label>
+                          <span class="control-label">LineChart Y:</span>
+                          <select bind:value={lineChartYAxis}>
+                            <option value="progress">Progress</option>
+                            <option value="time">Time</option>
+                          </select>
+                        </label>
+                      </div>
+                    </div>
+
                     <div class="chart-container-split">
                       <!-- Left: BarChart (Semantic Similarity) -->
                       <div class="chart-section">
-                        <h4 class="chart-title">Semantic Similarity</h4>
+                        <h4 class="chart-title">
+                          {barChartYAxis === "semantic_change"
+                            ? "Semantic Change"
+                            : barChartYAxis === "progress"
+                              ? "Progress"
+                              : "Time"}
+                        </h4>
                         <div
                           class="chart-wrapper-independent"
                           on:wheel={handleChartZoom}
@@ -4724,6 +4781,8 @@
                               similarityData={$clickSession.similarityData}
                               {yScale}
                               {height}
+                              xAxisField={barChartXAxis}
+                              yAxisField={barChartYAxis}
                               bind:zoomTransform={
                                 zoomTransforms[$clickSession.sessionId]
                               }
@@ -4743,7 +4802,11 @@
 
                       <!-- Right: LineChart (Writing Progress) -->
                       <div class="chart-section">
-                        <h4 class="chart-title">Writing Progress</h4>
+                        <h4 class="chart-title">
+                          {lineChartYAxis === "progress"
+                            ? "Writing Progress"
+                            : "Time"}
+                        </h4>
                         <div
                           class="chart-wrapper-independent"
                           on:wheel={handleChartZoom}
@@ -4757,6 +4820,8 @@
                               handlePointSelected(e, $clickSession.sessionId)}
                             {yScale}
                             {height}
+                            xAxisField={lineChartXAxis}
+                            yAxisField={lineChartYAxis}
                             bind:zoomTransform={
                               zoomTransforms[$clickSession.sessionId]
                             }
@@ -5307,6 +5372,56 @@
     transform-origin: center top;
   }
 
+  /* Chart axis controls */
+  .chart-axis-controls {
+    max-width: 700px;
+    padding: 3px 15px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    margin: 3px auto;
+  }
+
+  .axis-control-row {
+    display: flex;
+    gap: 70px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .axis-control-row label {
+    display: flex;
+    align-items: center;
+    gap: 0px;
+  }
+
+  .control-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+  }
+
+  .axis-control-row select {
+    padding: 3px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 11px;
+    background: white;
+    cursor: pointer;
+    min-width: 140px;
+  }
+
+  .axis-control-row select:hover {
+    border-color: #999;
+  }
+
+  .axis-control-row select:focus {
+    outline: none;
+    border-color: #66c2a5;
+    box-shadow: 0 0 0 2px rgba(102, 194, 165, 0.2);
+  }
+
   /* New split layout for charts */
   .chart-container-split {
     display: grid;
@@ -5314,6 +5429,7 @@
     gap: 20px;
     max-width: 700px;
     padding: 20px;
+    margin: 0 auto;
   }
 
   .chart-section {
@@ -5345,7 +5461,7 @@
     justify-content: center;
     align-items: center;
     gap: 10px;
-    margin: 20px auto 10px;
+    margin: 10px auto 10px;
     max-width: 700px;
   }
 

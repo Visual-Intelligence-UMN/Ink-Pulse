@@ -8,6 +8,8 @@
   export let sharedSelection;
   export let xScaleLineChartFactor: number;
   export let similarityData: any[] = [];
+  export let xAxisField = "time"; // 新增：X轴字段
+  export let yAxisField = "progress"; // 新增：Y轴字段
 
   type ChartEvents = {
     pointSelected: {
@@ -62,6 +64,20 @@
   let brushY: any = null;
   let brushX: any = null;
   export let brushIsX: boolean = false;
+
+  // 属性配置池（细粒度数据）
+  const attributeConfig: any = {
+    time: {
+      label: "Time (min)",
+      getValue: (item: any) => item.time,
+      domain: null, // 动态计算
+    },
+    progress: {
+      label: "Writing Length",
+      getValue: (item: any) => item.percentage,
+      domain: [0, 100],
+    },
+  };
 
   $: if (brushGroup && brushX && brushY) {
     if (brushIsX) {
@@ -141,7 +157,26 @@
       return 1;
     }
 
-    // Handle time-based selection (lineChart_x)
+    // 通用格式：检查字段匹配
+    if (sharedSelection.xMin !== undefined && sharedSelection.xMax !== undefined && sharedSelection.xField) {
+      // X 方向选择
+      if (sharedSelection.xField === xAxisField) {
+        const xVal = getXValue(d);
+        const inRange = xVal >= sharedSelection.xMin && xVal <= sharedSelection.xMax;
+        return inRange ? 1 : 0.01;
+      }
+    }
+
+    if (sharedSelection.yMin !== undefined && sharedSelection.yMax !== undefined && sharedSelection.yField) {
+      // Y 方向选择
+      if (sharedSelection.yField === yAxisField) {
+        const yVal = getYValue(d);
+        const inRange = yVal >= sharedSelection.yMin && yVal <= sharedSelection.yMax;
+        return inRange ? 1 : 0.01;
+      }
+    }
+
+    // 向后兼容：time-based selection
     if (
       sharedSelection.selectionSource === "lineChart_x" &&
       sharedSelection.timeMin !== undefined &&
@@ -152,7 +187,7 @@
       return inTimeRange ? 1 : 0.01;
     }
 
-    // Handle progress-based selection (lineChart_y, barChart_y)
+    // 向后兼容：progress-based selection
     if (
       sharedSelection.progressMin !== undefined &&
       sharedSelection.progressMax !== undefined
@@ -181,8 +216,8 @@
     const x1 = chartWidth;
 
     const insidePoints = chartData.filter((d) => {
-      const px = zx(d.time);
-      const py = zy(d.percentage);
+      const px = zx(getXValue(d));
+      const py = zy(getYValue(d));
       return px >= x0 && px <= x1 && py >= y0 && py <= y1;
     });
 
@@ -207,8 +242,8 @@
       })
   .filter((d) => d !== null);
 
-    const progressMin = d3.min(insidePoints, (d) => d.percentage);
-    const progressMax = d3.max(insidePoints, (d) => d.percentage);
+    const yMin = d3.min(insidePoints, (d) => getYValue(d));
+    const yMax = d3.max(insidePoints, (d) => getYValue(d));
     const scValues = matchedPoints.map((d) => d.residual_vector_norm || 0);
     const scMin = d3.min(scValues) || 0;
     const scMax = d3.max(scValues) || 1;
@@ -217,9 +252,16 @@
     const tMax = d3.max(insidePoints, (d) => d.time);
 
     sharedSelection = {
-      progressMin,
-      progressMax,
+      yMin,
+      yMax,
+      yField: yAxisField,
+      xField: xAxisField,
       selectionSource: "lineChart_y",
+      // 向后兼容
+      progressMin: yAxisField === "progress" ? yMin : null,
+      progressMax: yAxisField === "progress" ? yMax : null,
+      timeMin: yAxisField === "time" ? yMin : null,
+      timeMax: yAxisField === "time" ? yMax : null,
     };
 
     // dispatch("selectionChanged", {
@@ -252,9 +294,12 @@
     const [x0, x1] = event.selection;
     const zx = zoomTransform.rescaleX(xScale);
 
-    const t0 = zx.invert(x0);
-    const t1 = zx.invert(x1);
-    const insidePoints = chartData.filter((d) => d.time >= t0 && d.time <= t1);
+    const xMin = zx.invert(x0);
+    const xMax = zx.invert(x1);
+    const insidePoints = chartData.filter((d) => {
+      const xVal = getXValue(d);
+      return xVal >= xMin && xVal <= xMax;
+    });
 
     if (!insidePoints.length) {
       sharedSelection = null;
@@ -288,9 +333,16 @@
     const timeMax = d3.max(insidePoints, (d) => d.time);
 
     sharedSelection = {
-      progressMin,
-      progressMax,
+      xMin,
+      xMax,
+      xField: xAxisField,
+      yField: yAxisField,
       selectionSource: "lineChart_x",
+      // 向后兼容
+      progressMin: xAxisField === "progress" ? xMin : progressMin,
+      progressMax: xAxisField === "progress" ? xMax : progressMax,
+      timeMin: xAxisField === "time" ? xMin : timeMin,
+      timeMax: xAxisField === "time" ? xMax : timeMax,
     };
 
     // dispatch("selectionChanged", {
@@ -317,6 +369,11 @@
       .transition()
       .duration(750)
       .call(zoom.transform, d3.zoomIdentity);
+  }
+
+  // 监听轴字段变化，重新初始化图表
+  $: if (xAxisField && yAxisField && chartData.length) {
+    initChart();
   }
 
   $: if (chartData.length) {
@@ -407,16 +464,34 @@
   }
 
   function initChart() {
-    const minTime = 0;
-    const maxTime = d3.max(chartData, (d) => d.time);
+    const xConfig = attributeConfig[xAxisField];
+    const yConfig = attributeConfig[yAxisField];
+
+    // 动态计算 X 轴 domain
+    let xDomain = xConfig.domain;
+    if (!xDomain) {
+      const xValues = chartData.map((d) => xConfig.getValue(d));
+      const minX = Math.min(...xValues);
+      const maxX = Math.max(...xValues);
+      xDomain = [minX, maxX];
+    }
+
+    // 动态计算 Y 轴 domain
+    let yDomain = yConfig.domain;
+    if (!yDomain) {
+      const yValues = chartData.map((d) => yConfig.getValue(d));
+      const minY = Math.min(...yValues);
+      const maxY = Math.max(...yValues);
+      yDomain = [minY, maxY];
+    }
 
     xScale = d3
       .scaleLinear()
-      .domain([minTime, maxTime])
+      .domain(xDomain)
       .range([0, width - margin.left - margin.right]);
 
     xScaleLineChartFactor =
-      (width - margin.left - margin.right) / ((maxTime - minTime) * 60);
+      (width - margin.left - margin.right) / ((xDomain[1] - xDomain[0]) * (xAxisField === "time" ? 60 : 1));
 
     zoom = d3
       .zoom()
@@ -457,6 +532,15 @@
   function scaledY(val) {
     return yScale ? yScale(val) : 0;
   }
+
+  // 动态获取点的 X/Y 值
+  function getXValue(d: any) {
+    return attributeConfig[xAxisField]?.getValue(d) ?? 0;
+  }
+
+  function getYValue(d: any) {
+    return attributeConfig[yAxisField]?.getValue(d) ?? 0;
+  }
 </script>
 
 <svg bind:this={svgContainer} {width} {height} style="vertical-align: top">
@@ -486,8 +570,8 @@
       <g>
         {#each chartData.filter((d) => !d.isSuggestionOpen) as d (d.index)}
           <circle
-            cx={zoomTransform.applyX(scaledX(d.time))}
-            cy={zoomTransform.applyY(scaledY(d.percentage))}
+            cx={zoomTransform.applyX(scaledX(getXValue(d)))}
+            cy={zoomTransform.applyY(scaledY(getYValue(d)))}
             r={selectedPoint?.index === d.index
               ? 5
               : hoveredPoint?.index === d.index
@@ -509,7 +593,7 @@
             stroke="#aaaaaa"
             stroke-width="1"
             opacity={d.opacity + 0.29}
-            transform={`translate(${zoomTransform.applyX(scaledX(d.time))},${zoomTransform.applyY(scaledY(d.percentage + 6 / zoomTransform.k))}) rotate(180)`}
+            transform={`translate(${zoomTransform.applyX(scaledX(getXValue(d)))},${zoomTransform.applyY(scaledY(getYValue(d) + 6 / zoomTransform.k))}) rotate(180)`}
           />
         {/each}
 
@@ -528,7 +612,7 @@
       font-size="10px"
       fill="black"
     >
-      Time (min)
+      {attributeConfig[xAxisField]?.label ?? "X"}
     </text>
     <g class="y-axis" bind:this={yAxisG} transform="translate({chartWidth}, 0)"></g>
     <text
@@ -539,7 +623,7 @@
       font-size="10px"
       fill="black"
     >
-      Writing length
+      {attributeConfig[yAxisField]?.label ?? "Y"}
     </text>
   </g>
 </svg>
