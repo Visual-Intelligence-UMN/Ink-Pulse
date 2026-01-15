@@ -48,6 +48,10 @@
   // BarChart 轴选择
   let barChartXAxis = "progress";
   let barChartYAxis = "semantic_change";
+
+  // LineChart 轴选择
+  let lineChartXAxis = "time";
+  let lineChartYAxis = "progress";
   let showPatternSearch = false;
   let exactSourceButton;
   let exactTrendButton;
@@ -4729,6 +4733,15 @@
                           </select>
                         </label>
                         <label>
+                          <span class="control-label">LineChart X:</span>
+                          <select bind:value={lineChartXAxis}>
+                            <option value="time">Time</option>
+                            <option value="progress">Progress</option>
+                          </select>
+                        </label>
+                      </div>
+                      <div class="axis-control-row">
+                        <label>
                           <span class="control-label">BarChart Y:</span>
                           <select bind:value={barChartYAxis}>
                             <option value="progress">Progress</option>
@@ -4736,6 +4749,13 @@
                             <option value="semantic_change"
                               >Semantic Change</option
                             >
+                          </select>
+                        </label>
+                        <label>
+                          <span class="control-label">LineChart Y:</span>
+                          <select bind:value={lineChartYAxis}>
+                            <option value="progress">Progress</option>
+                            <option value="time">Time</option>
                           </select>
                         </label>
                       </div>
@@ -4782,7 +4802,11 @@
 
                       <!-- Right: LineChart (Writing Progress) -->
                       <div class="chart-section">
-                        <h4 class="chart-title">Writing Progress</h4>
+                        <h4 class="chart-title">
+                          {lineChartYAxis === "progress"
+                            ? "Writing Progress"
+                            : "Time"}
+                        </h4>
                         <div
                           class="chart-wrapper-independent"
                           on:wheel={handleChartZoom}
@@ -4796,6 +4820,8 @@
                               handlePointSelected(e, $clickSession.sessionId)}
                             {yScale}
                             {height}
+                            xAxisField={lineChartXAxis}
+                            yAxisField={lineChartYAxis}
                             bind:zoomTransform={
                               zoomTransforms[$clickSession.sessionId]
                             }
@@ -5349,40 +5375,41 @@
   /* Chart axis controls */
   .chart-axis-controls {
     max-width: 700px;
-    padding: 15px 20px;
+    padding: 3px 15px;
     background: #f5f5f5;
     border-radius: 8px;
-    margin: 10px 0;
+    margin: 3px auto;
   }
 
   .axis-control-row {
     display: flex;
-    gap: 30px;
+    gap: 70px;
     align-items: center;
+    justify-content: center;
     flex-wrap: wrap;
   }
 
   .axis-control-row label {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0px;
   }
 
   .control-label {
-    font-size: 14px;
+    font-size: 10px;
     font-weight: 600;
     color: #333;
     white-space: nowrap;
   }
 
   .axis-control-row select {
-    padding: 6px 12px;
+    padding: 3px 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    font-size: 14px;
+    font-size: 11px;
     background: white;
     cursor: pointer;
-    min-width: 160px;
+    min-width: 140px;
   }
 
   .axis-control-row select:hover {
@@ -5402,6 +5429,7 @@
     gap: 20px;
     max-width: 700px;
     padding: 20px;
+    margin: 0 auto;
   }
 
   .chart-section {
@@ -5433,7 +5461,7 @@
     justify-content: center;
     align-items: center;
     gap: 10px;
-    margin: 20px auto 10px;
+    margin: 10px auto 10px;
     max-width: 700px;
   }
 

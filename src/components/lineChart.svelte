@@ -8,6 +8,8 @@
   export let sharedSelection;
   export let xScaleLineChartFactor: number;
   export let similarityData: any[] = [];
+  export let xAxisField = "time"; // 新增：X轴字段
+  export let yAxisField = "progress"; // 新增：Y轴字段
 
   type ChartEvents = {
     pointSelected: {
@@ -62,6 +64,20 @@
   let brushY: any = null;
   let brushX: any = null;
   export let brushIsX: boolean = false;
+
+  // 属性配置池（细粒度数据）
+  const attributeConfig: any = {
+    time: {
+      label: "Time (min)",
+      getValue: (item: any) => item.time,
+      domain: null, // 动态计算
+    },
+    progress: {
+      label: "Writing Length",
+      getValue: (item: any) => item.percentage,
+      domain: [0, 100],
+    },
+  };
 
   $: if (brushGroup && brushX && brushY) {
     if (brushIsX) {
@@ -319,6 +335,11 @@
       .call(zoom.transform, d3.zoomIdentity);
   }
 
+  // 监听轴字段变化，重新初始化图表
+  $: if (xAxisField && yAxisField && chartData.length) {
+    initChart();
+  }
+
   $: if (chartData.length) {
     updateAxes();
     initChart();
@@ -407,16 +428,34 @@
   }
 
   function initChart() {
-    const minTime = 0;
-    const maxTime = d3.max(chartData, (d) => d.time);
+    const xConfig = attributeConfig[xAxisField];
+    const yConfig = attributeConfig[yAxisField];
+
+    // 动态计算 X 轴 domain
+    let xDomain = xConfig.domain;
+    if (!xDomain) {
+      const xValues = chartData.map((d) => xConfig.getValue(d));
+      const minX = Math.min(...xValues);
+      const maxX = Math.max(...xValues);
+      xDomain = [minX, maxX];
+    }
+
+    // 动态计算 Y 轴 domain
+    let yDomain = yConfig.domain;
+    if (!yDomain) {
+      const yValues = chartData.map((d) => yConfig.getValue(d));
+      const minY = Math.min(...yValues);
+      const maxY = Math.max(...yValues);
+      yDomain = [minY, maxY];
+    }
 
     xScale = d3
       .scaleLinear()
-      .domain([minTime, maxTime])
+      .domain(xDomain)
       .range([0, width - margin.left - margin.right]);
 
     xScaleLineChartFactor =
-      (width - margin.left - margin.right) / ((maxTime - minTime) * 60);
+      (width - margin.left - margin.right) / ((xDomain[1] - xDomain[0]) * (xAxisField === "time" ? 60 : 1));
 
     zoom = d3
       .zoom()
@@ -457,6 +496,15 @@
   function scaledY(val) {
     return yScale ? yScale(val) : 0;
   }
+
+  // 动态获取点的 X/Y 值
+  function getXValue(d: any) {
+    return attributeConfig[xAxisField]?.getValue(d) ?? 0;
+  }
+
+  function getYValue(d: any) {
+    return attributeConfig[yAxisField]?.getValue(d) ?? 0;
+  }
 </script>
 
 <svg bind:this={svgContainer} {width} {height} style="vertical-align: top">
@@ -486,8 +534,8 @@
       <g>
         {#each chartData.filter((d) => !d.isSuggestionOpen) as d (d.index)}
           <circle
-            cx={zoomTransform.applyX(scaledX(d.time))}
-            cy={zoomTransform.applyY(scaledY(d.percentage))}
+            cx={zoomTransform.applyX(scaledX(getXValue(d)))}
+            cy={zoomTransform.applyY(scaledY(getYValue(d)))}
             r={selectedPoint?.index === d.index
               ? 5
               : hoveredPoint?.index === d.index
@@ -509,7 +557,7 @@
             stroke="#aaaaaa"
             stroke-width="1"
             opacity={d.opacity + 0.29}
-            transform={`translate(${zoomTransform.applyX(scaledX(d.time))},${zoomTransform.applyY(scaledY(d.percentage + 6 / zoomTransform.k))}) rotate(180)`}
+            transform={`translate(${zoomTransform.applyX(scaledX(getXValue(d)))},${zoomTransform.applyY(scaledY(getYValue(d) + 6 / zoomTransform.k))}) rotate(180)`}
           />
         {/each}
 
@@ -528,7 +576,7 @@
       font-size="10px"
       fill="black"
     >
-      Time (min)
+      {attributeConfig[xAxisField]?.label ?? "X"}
     </text>
     <g class="y-axis" bind:this={yAxisG} transform="translate({chartWidth}, 0)"></g>
     <text
@@ -539,7 +587,7 @@
       font-size="10px"
       fill="black"
     >
-      Writing length
+      {attributeConfig[yAxisField]?.label ?? "Y"}
     </text>
   </g>
 </svg>
