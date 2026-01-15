@@ -36,12 +36,13 @@
   import initSqlJs from "sql.js";
   import { getDB } from "$lib/dbLoader";
   import { readSegmentResults } from "$lib/db/read";
-  import { browser } from '$app/environment';
+  import { browser } from "$app/environment";
 
   let chartRefs = {};
   let filterButton;
   let collapseButton;
   let selectionMode = false;
+  let brushIsX = false;
   let selectedPatterns = {};
   let showPatternSearch = false;
   let exactSourceButton;
@@ -163,7 +164,11 @@
   let playbackTimer = null;
   let playbackSpeed = 1; // Default 1x speed (real-time)
   const SPEED_OPTIONS = [1, 5, 100]; // Available speed options: 1x, 5x, 100x
-  const icons = [`${base}/play.svg`, `${base}/doubleplay.svg`, `${base}/tripleplay.svg`];
+  const icons = [
+    `${base}/play.svg`,
+    `${base}/doubleplay.svg`,
+    `${base}/tripleplay.svg`,
+  ];
   $: TIME_PER_MIN_MS = 60000 / playbackSpeed; // 1 real minute -> calculated ms based on speed
 
   $: if (!isSemanticChecked) {
@@ -1010,15 +1015,22 @@
       let useDB = false;
       try {
         const isLocalBrowser =
-          browser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-        console.log('Is local browser?', isLocalBrowser);
+          browser &&
+          (window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1");
+        console.log("Is local browser?", isLocalBrowser);
         if (isLocalBrowser) {
-          const dbRes = await fetch(`${base}/api/getSegment?dataset=${selectedDataset}`);
+          const dbRes = await fetch(
+            `${base}/api/getSegment?dataset=${selectedDataset}`
+          );
           if (dbRes.ok) {
             const json = await dbRes.json();
-            if (Array.isArray(json.segmentData) && json.segmentData.length > 0) {
+            if (
+              Array.isArray(json.segmentData) &&
+              json.segmentData.length > 0
+            ) {
               segmentSources = json.segmentData.map((item) => ({
-                sessionId: item.id.replace(/\.json$/, ''),
+                sessionId: item.id.replace(/\.json$/, ""),
                 data: JSON.parse(item.content),
               }));
               useDB = true;
@@ -1028,24 +1040,30 @@
           const SQL = await initSqlJs({
             locateFile: (file) => `${base}/sql-wasm/${file}`,
           });
-          const res = await fetch(`${base}/db/${selectedDataset}_segment_results.db`);
-          if (!res.ok) throw new Error('DB not found');
+          const res = await fetch(
+            `${base}/db/${selectedDataset}_segment_results.db`
+          );
+          if (!res.ok) throw new Error("DB not found");
           const buf = await res.arrayBuffer();
           const db = new SQL.Database(new Uint8Array(buf));
-          const result = db.exec('SELECT id, content FROM data');
-          if (!result.length) throw new Error('DB empty');
+          const result = db.exec("SELECT id, content FROM data");
+          if (!result.length) throw new Error("DB empty");
           const { columns, values } = result[0];
-          const idIdx = columns.indexOf('id');
-          const contentIdx = columns.indexOf('content');
+          const idIdx = columns.indexOf("id");
+          const contentIdx = columns.indexOf("content");
 
-          segmentSources = values.map((row) => ({
-            sessionId: row[idIdx].replace(/\.json$/, ''),
-            data: JSON.parse(row[contentIdx]),
-          }));
+          segmentSources = values.map((row) => {
+            const sessionIdRaw = row[idIdx];
+            const contentRaw = row[contentIdx];
+            return {
+              sessionId: String(sessionIdRaw ?? "").replace(/\.json$/, ""),
+              data: JSON.parse(String(contentRaw ?? "")),
+            };
+          });
           useDB = true;
         }
       } catch (e) {
-        console.log('No .db file or .db file is empty.', e);
+        console.log("No .db file or .db file is empty.", e);
       }
       if (!useDB) {
         const fileList = CSVData.map((item) => item.session_id);
@@ -2358,10 +2376,14 @@
     let segmentData = [];
     try {
       const isLocalBrowser =
-        browser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-      console.log('Is local browser?', isLocalBrowser);
+        browser &&
+        (window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1");
+      console.log("Is local browser?", isLocalBrowser);
       if (isLocalBrowser) {
-        const segmentDB = await fetch(`${base}/api/getSegment?dataset=${selectedDataset}`);
+        const segmentDB = await fetch(
+          `${base}/api/getSegment?dataset=${selectedDataset}`
+        );
         if (segmentDB.ok) {
           const json = await segmentDB.json();
           if (Array.isArray(json.segmentData) && json.segmentData.length > 0) {
@@ -2374,49 +2396,55 @@
           locateFile: (file) => `${base}/sql-wasm/${file}`,
         });
 
-        const res = await fetch(`${base}/db/${selectedDataset}_segment_results.db`);
-        if (!res.ok) throw new Error('DB not found');
+        const res = await fetch(
+          `${base}/db/${selectedDataset}_segment_results.db`
+        );
+        if (!res.ok) throw new Error("DB not found");
         const buf = await res.arrayBuffer();
         const db = new SQL.Database(new Uint8Array(buf));
-        const result = db.exec('SELECT id, content FROM data');
-        if (!result.length) throw new Error('DB empty');
+        const result = db.exec("SELECT id, content FROM data");
+        if (!result.length) throw new Error("DB empty");
         const { columns, values } = result[0];
-        const idIdx = columns.indexOf('id');
-        const contentIdx = columns.indexOf('content');
+        const idIdx = columns.indexOf("id");
+        const contentIdx = columns.indexOf("content");
 
-        segmentData = values.map(row => ({
-          id: row[idIdx].replace(/\.json$/, ''),
-          content: JSON.parse(row[contentIdx]),
-        }));
+        segmentData = values.map((row) => {
+          const idRaw = row[idIdx];
+          const contentRaw = row[contentIdx];
+          return {
+            id: String(idRaw ?? "").replace(/\.json$/, ""),
+            content: JSON.parse(String(contentRaw ?? "")),
+          };
+        });
         useDB = true;
       }
 
-      console.log('Use DB:', useDB, 'Segment data length:', segmentData.length);
+      console.log("Use DB:", useDB, "Segment data length:", segmentData.length);
     } catch (e) {
-      console.log('No .db file or .db file is empty.', e);
+      console.log("No .db file or .db file is empty.", e);
     }
 
     if (useDB) {
       const scoreMap = new Map(
-      CSVData.map((row) => [row.session_id, row.judge_score])
-    );
-    const initArray = segmentData.map((item) => {
-      const sessionId = item.id;
-      const content =
-        typeof item.content === "string"
-          ? JSON.parse(item.content)
-          : item.content;
+        CSVData.map((row) => [row.session_id, row.judge_score])
+      );
+      const initArray = segmentData.map((item) => {
+        const sessionId = item.id;
+        const content =
+          typeof item.content === "string"
+            ? JSON.parse(item.content)
+            : item.content;
 
-      return {
-        sessionId,
-        similarityData: content,
-        totalSimilarityData: content,
-        llmScore: scoreMap.get(sessionId) ?? null,
-      };
-    });
+        return {
+          sessionId,
+          similarityData: content,
+          totalSimilarityData: content,
+          llmScore: scoreMap.get(sessionId) ?? null,
+        };
+      });
 
-    initData.set(initArray);
-    console.log("Use .db file to init data.");
+      initData.set(initArray);
+      console.log("Use .db file to init data.");
     } else {
       for (let i = 0; i < selectedSession.length; i++) {
         const sessionId = selectedSession[i];
@@ -2888,7 +2916,10 @@
 
     const current = data[startIndex];
     const next = data[startIndex + 1];
-    const deltaMinutes = Math.max((next.time || 0) - (current.time || 0), 1/60 * 0.01); // Minimum 10ms to avoid too fast playback
+    const deltaMinutes = Math.max(
+      (next.time || 0) - (current.time || 0),
+      (1 / 60) * 0.01
+    ); // Minimum 10ms to avoid too fast playback
     const delay = deltaMinutes * TIME_PER_MIN_MS;
 
     playbackTimer = setTimeout(() => {
@@ -4734,12 +4765,30 @@
                             on:selectionChanged={handleSelectionChanged}
                             on:selectionCleared={handleSelectionCleared}
                             bind:xScaleLineChartFactor
+                            bind:brushIsX
                           />
                         </div>
                       </div>
                     </div>
+
+                    <!-- Brush toggle: Progress/Time -->
+                    {#if selectionMode}
+                      <div class="brush-toggle-container">
+                        <span class="label" class:active={!brushIsX}
+                          >Progress</span
+                        >
+                        <label class="switch" aria-label="Toggle brush axis">
+                          <input type="checkbox" bind:checked={brushIsX} />
+                          <span class="slider"></span>
+                        </label>
+                        <span class="label" class:active={brushIsX}>Time</span>
+                      </div>
+                    {/if}
                   </div>
-                  <div class="content-box" style="height:65vh; width:35vw; margin-left: 20px;">
+                  <div
+                    class="content-box"
+                    style="height:65vh; width:35vw; margin-left: 20px;"
+                  >
                     <div class="playback-row">
                       <div class="progress-container-new" style="width: 100%;">
                         <input
@@ -4768,7 +4817,11 @@
                       </div>
                       {#if $clickSession?.chartData?.length}
                         <div class="playback-controls">
-                          <button class="play-button" on:click={togglePlayback} style="width:8.5ch; text-align:center;">
+                          <button
+                            class="play-button"
+                            on:click={togglePlayback}
+                            style="width:8.5ch; text-align:center;"
+                          >
                             {isPlaying ? "Pause" : "Play"}
                           </button>
                           <button
@@ -5258,8 +5311,8 @@
   .chart-container-split {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 30px;
-    width: 100%;
+    gap: 20px;
+    max-width: 700px;
     padding: 20px;
   }
 
@@ -5285,6 +5338,70 @@
     justify-content: center;
     align-items: center;
     overflow: visible;
+  }
+
+  .brush-toggle-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 20px auto 10px;
+    max-width: 700px;
+  }
+
+  .brush-toggle-container .label {
+    font-size: 15px;
+    color: #777;
+    user-select: none;
+    font-weight: normal;
+  }
+
+  .brush-toggle-container .label.active {
+    color: black;
+    font-weight: bold;
+  }
+
+  .brush-toggle-container .switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 26px;
+  }
+
+  .brush-toggle-container .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .brush-toggle-container input:checked + .slider {
+    background-color: #ffbbcc;
+  }
+
+  .brush-toggle-container input:checked + .slider::before {
+    transform: translateX(22px);
+  }
+
+  .brush-toggle-container .slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: #ffbbcc;
+    transition: 0.2s;
+    border-radius: 30px;
+  }
+
+  .brush-toggle-container .slider::before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: 0.2s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
   }
 
   .pattern-search-panel {
