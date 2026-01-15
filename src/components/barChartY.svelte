@@ -6,6 +6,8 @@
   export let width = 300;
   export let height;
   export let yScale;
+  export let xAxisField = "progress"; // 新增：X轴字段
+  export let yAxisField = "semantic_change"; // 新增：Y轴字段
   export let selectionMode = false;
   export let sharedSelection = null;
   export let xScaleBarChartFactor = 1;
@@ -22,6 +24,32 @@
   let processedData = [];
   let xScale;
   let newyScale;
+
+  // 属性配置池
+  const attributeConfig = {
+    progress: {
+      label: "Writing length",
+      getValue: (item) => ((item.start_progress + item.end_progress) / 2) * 100,
+      getStart: (item) => item.start_progress * 100,
+      getEnd: (item) => item.end_progress * 100,
+      hasRange: true,
+      domain: [0, 100],
+    },
+    time: {
+      label: "Time (min)",
+      getValue: (item) => (item.start_time + item.end_time) / 2 / 60,
+      getStart: (item) => item.start_time / 60,
+      getEnd: (item) => item.end_time / 60,
+      hasRange: true,
+      domain: null, // 动态计算
+    },
+    semantic_change: {
+      label: "Semantic Change",
+      getValue: (item) => item.residual_vector_norm,
+      hasRange: false,
+      domain: [0, 1],
+    },
+  };
 
   const colorMap = {
     user: "#66C2A5",
@@ -43,6 +71,11 @@
 
   $: if (!zoomTransform) {
     zoomTransform = d3.zoomIdentity;
+  }
+
+  // 监听轴字段变化，重新渲染
+  $: if (xAxisField && yAxisField && similarityData && container) {
+    renderChart();
   }
 
   $: if ((similarityData && container) || zoomTransform !== d3.zoomIdentity) {
@@ -173,15 +206,36 @@
   function renderChart() {
     d3.select(container).selectAll("svg").remove();
 
-    processedData = similarityData.map((item, i) => ({
-      id: i,
-      startProgress: item.start_progress * 100,
-      endProgress: item.end_progress * 100,
-      residual_vector_norm: item.residual_vector_norm,
-      source: item.source,
-      startTime: item.start_time / 60,
-      endTime: item.end_time / 60,
-    }));
+    const xConfig = attributeConfig[xAxisField];
+    const yConfig = attributeConfig[yAxisField];
+
+    // 处理数据，计算所有属性值
+    processedData = similarityData.map((item, i) => {
+      const dataPoint = {
+        id: i,
+        startProgress: item.start_progress * 100,
+        endProgress: item.end_progress * 100,
+        residual_vector_norm: item.residual_vector_norm,
+        source: item.source,
+        startTime: item.start_time / 60,
+        endTime: item.end_time / 60,
+        // 计算当前选择的 X/Y 值
+        xValue: xConfig.getValue(item),
+        yValue: yConfig.getValue(item),
+      };
+
+      // 如果是范围类型，添加范围值
+      if (xConfig.hasRange) {
+        dataPoint.xStart = xConfig.getStart(item);
+        dataPoint.xEnd = xConfig.getEnd(item);
+      }
+      if (yConfig.hasRange) {
+        dataPoint.yStart = yConfig.getStart(item);
+        dataPoint.yEnd = yConfig.getEnd(item);
+      }
+
+      return dataPoint;
+    });
 
     const margin = { top: 20, right: 0, bottom: 30, left: 50 };
     const chartWidth = width - margin.left - margin.right;
@@ -197,13 +251,30 @@
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-    // X axis is Writing length (0-100), with zoom support
-    const baseXScale = d3.scaleLinear().domain([0, 100]).range([0, chartWidth]);
-    xScale = zoomTransform.rescaleX(baseXScale);
-    xScaleBarChartFactor = chartWidth / 100;
+    // 动态计算 domain
+    let xDomain = xConfig.domain;
+    if (!xDomain) {
+      // 自动计算（如 time）
+      const xValues = processedData.flatMap((d) =>
+        xConfig.hasRange ? [d.xStart, d.xEnd] : [d.xValue]
+      );
+      xDomain = [Math.min(...xValues), Math.max(...xValues)];
+    }
 
-    // Y axis is Semantic Change (0-1)
-    newyScale = d3.scaleLinear().domain([0, 1]).range([chartHeight, 0]);
+    let yDomain = yConfig.domain;
+    if (!yDomain) {
+      const yValues = processedData.flatMap((d) =>
+        yConfig.hasRange ? [d.yStart, d.yEnd] : [d.yValue]
+      );
+      yDomain = [Math.min(...yValues), Math.max(...yValues)];
+    }
+
+    // 创建 scale
+    const baseXScale = d3.scaleLinear().domain(xDomain).range([0, chartWidth]);
+    xScale = zoomTransform.rescaleX(baseXScale);
+    xScaleBarChartFactor = chartWidth / (xDomain[1] - xDomain[0]);
+
+    newyScale = d3.scaleLinear().domain(yDomain).range([chartHeight, 0]);
 
     svg
       .append("defs")
@@ -225,7 +296,7 @@
       .attr("fill", "black")
       .attr("text-anchor", "middle")
       .style("font-size", "10px")
-      .text("Writing length");
+      .text(xConfig.label);
 
     svg
       .append("g")
@@ -237,7 +308,11 @@
       .attr("fill", "black")
       .attr("text-anchor", "middle")
       .style("font-size", "10px")
-      .text("Semantic Change");
+      .text(yConfig.label);
+
+    // 计算固定条形宽度/高度（用于点值）
+    const fixedBarWidth = chartWidth * 0.02;
+    const fixedBarHeight = chartHeight * 0.02;
 
     bars = svg
       .selectAll(".bar")
@@ -245,16 +320,42 @@
       .enter()
       .append("rect")
       .attr("class", "bar")
-      .attr("x", (d) =>
-        xScale(d.startProgress) < xScale(d.endProgress)
-          ? xScale(d.startProgress)
-          : xScale(d.endProgress)
-      )
-      .attr("y", (d) => newyScale(d.residual_vector_norm))
-      .attr("width", (d) =>
-        Math.abs(xScale(d.startProgress) - xScale(d.endProgress))
-      )
-      .attr("height", (d) => newyScale(0) - newyScale(d.residual_vector_norm))
+      .attr("x", (d) => {
+        if (xConfig.hasRange) {
+          // X轴是范围：使用起点
+          return Math.min(xScale(d.xStart), xScale(d.xEnd));
+        } else {
+          // X轴是点值：居中
+          return xScale(d.xValue) - fixedBarWidth / 2;
+        }
+      })
+      .attr("y", (d) => {
+        if (yConfig.hasRange) {
+          // Y轴是范围：使用端点（较大的 Y 坐标）
+          return Math.min(newyScale(d.yStart), newyScale(d.yEnd));
+        } else {
+          // Y轴是点值：从该点向下延伸
+          return newyScale(d.yValue);
+        }
+      })
+      .attr("width", (d) => {
+        if (xConfig.hasRange) {
+          // X轴是范围：宽度 = 范围跨度
+          return Math.abs(xScale(d.xEnd) - xScale(d.xStart));
+        } else {
+          // X轴是点值：固定宽度
+          return fixedBarWidth;
+        }
+      })
+      .attr("height", (d) => {
+        if (yConfig.hasRange) {
+          // Y轴是范围：高度 = 范围跨度
+          return Math.abs(newyScale(d.yStart) - newyScale(d.yEnd));
+        } else {
+          // Y轴是点值：从该点到底部
+          return newyScale(yDomain[0]) - newyScale(d.yValue);
+        }
+      })
       .attr("fill", (d) => {
         if (d.source === "user") {
           return colorMap.user;

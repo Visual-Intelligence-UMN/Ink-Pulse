@@ -44,6 +44,10 @@
   let selectionMode = false;
   let brushIsX = false;
   let selectedPatterns = {};
+
+  // BarChart 轴选择
+  let barChartXAxis = "progress";
+  let barChartYAxis = "semantic_change";
   let showPatternSearch = false;
   let exactSourceButton;
   let exactTrendButton;
@@ -4710,10 +4714,43 @@
                         </div>
                       </div>
                     </div>
+
+                    <!-- Chart Axis Controls -->
+                    <div class="chart-axis-controls">
+                      <div class="axis-control-row">
+                        <label>
+                          <span class="control-label">BarChart X:</span>
+                          <select bind:value={barChartXAxis}>
+                            <option value="progress">Progress</option>
+                            <option value="time">Time</option>
+                            <option value="semantic_change"
+                              >Semantic Change</option
+                            >
+                          </select>
+                        </label>
+                        <label>
+                          <span class="control-label">BarChart Y:</span>
+                          <select bind:value={barChartYAxis}>
+                            <option value="progress">Progress</option>
+                            <option value="time">Time</option>
+                            <option value="semantic_change"
+                              >Semantic Change</option
+                            >
+                          </select>
+                        </label>
+                      </div>
+                    </div>
+
                     <div class="chart-container-split">
                       <!-- Left: BarChart (Semantic Similarity) -->
                       <div class="chart-section">
-                        <h4 class="chart-title">Semantic Similarity</h4>
+                        <h4 class="chart-title">
+                          {barChartYAxis === "semantic_change"
+                            ? "Semantic Change"
+                            : barChartYAxis === "progress"
+                              ? "Progress"
+                              : "Time"}
+                        </h4>
                         <div
                           class="chart-wrapper-independent"
                           on:wheel={handleChartZoom}
@@ -4724,6 +4761,8 @@
                               similarityData={$clickSession.similarityData}
                               {yScale}
                               {height}
+                              xAxisField={barChartXAxis}
+                              yAxisField={barChartYAxis}
                               bind:zoomTransform={
                                 zoomTransforms[$clickSession.sessionId]
                               }
@@ -5305,6 +5344,55 @@
     padding-right: 35px;
     transform: scale(1.25);
     transform-origin: center top;
+  }
+
+  /* Chart axis controls */
+  .chart-axis-controls {
+    max-width: 700px;
+    padding: 15px 20px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    margin: 10px 0;
+  }
+
+  .axis-control-row {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .axis-control-row label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .control-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+  }
+
+  .axis-control-row select {
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+    min-width: 160px;
+  }
+
+  .axis-control-row select:hover {
+    border-color: #999;
+  }
+
+  .axis-control-row select:focus {
+    outline: none;
+    border-color: #66c2a5;
+    box-shadow: 0 0 0 2px rgba(102, 194, 165, 0.2);
   }
 
   /* New split layout for charts */
