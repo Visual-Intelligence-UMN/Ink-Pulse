@@ -61,7 +61,7 @@
   let brushGroup: any = null;
   let brushY: any = null;
   let brushX: any = null;
-  let brushIsX: boolean = false;
+  export let brushIsX: boolean = false;
 
   $: if (brushGroup && brushX && brushY) {
     if (brushIsX) {
@@ -544,87 +544,5 @@
   </g>
 </svg>
 
-{#if selectionMode}
-  <div
-    class="brush-toggle"
-    style={`width:${width}px; margin-top: 20px; translate: -15px`}
-  >
-    <span class="label" class:active={!brushIsX}>Progress</span>
-    <label class="switch" aria-label="Toggle brush axis">
-      <input type="checkbox" bind:checked={brushIsX} />
-      <span class="slider"></span>
-    </label>
-    <span class="label" class:active={brushIsX}>Time</span>
-  </div>
-{/if}
-
 <style>
-  .brush-toggle {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    margin: 10px auto 0;
-  }
-
-  .brush-toggle .label {
-    font-size: 15px;
-    color: #555;
-    user-select: none;
-  }
-
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 48px;
-    height: 26px;
-  }
-
-  .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-
-  input:checked + .slider {
-    background-color: #ffbbcc;
-  }
-
-  input:checked + .slider::before {
-    transform: translateX(22px); /* 48 - 22 - 2*2 = 22 */
-  }
-
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    inset: 0;
-    background-color: #ffbbcc;
-    transition: 0.2s;
-    border-radius: 30px;
-  }
-
-  .slider::before {
-    position: absolute;
-    content: "";
-    height: 22px;
-    width: 22px;
-    left: 2px;
-    bottom: 2px;
-    background-color: white;
-    transition: 0.2s;
-    border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-  }
-
-  .brush-toggle .label {
-    font-size: 15px;
-    color: #777;
-    user-select: none;
-    font-weight: normal;
-  }
-
-  .brush-toggle .label.active {
-    color: black;
-    font-weight: bold;
-  }
 </style>

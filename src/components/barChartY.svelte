@@ -3,7 +3,7 @@
   import * as d3 from "d3";
   export let sessionId;
   export let similarityData;
-  export let width = 150;
+  export let width = 300;
   export let height;
   export let yScale;
   export let selectionMode = false;
@@ -24,12 +24,14 @@
   let newyScale;
 
   const colorMap = {
-  user: "#66C2A5",
-  api: "#FC8D62",
+    user: "#66C2A5",
+    api: "#FC8D62",
   };
 
   import colors from "./colors.js";
-  const colorPalette = colors("7fc97fbeaed4fdc086ffff99386cb0f0027fbf5b17666666");
+  const colorPalette = colors(
+    "7fc97fbeaed4fdc086ffff99386cb0f0027fbf5b17666666"
+  );
   let colorIndex = 0;
 
   onMount(() => {
@@ -108,60 +110,6 @@
     if (!newyScale) return;
     if (!xScale) return;
 
-    // if (sharedSelection.selectionSource === "lineChart_x") {
-    //   // Handle time-based selection from lineChart_x
-    //   if (
-    //     sharedSelection.timeMin !== undefined &&
-    //     sharedSelection.timeMax !== undefined
-    //   ) {
-    //     const { timeMin, timeMax } = sharedSelection;
-
-    //     // Filter bars that fall within the time range
-    //     const filteredData = processedData.filter((d) => {
-    //       // Assuming each bar has start_time and end_time properties
-    //       return (
-    //         (d.start_time >= timeMin && d.start_time <= timeMax) ||
-    //         (d.end_time >= timeMin && d.end_time <= timeMax) ||
-    //         (d.start_time <= timeMin && d.end_time >= timeMax)
-    //       );
-    //     });
-
-    //     const selectedIds = new Set(filteredData.map((d) => d.id));
-    //     bars.attr("opacity", (d) => (selectedIds.has(d.id) ? 0.9 : 0.1));
-
-    //     // Calculate semantic range from filtered data for potential search
-    //     const scMin = d3.min(filteredData, (d) => d.residual_vector_norm) ?? 0;
-    //     const scMax = d3.max(filteredData, (d) => d.residual_vector_norm) ?? 0;
-
-    //     dispatch("selectionChanged", {
-    //       range: {
-    //         sc: { min: scMin, max: scMax },
-    //         progress: {
-    //           min: sharedSelection.progressMin,
-    //           max: sharedSelection.progressMax,
-    //         },
-    //       },
-    //       dataRange: {
-    //         scRange: { min: scMin, max: scMax },
-    //         progressRange: {
-    //           min: sharedSelection.progressMin,
-    //           max: sharedSelection.progressMax,
-    //         },
-    //         timeRange: { min: timeMin, max: timeMax },
-    //         sc: { sc: filteredData.map((d) => d.residual_vector_norm) },
-    //       },
-    //       data: filteredData,
-    //       wholeData: processedData,
-    //       sessionId,
-    //       sources: filteredData.map((d) => d.source),
-    //       selectionSource: "lineChart_x",
-    //     });
-    //   } else {
-    //     bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
-    //   }
-    //   return;
-    // }
-
     function highlightBars(filteredData) {
       if (
         !sharedSelection ||
@@ -174,13 +122,18 @@
       bars.attr("opacity", (d) => (selectedIds.has(d.id) ? 0.9 : 0.1));
     }
     const { progressMin, progressMax } = sharedSelection;
-    const y0 = newyScale(progressMax);
-    const y1 = newyScale(progressMin);
+    const x0 = xScale(progressMin);
+    const x1 = xScale(progressMax);
 
     const filteredData = processedData.filter((d) => {
-      const barY = newyScale(d.endProgress);
-      const barHeight = newyScale(d.startProgress) - newyScale(d.endProgress);
-      return barY + barHeight >= y0 && barY <= y1;
+      const barX =
+        xScale(d.startProgress) < xScale(d.endProgress)
+          ? xScale(d.startProgress)
+          : xScale(d.endProgress);
+      const barWidth = Math.abs(
+        xScale(d.startProgress) - xScale(d.endProgress)
+      );
+      return barX + barWidth >= x0 && barX <= x1;
     });
     const scMin = d3.min(filteredData, (d) => d.residual_vector_norm) ?? 0;
     const scMax = d3.max(filteredData, (d) => d.residual_vector_norm) ?? 0;
@@ -202,8 +155,8 @@
           max: d3.max(filteredData, (d) => d.endProgress),
         },
         timeRange: {
-          min: filteredData[0].startTime,
-          max: filteredData[filteredData.length - 1].endTime,
+          min: filteredData[0]?.startTime ?? 0,
+          max: filteredData[filteredData.length - 1]?.endTime ?? 0,
         },
         sc: {
           sc: filteredData.map((d) => d.residual_vector_norm),
@@ -239,18 +192,18 @@
       .append("svg")
       .style("display", "block")
       .style("vertical-align", "top")
-      .attr("width", "100%")
+      .attr("width", width)
       .attr("height", chartHeight + margin.top + margin.bottom)
-      .attr(
-        "viewBox",
-        `0 0 ${chartWidth + margin.left + margin.right} ${chartHeight + margin.top + margin.bottom}`
-      )
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-    xScale = d3.scaleLinear().domain([1, 0]).range([0, chartWidth]);
+    // X axis is Writing length (0-100), with zoom support
+    const baseXScale = d3.scaleLinear().domain([0, 100]).range([0, chartWidth]);
+    xScale = zoomTransform.rescaleX(baseXScale);
     xScaleBarChartFactor = chartWidth / 100;
-    newyScale = zoomTransform.rescaleY(yScale.copy());
+
+    // Y axis is Semantic Change (0-1)
+    newyScale = d3.scaleLinear().domain([0, 1]).range([chartHeight, 0]);
 
     svg
       .append("defs")
@@ -265,14 +218,14 @@
     svg
       .append("g")
       .attr("transform", `translate(0, ${chartHeight})`)
-      .call(d3.axisBottom(xScale).ticks(0))
+      .call(d3.axisBottom(xScale).ticks(5))
       .append("text")
       .attr("x", chartWidth / 2)
       .attr("y", 25)
       .attr("fill", "black")
       .attr("text-anchor", "middle")
       .style("font-size", "10px")
-      .text("Semantic Change");
+      .text("Writing length");
 
     svg
       .append("g")
@@ -284,7 +237,7 @@
       .attr("fill", "black")
       .attr("text-anchor", "middle")
       .style("font-size", "10px")
-      .text("Writing length");
+      .text("Semantic Change");
 
     bars = svg
       .selectAll(".bar")
@@ -292,16 +245,16 @@
       .enter()
       .append("rect")
       .attr("class", "bar")
-      .attr("y", (d) =>
-        newyScale(d.startProgress) < newyScale(d.endProgress)
-          ? newyScale(d.startProgress)
-          : newyScale(d.endProgress)
+      .attr("x", (d) =>
+        xScale(d.startProgress) < xScale(d.endProgress)
+          ? xScale(d.startProgress)
+          : xScale(d.endProgress)
       )
-      .attr("x", (d) => xScale(d.residual_vector_norm))
-      .attr("width", (d) => xScale(0) - xScale(d.residual_vector_norm))
-      .attr("height", (d) =>
-        Math.abs(newyScale(d.startProgress) - newyScale(d.endProgress))
+      .attr("y", (d) => newyScale(d.residual_vector_norm))
+      .attr("width", (d) =>
+        Math.abs(xScale(d.startProgress) - xScale(d.endProgress))
       )
+      .attr("height", (d) => newyScale(0) - newyScale(d.residual_vector_norm))
       .attr("fill", (d) => {
         if (d.source === "user") {
           return colorMap.user;
@@ -329,7 +282,7 @@
       .attr("clip-path", "url(#clip_bar)");
 
     brush = d3
-      .brushY()
+      .brushX()
       .extent([
         [0, 0],
         [chartWidth, chartHeight],
@@ -355,10 +308,10 @@
       }
 
       currentSelection = event.selection;
-      const [y0, y1] = event.selection;
+      const [x0, x1] = event.selection;
 
-      const progressMin = newyScale.invert(y1);
-      const progressMax = newyScale.invert(y0);
+      const progressMin = xScale.invert(x0);
+      const progressMax = xScale.invert(x1);
 
       sharedSelection = {
         progressMin,
