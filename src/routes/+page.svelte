@@ -45,11 +45,11 @@
   let brushIsX = false;
   let selectedPatterns = {};
 
-  // BarChart 轴选择
+  // Chart axis selection
   let barChartXAxis = "progress";
   let barChartYAxis = "semantic_change";
 
-  // LineChart 轴选择
+  // LineChart axis selection
   let lineChartXAxis = "time";
   let lineChartYAxis = "progress";
   let showPatternSearch = false;

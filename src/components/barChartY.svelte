@@ -143,40 +143,87 @@
     if (!newyScale) return;
     if (!xScale) return;
 
-    function highlightBars(filteredData) {
-      if (
-        !sharedSelection ||
-        !sharedSelection.progressMin ||
-        !sharedSelection.progressMax
-      )
-        return;
+    const xConfig = attributeConfig[xAxisField];
 
+    function highlightBars(filteredData) {
       const selectedIds = new Set(filteredData.map((d) => d.id));
       bars.attr("opacity", (d) => (selectedIds.has(d.id) ? 0.9 : 0.1));
     }
-    const { progressMin, progressMax } = sharedSelection;
-    const x0 = xScale(progressMin);
-    const x1 = xScale(progressMax);
+
+    // 通用格式：优先使用 xMin/xMax/xField
+    let selectionMin, selectionMax;
+
+    if (sharedSelection.xField && sharedSelection.xField === xAxisField) {
+      // 新格式：字段匹配
+      selectionMin = sharedSelection.xMin;
+      selectionMax = sharedSelection.xMax;
+    } else if (
+      sharedSelection.progressMin !== null &&
+      xAxisField === "progress"
+    ) {
+      // 向后兼容：progressMin/progressMax
+      selectionMin = sharedSelection.progressMin;
+      selectionMax = sharedSelection.progressMax;
+    } else if (sharedSelection.timeMin !== null && xAxisField === "time") {
+      // 向后兼容：timeMin/timeMax
+      selectionMin = sharedSelection.timeMin;
+      selectionMax = sharedSelection.timeMax;
+    } else {
+      // 字段不匹配，不响应
+      bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
+      return;
+    }
+
+    if (selectionMin === null || selectionMax === null) {
+      bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
+      return;
+    }
+
+    const x0 = xScale(selectionMin);
+    const x1 = xScale(selectionMax);
 
     const filteredData = processedData.filter((d) => {
-      const barX =
-        xScale(d.startProgress) < xScale(d.endProgress)
-          ? xScale(d.startProgress)
-          : xScale(d.endProgress);
-      const barWidth = Math.abs(
-        xScale(d.startProgress) - xScale(d.endProgress)
-      );
-      return barX + barWidth >= x0 && barX <= x1;
+      if (xConfig.hasRange) {
+        // X 轴是范围类型（progress/time）
+        const barX = Math.min(xScale(d.xStart), xScale(d.xEnd));
+        const barWidth = Math.abs(xScale(d.xStart) - xScale(d.xEnd));
+        return barX + barWidth >= x0 && barX <= x1;
+      } else {
+        // X 轴是点值类型（semantic_change）
+        const barX = xScale(d.xValue);
+        return barX >= x0 && barX <= x1;
+      }
     });
+
+    if (!filteredData.length) {
+      bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
+      return;
+    }
+
     const scMin = d3.min(filteredData, (d) => d.residual_vector_norm) ?? 0;
     const scMax = d3.max(filteredData, (d) => d.residual_vector_norm) ?? 0;
 
     highlightBars(filteredData);
 
     dispatch("selectionChanged", {
+      selection: {
+        xMin: selectionMin,
+        xMax: selectionMax,
+        xField: xAxisField,
+        yField: yAxisField,
+      },
       range: {
         sc: { min: scMin, max: scMax },
-        progress: { min: progressMin, max: progressMax },
+        progress: {
+          min:
+            xAxisField === "progress"
+              ? selectionMin
+              : d3.min(filteredData, (d) => d.startProgress),
+          max:
+            xAxisField === "progress"
+              ? selectionMax
+              : d3.max(filteredData, (d) => d.endProgress),
+        },
       },
       dataRange: {
         scRange: {
@@ -411,13 +458,21 @@
       currentSelection = event.selection;
       const [x0, x1] = event.selection;
 
-      const progressMin = xScale.invert(x0);
-      const progressMax = xScale.invert(x1);
+      const xMin = xScale.invert(x0);
+      const xMax = xScale.invert(x1);
 
+      // 通用格式：包含字段信息
       sharedSelection = {
-        progressMin,
-        progressMax,
+        xMin,
+        xMax,
+        xField: xAxisField,
+        yField: yAxisField,
         selectionSource: "barChart_y",
+        // 向后兼容：如果 X 轴是 progress，保留旧字段
+        progressMin: xAxisField === "progress" ? xMin : null,
+        progressMax: xAxisField === "progress" ? xMax : null,
+        timeMin: xAxisField === "time" ? xMin : null,
+        timeMax: xAxisField === "time" ? xMax : null,
       };
     }
 

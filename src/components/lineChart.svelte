@@ -157,7 +157,26 @@
       return 1;
     }
 
-    // Handle time-based selection (lineChart_x)
+    // 通用格式：检查字段匹配
+    if (sharedSelection.xMin !== undefined && sharedSelection.xMax !== undefined && sharedSelection.xField) {
+      // X 方向选择
+      if (sharedSelection.xField === xAxisField) {
+        const xVal = getXValue(d);
+        const inRange = xVal >= sharedSelection.xMin && xVal <= sharedSelection.xMax;
+        return inRange ? 1 : 0.01;
+      }
+    }
+
+    if (sharedSelection.yMin !== undefined && sharedSelection.yMax !== undefined && sharedSelection.yField) {
+      // Y 方向选择
+      if (sharedSelection.yField === yAxisField) {
+        const yVal = getYValue(d);
+        const inRange = yVal >= sharedSelection.yMin && yVal <= sharedSelection.yMax;
+        return inRange ? 1 : 0.01;
+      }
+    }
+
+    // 向后兼容：time-based selection
     if (
       sharedSelection.selectionSource === "lineChart_x" &&
       sharedSelection.timeMin !== undefined &&
@@ -168,7 +187,7 @@
       return inTimeRange ? 1 : 0.01;
     }
 
-    // Handle progress-based selection (lineChart_y, barChart_y)
+    // 向后兼容：progress-based selection
     if (
       sharedSelection.progressMin !== undefined &&
       sharedSelection.progressMax !== undefined
@@ -197,8 +216,8 @@
     const x1 = chartWidth;
 
     const insidePoints = chartData.filter((d) => {
-      const px = zx(d.time);
-      const py = zy(d.percentage);
+      const px = zx(getXValue(d));
+      const py = zy(getYValue(d));
       return px >= x0 && px <= x1 && py >= y0 && py <= y1;
     });
 
@@ -223,8 +242,8 @@
       })
   .filter((d) => d !== null);
 
-    const progressMin = d3.min(insidePoints, (d) => d.percentage);
-    const progressMax = d3.max(insidePoints, (d) => d.percentage);
+    const yMin = d3.min(insidePoints, (d) => getYValue(d));
+    const yMax = d3.max(insidePoints, (d) => getYValue(d));
     const scValues = matchedPoints.map((d) => d.residual_vector_norm || 0);
     const scMin = d3.min(scValues) || 0;
     const scMax = d3.max(scValues) || 1;
@@ -233,9 +252,16 @@
     const tMax = d3.max(insidePoints, (d) => d.time);
 
     sharedSelection = {
-      progressMin,
-      progressMax,
+      yMin,
+      yMax,
+      yField: yAxisField,
+      xField: xAxisField,
       selectionSource: "lineChart_y",
+      // 向后兼容
+      progressMin: yAxisField === "progress" ? yMin : null,
+      progressMax: yAxisField === "progress" ? yMax : null,
+      timeMin: yAxisField === "time" ? yMin : null,
+      timeMax: yAxisField === "time" ? yMax : null,
     };
 
     // dispatch("selectionChanged", {
@@ -268,9 +294,12 @@
     const [x0, x1] = event.selection;
     const zx = zoomTransform.rescaleX(xScale);
 
-    const t0 = zx.invert(x0);
-    const t1 = zx.invert(x1);
-    const insidePoints = chartData.filter((d) => d.time >= t0 && d.time <= t1);
+    const xMin = zx.invert(x0);
+    const xMax = zx.invert(x1);
+    const insidePoints = chartData.filter((d) => {
+      const xVal = getXValue(d);
+      return xVal >= xMin && xVal <= xMax;
+    });
 
     if (!insidePoints.length) {
       sharedSelection = null;
@@ -304,9 +333,16 @@
     const timeMax = d3.max(insidePoints, (d) => d.time);
 
     sharedSelection = {
-      progressMin,
-      progressMax,
+      xMin,
+      xMax,
+      xField: xAxisField,
+      yField: yAxisField,
       selectionSource: "lineChart_x",
+      // 向后兼容
+      progressMin: xAxisField === "progress" ? xMin : progressMin,
+      progressMax: xAxisField === "progress" ? xMax : progressMax,
+      timeMin: xAxisField === "time" ? xMin : timeMin,
+      timeMax: xAxisField === "time" ? xMax : timeMax,
     };
 
     // dispatch("selectionChanged", {
