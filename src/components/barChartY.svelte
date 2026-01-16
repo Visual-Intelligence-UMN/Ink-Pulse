@@ -286,7 +286,7 @@
       return dataPoint;
     });
 
-    const margin = { top: 20, right: 0, bottom: 30, left: 50 };
+    const margin = { top: 20, right: 10, bottom: 30, left: 50 };
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
 
@@ -341,7 +341,7 @@
       .call(d3.axisBottom(xScale).ticks(5))
       .append("text")
       .attr("x", chartWidth / 2)
-      .attr("y", 25)
+      .attr("y", 30)
       .attr("fill", "black")
       .attr("text-anchor", "middle")
       .style("font-size", "10px")

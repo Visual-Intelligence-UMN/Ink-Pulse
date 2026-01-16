@@ -4084,33 +4084,26 @@
                       {:else}
                         <!-- Progress/Bar modes: Show PatternChartPreview -->
                         <div class="pattern-chart-preview small-preview">
-                          <PatternChartPreview
-                            {sessionId}
-                            data={pattern.data}
-                            wholeData={pattern.wholeData}
-                            selectedRange={pattern.range}
-                            bind:this={chartRefs[sessionId]}
-                          />
-                            <BarChartY
-                              sessionId={$clickSession.sessionId}
-                              similarityData={$clickSession.similarityData}
-                              height={120}
-                              width={150}
-                              {yScale}
-                              xAxisField={barChartXAxis}
-                              yAxisField={barChartYAxis}
-                              bind:sharedSelection
-                              readOnly={true}
-                              on:selectionChanged={handleSelectionChanged}
-                              on:selectionCleared={handleSelectionCleared}
-                              bind:this={
-                                chartRefs[$clickSession.sessionId + "-barChart"]
-                              }
-                              on:chartLoaded={handleChartLoaded}
-                              bind:xScaleBarChartFactor
-                            /> 
+                          <BarChartY
+                            sessionId={$clickSession.sessionId}
+                            similarityData={$clickSession.similarityData}
+                            height={120}
+                            width={150}
+                            {yScale}
+                            xAxisField={barChartXAxis}
+                            yAxisField={barChartYAxis}
+                            bind:sharedSelection
+                            readOnly={true}
+                            on:selectionChanged={handleSelectionChanged}
+                            on:selectionCleared={handleSelectionCleared}
+                            bind:this={
+                              chartRefs[$clickSession.sessionId + "-barChart"]
+                            }
+                            on:chartLoaded={handleChartLoaded}
+                            bind:xScaleBarChartFactor
+                          /> 
                         </div>
-                        <div style="margin-top: 5px; width: 60%">
+                        <div style="margin-top: 5px; width: 50%">
                           <div
                             class:dimmed={!isProgressChecked}
                             style="font-size: 13px;"
@@ -5610,8 +5603,8 @@
   }
 
   .pattern-chart-preview.small-preview {
-    width: 150px;
-    height: 120px;
+    width: 160px;
+    height: 130px;
   }
 
   .pattern-details {
