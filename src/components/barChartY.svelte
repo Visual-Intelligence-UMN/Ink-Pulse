@@ -9,8 +9,10 @@
   export let xAxisField = "progress"; // 新增：X轴字段
   export let yAxisField = "semantic_change"; // 新增：Y轴字段
   export let selectionMode = false;
+  export let readOnly = false;
   export let sharedSelection = null;
   export let xScaleBarChartFactor = 1;
+  const uniqueId = Math.random().toString(36).substring(2, 9);
 
   let container;
   const dispatch = createEventDispatcher();
@@ -326,7 +328,7 @@
     svg
       .append("defs")
       .append("clipPath")
-      .attr("id", "clip_bar")
+      .attr("id", `clip_bar_${uniqueId}`)
       .append("rect")
       .attr("x", 0)
       .attr("y", 0)
@@ -427,7 +429,7 @@
       })
       .attr("opacity", 0.5)
       .attr("stroke-width", 0.1)
-      .attr("clip-path", "url(#clip_bar)");
+      .attr("clip-path", `url(#clip_bar_${uniqueId})`);
 
     brush = d3
       .brushX()
@@ -440,13 +442,17 @@
     brushGroup = svg.append("g").attr("class", "brush");
     brushGroup.call(brush);
 
-    if (selectionMode) {
+    if (selectionMode && !readOnly) {
       brushGroup.style("pointer-events", "all");
     } else {
       brushGroup.style("pointer-events", "none");
     }
 
     function brushed(event) {
+      if (readOnly) {
+        return;
+      }
+      
       if (!event.selection) {
         resetBars();
         sharedSelection = null;

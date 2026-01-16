@@ -4091,6 +4091,24 @@
                             selectedRange={pattern.range}
                             bind:this={chartRefs[sessionId]}
                           />
+                            <BarChartY
+                              sessionId={$clickSession.sessionId}
+                              similarityData={$clickSession.similarityData}
+                              height={120}
+                              width={150}
+                              {yScale}
+                              xAxisField={barChartXAxis}
+                              yAxisField={barChartYAxis}
+                              bind:sharedSelection
+                              readOnly={true}
+                              on:selectionChanged={handleSelectionChanged}
+                              on:selectionCleared={handleSelectionCleared}
+                              bind:this={
+                                chartRefs[$clickSession.sessionId + "-barChart"]
+                              }
+                              on:chartLoaded={handleChartLoaded}
+                              bind:xScaleBarChartFactor
+                            /> 
                         </div>
                         <div style="margin-top: 5px; width: 60%">
                           <div
