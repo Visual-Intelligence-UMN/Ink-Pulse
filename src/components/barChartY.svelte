@@ -286,7 +286,7 @@
       return dataPoint;
     });
 
-    const margin = { top: 20, right: 10, bottom: 30, left: 50 };
+    const margin = { top: 20, right: 10, bottom: 35, left: 50 };
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
 
