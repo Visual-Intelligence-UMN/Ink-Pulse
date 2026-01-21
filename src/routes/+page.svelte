@@ -4341,7 +4341,7 @@
                                 bind:this={
                                   chartRefs[sessionData.sessionId + "-barChart"]
                                 }
-                                on:chartLoaded={handleChartLoaded}
+                                on:chartLoaded={() => {}}
                                 bind:xScaleBarChartFactor
                               />
                             </div>
