@@ -3306,6 +3306,45 @@
       change2bar();
     }
   }
+
+  function generateBarchartSelection(sessionData, barChartXAxis) {
+    if (barChartXAxis === "progress") {
+      return {
+        progressMin:
+          ((sessionData.segments[0].start_progress +
+            sessionData.segments[0].end_progress) /
+            2) *
+          100,
+        progressMax:
+          ((sessionData.segments[
+            sessionData.segments.length - 1
+          ].start_progress +
+            sessionData.segments[
+              sessionData.segments.length - 1
+            ].end_progress) /
+            2) *
+          100,
+      };
+    } else if (barChartXAxis === "time") {
+      return {
+        timeMin:
+          ((sessionData.segments[0].start_time +
+        sessionData.segments[0].end_time) /
+        2) /
+          60,
+        timeMax:
+          ((sessionData.segments[
+        sessionData.segments.length - 1
+          ].start_time +
+        sessionData.segments[
+          sessionData.segments.length - 1
+        ].end_time) /
+        2) /
+          60,
+      };
+    }
+    return {};
+  }
 </script>
 
 <div class="App">
@@ -4271,16 +4310,7 @@
                           <div style="display: flex; align-items: flex-start">
                             <!--Barchart for search result preview-->
                             <div>
-                              <BarChartY
-                                sessionId={sessionData.sessionId}
-                                similarityData={sessionData.similarityData}
-                                height={150}
-                                width={180}
-                                {yScale}
-                                xAxisField={barChartXAxis}
-                                yAxisField={barChartYAxis}
-                                readOnly={true}
-                                sharedSelection={{
+                              {console.log("sessionData:", {
                                   progressMin:
                                     ((sessionData.segments[0].start_progress +
                                       sessionData.segments[0].end_progress) /
@@ -4295,7 +4325,17 @@
                                       ].end_progress) /
                                       2) *
                                     100,
-                                }}
+                                })}
+                              <BarChartY
+                                sessionId={sessionData.sessionId}
+                                similarityData={sessionData.similarityData}
+                                height={150}
+                                width={180}
+                                {yScale}
+                                xAxisField={barChartXAxis}
+                                yAxisField={barChartYAxis}
+                                readOnly={true}
+                                sharedSelection={generateBarchartSelection(sessionData, barChartXAxis)}
                                 on:selectionChanged={() => {}}
                                 on:selectionCleared={() => {}}
                                 bind:this={
