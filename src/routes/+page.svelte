@@ -4310,22 +4310,6 @@
                           <div style="display: flex; align-items: flex-start">
                             <!--Barchart for search result preview-->
                             <div>
-                              {console.log("sessionData:", {
-                                  progressMin:
-                                    ((sessionData.segments[0].start_progress +
-                                      sessionData.segments[0].end_progress) /
-                                      2) *
-                                    100,
-                                  progressMax:
-                                    ((sessionData.segments[
-                                      sessionData.segments.length - 1
-                                    ].start_progress +
-                                      sessionData.segments[
-                                        sessionData.segments.length - 1
-                                      ].end_progress) /
-                                      2) *
-                                    100,
-                                })}
                               <BarChartY
                                 sessionId={sessionData.sessionId}
                                 similarityData={sessionData.similarityData}
