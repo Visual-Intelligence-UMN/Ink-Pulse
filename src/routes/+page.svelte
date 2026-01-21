@@ -3687,6 +3687,7 @@
                         <div
                           style="flex: 1 1 50%; margin-top: 10px; padding: 0;"
                         >
+                          <!-- Barchart for vertical selection preview -->
                           <div style="margin: 0; padding: 0;">
                             <BarChartY
                               sessionId={$clickSession.sessionId}
@@ -4095,6 +4096,7 @@
                         </div>
                       {:else}
                         <!-- Progress/Bar modes: Show PatternChartPreview -->
+                        <!-- Barchart for horizontal selection preview -->
                         <div class="pattern-chart-preview small-preview">
                           <BarChartY
                             sessionId={$clickSession.sessionId}
@@ -4267,6 +4269,7 @@
                             >
                           </div>
                           <div style="display: flex; align-items: flex-start">
+                            <!--Barchart for search result preview-->
                             <div>
                               <BarChartY
                                 sessionId={sessionData.sessionId}
