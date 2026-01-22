@@ -65,12 +65,12 @@
   let brushX: any = null;
   export let brushIsX: boolean = false;
 
-  // 属性配置池（细粒度数据）
+  // attribute config for the chart
   const attributeConfig: any = {
     time: {
       label: "Time (min)",
       getValue: (item: any) => item.time,
-      domain: null, // 动态计算
+      domain: null,
     },
     progress: {
       label: "Writing Length",
@@ -157,26 +157,36 @@
       return 1;
     }
 
-    // 通用格式：检查字段匹配
-    if (sharedSelection.xMin !== undefined && sharedSelection.xMax !== undefined && sharedSelection.xField) {
+    // general format: check field matching
+    if (
+      sharedSelection.xMin !== undefined &&
+      sharedSelection.xMax !== undefined &&
+      sharedSelection.xField
+    ) {
       // X 方向选择
       if (sharedSelection.xField === xAxisField) {
         const xVal = getXValue(d);
-        const inRange = xVal >= sharedSelection.xMin && xVal <= sharedSelection.xMax;
+        const inRange =
+          xVal >= sharedSelection.xMin && xVal <= sharedSelection.xMax;
         return inRange ? 1 : 0.01;
       }
     }
 
-    if (sharedSelection.yMin !== undefined && sharedSelection.yMax !== undefined && sharedSelection.yField) {
-      // Y 方向选择
+    if (
+      sharedSelection.yMin !== undefined &&
+      sharedSelection.yMax !== undefined &&
+      sharedSelection.yField
+    ) {
+      // Y axis selection
       if (sharedSelection.yField === yAxisField) {
         const yVal = getYValue(d);
-        const inRange = yVal >= sharedSelection.yMin && yVal <= sharedSelection.yMax;
+        const inRange =
+          yVal >= sharedSelection.yMin && yVal <= sharedSelection.yMax;
         return inRange ? 1 : 0.01;
       }
     }
 
-    // 向后兼容：time-based selection
+    // backward compatibility: time-based selection
     if (
       sharedSelection.selectionSource === "lineChart_x" &&
       sharedSelection.timeMin !== undefined &&
@@ -187,7 +197,7 @@
       return inTimeRange ? 1 : 0.01;
     }
 
-    // 向后兼容：progress-based selection
+    // backward compatibility: progress-based selection
     if (
       sharedSelection.progressMin !== undefined &&
       sharedSelection.progressMax !== undefined
@@ -230,7 +240,9 @@
     const matchedPoints = insidePoints
       .map((d) => {
         const matchedSim = similarityData.find(
-          (s) => s.start_progress * 100 <= d.percentage && s.end_progress * 100 >= d.percentage
+          (s) =>
+            s.start_progress * 100 <= d.percentage &&
+            s.end_progress * 100 >= d.percentage,
         );
 
         if (!matchedSim) return null;
@@ -240,7 +252,7 @@
           residual_vector_norm: matchedSim.residual_vector_norm,
         };
       })
-  .filter((d) => d !== null);
+      .filter((d) => d !== null);
 
     const yMin = d3.min(insidePoints, (d) => getYValue(d));
     const yMax = d3.max(insidePoints, (d) => getYValue(d));
@@ -283,7 +295,6 @@
     // });
   }
 
-
   function brushedX(event) {
     if (!event.selection) {
       sharedSelection = null;
@@ -310,7 +321,9 @@
     const matchedPoints = insidePoints
       .map((d) => {
         const matchedSim = similarityData.find(
-          (s) => s.start_progress * 100 <= d.percentage && s.end_progress * 100 >= d.percentage
+          (s) =>
+            s.start_progress * 100 <= d.percentage &&
+            s.end_progress * 100 >= d.percentage,
         );
 
         if (!matchedSim) return null;
@@ -409,7 +422,7 @@
         -(width - margin.left - margin.right) * (zoomTransform.k - 1);
       const clampedY = Math.max(
         minTranslateX,
-        Math.min(centerX, maxTranslateX)
+        Math.min(centerX, maxTranslateX),
       );
       zoomTransform.x = clampedY;
       ZoomTransformIsInteral = zoomTransform;
@@ -491,7 +504,8 @@
       .range([0, width - margin.left - margin.right]);
 
     xScaleLineChartFactor =
-      (width - margin.left - margin.right) / ((xDomain[1] - xDomain[0]) * (xAxisField === "time" ? 60 : 1));
+      (width - margin.left - margin.right) /
+      ((xDomain[1] - xDomain[0]) * (xAxisField === "time" ? 60 : 1));
 
     zoom = d3
       .zoom()
@@ -507,7 +521,7 @@
           -(height - margin.top - margin.bottom) * (transform.k - 1);
         const clampedY = Math.max(
           minTranslateY,
-          Math.min(transform.y, maxTranslateY)
+          Math.min(transform.y, maxTranslateY),
         );
         zoomTransform = d3.zoomIdentity
           .translate(transform.x, clampedY)
@@ -596,7 +610,6 @@
             transform={`translate(${zoomTransform.applyX(scaledX(getXValue(d)))},${zoomTransform.applyY(scaledY(getYValue(d) + 6 / zoomTransform.k))}) rotate(180)`}
           />
         {/each}
-
       </g>
     </g>
 
@@ -614,7 +627,8 @@
     >
       {attributeConfig[xAxisField]?.label ?? "X"}
     </text>
-    <g class="y-axis" bind:this={yAxisG} transform="translate({chartWidth}, 0)"></g>
+    <g class="y-axis" bind:this={yAxisG} transform="translate({chartWidth}, 0)"
+    ></g>
     <text
       transform="rotate(-90)"
       x={-chartHeight / 2}
