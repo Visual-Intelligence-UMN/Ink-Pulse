@@ -3316,30 +3316,24 @@
             2) *
           100,
         progressMax:
-          ((sessionData.segments[
-            sessionData.segments.length - 1
-          ].start_progress +
-            sessionData.segments[
-              sessionData.segments.length - 1
-            ].end_progress) /
+          ((sessionData.segments[sessionData.segments.length - 1]
+            .start_progress +
+            sessionData.segments[sessionData.segments.length - 1]
+              .end_progress) /
             2) *
           100,
       };
     } else if (barChartXAxis === "time") {
       return {
         timeMin:
-          ((sessionData.segments[0].start_time +
-        sessionData.segments[0].end_time) /
-        2) /
+          (sessionData.segments[0].start_time +
+            sessionData.segments[0].end_time) /
+          2 /
           60,
         timeMax:
-          ((sessionData.segments[
-        sessionData.segments.length - 1
-          ].start_time +
-        sessionData.segments[
-          sessionData.segments.length - 1
-        ].end_time) /
-        2) /
+          (sessionData.segments[sessionData.segments.length - 1].start_time +
+            sessionData.segments[sessionData.segments.length - 1].end_time) /
+          2 /
           60,
       };
     }
@@ -4319,7 +4313,10 @@
                                 xAxisField={barChartXAxis}
                                 yAxisField={barChartYAxis}
                                 readOnly={true}
-                                sharedSelection={generateBarchartSelection(sessionData, barChartXAxis)}
+                                sharedSelection={generateBarchartSelection(
+                                  sessionData,
+                                  barChartXAxis,
+                                )}
                                 on:selectionChanged={() => {}}
                                 on:selectionCleared={() => {}}
                                 bind:this={
@@ -4750,7 +4747,7 @@
 
         {#if showMulti}
           {#if $clickSession}
-            <div style="margin-top: 70px;">
+            <div style="margin-top: 50px; margin-bottom: 0px;">
               {#if !loadedMap[$clickSession.sessionId]}
                 <SkeletonLoading />
               {/if}
@@ -4801,7 +4798,7 @@
                     <div class="chart-axis-controls">
                       <div class="axis-control-row">
                         <label>
-                          <span class="control-label">BarChart X:</span>
+                          <span class="control-label">BlockEvent X:</span>
                           <select bind:value={barChartXAxis}>
                             <option value="progress">Progress</option>
                             <option value="time">Time</option>
@@ -4811,7 +4808,7 @@
                           </select>
                         </label>
                         <label>
-                          <span class="control-label">LineChart X:</span>
+                          <span class="control-label">Event X:</span>
                           <select bind:value={lineChartXAxis}>
                             <option value="time">Time</option>
                             <option value="progress">Progress</option>
@@ -4820,7 +4817,7 @@
                       </div>
                       <div class="axis-control-row">
                         <label>
-                          <span class="control-label">BarChart Y:</span>
+                          <span class="control-label">BlockEvent Y:</span>
                           <select bind:value={barChartYAxis}>
                             <option value="progress">Progress</option>
                             <option value="time">Time</option>
@@ -4830,7 +4827,7 @@
                           </select>
                         </label>
                         <label>
-                          <span class="control-label">LineChart Y:</span>
+                          <span class="control-label">Event Y:</span>
                           <select bind:value={lineChartYAxis}>
                             <option value="progress">Progress</option>
                             <option value="time">Time</option>
@@ -4911,22 +4908,27 @@
                             bind:brushIsX
                           />
                         </div>
+
+                        <!-- Brush toggle: Progress/Time -->
+                        {#if selectionMode}
+                          <div class="brush-toggle-container">
+                            <span class="label" class:active={!brushIsX}
+                              >Progress</span
+                            >
+                            <label
+                              class="switch"
+                              aria-label="Toggle brush axis"
+                            >
+                              <input type="checkbox" bind:checked={brushIsX} />
+                              <span class="slider"></span>
+                            </label>
+                            <span class="label" class:active={brushIsX}
+                              >Time</span
+                            >
+                          </div>
+                        {/if}
                       </div>
                     </div>
-
-                    <!-- Brush toggle: Progress/Time -->
-                    {#if selectionMode}
-                      <div class="brush-toggle-container">
-                        <span class="label" class:active={!brushIsX}
-                          >Progress</span
-                        >
-                        <label class="switch" aria-label="Toggle brush axis">
-                          <input type="checkbox" bind:checked={brushIsX} />
-                          <span class="slider"></span>
-                        </label>
-                        <span class="label" class:active={brushIsX}>Time</span>
-                      </div>
-                    {/if}
                   </div>
                   <div
                     class="content-box"
@@ -5060,7 +5062,7 @@
     align-items: stretch;
     gap: 10px;
     border-radius: 15px;
-    padding: 25px;
+    padding: 10px 10px 5px;
     box-shadow:
       0px 1px 5px rgba(0, 0, 0, 0.1),
       1px 1px 5px rgba(0, 0, 0, 0.1),
@@ -5077,7 +5079,8 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    height: 400px;
+    height: auto;
+    min-height: 500px;
     font-size: 14px;
     white-space: pre-wrap;
     text-align: left;
@@ -5265,9 +5268,9 @@
   }
 
   .session-identifier {
-    padding: 8px 12px;
+    padding: 6px 12px;
     border-radius: 4px;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
   }
 
   .session-identifier h3 {
@@ -5456,7 +5459,7 @@
     padding: 3px 15px;
     background: #f5f5f5;
     border-radius: 8px;
-    margin: 3px auto;
+    margin: 0 auto 5px;
   }
 
   .axis-control-row {
@@ -5504,9 +5507,9 @@
   .chart-container-split {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    gap: 30px;
     max-width: 700px;
-    padding: 20px;
+    padding: 5px 10px 0;
     margin: 0 auto;
   }
 
@@ -5515,12 +5518,12 @@
     flex-direction: column;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
-    padding: 15px;
+    padding: 10px;
     background: #fafafa;
   }
 
   .chart-title {
-    margin: 0 0 15px 0;
+    margin: 0 0 5px 0;
     font-size: 16px;
     font-weight: 600;
     color: #333;
@@ -5539,8 +5542,8 @@
     justify-content: center;
     align-items: center;
     gap: 10px;
-    margin: 10px auto 10px;
-    max-width: 700px;
+    margin: 8px auto 0;
+    width: 100%;
   }
 
   .brush-toggle-container .label {
