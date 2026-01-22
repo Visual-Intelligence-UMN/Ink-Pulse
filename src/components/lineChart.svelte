@@ -65,12 +65,12 @@
   let brushX: any = null;
   export let brushIsX: boolean = false;
 
-  // 属性配置池（细粒度数据）
+  // attribute config for the chart
   const attributeConfig: any = {
     time: {
       label: "Time (min)",
       getValue: (item: any) => item.time,
-      domain: null, // 动态计算
+      domain: null,
     },
     progress: {
       label: "Writing Length",
@@ -157,7 +157,7 @@
       return 1;
     }
 
-    // 通用格式：检查字段匹配
+    // general format: check field matching
     if (
       sharedSelection.xMin !== undefined &&
       sharedSelection.xMax !== undefined &&
@@ -177,7 +177,7 @@
       sharedSelection.yMax !== undefined &&
       sharedSelection.yField
     ) {
-      // Y 方向选择
+      // Y axis selection
       if (sharedSelection.yField === yAxisField) {
         const yVal = getYValue(d);
         const inRange =
@@ -186,7 +186,7 @@
       }
     }
 
-    // 向后兼容：time-based selection
+    // backward compatibility: time-based selection
     if (
       sharedSelection.selectionSource === "lineChart_x" &&
       sharedSelection.timeMin !== undefined &&
@@ -197,7 +197,7 @@
       return inTimeRange ? 1 : 0.01;
     }
 
-    // 向后兼容：progress-based selection
+    // backward compatibility: progress-based selection
     if (
       sharedSelection.progressMin !== undefined &&
       sharedSelection.progressMax !== undefined
