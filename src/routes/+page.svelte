@@ -52,6 +52,56 @@
   // LineChart axis selection
   let lineChartXAxis = "time";
   let lineChartYAxis = "progress";
+
+  // Dynamic attribute configuration (for auto-adaptation)
+  let barChartAttributeConfig = {
+    progress: {
+      label: "Writing length",
+      getValue: (item) => ((item.start_progress + item.end_progress) / 2) * 100,
+      getStart: (item) => item.start_progress * 100,
+      getEnd: (item) => item.end_progress * 100,
+      hasRange: true,
+      domain: [0, 100],
+    },
+    time: {
+      label: "Time (min)",
+      getValue: (item) => (item.start_time + item.end_time) / 2 / 60,
+      getStart: (item) => item.start_time / 60,
+      getEnd: (item) => item.end_time / 60,
+      hasRange: true,
+      domain: null,
+    },
+    semantic_change: {
+      label: "Semantic Change",
+      getValue: (item) => item.residual_vector_norm,
+      hasRange: false,
+      domain: [0, 1],
+    },
+  };
+
+  let availableBarChartFields = [
+    { key: "progress", label: "Progress" },
+    { key: "time", label: "Time" },
+    { key: "semantic_change", label: "Semantic Change" },
+  ];
+
+  let lineChartAttributeConfig = {
+    time: {
+      label: "Time (min)",
+      getValue: (item) => item.time,
+      domain: null,
+    },
+    progress: {
+      label: "Writing Length",
+      getValue: (item) => item.percentage,
+      domain: [0, 100],
+    },
+  };
+
+  let availableLineChartFields = [
+    { key: "time", label: "Time" },
+    { key: "progress", label: "Progress" },
+  ];
   let showPatternSearch = false;
   let exactSourceButton;
   let exactTrendButton;
@@ -2307,6 +2357,341 @@
   let isLoadOverallData = false;
   let CSVData = [];
   let featureData = [];
+
+  // Helper: Format field name to readable label
+  function formatLabel(key) {
+    // residual_vector_norm → Residual Vector Norm
+    // semantic_change_v2 → Semantic Change V2
+    return key
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
+
+  // Build attribute configuration from detected fields
+  function buildAttributeConfigs(detectedFields) {
+    if (!detectedFields) return null;
+
+    console.log("🔨 Building attribute configs from detected fields");
+    const config = {};
+
+    // Add range fields
+    for (const field of detectedFields.rangeFields) {
+      const { key } = field;
+
+      // Special handling for known fields
+      if (key === "progress") {
+        config[key] = {
+          label: "Writing length",
+          getValue: (item) =>
+            ((item.start_progress + item.end_progress) / 2) * 100,
+          getStart: (item) => item.start_progress * 100,
+          getEnd: (item) => item.end_progress * 100,
+          hasRange: true,
+          domain: [0, 100],
+        };
+      } else if (key === "time") {
+        config[key] = {
+          label: "Time (min)",
+          getValue: (item) => (item.start_time + item.end_time) / 2 / 60,
+          getStart: (item) => item.start_time / 60,
+          getEnd: (item) => item.end_time / 60,
+          hasRange: true,
+          domain: null, // auto-calculate
+        };
+      } else {
+        // Generic range field
+        config[key] = {
+          label: field.label,
+          getValue: (item) => (item[`start_${key}`] + item[`end_${key}`]) / 2,
+          getStart: (item) => item[`start_${key}`],
+          getEnd: (item) => item[`end_${key}`],
+          hasRange: true,
+          domain: null, // auto-calculate
+        };
+      }
+
+      console.log(`  ✅ Added range field config: ${key}`);
+    }
+
+    // Add point value fields
+    for (const field of detectedFields.pointFields) {
+      const { key } = field;
+
+      // Special handling for semantic fields
+      if (key === "residual_vector_norm") {
+        config.semantic_change = {
+          label: "Semantic Change",
+          getValue: (item) => item.residual_vector_norm,
+          hasRange: false,
+          domain: [0, 1],
+        };
+        console.log(
+          `  ✅ Added point field config: semantic_change (from ${key})`,
+        );
+      } else {
+        // Generic point field
+        config[key] = {
+          label: field.label,
+          getValue: (item) => item[key],
+          hasRange: false,
+          domain: null, // auto-calculate
+        };
+        console.log(`  ✅ Added point field config: ${key}`);
+      }
+    }
+
+    console.log("🎉 Config built successfully:", config);
+    return config;
+  }
+
+  // Detect available fields from chartData (fine-grained data)
+  function detectLineChartFields(chartDataSample) {
+    console.log("🔍 Detecting LineChart fields from chartData");
+
+    if (!chartDataSample || chartDataSample.length === 0) {
+      console.warn("No chartData sample available");
+      return null;
+    }
+
+    const sample = chartDataSample[0];
+    console.log("📊 LineChart sample:", sample);
+
+    const fields = {
+      numericFields: [],
+    };
+
+    // Known numeric fields in chartData
+    const knownNumericFields = ["time", "percentage"];
+
+    // Iterate all keys in sample
+    for (const key in sample) {
+      const value = sample[key];
+
+      // Check if numeric
+      if (typeof value !== "number") {
+        console.log(
+          `  ⏭️  Skipping non-numeric field: ${key} (${typeof value})`,
+        );
+        continue;
+      }
+
+      // Skip index (not useful for visualization)
+      if (key === "index") {
+        console.log(`  ⏭️  Skipping index field`);
+        continue;
+      }
+
+      fields.numericFields.push({
+        key,
+        label: formatLabel(key),
+      });
+      console.log(`  ✅ Numeric field detected: ${key}`);
+    }
+
+    console.log("🎯 LineChart detection complete:", fields);
+    return fields;
+  }
+
+  // Build LineChart attribute configuration
+  function buildLineChartConfigs(detectedFields) {
+    if (!detectedFields) return null;
+
+    console.log("🔨 Building LineChart attribute configs");
+    const config = {};
+
+    for (const field of detectedFields.numericFields) {
+      const { key } = field;
+
+      // Special handling for known fields
+      if (key === "time") {
+        config[key] = {
+          label: "Time (min)",
+          getValue: (item) => item.time,
+          domain: null, // auto-calculate
+        };
+      } else if (key === "percentage") {
+        config.progress = {
+          // map percentage to progress
+          label: "Writing Length",
+          getValue: (item) => item.percentage,
+          domain: [0, 100],
+        };
+      } else {
+        // Generic numeric field
+        config[key] = {
+          label: field.label,
+          getValue: (item) => item[key],
+          domain: null, // auto-calculate
+        };
+      }
+
+      console.log(`  ✅ Added LineChart field config: ${key}`);
+    }
+
+    console.log("🎉 LineChart config built:", config);
+    return config;
+  }
+
+  // Detect available fields from segment_results data
+  async function detectAvailableFields(datasetName) {
+    try {
+      console.log("🔍 Detecting fields for dataset:", datasetName);
+
+      // 1. Get first session's segment_results data
+      if (!CSVData || CSVData.length === 0) {
+        console.warn("No CSV data available for field detection");
+        return null;
+      }
+
+      const firstSessionId = CSVData[0]?.session_id;
+      if (!firstSessionId) {
+        console.warn("No valid session ID found");
+        return null;
+      }
+
+      console.log("📂 Sampling from session:", firstSessionId);
+
+      const segmentData = await fetchSimilarityData(firstSessionId);
+      if (!segmentData || !segmentData.length) {
+        console.warn("No segment data available");
+        return null;
+      }
+
+      // 2. Analyze first segment's fields
+      const sample = segmentData[0];
+      console.log("📊 Sample data:", sample);
+
+      const fields = {
+        rangeFields: [],
+        pointFields: [],
+        metaFields: [],
+      };
+
+      const processedRangeKeys = new Set();
+
+      // 3. Iterate all keys
+      for (const key in sample) {
+        const value = sample[key];
+
+        // Skip non-numeric fields
+        if (typeof value !== "number") {
+          console.log(
+            `  ⏭️  Skipping non-numeric field: ${key} (${typeof value})`,
+          );
+          continue;
+        }
+
+        // Identify range fields (start_/end_)
+        if (key.startsWith("start_") || key.startsWith("end_")) {
+          const baseKey = key.replace(/^(start_|end_)/, "");
+
+          if (processedRangeKeys.has(baseKey)) continue;
+
+          // Check if both start_ and end_ exist
+          if (
+            sample[`start_${baseKey}`] !== undefined &&
+            sample[`end_${baseKey}`] !== undefined
+          ) {
+            processedRangeKeys.add(baseKey);
+            fields.rangeFields.push({
+              key: baseKey,
+              label: formatLabel(baseKey),
+              hasRange: true,
+            });
+            console.log(`  ✅ Range field detected: ${baseKey}`);
+          }
+          continue;
+        }
+
+        // Meta fields (usually not for visualization)
+        if (["sentence", "score", "last_event_time"].includes(key)) {
+          fields.metaFields.push({ key, label: formatLabel(key) });
+          console.log(`  ℹ️  Meta field: ${key}`);
+          continue;
+        }
+
+        // Point value fields
+        fields.pointFields.push({
+          key,
+          label: formatLabel(key),
+          hasRange: false,
+        });
+        console.log(`  ✅ Point field detected: ${key}`);
+      }
+
+      console.log("🎯 Detection complete:", fields);
+      return fields;
+    } catch (error) {
+      console.error("❌ Field detection failed:", error);
+      return null;
+    }
+  }
+
+  // Debug function to log current configuration
+  function logCurrentConfiguration() {
+    console.log("=== InkPulse Configuration Debug ===");
+    console.log("Current Dataset:", selectedDataset);
+    console.log("BarChart Axes:", {
+      x: barChartXAxis,
+      y: barChartYAxis,
+    });
+    console.log("LineChart Axes:", {
+      x: lineChartXAxis,
+      y: lineChartYAxis,
+    });
+    console.log("BarChart Attribute Config:", barChartAttributeConfig);
+    console.log("Available BarChart Fields:", availableBarChartFields);
+    console.log("LineChart Attribute Config:", lineChartAttributeConfig);
+    console.log("Available LineChart Fields:", availableLineChartFields);
+    console.log(
+      "Number of config fields:",
+      Object.keys(barChartAttributeConfig).length,
+    );
+    console.log("====================================");
+  }
+
+  // Auto-log when configuration changes
+  $: if (barChartAttributeConfig && selectedDataset) {
+    // Triggered whenever barChartAttributeConfig or selectedDataset changes
+    if (Object.keys(barChartAttributeConfig).length > 0) {
+      console.log("📊 Configuration updated for dataset:", selectedDataset);
+    }
+  }
+
+  // Detect LineChart fields when first session data is available
+  let lineChartFieldsDetected = false;
+  $: if (
+    $clickSession?.chartData &&
+    !lineChartFieldsDetected &&
+    $clickSession.chartData.length > 0
+  ) {
+    console.log("🔍 Detecting LineChart fields from first session data");
+    const detectedLineFields = detectLineChartFields($clickSession.chartData);
+
+    if (detectedLineFields) {
+      const newLineConfig = buildLineChartConfigs(detectedLineFields);
+      if (newLineConfig && Object.keys(newLineConfig).length > 0) {
+        lineChartAttributeConfig = {
+          ...lineChartAttributeConfig,
+          ...newLineConfig,
+        };
+
+        availableLineChartFields = Object.keys(newLineConfig).map((key) => ({
+          key,
+          label: newLineConfig[key].label,
+        }));
+
+        console.log(
+          "✨ LineChart config updated with",
+          Object.keys(newLineConfig).length,
+          "fields",
+        );
+        lineChartFieldsDetected = true; // Only detect once
+      }
+    }
+  }
+
   onMount(async () => {
     document.title = "Ink-Pulse";
     await openDB();
@@ -2353,6 +2738,59 @@
       (item) => item.session_id && item.session_id.trim() !== "",
     );
     featureData = await fetchFeatureData(CSVData);
+
+    // Stage 1: Detect available fields
+    const detectedFields = await detectAvailableFields(selectedDataset);
+    console.log("📋 Detected fields result:", detectedFields);
+
+    // Stage 2: Build attribute configurations
+    if (detectedFields) {
+      const newConfig = buildAttributeConfigs(detectedFields);
+      if (newConfig && Object.keys(newConfig).length > 0) {
+        // Merge with existing config to preserve type
+        barChartAttributeConfig = { ...barChartAttributeConfig, ...newConfig };
+
+        // Update available fields list for dropdowns
+        availableBarChartFields = Object.keys(newConfig).map((key) => ({
+          key,
+          label: newConfig[key].label,
+        }));
+
+        // Set default axis selections
+        // X axis: first range field (prefer progress > time)
+        const rangeFields = detectedFields.rangeFields.map((f) => f.key);
+        const defaultXAxis = rangeFields.includes("progress")
+          ? "progress"
+          : rangeFields[0] || "progress";
+
+        // Y axis: first point field (prefer semantic_change)
+        const pointFields = detectedFields.pointFields.map((f) =>
+          f.key === "residual_vector_norm" ? "semantic_change" : f.key,
+        );
+        const defaultYAxis = pointFields.includes("semantic_change")
+          ? "semantic_change"
+          : pointFields[0] || "semantic_change";
+
+        barChartXAxis = defaultXAxis;
+        barChartYAxis = defaultYAxis;
+
+        console.log(
+          "✨ BarChart config updated with",
+          Object.keys(newConfig).length,
+          "fields",
+        );
+        console.log("📌 Default axes set to:", {
+          x: defaultXAxis,
+          y: defaultYAxis,
+        });
+      }
+    }
+
+    // Debug: Log initial configuration
+    logCurrentConfiguration();
+
+    // Stage 3: Detect LineChart fields (when first session data is available)
+    // We'll do this via reactive statement after data loads
 
     if (isLoadOverallData == false) {
       const prefix = selectedDataset.slice(0, 2);
@@ -4800,18 +5238,17 @@
                         <label>
                           <span class="control-label">BlockEvent X:</span>
                           <select bind:value={barChartXAxis}>
-                            <option value="progress">Progress</option>
-                            <option value="time">Time</option>
-                            <option value="semantic_change"
-                              >Semantic Change</option
-                            >
+                            {#each availableBarChartFields as field}
+                              <option value={field.key}>{field.label}</option>
+                            {/each}
                           </select>
                         </label>
                         <label>
                           <span class="control-label">Event X:</span>
                           <select bind:value={lineChartXAxis}>
-                            <option value="time">Time</option>
-                            <option value="progress">Progress</option>
+                            {#each availableLineChartFields as field}
+                              <option value={field.key}>{field.label}</option>
+                            {/each}
                           </select>
                         </label>
                       </div>
@@ -4819,18 +5256,17 @@
                         <label>
                           <span class="control-label">BlockEvent Y:</span>
                           <select bind:value={barChartYAxis}>
-                            <option value="progress">Progress</option>
-                            <option value="time">Time</option>
-                            <option value="semantic_change"
-                              >Semantic Change</option
-                            >
+                            {#each availableBarChartFields as field}
+                              <option value={field.key}>{field.label}</option>
+                            {/each}
                           </select>
                         </label>
                         <label>
                           <span class="control-label">Event Y:</span>
                           <select bind:value={lineChartYAxis}>
-                            <option value="progress">Progress</option>
-                            <option value="time">Time</option>
+                            {#each availableLineChartFields as field}
+                              <option value={field.key}>{field.label}</option>
+                            {/each}
                           </select>
                         </label>
                       </div>
@@ -4840,17 +5276,14 @@
                       <!-- Left: BarChart (Semantic Similarity) -->
                       <div class="chart-section">
                         <h4 class="chart-title">
-                          {barChartYAxis === "semantic_change"
-                            ? "Semantic Change"
-                            : barChartYAxis === "progress"
-                              ? "Progress"
-                              : "Time"}
+                          {barChartAttributeConfig[barChartYAxis]?.label ||
+                            barChartYAxis}
                         </h4>
                         <div
                           class="chart-wrapper-independent"
                           on:wheel={handleChartZoom}
                         >
-                          {#if $clickSession.similarityData}
+                          {#if $clickSession.similarityData && Object.keys(barChartAttributeConfig).length > 0}
                             <BarChartY
                               sessionId={$clickSession.sessionId}
                               similarityData={$clickSession.similarityData}
@@ -4858,6 +5291,7 @@
                               {height}
                               xAxisField={barChartXAxis}
                               yAxisField={barChartYAxis}
+                              attributeConfig={barChartAttributeConfig}
                               bind:zoomTransform={
                                 zoomTransforms[$clickSession.sessionId]
                               }
@@ -4878,9 +5312,8 @@
                       <!-- Right: LineChart (Writing Progress) -->
                       <div class="chart-section">
                         <h4 class="chart-title">
-                          {lineChartYAxis === "progress"
-                            ? "Writing Progress"
-                            : "Time"}
+                          {lineChartAttributeConfig[lineChartYAxis]?.label ||
+                            lineChartYAxis}
                         </h4>
                         <div
                           class="chart-wrapper-independent"
@@ -4897,6 +5330,7 @@
                             {height}
                             xAxisField={lineChartXAxis}
                             yAxisField={lineChartYAxis}
+                            attributeConfig={lineChartAttributeConfig}
                             bind:zoomTransform={
                               zoomTransforms[$clickSession.sessionId]
                             }

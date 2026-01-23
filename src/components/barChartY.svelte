@@ -27,8 +27,8 @@
   let xScale;
   let newyScale;
 
-  // 属性配置池
-  const attributeConfig = {
+  // 属性配置池（从父组件传入，或使用默认值）
+  export let attributeConfig = {
     progress: {
       label: "Writing length",
       getValue: (item) => ((item.start_progress + item.end_progress) / 2) * 100,
@@ -255,8 +255,20 @@
   function renderChart() {
     d3.select(container).selectAll("svg").remove();
 
+    // Safety check: ensure attributeConfig is not empty
+    if (!attributeConfig || Object.keys(attributeConfig).length === 0) {
+      console.warn("⚠️ attributeConfig is empty, skipping render");
+      return;
+    }
+
     const xConfig = attributeConfig[xAxisField];
     const yConfig = attributeConfig[yAxisField];
+
+    // Safety check: ensure selected fields exist in config
+    if (!xConfig || !yConfig) {
+      console.warn(`⚠️ Field not found in config: x=${xAxisField}, y=${yAxisField}`);
+      return;
+    }
 
     // process the data, calculate all the attribute values
     processedData = similarityData.map((item, i) => {
