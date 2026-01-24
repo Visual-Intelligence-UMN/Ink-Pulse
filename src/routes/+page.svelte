@@ -37,6 +37,7 @@
   import { getDB } from "$lib/dbLoader";
   import { readSegmentResults } from "$lib/db/read";
   import { browser } from '$app/environment';
+  import Interpreter from "../components/interpreter.svelte";
 
   let chartRefs = {};
   let filterButton;
@@ -162,8 +163,9 @@
   let playbackIndex = 0;
   let playbackTimer = null;
   let playbackSpeed = 1; // Default 1x speed (real-time)
-  const SPEED_OPTIONS = [1, 10, 50, 100]; // Available speed options: 1x, 10x, 50x, 100x
-  $: TIME_PER_MIN_MS = 60000 / playbackSpeed; // 1 real minute -> calculated seconds based on speed
+  const SPEED_OPTIONS = [1, 5, 100]; // Available speed options: 1x, 5x, 100x
+  const icons = [`${base}/play.svg`, `${base}/doubleplay.svg`, `${base}/tripleplay.svg`];
+  $: TIME_PER_MIN_MS = 60000 / playbackSpeed; // 1 real minute -> calculated ms based on speed
 
   $: if (!isSemanticChecked) {
     isValueRangeChecked = false;
@@ -716,6 +718,176 @@
     currentResults = {};
 
     selectedPatterns = newSelectedPatterns;
+  }
+
+  function buildWindowContext(selectedPatterns) {
+  const patterns = Object.values(selectedPatterns);
+  if (patterns.length === 0) return null;
+  const pattern = patterns[0];
+  if (!pattern || typeof pattern.count !== 'number') return null;
+  const WINDOW_SIZE = pattern.count;
+
+  return {
+    windowSize: WINDOW_SIZE,
+    positionOffset: {
+      first: 0,
+      last: WINDOW_SIZE - 1,
+      prev: WINDOW_SIZE - 2
+    }
+  };
+}
+
+  async function handleInterpreterFilters(event) {
+    const ctx = buildWindowContext(selectedPatterns);
+    if (!ctx) return console.warn('No valid selected pattern');
+    const { windowSize, positionOffset } = ctx;
+
+    function resolveSpanRange(span, anchorIdx, windowSize) {
+      switch (span) {
+        case 'prefix':
+          return { from: 0, to: anchorIdx };
+        case 'suffix':
+          return { from: anchorIdx, to: windowSize - 1 };
+        case 'full':
+          return { from: 0, to: windowSize - 1 };
+        default:
+          return null;
+      }
+    }
+
+    function buildExpr({ feature, position, span }, ref) {
+      const anchorIdx = positionOffset[position];
+      if (anchorIdx == null) return null;
+      const featureDef = featureMap[feature];
+      if (!featureDef) return null;
+      if (!span) {
+        return featureDef.point(anchorIdx, ref);
+      }
+      const range = resolveSpanRange(span, anchorIdx, windowSize);
+      if (!range) return null;
+      return featureDef.range(range.from, range.to, ref);
+    }
+
+    const featureMap = {
+      progress: {
+        point: (idx, ref) => `COALESCE(
+          CAST(JSON_EXTRACT(${ref}, '$[${idx}].end_progress') AS REAL),0
+        ) - COALESCE(
+          CAST(JSON_EXTRACT(${ref}, '$[${idx}].start_progress') AS REAL),0
+        )`,
+        range: (from, to, ref) => `
+          (
+            SELECT SUM(
+              COALESCE(
+                CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_progress') AS REAL),0
+              ) - COALESCE(
+                CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_progress') AS REAL),0
+              )
+            )
+            FROM idx k
+            WHERE k.i BETWEEN ${from} AND ${to}
+          )
+        `
+      },
+      time: {
+        point: (idx, ref) => `COALESCE(
+          CAST(JSON_EXTRACT(${ref}, '$[${idx}].end_time') AS REAL),0
+        ) - COALESCE(
+          CAST(JSON_EXTRACT(${ref}, '$[${idx}].start_time') AS REAL),0
+        )`,
+        range: (from, to, ref) => `
+          (
+            SELECT SUM(
+              COALESCE(
+                CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_time') AS REAL),0
+              ) - COALESCE(
+                CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_time') AS REAL),0
+              )
+            )
+            FROM idx k
+            WHERE k.i BETWEEN ${from} AND ${to}
+          )
+        `
+      },
+      semantic_change: {
+        point: (idx, ref) => `COALESCE(
+          CAST(JSON_EXTRACT(${ref}, '$[${idx}].residual_vector_norm') AS REAL),0
+        )`,
+        range: (from, to, ref) => `
+          (
+            SELECT SUM(
+              COALESCE(
+                CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].residual_vector_norm') AS REAL),0
+              )
+            )
+            FROM idx k
+            WHERE k.i BETWEEN ${from} AND ${to}
+          )
+        `
+      }
+    };
+
+    const { explanations, filters } = event.detail;
+    const comparisons = filters
+    .map((filter, i) => {
+      if (explanations[i]?.feature === 'source') return null;
+      const lExpr = buildExpr(
+        {
+          feature: filter.l_feature,
+          position: filter.l_position,
+          span: filter.span
+        },
+        'window_content'
+      );
+      const rExpr = buildExpr(
+        {
+          feature: filter.r_feature,
+          position: filter.r_position,
+          span: filter.span
+        },
+        'window_content'
+      );
+      if (!lExpr || !rExpr) return null;
+
+      return `(${lExpr}) ${filter.operator} (${rExpr})`;
+    })
+    .filter(Boolean);
+
+    const hasSourceConstraint = explanations.some(exp => exp.feature === 'source');
+    const sourcePattern = Object.values(selectedPatterns)[0].sources || [];
+    const sourceConstraints = hasSourceConstraint
+      ? sourcePattern.map((src, i) => `JSON_EXTRACT(window_content, '$[${i}].source') = '${src}'`)
+      : [];
+    const whereClause = [...comparisons, ...sourceConstraints].join(' AND ');
+    const elements = Array(windowSize).fill(0).map((_, i) => i);
+    const sqlQuery = `
+      WITH RECURSIVE 
+      numbers(n) AS (
+        SELECT 0
+        UNION ALL
+        SELECT n + 1 FROM numbers 
+        WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
+      )
+      SELECT 
+        d.rowid as original_rowid,
+        d.content as original_content,
+        n.n as window_start,
+        json_array(${
+          elements.map(i => 
+            `json_extract(d.content, '$[' || (n.n + ${i}) || ']')`
+          ).join(', ')
+        }) as window_content
+      FROM data d
+      JOIN numbers n 
+        ON n.n + ${windowSize - 1} < json_array_length(d.content)
+      WHERE json_array_length(d.content) >= ${windowSize}
+        ${elements.map(i => 
+          `AND json_extract(d.content, '$[' || (n.n + ${i}) || ']') IS NOT NULL`
+        ).join(' ')}
+        ${whereClause ? 'AND (' + whereClause + ')' : ''}
+      ORDER BY original_rowid, window_start
+    `;
+    console.log('SQL:', sqlQuery);
   }
 
   function getTrendPattern(values) {
@@ -2085,7 +2257,7 @@
         data = JSON.parse(text);
       }
 
-      const time0 = new Date(data.init_time);
+      const time0 = new Date(data.actions[0].event_time);
       const time100 = new Date(data.end_time);
       const currentTime = (time100.getTime() - time0.getTime()) / (1000 * 60); // in minutes
       const similarityData = await fetchSimilarityData(sessionFile);
@@ -2153,7 +2325,7 @@
         data = JSON.parse(text);
       }
 
-      time0 = new Date(data.init_time);
+      time0 = new Date(data.actions[0].event_time);
       time100 = new Date(data.end_time);
       time100 = (time100.getTime() - time0.getTime()) / (1000 * 60);
       currentTime = time100;
@@ -2433,6 +2605,56 @@
       }
       console.log("Use .json file to init data.");
     }
+
+async function debugData() {
+  try {
+    const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
+    const wasmBinary = await wasmResponse.arrayBuffer();
+    const SQL = await initSqlJs({ wasmBinary });
+    
+    const dbResponse = await fetch(`${base}/db/${selectedDataset}_segment_results.db`);
+    const dbBuffer = await dbResponse.arrayBuffer();
+    const db = new SQL.Database(new Uint8Array(dbBuffer));
+
+const stepStats = db.exec(`
+WITH RECURSIVE 
+numbers(n) AS (
+  SELECT 0
+  UNION ALL
+  SELECT n + 1 FROM numbers 
+  WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
+)
+SELECT 
+  d.rowid as original_rowid,
+  d.content as original_content,
+  n.n as window_start,
+  json_array(json_extract(d.content, '$[' || (n.n + 0) || ']'), json_extract(d.content, '$[' || (n.n + 1) || ']'), json_extract(d.content, '$[' || (n.n + 2) || ']')) as window_content
+FROM data d
+JOIN numbers n 
+  ON n.n + 2 < json_array_length(d.content)
+WHERE json_array_length(d.content) >= 3
+  AND json_extract(d.content, '$[' || (n.n + 0) || ']') IS NOT NULL AND json_extract(d.content, '$[' || (n.n + 1) || ']') IS NOT NULL AND json_extract(d.content, '$[' || (n.n + 2) || ']') IS NOT NULL
+  AND (JSON_EXTRACT(window_content, '$[0].source') = 'api' AND JSON_EXTRACT(window_content, '$[1].source') = 'api' AND JSON_EXTRACT(window_content, '$[2].source') = 'user')
+ORDER BY original_rowid, window_start
+`)[0];
+
+const filteredWindows = stepStats.values.map(row => JSON.parse(row[3]));
+
+
+console.log("Num:", filteredWindows.length);
+console.log("Test:", filteredWindows
+  .sort(() => Math.random() - 0.5)
+  .slice(0, 5)
+);
+    
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+await debugData();
+
+
   });
 
   function handleChartZoom(event) {
@@ -2789,31 +3011,34 @@
 
   function handlePointSelected(e, sessionId) {
     const d = e.detail;
-    clickSession.update((currentSession) => {
-      if (currentSession.sessionId !== sessionId) return currentSession;
-      const textElements = d.currentText.split("").map((char, index) => ({
-        text: char,
-        textColor: d.currentColor?.[index] ?? "#000",
-      }));
-      const chartData = currentSession.chartData.map((point) => ({
-        ...point,
-        opacity: point.index > d.index ? 0.01 : 1,
-      }));
-      const similarityData = currentSession.totalSimilarityData;
-      const endIndex = similarityData.findIndex(
-        (item) => d.percentage < item.end_progress * 100
-      );
-      const selectedData =
-        endIndex === -1 ? similarityData : similarityData.slice(0, endIndex);
+    // clickSession.update((currentSession) => {
+    //   if (currentSession.sessionId !== sessionId) return currentSession;
+    //   const textElements = d.currentText.split("").map((char, index) => ({
+    //     text: char,
+    //     textColor: d.currentColor?.[index] ?? "#000",
+    //   }));
+    //   const chartData = currentSession.chartData.map((point) => ({
+    //     ...point,
+    //     opacity: point.index > d.index ? 0.01 : 1,
+    //   }));
+    //   const similarityData = currentSession.totalSimilarityData;
+    //   const endIndex = similarityData.findIndex(
+    //     (item) => d.percentage < item.end_progress * 100
+    //   );
+    //   const selectedData =
+    //     endIndex === -1 ? similarityData : similarityData.slice(0, endIndex);
 
-      return {
-        ...currentSession,
-        textElements,
-        currentTime: d.time,
-        chartData,
-        similarityData: selectedData,
-      };
-    });
+    //   return {
+    //     ...currentSession,
+    //     textElements,
+    //     currentTime: d.time,
+    //     chartData,
+    //     similarityData: selectedData,
+    //   };
+    // });
+    let idx = findIndexFromTime(get(clickSession)?.chartData, d.time);
+    applyPlaybackFrame(sessionId, idx);
+    if (isPlaying) schedulePlayback(sessionId, idx);
   }
 
   // Playback control functions
@@ -2884,8 +3109,8 @@
 
     const current = data[startIndex];
     const next = data[startIndex + 1];
-    const deltaMinutes = Math.max((next.time || 0) - (current.time || 0), 0.01);
-    const delay = Math.max(50, deltaMinutes * TIME_PER_MIN_MS);
+    const deltaMinutes = Math.max((next.time || 0) - (current.time || 0), 1/60 * 0.01); // Minimum 10ms to avoid too fast playback
+    const delay = deltaMinutes * TIME_PER_MIN_MS;
 
     playbackTimer = setTimeout(() => {
       if (!isPlaying) return;
@@ -4184,6 +4409,12 @@
                       {/if}
                     </div>
                   {/if}
+                  <div class="chat-panel">
+                    <Interpreter 
+                      pattern={pattern}
+                      on:parsedFilters={handleInterpreterFilters}
+                    />
+                  </div>
                   {#if $patternDataList.length > 0 && isSearch == 2}
                     <div>Search Results</div>
                     {#each $patternDataList as sessionData, index (sessionData.segmentId)}
@@ -4735,7 +4966,7 @@
                       </div>
                     </div>
                   </div>
-                  <div class="content-box" style="height:65vh">
+                  <div class="content-box" style="height:65vh; width:35vw; margin-left: 20px;">
                     <div class="playback-row">
                       <div class="progress-container-new" style="width: 100%;">
                         <input
@@ -4764,14 +4995,18 @@
                       </div>
                       {#if $clickSession?.chartData?.length}
                         <div class="playback-controls">
-                          <button class="play-button" on:click={togglePlayback}>
+                          <button class="play-button" on:click={togglePlayback} style="width:8.5ch; text-align:center;">
                             {isPlaying ? "Pause" : "Play"}
                           </button>
                           <button
                             class="speed-button"
                             on:click={togglePlaybackSpeed}
                           >
-                            {playbackSpeed}x
+                            <img
+                              src={icons[SPEED_OPTIONS.indexOf(playbackSpeed)]}
+                              alt="Playback speed"
+                              height="12"
+                            />
                           </button>
                         </div>
                       {/if}
@@ -4885,6 +5120,7 @@
     width: 100%;
     max-height: 100%;
     overflow-y: auto;
+    scrollbar-gutter: stable;
     margin-top: 20px;
   }
 
@@ -5017,10 +5253,13 @@
   }
 
   .speed-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 6px 12px;
     border: 2px solid var(--progColor);
     border-radius: 8px;
-    background: white;
+    background: #ff8c80;
     color: var(--progColor);
     cursor: pointer;
     font-weight: 600;
@@ -5029,8 +5268,7 @@
   }
 
   .speed-button:hover {
-    background: var(--progColor);
-    color: white;
+    opacity: 0.9;
     transform: scale(1.02);
   }
 
