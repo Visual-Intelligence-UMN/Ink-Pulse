@@ -1,4 +1,5 @@
 <script>
+  // This component is deprecated, use BarChartY instead
   import { onMount, afterUpdate } from "svelte";
   import * as d3 from "d3";
 
@@ -20,7 +21,9 @@
   };
 
   import colors from "./colors.js";
-  const colorPalette = colors("7fc97fbeaed4fdc086ffff99386cb0f0027fbf5b17666666");
+  const colorPalette = colors(
+    "7fc97fbeaed4fdc086ffff99386cb0f0027fbf5b17666666",
+  );
   let colorIndex = 0;
 
   onMount(() => {
@@ -137,7 +140,7 @@
       .attr("width", (d) => {
         const x1 = xScale(d.residual_vector_norm);
         const x2 = xScale(0);
-        return isNaN(x1) || isNaN(x2) ? 0 : (x2 - x1);
+        return isNaN(x1) || isNaN(x2) ? 0 : x2 - x1;
       })
       .attr("height", (d) => {
         const y1 = newyScale(d.startProgress);
@@ -186,7 +189,7 @@
       .attr("width", (d) => {
         const x1 = xScale(d.residual_vector_norm);
         const x2 = xScale(0);
-        return isNaN(x1) || isNaN(x2) ? 0 : (x2 - x1);
+        return isNaN(x1) || isNaN(x2) ? 0 : x2 - x1;
       })
       .attr("height", (d) => {
         const y1 = newyScale(d.startProgress);
@@ -260,8 +263,8 @@
 <div
   bind:this={container}
   class="chart-preview-container"
-  data-session-id={sessionId}>
-</div>
+  data-session-id={sessionId}
+></div>
 
 <style>
   .chart-preview-container {

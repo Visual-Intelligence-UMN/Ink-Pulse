@@ -10,8 +10,8 @@
   import LineChart from "../components/lineChart.svelte";
   import BarChartY from "../components/barChartY.svelte";
   import * as d3 from "d3";
-  import PatternChartPreview from "../components/patternChartPreview.svelte";
-  import PatternChartPreviewSerach from "../components/patternChartPreviewSerach.svelte";
+  // import PatternChartPreview from "../components/patternChartPreview.svelte";
+  // import PatternChartPreviewSerach from "../components/patternChartPreviewSerach.svelte";
   import SkeletonLoading from "../components/skeletonLoading.svelte";
   import { getCategoryIcon as getCategoryIconBase } from "../components/topicIcons.js";
   import "../components/styles.css";
@@ -43,7 +43,16 @@
   let filterButton;
   let collapseButton;
   let selectionMode = false;
+  let brushIsX = false;
   let selectedPatterns = {};
+
+  // Chart axis selection
+  let barChartXAxis = "progress";
+  let barChartYAxis = "semantic_change";
+
+  // LineChart axis selection
+  let lineChartXAxis = "time";
+  let lineChartYAxis = "progress";
   let showPatternSearch = false;
   let exactSourceButton;
   let exactTrendButton;
@@ -164,7 +173,11 @@
   let playbackTimer = null;
   let playbackSpeed = 1; // Default 1x speed (real-time)
   const SPEED_OPTIONS = [1, 5, 100]; // Available speed options: 1x, 5x, 100x
-  const icons = [`${base}/play.svg`, `${base}/doubleplay.svg`, `${base}/tripleplay.svg`];
+  const icons = [
+    `${base}/play.svg`,
+    `${base}/doubleplay.svg`,
+    `${base}/tripleplay.svg`,
+  ];
   $: TIME_PER_MIN_MS = 60000 / playbackSpeed; // 1 real minute -> calculated ms based on speed
 
   $: if (!isSemanticChecked) {
@@ -182,7 +195,7 @@
     if ($clickSession?.chartData?.length) {
       playbackIndex = findIndexFromTime(
         $clickSession.chartData,
-        $clickSession.currentTime || 0
+        $clickSession.currentTime || 0,
       );
     } else {
       playbackIndex = 0;
@@ -241,7 +254,7 @@
 
   const removepattern = (segmentId) => {
     patternDataList.update((patternList) =>
-      patternList.filter((pattern) => pattern.segmentId !== segmentId)
+      patternList.filter((pattern) => pattern.segmentId !== segmentId),
     );
     showResultCount.update((count) => count - 1);
   };
@@ -428,7 +441,7 @@
       request.onsuccess = () => {
         const files = request.result;
         const zipFile = files.find(
-          (f) => f.name.replace(/\.zip$/i, "") === name
+          (f) => f.name.replace(/\.zip$/i, "") === name,
         );
         resolve(zipFile?.blob || null);
       };
@@ -442,7 +455,7 @@
       if (!datasetInfo) return [];
       if (datasetInfo.source === "repo") {
         const response = await fetch(
-          `${base}/dataset/${selectedDataset}/session.csv`
+          `${base}/dataset/${selectedDataset}/session.csv`,
         );
         if (!response.ok) throw new Error("Failed to fetch CSV data");
         const text = await response.text();
@@ -469,7 +482,7 @@
   const fetchFeatureData = (data) => {
     return data.map((item) => {
       const filteredItem = Object.fromEntries(
-        Object.entries(item).filter(([key]) => key !== "prompt_code")
+        Object.entries(item).filter(([key]) => key !== "prompt_code"),
       );
       return filteredItem;
     });
@@ -609,7 +622,7 @@
       filteredByCategory = [];
 
       const originalFilteredData = tableData.filter((session) =>
-        $selectedTags.includes(session.prompt_code)
+        $selectedTags.includes(session.prompt_code),
       );
       const originalUpdatedData = originalFilteredData.map((row) => ({
         ...row,
@@ -621,19 +634,19 @@
 
       filteredByCategory = $initData.filter((sessionData) => {
         const sessionInfo = sessions.find(
-          (s) => s.session_id === sessionData.sessionId
+          (s) => s.session_id === sessionData.sessionId,
         );
         return sessionInfo && sessionInfo.prompt_code === category;
       });
 
       const categoryTableRows = tableData.filter(
-        (row) => row.prompt_code === category
+        (row) => row.prompt_code === category,
       );
       filterTableData.set(
         categoryTableRows.map((row) => ({
           ...row,
           selected: true,
-        }))
+        })),
       );
 
       categoryTableRows.forEach((row) => {
@@ -1052,7 +1065,7 @@
         const relaxedMax = maxScore + relax;
         const allScores = window.map((item) => item.residual_vector_norm);
         const isScoreValid = allScores.every(
-          (score) => score >= relaxedMin && score <= relaxedMax
+          (score) => score >= relaxedMin && score <= relaxedMax,
         );
         if (!isScoreValid) continue;
       }
@@ -1081,13 +1094,13 @@
 
       if (checks.time[0]) {
         currentVector.t.push(
-          currentItem.endTime * 60 - currentItem.startTime * 60
+          currentItem.endTime * 60 - currentItem.startTime * 60,
         );
       }
 
       if (checks.progress[0]) {
         currentVector.p.push(
-          currentItem.endProgress - currentItem.startProgress
+          currentItem.endProgress - currentItem.startProgress,
         );
       }
 
@@ -1181,15 +1194,22 @@
       let useDB = false;
       try {
         const isLocalBrowser =
-          browser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-        console.log('Is local browser?', isLocalBrowser);
+          browser &&
+          (window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1");
+        console.log("Is local browser?", isLocalBrowser);
         if (isLocalBrowser) {
-          const dbRes = await fetch(`${base}/api/getSegment?dataset=${selectedDataset}`);
+          const dbRes = await fetch(
+            `${base}/api/getSegment?dataset=${selectedDataset}`,
+          );
           if (dbRes.ok) {
             const json = await dbRes.json();
-            if (Array.isArray(json.segmentData) && json.segmentData.length > 0) {
+            if (
+              Array.isArray(json.segmentData) &&
+              json.segmentData.length > 0
+            ) {
               segmentSources = json.segmentData.map((item) => ({
-                sessionId: item.id.replace(/\.json$/, ''),
+                sessionId: item.id.replace(/\.json$/, ""),
                 data: JSON.parse(item.content),
               }));
               useDB = true;
@@ -1199,24 +1219,30 @@
           const SQL = await initSqlJs({
             locateFile: (file) => `${base}/sql-wasm/${file}`,
           });
-          const res = await fetch(`${base}/db/${selectedDataset}_segment_results.db`);
-          if (!res.ok) throw new Error('DB not found');
+          const res = await fetch(
+            `${base}/db/${selectedDataset}_segment_results.db`,
+          );
+          if (!res.ok) throw new Error("DB not found");
           const buf = await res.arrayBuffer();
           const db = new SQL.Database(new Uint8Array(buf));
-          const result = db.exec('SELECT id, content FROM data');
-          if (!result.length) throw new Error('DB empty');
+          const result = db.exec("SELECT id, content FROM data");
+          if (!result.length) throw new Error("DB empty");
           const { columns, values } = result[0];
-          const idIdx = columns.indexOf('id');
-          const contentIdx = columns.indexOf('content');
+          const idIdx = columns.indexOf("id");
+          const contentIdx = columns.indexOf("content");
 
-          segmentSources = values.map((row) => ({
-            sessionId: row[idIdx].replace(/\.json$/, ''),
-            data: JSON.parse(row[contentIdx]),
-          }));
+          segmentSources = values.map((row) => {
+            const sessionIdRaw = row[idIdx];
+            const contentRaw = row[contentIdx];
+            return {
+              sessionId: String(sessionIdRaw ?? "").replace(/\.json$/, ""),
+              data: JSON.parse(String(contentRaw ?? "")),
+            };
+          });
           useDB = true;
         }
       } catch (e) {
-        console.log('No .db file or .db file is empty.', e);
+        console.log("No .db file or .db file is empty.", e);
       }
       if (!useDB) {
         const fileList = CSVData.map((item) => item.session_id);
@@ -1224,7 +1250,7 @@
           let data;
           if (datasetInfo.source === "repo") {
             const dataResponse = await fetch(
-              `${base}/dataset/${selectedDataset}/segment_results/${fileName}.json`
+              `${base}/dataset/${selectedDataset}/segment_results/${fileName}.json`,
             );
             data = await dataResponse.json();
           }
@@ -1234,7 +1260,7 @@
             const zip = await JSZip.loadAsync(zipBlob);
             const filePathRegex = new RegExp(
               `^${selectedDataset}/segment_results/${fileName}\\.json$`,
-              "i"
+              "i",
             );
             const files = zip.file(filePathRegex);
             if (!files || files.length === 0)
@@ -1253,7 +1279,7 @@
       for (const { sessionId, data } of segmentSources) {
         if (Array.isArray(data.chartData)) {
           data.chartData = data.chartData.map(
-            ({ currentText, ...rest }) => rest
+            ({ currentText, ...rest }) => rest,
           );
         }
         delete data.paragraphColor;
@@ -1267,7 +1293,7 @@
             ...item,
             id: sessionId,
             segmentId: `${sessionId}_${index}`,
-          }))
+          })),
         );
         for (const segment of taggedSegments) {
           const vector = buildVectorFromSegment(segment, checks);
@@ -1279,12 +1305,12 @@
       }
       const currentVector = buildVectorForCurrentSegment(
         currentResults,
-        checks
+        checks,
       );
       patternData = results;
       const finalScore = await calculateRankAuto(patternVectors, currentVector);
       const idToData = Object.fromEntries(
-        patternData.map((d) => [d[0].segmentId, d])
+        patternData.map((d) => [d[0].segmentId, d]),
       );
       const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
       searchCount = fullData.length;
@@ -1343,7 +1369,7 @@
     patternVectors,
     currentVector,
     threadCount = 4,
-    threshold = 100
+    threshold = 100,
   ) {
     if (patternVectors.length <= threshold) {
       return calculateRank(patternVectors, currentVector);
@@ -1373,7 +1399,7 @@
   async function calculateRankWorkers(
     patternVectors,
     currentVector,
-    threadCount = 4
+    threadCount = 4,
   ) {
     const chunkSize = Math.ceil(patternVectors.length / threadCount);
     let completed = 0;
@@ -1458,7 +1484,7 @@
       const startTime = toMinutes(
         startTimeSeconds,
         startTimeMinutes,
-        singleTime
+        singleTime,
       );
       const endTime = toMinutes(endTimeSeconds, endTimeMinutes, singleTime);
 
@@ -1471,11 +1497,11 @@
 
       const startProgress = toPercentage(
         Number(item.start_progress ?? item.startProgress ?? item.progressStart),
-        Number(item.percentage)
+        Number(item.percentage),
       );
       const endProgress = toPercentage(
         Number(item.end_progress ?? item.endProgress ?? item.progressEnd),
-        Number(item.percentage)
+        Number(item.percentage),
       );
 
       if (startProgress !== null) {
@@ -1608,7 +1634,7 @@
           }
           const highlightRanges = computeHighlightRangesFromSegments(group);
           const fallbackMode = resolveHighlightModeFromSource(
-            searchDetail?.selectionSource ?? null
+            searchDetail?.selectionSource ?? null,
           );
           const highlightMode = fallbackMode ?? highlightRanges.mode ?? null;
           const selectionContext = highlightRanges.selectionContext ?? {
@@ -1637,7 +1663,7 @@
             },
           };
         })
-        .filter(Boolean)
+        .filter(Boolean),
     );
     isSearch = 2; // reset search state; 0: not searching, 1: searching, 2: search done
     fetchProgress = 0;
@@ -1835,14 +1861,14 @@
 
       const filteredSimilarity = similaritySeries.filter((segment) => {
         const startSeconds = Number(
-          segment?.start_time ?? segment?.startTime ?? 0
+          segment?.start_time ?? segment?.startTime ?? 0,
         );
         const endSeconds = Number(
           segment?.end_time ??
             segment?.endTime ??
             segment?.last_event_time ??
             segment?.start_time ??
-            startSeconds
+            startSeconds,
         );
         const startMinutes = startSeconds / 60;
         const endMinutes = endSeconds / 60;
@@ -1891,7 +1917,7 @@
         }
 
         effectiveSources = filteredSimilarity.map(
-          (segment) => segment?.source ?? "user"
+          (segment) => segment?.source ?? "user",
         );
 
         effectiveDataRange = {
@@ -1971,7 +1997,7 @@
     ) {
       const derivedRange = deriveTimeRangeFromProgress(
         effectiveRange.progress,
-        chartSeries
+        chartSeries,
       );
 
       if (
@@ -2119,7 +2145,7 @@
     filteredByCategory = [];
 
     const originalFilteredData = tableData.filter((session) =>
-      $selectedTags.includes(session.prompt_code)
+      $selectedTags.includes(session.prompt_code),
     );
     const originalUpdatedData = originalFilteredData.map((row) => ({
       ...row,
@@ -2131,7 +2157,7 @@
   async function fetchInitData(sessionId, isDelete) {
     if (isDelete) {
       initData.update((data) =>
-        data.filter((item) => item.sessionId !== sessionId)
+        data.filter((item) => item.sessionId !== sessionId),
       );
       return;
     }
@@ -2141,7 +2167,7 @@
     if (similarityData) {
       initData.update((sessions) => {
         const existingIndex = sessions.findIndex(
-          (s) => s.sessionId === sessionId
+          (s) => s.sessionId === sessionId,
         );
 
         if (existingIndex !== -1) {
@@ -2168,7 +2194,7 @@
       let text;
       if (datasetInfo.source === "repo") {
         const response = await fetch(
-          `${base}/dataset/${selectedDataset}/session.csv`
+          `${base}/dataset/${selectedDataset}/session.csv`,
         );
         if (!response.ok) throw new Error("Failed to fetch CSV data");
         text = await response.text();
@@ -2178,7 +2204,7 @@
         if (!zipBlob) throw new Error("Uploaded zip not found");
         const zip = await JSZip.loadAsync(zipBlob);
         const sessionFiles = zip.file(
-          new RegExp(`^${selectedDataset}/session\\.csv$`, "i")
+          new RegExp(`^${selectedDataset}/session\\.csv$`, "i"),
         );
         if (!sessionFiles || sessionFiles.length === 0)
           throw new Error("session.csv not found in zip");
@@ -2217,11 +2243,11 @@
         ]);
 
         $filterTableData = tableData.filter((session) =>
-          $selectedTags.includes(session.prompt_code)
+          $selectedTags.includes(session.prompt_code),
         );
 
         filterOptions = Array.from(
-          new Set(tableData.map((row) => row.prompt_code))
+          new Set(tableData.map((row) => row.prompt_code)),
         );
       }
     } catch (error) {
@@ -2235,7 +2261,7 @@
       const datasetInfo = datasets.find((d) => d.name === selectedDataset);
       if (datasetInfo.source === "repo") {
         const response = await fetch(
-          `${base}/dataset/${selectedDataset}/json/${sessionFile}.json`
+          `${base}/dataset/${selectedDataset}/json/${sessionFile}.json`,
         );
         if (!response.ok)
           throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -2247,7 +2273,7 @@
         const zip = await JSZip.loadAsync(zipBlob);
         const filePathRegex = new RegExp(
           `^${selectedDataset}/json/${sessionFile}\\.json$`,
-          "i"
+          "i",
         );
         const files = zip.file(filePathRegex);
         if (!files || files.length === 0)
@@ -2258,7 +2284,9 @@
       }
 
       const time0 = new Date(data.actions[0].event_time);
-      const time100 = new Date(data.end_time);
+      const time100 = new Date(
+        data.actions[data.actions.length - 1].event_time,
+      );
       const currentTime = (time100.getTime() - time0.getTime()) / (1000 * 60); // in minutes
       const similarityData = await fetchSimilarityData(sessionFile);
       const chartData = handleEventsSummary(data, similarityData);
@@ -2303,7 +2331,7 @@
       let data;
       if (datasetInfo.source === "repo") {
         const response = await fetch(
-          `${base}/dataset/${selectedDataset}/json/${sessionFile}.json`
+          `${base}/dataset/${selectedDataset}/json/${sessionFile}.json`,
         );
         if (!response.ok)
           throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -2315,7 +2343,7 @@
         const zip = await JSZip.loadAsync(zipBlob);
         const filePathRegex = new RegExp(
           `^${selectedDataset}/json/${sessionFile}\\.json$`,
-          "i"
+          "i",
         );
         const files = zip.file(filePathRegex);
         if (!files || files.length === 0)
@@ -2326,7 +2354,7 @@
       }
 
       time0 = new Date(data.actions[0].event_time);
-      time100 = new Date(data.end_time);
+      time100 = new Date(data.actions[data.actions.length - 1].event_time);
       time100 = (time100.getTime() - time0.getTime()) / (1000 * 60);
       currentTime = time100;
 
@@ -2368,7 +2396,7 @@
       let data;
       if (datasetInfo.source === "repo") {
         const response = await fetch(
-          `${base}/dataset/${selectedDataset}/segment_results/${sessionFile}.json`
+          `${base}/dataset/${selectedDataset}/segment_results/${sessionFile}.json`,
         );
         if (!response.ok)
           throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -2380,7 +2408,7 @@
         const zip = await JSZip.loadAsync(zipBlob);
         const filePathRegex = new RegExp(
           `^${selectedDataset}/segment_results/${sessionFile}\\.json$`,
-          "i"
+          "i",
         );
         const files = zip.file(filePathRegex);
         if (!files || files.length === 0)
@@ -2493,7 +2521,7 @@
       selectedDataset = datasetParam;
     }
     CSVData = (await fetchCSVData()).filter(
-      (item) => item.session_id && item.session_id.trim() !== ""
+      (item) => item.session_id && item.session_id.trim() !== "",
     );
     featureData = await fetchFeatureData(CSVData);
 
@@ -2509,7 +2537,7 @@
       };
       searchPatternSet.update((current) => {
         const index = current.findIndex(
-          (p) => p.id === "pattern_0" && p.dataset === selectedDataset
+          (p) => p.id === "pattern_0" && p.dataset === selectedDataset,
         );
 
         if (index >= 0) {
@@ -2529,10 +2557,14 @@
     let segmentData = [];
     try {
       const isLocalBrowser =
-        browser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-      console.log('Is local browser?', isLocalBrowser);
+        browser &&
+        (window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1");
+      console.log("Is local browser?", isLocalBrowser);
       if (isLocalBrowser) {
-        const segmentDB = await fetch(`${base}/api/getSegment?dataset=${selectedDataset}`);
+        const segmentDB = await fetch(
+          `${base}/api/getSegment?dataset=${selectedDataset}`,
+        );
         if (segmentDB.ok) {
           const json = await segmentDB.json();
           if (Array.isArray(json.segmentData) && json.segmentData.length > 0) {
@@ -2545,49 +2577,55 @@
           locateFile: (file) => `${base}/sql-wasm/${file}`,
         });
 
-        const res = await fetch(`${base}/db/${selectedDataset}_segment_results.db`);
-        if (!res.ok) throw new Error('DB not found');
+        const res = await fetch(
+          `${base}/db/${selectedDataset}_segment_results.db`,
+        );
+        if (!res.ok) throw new Error("DB not found");
         const buf = await res.arrayBuffer();
         const db = new SQL.Database(new Uint8Array(buf));
-        const result = db.exec('SELECT id, content FROM data');
-        if (!result.length) throw new Error('DB empty');
+        const result = db.exec("SELECT id, content FROM data");
+        if (!result.length) throw new Error("DB empty");
         const { columns, values } = result[0];
-        const idIdx = columns.indexOf('id');
-        const contentIdx = columns.indexOf('content');
+        const idIdx = columns.indexOf("id");
+        const contentIdx = columns.indexOf("content");
 
-        segmentData = values.map(row => ({
-          id: row[idIdx].replace(/\.json$/, ''),
-          content: JSON.parse(row[contentIdx]),
-        }));
+        segmentData = values.map((row) => {
+          const idRaw = row[idIdx];
+          const contentRaw = row[contentIdx];
+          return {
+            id: String(idRaw ?? "").replace(/\.json$/, ""),
+            content: JSON.parse(String(contentRaw ?? "")),
+          };
+        });
         useDB = true;
       }
 
-      console.log('Use DB:', useDB, 'Segment data length:', segmentData.length);
+      console.log("Use DB:", useDB, "Segment data length:", segmentData.length);
     } catch (e) {
-      console.log('No .db file or .db file is empty.', e);
+      console.log("No .db file or .db file is empty.", e);
     }
 
     if (useDB) {
       const scoreMap = new Map(
-      CSVData.map((row) => [row.session_id, row.judge_score])
-    );
-    const initArray = segmentData.map((item) => {
-      const sessionId = item.id;
-      const content =
-        typeof item.content === "string"
-          ? JSON.parse(item.content)
-          : item.content;
+        CSVData.map((row) => [row.session_id, row.judge_score]),
+      );
+      const initArray = segmentData.map((item) => {
+        const sessionId = item.id;
+        const content =
+          typeof item.content === "string"
+            ? JSON.parse(item.content)
+            : item.content;
 
-      return {
-        sessionId,
-        similarityData: content,
-        totalSimilarityData: content,
-        llmScore: scoreMap.get(sessionId) ?? null,
-      };
-    });
+        return {
+          sessionId,
+          similarityData: content,
+          totalSimilarityData: content,
+          llmScore: scoreMap.get(sessionId) ?? null,
+        };
+      });
 
-    initData.set(initArray);
-    console.log("Use .db file to init data.");
+      initData.set(initArray);
+      console.log("Use .db file to init data.");
     } else {
       for (let i = 0; i < selectedSession.length; i++) {
         const sessionId = selectedSession[i];
@@ -2681,7 +2719,7 @@ await debugData();
     const minTranslateY = -chartHeight * (newK - 1);
     const clampedY = Math.max(
       minTranslateY,
-      Math.min(newTranslateY, maxTranslateY)
+      Math.min(newTranslateY, maxTranslateY),
     );
 
     zoomTransforms[sessionId] = d3.zoomIdentity
@@ -2701,10 +2739,10 @@ await debugData();
     let textLength = wholeText.length;
 
     let newParagraph = [...wholeText.matchAll(/\n/g)].map(
-      (match) => match.index
+      (match) => match.index,
     );
     let paragraphPercentages = newParagraph.map(
-      (pos) => (pos / textLength) * 100
+      (pos) => (pos / textLength) * 100,
     );
     let mergeParagraph = [0];
     for (let i = 0; i < paragraphPercentages.length; i++) {
@@ -2722,7 +2760,7 @@ await debugData();
         Math.abs(curr.percentage - percentage) <
         Math.abs(prev.percentage - percentage)
           ? curr
-          : prev
+          : prev,
       );
 
       return closest.time;
@@ -3073,7 +3111,7 @@ await debugData();
       }));
       const similarityData = session.totalSimilarityData || [];
       const endIndex = similarityData.findIndex(
-        (item) => point.percentage < item.end_progress * 100
+        (item) => point.percentage < item.end_progress * 100,
       );
       const selectedData =
         endIndex === -1 ? similarityData : similarityData.slice(0, endIndex);
@@ -3109,7 +3147,10 @@ await debugData();
 
     const current = data[startIndex];
     const next = data[startIndex + 1];
-    const deltaMinutes = Math.max((next.time || 0) - (current.time || 0), 1/60 * 0.01); // Minimum 10ms to avoid too fast playback
+    const deltaMinutes = Math.max(
+      (next.time || 0) - (current.time || 0),
+      (1 / 60) * 0.01,
+    ); // Minimum 10ms to avoid too fast playback
     const delay = deltaMinutes * TIME_PER_MIN_MS;
 
     playbackTimer = setTimeout(() => {
@@ -3157,7 +3198,7 @@ await debugData();
     const maxTime = session.time100 || 0;
     const targetTime = Math.min(
       Math.max(Number(event.target.value) || 0, 0),
-      maxTime
+      maxTime,
     );
     const idx = findIndexFromTime(session.chartData, targetTime);
     playbackIndex = idx;
@@ -3221,7 +3262,7 @@ await debugData();
   function handleEditSave(event) {
     const { pattern, newName } = event.detail;
     searchPatternSet.update((patterns) =>
-      patterns.map((p) => (p.id === pattern.id ? { ...p, name: newName } : p))
+      patterns.map((p) => (p.id === pattern.id ? { ...p, name: newName } : p)),
     );
     if (
       selectedPatternForDetail &&
@@ -3250,7 +3291,7 @@ await debugData();
   function confirmDeletePattern() {
     if (patternToDelete) {
       searchPatternSet.update((patterns) =>
-        patterns.filter((p) => p.id !== patternToDelete.id)
+        patterns.filter((p) => p.id !== patternToDelete.id),
       );
       if (currentView === "pattern-detail") {
         handleBackFromDetail();
@@ -3281,7 +3322,7 @@ await debugData();
     // Open GitHub README section about dataset import
     window.open(
       "https://github.com/Visual-Intelligence-UMN/Ink-Pulse/blob/main/README.md#how-to-import-your-own-dataset",
-      "_blank"
+      "_blank",
     );
   }
 
@@ -3313,12 +3354,12 @@ await debugData();
   $: vtTotalRows = Math.max(...vtData.map((group) => group.length)); // total number of rows
   $: vtRowsInView = Math.max(
     1,
-    Math.ceil((vtViewportH - vtHeaderHeight) / vtRowHeight)
+    Math.ceil((vtViewportH - vtHeaderHeight) / vtRowHeight),
   );
   $: vtVisibleCnt = vtRowsInView + vtOverscan * 2; // rows to render including overscan
   $: vtStartIndex = Math.max(
     0,
-    Math.floor(vtScrollY / vtRowHeight) - vtOverscan
+    Math.floor(vtScrollY / vtRowHeight) - vtOverscan,
   );
   $: vtEndIndex = Math.min(vtTotalRows, vtStartIndex + vtVisibleCnt); // slice end index
   $: vtVisibleRows = vtData.map((col) => col.slice(vtStartIndex, vtEndIndex)); // actual rows rendered
@@ -3377,7 +3418,7 @@ await debugData();
     searchResults = $initData
       .filter(
         (session) =>
-          session.sessionId && session.sessionId.toLowerCase().includes(query)
+          session.sessionId && session.sessionId.toLowerCase().includes(query),
       )
       .slice(0, 10); // Limit to 10 results
 
@@ -3434,13 +3475,13 @@ await debugData();
       console.log("selectedDataset:", selectedDataset);
       console.log(
         "all patterns:",
-        $searchPatternSet.filter((p) => p.id !== "pattern_0")
+        $searchPatternSet.filter((p) => p.id !== "pattern_0"),
       );
       console.log(
         "filtered patterns:",
         $searchPatternSet.filter(
-          (p) => p.dataset === selectedDataset && p.id !== "pattern_0"
-        )
+          (p) => p.dataset === selectedDataset && p.id !== "pattern_0",
+        ),
       );
     }
   }
@@ -3485,6 +3526,39 @@ await debugData();
     } else if (showMulti) {
       change2bar();
     }
+  }
+
+  function generateBarchartSelection(sessionData, barChartXAxis) {
+    if (barChartXAxis === "progress") {
+      return {
+        progressMin:
+          ((sessionData.segments[0].start_progress +
+            sessionData.segments[0].end_progress) /
+            2) *
+          100,
+        progressMax:
+          ((sessionData.segments[sessionData.segments.length - 1]
+            .start_progress +
+            sessionData.segments[sessionData.segments.length - 1]
+              .end_progress) /
+            2) *
+          100,
+      };
+    } else if (barChartXAxis === "time") {
+      return {
+        timeMin:
+          (sessionData.segments[0].start_time +
+            sessionData.segments[0].end_time) /
+          2 /
+          60,
+        timeMax:
+          (sessionData.segments[sessionData.segments.length - 1].start_time +
+            sessionData.segments[sessionData.segments.length - 1].end_time) /
+          2 /
+          60,
+      };
+    }
+    return {};
   }
 </script>
 
@@ -3836,12 +3910,12 @@ await debugData();
                   <div class="pattern-details">
                     <div>
                       Semantic Change: {pattern.dataRange.scRange.min.toFixed(
-                        2
+                        2,
                       )} - {pattern.dataRange.scRange.max.toFixed(2)}
                     </div>
                     <div>
                       Progress Range: {pattern.dataRange.progressRange.min.toFixed(
-                        2
+                        2,
                       )}% - {pattern.dataRange.progressRange.max.toFixed(2)}%
                     </div>
                     <div>
@@ -3867,14 +3941,25 @@ await debugData();
                         <div
                           style="flex: 1 1 50%; margin-top: 10px; padding: 0;"
                         >
+                          <!-- Barchart for vertical selection preview -->
                           <div style="margin: 0; padding: 0;">
-                            <PatternChartPreview
-                              {sessionId}
-                              data={pattern.data}
-                              wholeData={pattern.wholeData}
-                              selectedRange={pattern.range}
-                              bind:this={chartRefs[sessionId]}
-                              margin_right={0}
+                            <BarChartY
+                              sessionId={$clickSession.sessionId}
+                              similarityData={$clickSession.similarityData}
+                              height={150}
+                              width={180}
+                              {yScale}
+                              xAxisField={barChartXAxis}
+                              yAxisField={barChartYAxis}
+                              bind:sharedSelection
+                              readOnly={true}
+                              on:selectionChanged={handleSelectionChanged}
+                              on:selectionCleared={handleSelectionCleared}
+                              bind:this={
+                                chartRefs[$clickSession.sessionId + "-barChart"]
+                              }
+                              on:chartLoaded={handleChartLoaded}
+                              bind:xScaleBarChartFactor
                             />
                           </div>
                         </div>
@@ -3898,7 +3983,7 @@ await debugData();
                               selectedTimeRange={pattern.selectedTimeRange ??
                                 deriveTimeRangeFromProgress(
                                   pattern.range?.progress,
-                                  pattern.wholeData
+                                  pattern.wholeData,
                                 ) ??
                                 null}
                               selectedProgressRange={pattern.range?.progress ??
@@ -4265,16 +4350,28 @@ await debugData();
                         </div>
                       {:else}
                         <!-- Progress/Bar modes: Show PatternChartPreview -->
+                        <!-- Barchart for horizontal selection preview -->
                         <div class="pattern-chart-preview small-preview">
-                          <PatternChartPreview
-                            {sessionId}
-                            data={pattern.data}
-                            wholeData={pattern.wholeData}
-                            selectedRange={pattern.range}
-                            bind:this={chartRefs[sessionId]}
+                          <BarChartY
+                            sessionId={$clickSession.sessionId}
+                            similarityData={$clickSession.similarityData}
+                            height={150}
+                            width={180}
+                            {yScale}
+                            xAxisField={barChartXAxis}
+                            yAxisField={barChartYAxis}
+                            bind:sharedSelection
+                            readOnly={true}
+                            on:selectionChanged={handleSelectionChanged}
+                            on:selectionCleared={handleSelectionCleared}
+                            bind:this={
+                              chartRefs[$clickSession.sessionId + "-barChart"]
+                            }
+                            on:chartLoaded={handleChartLoaded}
+                            bind:xScaleBarChartFactor
                           />
                         </div>
-                        <div style="margin-top: 5px; width: 60%">
+                        <div style="margin-top: 10px; width: 50%">
                           <div
                             class:dimmed={!isProgressChecked}
                             style="font-size: 13px;"
@@ -4432,11 +4529,28 @@ await debugData();
                             >
                           </div>
                           <div style="display: flex; align-items: flex-start">
+                            <!--Barchart for search result preview-->
                             <div>
-                              <PatternChartPreviewSerach
+                              <BarChartY
                                 sessionId={sessionData.sessionId}
-                                data={sessionData.segments}
-                                wholeData={sessionData.similarityData}
+                                similarityData={sessionData.similarityData}
+                                height={150}
+                                width={180}
+                                {yScale}
+                                xAxisField={barChartXAxis}
+                                yAxisField={barChartYAxis}
+                                readOnly={true}
+                                sharedSelection={generateBarchartSelection(
+                                  sessionData,
+                                  barChartXAxis,
+                                )}
+                                on:selectionChanged={() => {}}
+                                on:selectionCleared={() => {}}
+                                bind:this={
+                                  chartRefs[sessionData.sessionId + "-barChart"]
+                                }
+                                on:chartLoaded={() => {}}
+                                bind:xScaleBarChartFactor
                               />
                             </div>
                             <div>
@@ -4452,7 +4566,7 @@ await debugData();
                                 highlightMode={sessionData.highlightRanges
                                   ?.mode ??
                                   resolveHighlightModeFromSource(
-                                    searchDetail?.selectionSource ?? null
+                                    searchDetail?.selectionSource ?? null,
                                   )}
                                 selectionContext={sessionData.highlightRanges
                                   ?.selectionContext ?? null}
@@ -4620,7 +4734,7 @@ await debugData();
                     <span class="category-icon-large">
                       {@html getCategoryIconBase(
                         selectedCategoryFilter,
-                        selectedDataset
+                        selectedDataset,
                       )}
                     </span>
                     {selectedCategoryFilter.toUpperCase()} Sessions
@@ -4860,7 +4974,7 @@ await debugData();
 
         {#if showMulti}
           {#if $clickSession}
-            <div style="margin-top: 70px;">
+            <div style="margin-top: 50px; margin-bottom: 0px;">
               {#if !loadedMap[$clickSession.sessionId]}
                 <SkeletonLoading />
               {/if}
@@ -4871,7 +4985,7 @@ await debugData();
                       <h3>
                         {#if sessions && sessions.find((s) => s.session_id === $clickSession.sessionId)}
                           {sessions.find(
-                            (s) => s.session_id === $clickSession.sessionId
+                            (s) => s.session_id === $clickSession.sessionId,
                           ).prompt_code} - {$clickSession.sessionId}
                         {:else}
                           Session: {$clickSession.sessionId}
@@ -4906,10 +5020,59 @@ await debugData();
                         </div>
                       </div>
                     </div>
+
+                    <!-- Chart Axis Controls -->
+                    <div class="chart-axis-controls">
+                      <div class="axis-control-row">
+                        <label>
+                          <span class="control-label">BlockEvent X:</span>
+                          <select bind:value={barChartXAxis}>
+                            <option value="progress">Progress</option>
+                            <option value="time">Time</option>
+                            <option value="semantic_change"
+                              >Semantic Change</option
+                            >
+                          </select>
+                        </label>
+                        <label>
+                          <span class="control-label">Event X:</span>
+                          <select bind:value={lineChartXAxis}>
+                            <option value="time">Time</option>
+                            <option value="progress">Progress</option>
+                          </select>
+                        </label>
+                      </div>
+                      <div class="axis-control-row">
+                        <label>
+                          <span class="control-label">BlockEvent Y:</span>
+                          <select bind:value={barChartYAxis}>
+                            <option value="progress">Progress</option>
+                            <option value="time">Time</option>
+                            <option value="semantic_change"
+                              >Semantic Change</option
+                            >
+                          </select>
+                        </label>
+                        <label>
+                          <span class="control-label">Event Y:</span>
+                          <select bind:value={lineChartYAxis}>
+                            <option value="progress">Progress</option>
+                            <option value="time">Time</option>
+                          </select>
+                        </label>
+                      </div>
+                    </div>
+
                     <div class="chart-container-split">
                       <!-- Left: BarChart (Semantic Similarity) -->
                       <div class="chart-section">
-                        <h4 class="chart-title">Semantic Similarity</h4>
+                        <h4 class="chart-title">
+                          {barChartYAxis === "semantic_change"
+                            ? "Semantic Change"
+                            : barChartYAxis === "progress"
+                              ? "Progress"
+                              : "Time"}
+                        </h4>
                         <div
                           class="chart-wrapper-independent"
                           on:wheel={handleChartZoom}
@@ -4920,6 +5083,8 @@ await debugData();
                               similarityData={$clickSession.similarityData}
                               {yScale}
                               {height}
+                              xAxisField={barChartXAxis}
+                              yAxisField={barChartYAxis}
                               bind:zoomTransform={
                                 zoomTransforms[$clickSession.sessionId]
                               }
@@ -4939,7 +5104,11 @@ await debugData();
 
                       <!-- Right: LineChart (Writing Progress) -->
                       <div class="chart-section">
-                        <h4 class="chart-title">Writing Progress</h4>
+                        <h4 class="chart-title">
+                          {lineChartYAxis === "progress"
+                            ? "Writing Progress"
+                            : "Time"}
+                        </h4>
                         <div
                           class="chart-wrapper-independent"
                           on:wheel={handleChartZoom}
@@ -4953,6 +5122,8 @@ await debugData();
                               handlePointSelected(e, $clickSession.sessionId)}
                             {yScale}
                             {height}
+                            xAxisField={lineChartXAxis}
+                            yAxisField={lineChartYAxis}
                             bind:zoomTransform={
                               zoomTransforms[$clickSession.sessionId]
                             }
@@ -4961,12 +5132,35 @@ await debugData();
                             on:selectionChanged={handleSelectionChanged}
                             on:selectionCleared={handleSelectionCleared}
                             bind:xScaleLineChartFactor
+                            bind:brushIsX
                           />
                         </div>
+
+                        <!-- Brush toggle: Progress/Time -->
+                        {#if selectionMode}
+                          <div class="brush-toggle-container">
+                            <span class="label" class:active={!brushIsX}
+                              >Progress</span
+                            >
+                            <label
+                              class="switch"
+                              aria-label="Toggle brush axis"
+                            >
+                              <input type="checkbox" bind:checked={brushIsX} />
+                              <span class="slider"></span>
+                            </label>
+                            <span class="label" class:active={brushIsX}
+                              >Time</span
+                            >
+                          </div>
+                        {/if}
                       </div>
                     </div>
                   </div>
-                  <div class="content-box" style="height:65vh; width:35vw; margin-left: 20px;">
+                  <div
+                    class="content-box"
+                    style="height:65vh; width:35vw; margin-left: 20px;"
+                  >
                     <div class="playback-row">
                       <div class="progress-container-new" style="width: 100%;">
                         <input
@@ -4981,9 +5175,9 @@ await debugData();
                               Math.max(
                                 ($clickSession?.currentTime || 0) /
                                   ($clickSession?.time100 || 1 || 1),
-                                0
+                                0,
                               ),
-                              1
+                              1,
                             ) * 100
                           ).toFixed(2)}%;`}
                           on:input={handleScrub}
@@ -4995,7 +5189,11 @@ await debugData();
                       </div>
                       {#if $clickSession?.chartData?.length}
                         <div class="playback-controls">
-                          <button class="play-button" on:click={togglePlayback} style="width:8.5ch; text-align:center;">
+                          <button
+                            class="play-button"
+                            on:click={togglePlayback}
+                            style="width:8.5ch; text-align:center;"
+                          >
                             {isPlaying ? "Pause" : "Play"}
                           </button>
                           <button
@@ -5091,7 +5289,7 @@ await debugData();
     align-items: stretch;
     gap: 10px;
     border-radius: 15px;
-    padding: 25px;
+    padding: 10px 10px 5px;
     box-shadow:
       0px 1px 5px rgba(0, 0, 0, 0.1),
       1px 1px 5px rgba(0, 0, 0, 0.1),
@@ -5108,7 +5306,8 @@ await debugData();
     flex: 1;
     display: flex;
     flex-direction: column;
-    height: 400px;
+    height: auto;
+    min-height: 500px;
     font-size: 14px;
     white-space: pre-wrap;
     text-align: left;
@@ -5296,9 +5495,9 @@ await debugData();
   }
 
   .session-identifier {
-    padding: 8px 12px;
+    padding: 6px 12px;
     border-radius: 4px;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
   }
 
   .session-identifier h3 {
@@ -5481,13 +5680,64 @@ await debugData();
     transform-origin: center top;
   }
 
+  /* Chart axis controls */
+  .chart-axis-controls {
+    max-width: 700px;
+    padding: 3px 15px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    margin: 0 auto 5px;
+  }
+
+  .axis-control-row {
+    display: flex;
+    gap: 70px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .axis-control-row label {
+    display: flex;
+    align-items: center;
+    gap: 0px;
+  }
+
+  .control-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+  }
+
+  .axis-control-row select {
+    padding: 3px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 11px;
+    background: white;
+    cursor: pointer;
+    min-width: 140px;
+  }
+
+  .axis-control-row select:hover {
+    border-color: #999;
+  }
+
+  .axis-control-row select:focus {
+    outline: none;
+    border-color: #66c2a5;
+    box-shadow: 0 0 0 2px rgba(102, 194, 165, 0.2);
+  }
+
   /* New split layout for charts */
   .chart-container-split {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 30px;
-    width: 100%;
-    padding: 20px;
+    max-width: 700px;
+    padding: 5px 10px 0;
+    margin: 0 auto;
   }
 
   .chart-section {
@@ -5495,12 +5745,12 @@ await debugData();
     flex-direction: column;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
-    padding: 15px;
+    padding: 10px;
     background: #fafafa;
   }
 
   .chart-title {
-    margin: 0 0 15px 0;
+    margin: 0 0 5px 0;
     font-size: 16px;
     font-weight: 600;
     color: #333;
@@ -5512,6 +5762,70 @@ await debugData();
     justify-content: center;
     align-items: center;
     overflow: visible;
+  }
+
+  .brush-toggle-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 8px auto 0;
+    width: 100%;
+  }
+
+  .brush-toggle-container .label {
+    font-size: 15px;
+    color: #777;
+    user-select: none;
+    font-weight: normal;
+  }
+
+  .brush-toggle-container .label.active {
+    color: black;
+    font-weight: bold;
+  }
+
+  .brush-toggle-container .switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 26px;
+  }
+
+  .brush-toggle-container .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .brush-toggle-container input:checked + .slider {
+    background-color: #ffbbcc;
+  }
+
+  .brush-toggle-container input:checked + .slider::before {
+    transform: translateX(22px);
+  }
+
+  .brush-toggle-container .slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: #ffbbcc;
+    transition: 0.2s;
+    border-radius: 30px;
+  }
+
+  .brush-toggle-container .slider::before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: 0.2s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
   }
 
   .pattern-search-panel {
@@ -5586,8 +5900,8 @@ await debugData();
   }
 
   .pattern-chart-preview.small-preview {
-    width: 150px;
-    height: 120px;
+    width: 190px;
+    height: 160px;
   }
 
   .pattern-details {
