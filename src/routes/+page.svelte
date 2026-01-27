@@ -734,21 +734,21 @@
   }
 
   function buildWindowContext(selectedPatterns) {
-  const patterns = Object.values(selectedPatterns);
-  if (patterns.length === 0) return null;
-  const pattern = patterns[0];
-  if (!pattern || typeof pattern.count !== 'number') return null;
-  const WINDOW_SIZE = pattern.count;
+    const patterns = Object.values(selectedPatterns);
+    if (patterns.length === 0) return null;
+    const pattern = patterns[0];
+    if (!pattern || typeof pattern.count !== 'number') return null;
+    const WINDOW_SIZE = pattern.count;
 
-  return {
-    windowSize: WINDOW_SIZE,
-    positionOffset: {
-      first: 0,
-      last: WINDOW_SIZE - 1,
-      prev: WINDOW_SIZE - 2
-    }
-  };
-}
+    return {
+      windowSize: WINDOW_SIZE,
+      positionOffset: {
+        first: 0,
+        last: WINDOW_SIZE - 1,
+        prev: WINDOW_SIZE - 2
+      }
+    };
+  }
 
   async function handleInterpreterFilters(event) {
     const ctx = buildWindowContext(selectedPatterns);
@@ -768,104 +768,196 @@
       }
     }
 
-    function buildExpr({ feature, position, span }, ref) {
-      const anchorIdx = positionOffset[position];
-      if (anchorIdx == null) return null;
+    function buildExpr({ feature, position, span, source }, ref) {
       const featureDef = featureMap[feature];
       if (!featureDef) return null;
-      if (!span) {
-        return featureDef.point(anchorIdx, ref);
+      const sourceValue = source === 'Human' ? 'user' : source === 'AI' ? 'api' : null;
+      if (span) {
+        let range;
+        if (span === 'full') {
+          range = { from: 0, to: windowSize - 1 };
+        } else if (span === 'prefix' || span === 'suffix') {
+          const anchorIdx = positionOffset[position];
+          if (anchorIdx == null) {
+            console.warn(`Span ${span} requires position, but position ${position} not found in positionOffset`);
+            return null;
+          }
+          range = resolveSpanRange(span, anchorIdx, windowSize);
+        } else {
+          console.warn(`Unknown span type: ${span}`);
+          return null;
+        }
+        if (!range) return null;
+        return featureDef.range(range.from, range.to, ref, sourceValue);
       }
-      const range = resolveSpanRange(span, anchorIdx, windowSize);
-      if (!range) return null;
-      return featureDef.range(range.from, range.to, ref);
+      const anchorIdx = positionOffset[position];
+      if (anchorIdx == null) {
+        console.warn(`Point query requires position, but position ${position} not found in positionOffset`);
+        return null;
+      }
+      return featureDef.point(anchorIdx, ref, sourceValue);
+    }
+
+    function parseRelation(relationString) {
+      if (!relationString) return null;
+      const match = relationString.match(/^(\w+)\(([\w_]+)\)\s*(>|<|=)\s*(\w+)\(([\w_]+)\)$/);
+      if (!match) return null;
+      
+      return {
+        l_source: match[1],
+        l_feature: match[2],
+        operator: match[3],
+        r_source: match[4],
+        r_feature: match[5]
+      };
     }
 
     const featureMap = {
       progress: {
-        point: (idx, ref) => `COALESCE(
-          CAST(JSON_EXTRACT(${ref}, '$[${idx}].end_progress') AS REAL),0
-        ) - COALESCE(
-          CAST(JSON_EXTRACT(${ref}, '$[${idx}].start_progress') AS REAL),0
-        )`,
-        range: (from, to, ref) => `
-          (
-            SELECT SUM(
-              COALESCE(
-                CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_progress') AS REAL),0
-              ) - COALESCE(
-                CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_progress') AS REAL),0
-              )
-            )
+        point: (idx, ref, source) => {
+          const baseExpr = `COALESCE(
+            CAST(JSON_EXTRACT(${ref}, '$[${idx}].end_progress') AS REAL),0
+          ) - COALESCE(
+            CAST(JSON_EXTRACT(${ref}, '$[${idx}].start_progress') AS REAL),0
+          )`;
+          if (source) {
+            return `CASE WHEN JSON_EXTRACT(${ref}, '$[${idx}].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+          }
+          return baseExpr;
+        },
+        range: (from, to, ref, source) => {
+          const sumExpr = source 
+            ? `CASE WHEN JSON_EXTRACT(${ref}, '$[' || k.i || '].source') = '${source}' 
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_progress') AS REAL),0
+                 ) - COALESCE(
+                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_progress') AS REAL),0
+                 ) ELSE 0 END`
+            : `COALESCE(
+                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_progress') AS REAL),0
+               ) - COALESCE(
+                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_progress') AS REAL),0
+               )`;
+          
+          return `(
+            SELECT SUM(${sumExpr})
             FROM idx k
             WHERE k.i BETWEEN ${from} AND ${to}
-          )
-        `
+          )`;
+        }
       },
       time: {
-        point: (idx, ref) => `COALESCE(
-          CAST(JSON_EXTRACT(${ref}, '$[${idx}].end_time') AS REAL),0
-        ) - COALESCE(
-          CAST(JSON_EXTRACT(${ref}, '$[${idx}].start_time') AS REAL),0
-        )`,
-        range: (from, to, ref) => `
-          (
-            SELECT SUM(
-              COALESCE(
-                CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_time') AS REAL),0
-              ) - COALESCE(
-                CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_time') AS REAL),0
-              )
-            )
+        point: (idx, ref, source) => {
+          const baseExpr = `COALESCE(
+            CAST(JSON_EXTRACT(${ref}, '$[${idx}].end_time') AS REAL),0
+          ) - COALESCE(
+            CAST(JSON_EXTRACT(${ref}, '$[${idx}].start_time') AS REAL),0
+          )`;
+          
+          if (source) {
+            return `CASE WHEN JSON_EXTRACT(${ref}, '$[${idx}].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+          }
+          return baseExpr;
+        },
+        range: (from, to, ref, source) => {
+          const sumExpr = source
+            ? `CASE WHEN JSON_EXTRACT(${ref}, '$[' || k.i || '].source') = '${source}'
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_time') AS REAL),0
+                 ) - COALESCE(
+                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_time') AS REAL),0
+                 ) ELSE 0 END`
+            : `COALESCE(
+                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_time') AS REAL),0
+               ) - COALESCE(
+                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_time') AS REAL),0
+               )`;
+          
+          return `(
+            SELECT SUM(${sumExpr})
             FROM idx k
             WHERE k.i BETWEEN ${from} AND ${to}
-          )
-        `
+          )`;
+        }
       },
       semantic_change: {
-        point: (idx, ref) => `COALESCE(
-          CAST(JSON_EXTRACT(${ref}, '$[${idx}].residual_vector_norm') AS REAL),0
-        )`,
-        range: (from, to, ref) => `
-          (
-            SELECT SUM(
-              COALESCE(
-                CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].residual_vector_norm') AS REAL),0
-              )
-            )
+        point: (idx, ref, source) => {
+          const baseExpr = `COALESCE(
+            CAST(JSON_EXTRACT(${ref}, '$[${idx}].residual_vector_norm') AS REAL),0
+          )`;
+          if (source) {
+            return `CASE WHEN JSON_EXTRACT(${ref}, '$[${idx}].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+          }
+          return baseExpr;
+        },
+        range: (from, to, ref, source) => {
+          const sumExpr = source
+            ? `CASE WHEN JSON_EXTRACT(${ref}, '$[' || k.i || '].source') = '${source}'
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].residual_vector_norm') AS REAL),0
+                 ) ELSE 0 END`
+            : `COALESCE(
+                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].residual_vector_norm') AS REAL),0
+               )`;
+          
+          return `(
+            SELECT SUM(${sumExpr})
             FROM idx k
             WHERE k.i BETWEEN ${from} AND ${to}
-          )
-        `
+          )`;
+        }
       }
     };
-
     const { explanations, filters } = event.detail;
+    // console.log("explanations", explanations, "filters", filters)
     const comparisons = filters
     .map((filter, i) => {
       if (explanations[i]?.feature === 'source') return null;
+      const parsed = parseRelation(filter.relation);
+      if (!parsed) {
+        console.warn('Could not parse relation:', filter.relation);
+        return null;
+      }
       const lExpr = buildExpr(
         {
-          feature: filter.l_feature,
+          feature: parsed.l_feature,
           position: filter.l_position,
-          span: filter.span
+          span: filter.span,
+          source: parsed.l_source
         },
         'window_content'
       );
       const rExpr = buildExpr(
         {
-          feature: filter.r_feature,
+          feature: parsed.r_feature,
           position: filter.r_position,
-          span: filter.span
+          span: filter.span,
+          source: parsed.r_source
         },
         'window_content'
       );
-      if (!lExpr || !rExpr) return null;
+      
+      if (!lExpr || !rExpr) {
+        console.warn('Could not build expressions for:', parsed);
+        return null;
+      }
+      const ratio = filter.ratio;
+      let comparison;
+      if (ratio !== null && ratio !== undefined) {
+        if (parsed.operator === '>') {
+          comparison = `(${lExpr}) ${parsed.operator} ((${rExpr}) * ${ratio})`;
+        } else if (parsed.operator === '<') {
+          comparison = `((${lExpr}) * ${ratio}) ${parsed.operator} (${rExpr})`;
+        } else {
+          comparison = `(${lExpr}) ${parsed.operator} ((${rExpr}) * ${ratio})`;
+        }
+      } else {
+        comparison = `(${lExpr}) ${parsed.operator} (${rExpr})`;
+      }
 
-      return `(${lExpr}) ${filter.operator} (${rExpr})`;
+      return comparison;
     })
     .filter(Boolean);
-
     const hasSourceConstraint = explanations.some(exp => exp.feature === 'source');
     const sourcePattern = Object.values(selectedPatterns)[0].sources || [];
     const sourceConstraints = hasSourceConstraint
@@ -880,6 +972,11 @@
         UNION ALL
         SELECT n + 1 FROM numbers 
         WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
+      ),
+      idx AS (
+        SELECT 0 as i
+        UNION ALL
+        SELECT i + 1 FROM idx WHERE i < ${windowSize - 1}
       )
       SELECT 
         d.rowid as original_rowid,
@@ -893,7 +990,7 @@
       FROM data d
       JOIN numbers n 
         ON n.n + ${windowSize - 1} < json_array_length(d.content)
-      WHERE json_array_length(d.content) >= ${windowSize}
+      WHERE json_array_length(d.content) = ${windowSize}
         ${elements.map(i => 
           `AND json_extract(d.content, '$[' || (n.n + ${i}) || ']') IS NOT NULL`
         ).join(' ')}
@@ -2656,28 +2753,64 @@ async function debugData() {
 
 const stepStats = db.exec(`
 WITH RECURSIVE 
-numbers(n) AS (
-  SELECT 0
-  UNION ALL
-  SELECT n + 1 FROM numbers 
-  WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
-)
-SELECT 
-  d.rowid as original_rowid,
-  d.content as original_content,
-  n.n as window_start,
-  json_array(json_extract(d.content, '$[' || (n.n + 0) || ']'), json_extract(d.content, '$[' || (n.n + 1) || ']'), json_extract(d.content, '$[' || (n.n + 2) || ']')) as window_content
-FROM data d
-JOIN numbers n 
-  ON n.n + 2 < json_array_length(d.content)
-WHERE json_array_length(d.content) >= 3
-  AND json_extract(d.content, '$[' || (n.n + 0) || ']') IS NOT NULL AND json_extract(d.content, '$[' || (n.n + 1) || ']') IS NOT NULL AND json_extract(d.content, '$[' || (n.n + 2) || ']') IS NOT NULL
-  AND (JSON_EXTRACT(window_content, '$[0].source') = 'api' AND JSON_EXTRACT(window_content, '$[1].source') = 'api' AND JSON_EXTRACT(window_content, '$[2].source') = 'user')
-ORDER BY original_rowid, window_start
+      numbers(n) AS (
+        SELECT 0
+        UNION ALL
+        SELECT n + 1 FROM numbers 
+        WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
+      ),
+      idx AS (
+        SELECT 0 as i
+        UNION ALL
+        SELECT i + 1 FROM idx WHERE i < 1
+      )
+      SELECT 
+        d.rowid as original_rowid,
+        d.content as original_content,
+        n.n as window_start,
+        json_array(json_extract(d.content, '$[' || (n.n + 0) || ']'), json_extract(d.content, '$[' || (n.n + 1) || ']')) as window_content
+      FROM data d
+      JOIN numbers n 
+        ON n.n + 1 < json_array_length(d.content)
+      WHERE json_array_length(d.content) >= 2
+        AND json_extract(d.content, '$[' || (n.n + 0) || ']') IS NOT NULL AND json_extract(d.content, '$[' || (n.n + 1) || ']') IS NOT NULL
+        AND (((
+            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user' 
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
+                 ) - COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].start_progress') AS REAL),0
+                 ) ELSE 0 END)
+            FROM idx k
+            WHERE k.i BETWEEN 0 AND 1
+          )) > (((
+            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api' 
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
+                 ) - COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].start_progress') AS REAL),0
+                 ) ELSE 0 END)
+            FROM idx k
+            WHERE k.i BETWEEN 0 AND 1
+          )) * 2.5) AND ((
+            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api'
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].residual_vector_norm') AS REAL),0
+                 ) ELSE 0 END)
+            FROM idx k
+            WHERE k.i BETWEEN 0 AND 1
+          )) > (((
+            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user'
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].residual_vector_norm') AS REAL),0
+                 ) ELSE 0 END)
+            FROM idx k
+            WHERE k.i BETWEEN 0 AND 1
+          )) * 1.5) AND JSON_EXTRACT(window_content, '$[0].source') = 'api' AND JSON_EXTRACT(window_content, '$[1].source') = 'user')
+      ORDER BY original_rowid, window_start
 `)[0];
 
 const filteredWindows = stepStats.values.map(row => JSON.parse(row[3]));
-
 
 console.log("Num:", filteredWindows.length);
 console.log("Test:", filteredWindows
