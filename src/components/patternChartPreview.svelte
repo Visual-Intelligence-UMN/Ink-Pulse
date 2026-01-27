@@ -1,4 +1,5 @@
 <script>
+  // This component is deprecated, use BarChartY instead
   import { onMount, afterUpdate } from "svelte";
   import * as d3 from "d3";
 
@@ -6,12 +7,24 @@
   export let data;
   export let wholeData;
   export let selectedRange;
+  export let margin_right = 5;
 
   let container;
   let prevSelectedRange;
   let prevData;
   let width = 150;
   let height = 120;
+
+  const colorMap = {
+    user: "#66C2A5",
+    api: "#FC8D62",
+  };
+
+  import colors from "./colors.js";
+  const colorPalette = colors(
+    "7fc97fbeaed4fdc086ffff99386cb0f0027fbf5b17666666",
+  );
+  let colorIndex = 0;
 
   onMount(() => {
     if (data && container) {
@@ -58,7 +71,7 @@
       source: d.source,
     }));
 
-    const margin = { top: 10, right: 5, bottom: 25, left: 40 };
+    const margin = { top: 10, right: margin_right, bottom: 25, left: 40 };
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
 
@@ -98,7 +111,7 @@
       .attr("fill", "black")
       .attr("text-anchor", "middle")
       .style("font-size", "8px")
-      .text("Semantic Change (%)");
+      .text("Semantic Change");
 
     svg
       .append("g")
@@ -110,7 +123,7 @@
       .attr("fill", "black")
       .attr("text-anchor", "middle")
       .style("font-size", "8px")
-      .text("Progress(%)");
+      .text("Writing length");
 
     svg
       .selectAll(".bar-whole")
@@ -124,12 +137,39 @@
           : newyScale(d.endProgress),
       )
       .attr("x", (d) => xScale(d.residual_vector_norm))
-      .attr("width", (d) => xScale(0) - xScale(d.residual_vector_norm))
-      .attr("height", (d) =>
-        Math.abs(newyScale(d.startProgress) - newyScale(d.endProgress)),
-      )
-      .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
-      .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
+      .attr("width", (d) => {
+        const x1 = xScale(d.residual_vector_norm);
+        const x2 = xScale(0);
+        return isNaN(x1) || isNaN(x2) ? 0 : x2 - x1;
+      })
+      .attr("height", (d) => {
+        const y1 = newyScale(d.startProgress);
+        const y2 = newyScale(d.endProgress);
+        return isNaN(y1) || isNaN(y2) ? 0 : Math.abs(y1 - y2);
+      })
+
+      .attr("fill", (d) => {
+        if (d.source === "user") {
+          return colorMap.user;
+        } else if (d.source === "api") {
+          return colorMap.api;
+        } else {
+          const color = colorPalette[colorIndex % colorPalette.length];
+          colorIndex++;
+          return color;
+        }
+      })
+      .attr("stroke", (d) => {
+        if (d.source === "user") {
+          return colorMap.user;
+        } else if (d.source === "api") {
+          return colorMap.api;
+        } else {
+          const color = colorPalette[colorIndex % colorPalette.length];
+          colorIndex++;
+          return color;
+        }
+      })
       .attr("stroke-width", 0.1)
       .attr("opacity", 0.2)
       .attr("clip-path", `url(#clip_bar_preview_${sessionId})`);
@@ -146,12 +186,38 @@
           : newyScale(d.endProgress),
       )
       .attr("x", (d) => xScale(d.residual_vector_norm))
-      .attr("width", (d) => xScale(0) - xScale(d.residual_vector_norm))
-      .attr("height", (d) =>
-        Math.abs(newyScale(d.startProgress) - newyScale(d.endProgress)),
-      )
-      .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
-      .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
+      .attr("width", (d) => {
+        const x1 = xScale(d.residual_vector_norm);
+        const x2 = xScale(0);
+        return isNaN(x1) || isNaN(x2) ? 0 : x2 - x1;
+      })
+      .attr("height", (d) => {
+        const y1 = newyScale(d.startProgress);
+        const y2 = newyScale(d.endProgress);
+        return isNaN(y1) || isNaN(y2) ? 0 : Math.abs(y1 - y2);
+      })
+      .attr("fill", (d) => {
+        if (d.source === "user") {
+          return colorMap.user;
+        } else if (d.source === "api") {
+          return colorMap.api;
+        } else {
+          const color = colorPalette[colorIndex % colorPalette.length];
+          colorIndex++;
+          return color;
+        }
+      })
+      .attr("stroke", (d) => {
+        if (d.source === "user") {
+          return colorMap.user;
+        } else if (d.source === "api") {
+          return colorMap.api;
+        } else {
+          const color = colorPalette[colorIndex % colorPalette.length];
+          colorIndex++;
+          return color;
+        }
+      })
       .attr("stroke-width", 0.1)
       .attr("opacity", 0.9)
       .attr("clip-path", `url(#clip_bar_preview_${sessionId})`);

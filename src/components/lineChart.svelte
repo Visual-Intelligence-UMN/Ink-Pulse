@@ -1,11 +1,15 @@
 <script lang="ts">
-  import { createEventDispatcher, afterUpdate, onMount} from "svelte";
+  import { createEventDispatcher, afterUpdate, onMount } from "svelte";
   import * as d3 from "d3";
 
   export let chartData: any[] = [];
   export let paragraphColor: any[] = [];
   export let selectionMode: boolean = false;
-  export let sharedSelection
+  export let sharedSelection;
+  export let xScaleLineChartFactor: number;
+  export let similarityData: any[] = [];
+  export let xAxisField = "time"; // 新增：X轴字段
+  export let yAxisField = "progress"; // 新增：Y轴字段
 
   type ChartEvents = {
     pointSelected: {
@@ -14,13 +18,33 @@
       currentText: string;
       currentColor: string[];
     };
+    selectionChanged: {
+      range: {
+        sc: { min: number; max: number };
+        progress: { min: number; max: number };
+      };
+      dataRange: {
+        scRange: { min: number; max: number };
+        progressRange: { min: number; max: number };
+        timeRange: { min: number; max: number };
+        sc: { sc: number[] };
+      };
+      data: any[];
+      wholeData: any[];
+      sessionId: string | null;
+      sources: string[];
+      selectionSource: string | null;
+    };
+    selectionCleared: {
+      sessionId: string | null;
+    };
   };
   const dispatch = createEventDispatcher<ChartEvents>();
 
   let svgContainer: SVGSVGElement;
   let width = 300;
   export let height;
-  const margin = { top: 20, right: 0, bottom: 30, left: 0 };
+  const margin = { top: 20, right: 50, bottom: 30, left: 0 };
 
   let xScale: any;
   export let yScale;
@@ -39,9 +63,23 @@
   let brushGroup: any = null;
   let brushY: any = null;
   let brushX: any = null;
-  let brushIsX: boolean = false;
+  export let brushIsX: boolean = false;
 
-  $: if(brushGroup && brushX && brushY) {
+  // attribute config for the chart
+  const attributeConfig: any = {
+    time: {
+      label: "Time (min)",
+      getValue: (item: any) => item.time,
+      domain: null,
+    },
+    progress: {
+      label: "Writing Length",
+      getValue: (item: any) => item.percentage,
+      domain: [0, 100],
+    },
+  };
+
+  $: if (brushGroup && brushX && brushY) {
     if (brushIsX) {
       brushGroup.call(brushY.move, null);
       brushGroup.call(brushX);
@@ -54,120 +92,301 @@
   onMount(() => {
     brushY = d3
       .brushY()
-      .extent([[0, 0], [chartWidth, chartHeight]])
-      .on('start brush end', (event: any) => {
+      .extent([
+        [0, 0],
+        [chartWidth, chartHeight],
+      ])
+      .on("start brush end", (event: any) => {
         if (event.sourceEvent) event.sourceEvent.stopPropagation();
       })
       .on("end", brushedY);
-    
+
     brushX = d3
       .brushX()
-      .extent([[0, 0], [chartWidth, chartHeight]])
-      .on('start brush end', (event: any) => {
+      .extent([
+        [0, 0],
+        [chartWidth, chartHeight],
+      ])
+      .on("start brush end", (event: any) => {
         if (event.sourceEvent) event.sourceEvent.stopPropagation();
       })
       .on("end", brushedX);
 
-    const plot = d3.select(svgContainer)
-      .select('g')
+    const plot = d3
+      .select(svgContainer)
+      .select("g")
       .select('g[clip-path="url(#clip)"]');
 
     brushGroup = plot.append("g").attr("class", "brush");
     brushGroup.call(brushX);
-  })
+  });
 
   $: {
-    if (brushGroup && brushX) {
+    if (brushGroup && brushX && brushY) {
       if (!selectionMode) {
         brushGroup.call(brushX.move, null);
         brushGroup.call(brushY.move, null);
         brushGroup.select(".overlay").style("pointer-events", "none");
-      }
-      else {
+      } else {
         brushGroup.select(".overlay").style("pointer-events", "all");
-        if (sharedSelection && sharedSelection.selectionSource != "lineChart_y" && sharedSelection.selectionSource != "lineChart_x") {
+        if (
+          sharedSelection &&
+          sharedSelection.selectionSource != "lineChart_y" &&
+          sharedSelection.selectionSource != "lineChart_x"
+        ) {
           brushGroup.select(".selection").style("display", "none");
-        }
-        else {
+        } else {
           brushGroup.select(".selection").style("display", null);
         }
       }
     }
   }
 
-function getCircleOpacity(d) {
-  if (!selectionMode) {
-    // original logic
-    return selectedPoint === d || hoveredPoint === d ? 1 : d.opacity;
+  $: if (brushGroup && zoomTransform) {
+    brushGroup.select(".selection").style("display", "none");
   }
 
-  if (!sharedSelection || !sharedSelection.progressMin || !sharedSelection.progressMax) {
-    // selectionMode active but no brush yet
+  function getCircleOpacity(d) {
+    if (!selectionMode) {
+      // original logic
+      return selectedPoint === d || hoveredPoint === d ? 1 : d.opacity;
+    }
+
+    if (!sharedSelection) {
+      // selectionMode active but no brush yet
+      return 1;
+    }
+
+    // general format: check field matching
+    if (
+      sharedSelection.xMin !== undefined &&
+      sharedSelection.xMax !== undefined &&
+      sharedSelection.xField
+    ) {
+      // X 方向选择
+      if (sharedSelection.xField === xAxisField) {
+        const xVal = getXValue(d);
+        const inRange =
+          xVal >= sharedSelection.xMin && xVal <= sharedSelection.xMax;
+        return inRange ? 1 : 0.01;
+      }
+    }
+
+    if (
+      sharedSelection.yMin !== undefined &&
+      sharedSelection.yMax !== undefined &&
+      sharedSelection.yField
+    ) {
+      // Y axis selection
+      if (sharedSelection.yField === yAxisField) {
+        const yVal = getYValue(d);
+        const inRange =
+          yVal >= sharedSelection.yMin && yVal <= sharedSelection.yMax;
+        return inRange ? 1 : 0.01;
+      }
+    }
+
+    // backward compatibility: time-based selection
+    if (
+      sharedSelection.selectionSource === "lineChart_x" &&
+      sharedSelection.timeMin !== undefined &&
+      sharedSelection.timeMax !== undefined
+    ) {
+      const { timeMin, timeMax } = sharedSelection;
+      const inTimeRange = d.time >= timeMin && d.time <= timeMax;
+      return inTimeRange ? 1 : 0.01;
+    }
+
+    // backward compatibility: progress-based selection
+    if (
+      sharedSelection.progressMin !== undefined &&
+      sharedSelection.progressMax !== undefined
+    ) {
+      const { progressMin, progressMax } = sharedSelection;
+      const inProgressRange =
+        d.percentage >= progressMin && d.percentage <= progressMax;
+      return inProgressRange ? 1 : 0.01;
+    }
+
     return 1;
   }
-
-  const { progressMin, progressMax } = sharedSelection;
-  const inRange = d.percentage >= progressMin && d.percentage <= progressMax;
-  return inRange ? 1 : 0.01;
-}
-
 
   function brushedY(event) {
     if (!event.selection) {
       sharedSelection = null;
+      dispatch("selectionCleared", { sessionId: null });
       return;
     }
 
+    const [y0, y1] = event.selection;
+    const zx = zoomTransform.rescaleX(xScale);
     const zy = zoomTransform.rescaleY(yScale);
 
-    const [y0, y1] = event.selection;
-    const progressMin = zy.invert(y1);
-    const progressMax = zy.invert(y0);
-    sharedSelection = { progressMin, progressMax, selectionSource: "lineChart_y" };
+    const x0 = 0;
+    const x1 = chartWidth;
+
+    const insidePoints = chartData.filter((d) => {
+      const px = zx(getXValue(d));
+      const py = zy(getYValue(d));
+      return px >= x0 && px <= x1 && py >= y0 && py <= y1;
+    });
+
+    if (!insidePoints.length) {
+      sharedSelection = null;
+      dispatch("selectionCleared", { sessionId: null });
+      return;
+    }
+
+    const matchedPoints = insidePoints
+      .map((d) => {
+        const matchedSim = similarityData.find(
+          (s) =>
+            s.start_progress * 100 <= d.percentage &&
+            s.end_progress * 100 >= d.percentage,
+        );
+
+        if (!matchedSim) return null;
+
+        return {
+          ...d,
+          residual_vector_norm: matchedSim.residual_vector_norm,
+        };
+      })
+      .filter((d) => d !== null);
+
+    const yMin = d3.min(insidePoints, (d) => getYValue(d));
+    const yMax = d3.max(insidePoints, (d) => getYValue(d));
+    const scValues = matchedPoints.map((d) => d.residual_vector_norm || 0);
+    const scMin = d3.min(scValues) || 0;
+    const scMax = d3.max(scValues) || 1;
+    const sources = insidePoints.map((d) => d.source || "user");
+    const tMin = d3.min(insidePoints, (d) => d.time);
+    const tMax = d3.max(insidePoints, (d) => d.time);
+
+    sharedSelection = {
+      yMin,
+      yMax,
+      yField: yAxisField,
+      xField: xAxisField,
+      selectionSource: "lineChart_y",
+      // 向后兼容
+      progressMin: yAxisField === "progress" ? yMin : null,
+      progressMax: yAxisField === "progress" ? yMax : null,
+      timeMin: yAxisField === "time" ? yMin : null,
+      timeMax: yAxisField === "time" ? yMax : null,
+    };
+
+    // dispatch("selectionChanged", {
+    //   range: {
+    //     sc: { min: scMin, max: scMax },
+    //     progress: { min: progressMin, max: progressMax },
+    //   },
+    //   dataRange: {
+    //     scRange: { min: scMin, max: scMax },
+    //     progressRange: { min: progressMin, max: progressMax },
+    //     timeRange: { min: tMin, max: tMax },
+    //     sc: { sc: scValues },
+    //   },
+    //   data: insidePoints,
+    //   wholeData: chartData,
+    //   sessionId: null,
+    //   sources: sources,
+    //   selectionSource: "lineChart_y",
+    // });
   }
 
   function brushedX(event) {
     if (!event.selection) {
       sharedSelection = null;
+      dispatch("selectionCleared", { sessionId: null });
       return;
     }
-
-    const zx = zoomTransform.rescaleX(xScale);
 
     const [x0, x1] = event.selection;
-    const t0 = zx.invert(x0);
-    const t1 = zx.invert(x1);
+    const zx = zoomTransform.rescaleX(xScale);
 
-    // Filter points that are inside the selected time range
-    const insidePoints = chartData.filter(p => p.time >= t0 && p.time <= t1);
+    const xMin = zx.invert(x0);
+    const xMax = zx.invert(x1);
+    const insidePoints = chartData.filter((d) => {
+      const xVal = getXValue(d);
+      return xVal >= xMin && xVal <= xMax;
+    });
 
     if (!insidePoints.length) {
-      // No points inside selection — clear or fallback
       sharedSelection = null;
+      dispatch("selectionCleared", { sessionId: null });
       return;
     }
 
-    // First and last points inside the selection
-    const left = insidePoints[0];
-    const right = insidePoints[insidePoints.length - 1];
+    const matchedPoints = insidePoints
+      .map((d) => {
+        const matchedSim = similarityData.find(
+          (s) =>
+            s.start_progress * 100 <= d.percentage &&
+            s.end_progress * 100 >= d.percentage,
+        );
 
-    // Map to their percentage/progress
-    const progressMin = Math.min(left.percentage, right.percentage);
-    const progressMax = Math.max(left.percentage, right.percentage);
+        if (!matchedSim) return null;
+
+        return {
+          ...d,
+          residual_vector_norm: matchedSim.residual_vector_norm,
+        };
+      })
+      .filter((d) => d !== null);
+
+    const scValues = matchedPoints.map((d) => d.residual_vector_norm || 0);
+    const scMin = d3.min(scValues) || 0;
+    const scMax = d3.max(scValues) || 1;
+
+    const progressMin = d3.min(insidePoints, (d) => d.percentage);
+    const progressMax = d3.max(insidePoints, (d) => d.percentage);
+    const sources = insidePoints.map((d) => d.source || "user");
+    const timeMin = d3.min(insidePoints, (d) => d.time);
+    const timeMax = d3.max(insidePoints, (d) => d.time);
 
     sharedSelection = {
-      progressMin,
-      progressMax,
-      selectionSource: "lineChart_x"
+      xMin,
+      xMax,
+      xField: xAxisField,
+      yField: yAxisField,
+      selectionSource: "lineChart_x",
+      // 向后兼容
+      progressMin: xAxisField === "progress" ? xMin : progressMin,
+      progressMax: xAxisField === "progress" ? xMax : progressMax,
+      timeMin: xAxisField === "time" ? xMin : timeMin,
+      timeMax: xAxisField === "time" ? xMax : timeMax,
     };
-  }
 
+    // dispatch("selectionChanged", {
+    //   range: {
+    //     sc: { min: scMin, max: scMax },
+    //     progress: { min: progressMin, max: progressMax },
+    //   },
+    //   dataRange: {
+    //     scRange: { min: scMin, max: scMax },
+    //     progressRange: { min: progressMin, max: progressMax },
+    //     timeRange: { min: timeMin, max: timeMax },
+    //     sc: { sc: scValues },
+    //   },
+    //   data: insidePoints,
+    //   wholeData: chartData,
+    //   sessionId: null,
+    //   sources: sources,
+    //   selectionSource: "lineChart_x",
+    // });
+  }
 
   export function resetZoom() {
     d3.select(svgContainer)
       .transition()
       .duration(750)
       .call(zoom.transform, d3.zoomIdentity);
+  }
+
+  // 监听轴字段变化，重新初始化图表
+  $: if (xAxisField && yAxisField && chartData.length) {
+    initChart();
   }
 
   $: if (chartData.length) {
@@ -258,13 +477,35 @@ function getCircleOpacity(d) {
   }
 
   function initChart() {
-    const minTime = 0;
-    const maxTime = d3.max(chartData, (d) => d.time);
+    const xConfig = attributeConfig[xAxisField];
+    const yConfig = attributeConfig[yAxisField];
+
+    // 动态计算 X 轴 domain
+    let xDomain = xConfig.domain;
+    if (!xDomain) {
+      const xValues = chartData.map((d) => xConfig.getValue(d));
+      const minX = Math.min(...xValues);
+      const maxX = Math.max(...xValues);
+      xDomain = [minX, maxX];
+    }
+
+    // 动态计算 Y 轴 domain
+    let yDomain = yConfig.domain;
+    if (!yDomain) {
+      const yValues = chartData.map((d) => yConfig.getValue(d));
+      const minY = Math.min(...yValues);
+      const maxY = Math.max(...yValues);
+      yDomain = [minY, maxY];
+    }
 
     xScale = d3
       .scaleLinear()
-      .domain([minTime, maxTime])
+      .domain(xDomain)
       .range([0, width - margin.left - margin.right]);
+
+    xScaleLineChartFactor =
+      (width - margin.left - margin.right) /
+      ((xDomain[1] - xDomain[0]) * (xAxisField === "time" ? 60 : 1));
 
     zoom = d3
       .zoom()
@@ -305,6 +546,15 @@ function getCircleOpacity(d) {
   function scaledY(val) {
     return yScale ? yScale(val) : 0;
   }
+
+  // 动态获取点的 X/Y 值
+  function getXValue(d: any) {
+    return attributeConfig[xAxisField]?.getValue(d) ?? 0;
+  }
+
+  function getYValue(d: any) {
+    return attributeConfig[yAxisField]?.getValue(d) ?? 0;
+  }
 </script>
 
 <svg bind:this={svgContainer} {width} {height} style="vertical-align: top">
@@ -317,35 +567,25 @@ function getCircleOpacity(d) {
         height={height - margin.top - margin.bottom}
       />
     </clipPath>
-    <!-- <clipPath id="clip-text">
-      <rect
-        x="-5"
-        y="-20"
-        width={width - margin.left - margin.right}
-        height={height - margin.top - margin.bottom}
-      />
-    </clipPath> -->
   </defs>
 
   <g transform={`translate(${margin.left},${margin.top})`}>
     <g clip-path="url(#clip)">
-      <g transform={zoomTransform.toString()}>
-        {#each paragraphColor as d}
-          <rect
-            x={scaledX(d.xMin)}
-            width={scaledX(d.xMax) - scaledX(d.xMin)}
-            y={scaledY(d.yMax)}
-            height={scaledY(d.yMin) - scaledY(d.yMax)}
-            fill={d.backgroundColor}
-          />
-        {/each}
-      </g>
+      {#each paragraphColor as d}
+        <rect
+          x={zoomTransform.applyX(scaledX(d.xMin))}
+          width={zoomTransform.k * (scaledX(d.xMax) - scaledX(d.xMin))}
+          y={zoomTransform.applyY(scaledY(d.yMax))}
+          height={zoomTransform.k * (scaledY(d.yMin) - scaledY(d.yMax))}
+          fill={d.backgroundColor}
+        />
+      {/each}
 
       <g>
         {#each chartData.filter((d) => !d.isSuggestionOpen) as d (d.index)}
           <circle
-            cx={zoomTransform.applyX(scaledX(d.time))}
-            cy={zoomTransform.applyY(scaledY(d.percentage))}
+            cx={zoomTransform.applyX(scaledX(getXValue(d)))}
+            cy={zoomTransform.applyY(scaledY(getYValue(d)))}
             r={selectedPoint?.index === d.index
               ? 5
               : hoveredPoint?.index === d.index
@@ -363,42 +603,15 @@ function getCircleOpacity(d) {
         {#each chartData.filter((d) => d.isSuggestionOpen) as d}
           <path
             d={d3.symbol().type(d3.symbolTriangle).size(40)()}
-            fill="#FFBBCC"
+            fill={d.isSuggestionAccept ? "#ffffff" : "#cccccc"}
+            stroke="#aaaaaa"
+            stroke-width="1"
             opacity={d.opacity + 0.29}
-            transform={`translate(${zoomTransform.applyX(scaledX(d.time))},${zoomTransform.applyY(scaledY(d.percentage + 6 / zoomTransform.k))}) rotate(180)`}
+            transform={`translate(${zoomTransform.applyX(scaledX(getXValue(d)))},${zoomTransform.applyY(scaledY(getYValue(d) + 6 / zoomTransform.k))}) rotate(180)`}
           />
         {/each}
       </g>
     </g>
-
-    <!-- <g clip-path="url(#clip-text)">
-      {#if paragraphColor.length < 10}
-        {#each paragraphColor as d, index}
-          <text
-            x={zoomTransform.applyX((scaledX(d.xMin) + scaledX(d.xMax)) / 2) + (index === 0 ? 3 : 0)}
-            y={-5}
-            text-anchor="middle"
-            font-size="12px"
-          >
-            {d.value}
-          </text>
-        {/each}
-      {/if}
-      {#if paragraphColor.length > 10}
-        {#each paragraphColor as d, index}
-          {#if index === 0 || index % 4 === 0}
-            <text
-              x={zoomTransform.applyX((scaledX(d.xMin) + scaledX(d.xMax)) / 2) + (index === 0 ? 3 : 0)}
-              y={-3}
-              text-anchor="middle"
-              font-size="12px"
-            >
-              {d.value}
-            </text>
-          {/if}
-        {/each}
-      {/if}
-    </g> -->
 
     <g
       class="x-axis"
@@ -412,92 +625,22 @@ function getCircleOpacity(d) {
       font-size="10px"
       fill="black"
     >
-      Time (min)
+      {attributeConfig[xAxisField]?.label ?? "X"}
     </text>
-    <g class="y-axis" bind:this={yAxisG} style="display: none"></g>
+    <g class="y-axis" bind:this={yAxisG} transform="translate({chartWidth}, 0)"
+    ></g>
+    <text
+      transform="rotate(-90)"
+      x={-chartHeight / 2}
+      y={width - 10}
+      text-anchor="middle"
+      font-size="10px"
+      fill="black"
+    >
+      {attributeConfig[yAxisField]?.label ?? "Y"}
+    </text>
   </g>
 </svg>
 
-{#if selectionMode}
-  <div class="brush-toggle" style={`width:${width}px; margin-top: 20px; translate: -15px`}>
-    <span class="label" class:active={!brushIsX}>Progress</span>
-    <label class="switch" aria-label="Toggle brush axis">
-      <input type="checkbox" bind:checked={brushIsX} />
-      <span class="slider"></span>
-    </label>
-    <span class="label" class:active={brushIsX}>Time</span>
-  </div>
-{/if}
-
-
 <style>
-.brush-toggle {
-  display: flex;
-  justify-content: center;   /* centers horizontally */
-  align-items: center;
-  gap: 10px;                 /* space between labels and switch */
-  margin: 10px auto 0;       /* sits right under the chart */
-}
-
-.brush-toggle .label {
-  font-size: 15px;           /* smaller text */
-  color: #555;
-  user-select: none;
-}
-
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 48px;               /* larger switch */
-  height: 26px;              /* larger switch */
-}
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-input:checked + .slider {
-  background-color: #ffbbcc;
-}
-
-input:checked + .slider::before {
-  transform: translateX(22px);  /* 48 - 22 - 2*2 = 22 */
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  inset: 0;
-  background-color: #ffbbcc;
-  transition: 0.2s;
-  border-radius: 30px;
-}
-
-.slider::before {
-  position: absolute;
-  content: "";
-  height: 22px;               /* larger knob */
-  width: 22px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  transition: 0.2s;
-  border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
-}
-
-.brush-toggle .label {
-  font-size: 15px;
-  color: #777;         /* default grey */
-  user-select: none;
-  font-weight: normal; /* default weight */
-}
-
-.brush-toggle .label.active {
-  color: black;        /* highlight color */
-  font-weight: bold;   /* highlight bold */
-}
-
 </style>

@@ -1,0 +1,1128 @@
+{
+    "init_text": "You're Barack Obama. 4 years into your retirement, you awake to find a letter with no return address on your bedside table. It reads \"I hope you've had a chance to relax Barack...but pack your bags and call the number below. It's time to start the real job.\" Signed simply, \"JFK.\"\n",
+    "init_time": "2021-08-18 14:00:58",
+    "text": 2845,
+    "actions": [
+        {
+            "name": "text-insert",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:01:00",
+            "pos": 280,
+            "progress": 0.1
+        },
+        {
+            "name": "text-insert",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:01:01",
+            "pos": 281,
+            "progress": 0.1
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:01:05",
+            "progress": 0.1
+        },
+        {
+            "name": "text-insert",
+            "text": "JFK?\n",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:01:13",
+            "pos": 283,
+            "progress": 0.1
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:01:14",
+            "pos": 287,
+            "progress": 0.1
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:01:16",
+            "progress": 0.1
+        },
+        {
+            "name": "text-insert",
+            "text": "As in the dead President John F Kennedy?",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:01:18",
+            "pos": 288,
+            "progress": 0.12
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:01:20",
+            "pos": 328,
+            "progress": 0.12
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:01:22",
+            "progress": 0.12
+        },
+        {
+            "name": "text-insert",
+            "text": "What the heck is going on?",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:01:30",
+            "pos": 329,
+            "progress": 0.13
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:01:31",
+            "pos": 355,
+            "progress": 0.13
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:01:33",
+            "progress": 0.13
+        },
+        {
+            "name": "text-insert",
+            "text": "You pick up the phone, and after a long wait you are connected to Lee Harvey Oswald.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:01:45",
+            "pos": 356,
+            "progress": 0.16
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:01:46",
+            "pos": 440,
+            "progress": 0.16
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:01:49",
+            "progress": 0.16
+        },
+        {
+            "name": "text-insert",
+            "text": "He wants to meet with you at Jack Ruby's Nightclub in Dallas.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:01:58",
+            "pos": 441,
+            "progress": 0.18
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:01:59",
+            "pos": 502,
+            "progress": 0.18
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:02:02",
+            "progress": 0.18
+        },
+        {
+            "name": "text-insert",
+            "text": "\n\nYou are a bit leery, but you go to the meeting.\n",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:02:07",
+            "pos": 504,
+            "progress": 0.19
+        },
+        {
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:02:10",
+            "pos": 505,
+            "progress": 0.19
+        },
+        {
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:02:10",
+            "pos": 504,
+            "progress": 0.19
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:02:24",
+            "pos": 551,
+            "progress": 0.19
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:02:27",
+            "progress": 0.19
+        },
+        {
+            "name": "text-insert",
+            "text": "Lee Harvey Oswald informs you that JFK needs your help.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:02:36",
+            "pos": 552,
+            "progress": 0.21
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:02:38",
+            "pos": 607,
+            "progress": 0.21
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:02:40",
+            "progress": 0.21
+        },
+        {
+            "name": "text-insert",
+            "text": "The Zombies are taking over the Presidency and he needs you to stop them.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:02:53",
+            "pos": 608,
+            "progress": 0.24
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:02:54",
+            "pos": 681,
+            "progress": 0.24
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:02:56",
+            "progress": 0.24
+        },
+        {
+            "name": "text-insert",
+            "text": "Lee gives you a \"magic stick\" and tells you to give it a wave, and that will summon the Zombie-B-Gone.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:03:03",
+            "pos": 682,
+            "progress": 0.28
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:03:04",
+            "pos": 784,
+            "progress": 0.28
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:03:07",
+            "progress": 0.28
+        },
+        {
+            "name": "text-insert",
+            "text": "You go back to Washington D.C. and see that all of the statues are being replaced with Zombies!",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:03:14",
+            "pos": 785,
+            "progress": 0.31
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:03:16",
+            "pos": 880,
+            "progress": 0.31
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:03:18",
+            "progress": 0.31
+        },
+        {
+            "name": "text-insert",
+            "text": "You use the magic stick, and wave it around.\n",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:03:21",
+            "pos": 882,
+            "progress": 0.33
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:03:24",
+            "progress": 0.33
+        },
+        {
+            "name": "text-insert",
+            "text": " The Zombie-B-Gone is activated, and the zombies disappear!",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:03:31",
+            "pos": 926,
+            "progress": 0.35
+        },
+        {
+            "name": "text-insert",
+            "text": "\n\n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:03:39",
+            "pos": 552,
+            "progress": 0.35
+        },
+        {
+            "name": "text-insert",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:03:42",
+            "pos": 787,
+            "progress": 0.35
+        },
+        {
+            "name": "text-insert",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:03:43",
+            "pos": 788,
+            "progress": 0.35
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:03:47",
+            "pos": 989,
+            "progress": 0.35
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:03:49",
+            "progress": 0.35
+        },
+        {
+            "name": "text-insert",
+            "text": "\nYou've defeated the zombies and saved the Presidency.\n",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:03:53",
+            "pos": 991,
+            "progress": 0.37
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:03:56",
+            "progress": 0.37
+        },
+        {
+            "name": "text-insert",
+            "text": " The zombies are gone, but you have a new job now.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:03:59",
+            "pos": 1045,
+            "progress": 0.39
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:04:02",
+            "progress": 0.39
+        },
+        {
+            "name": "text-insert",
+            "text": " You must now save the world from the rise of zombies across the globe.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:04:13",
+            "pos": 1095,
+            "progress": 0.41
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:04:16",
+            "progress": 0.41
+        },
+        {
+            "name": "text-insert",
+            "text": " \n\nYou decide to start with a place in the middle of nowhere.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:04:22",
+            "pos": 1166,
+            "progress": 0.43
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:04:25",
+            "progress": 0.43
+        },
+        {
+            "name": "text-insert",
+            "text": " You feel the zombies have been hiding in this town, and you must investigate.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:04:32",
+            "pos": 1227,
+            "progress": 0.46
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:04:35",
+            "progress": 0.46
+        },
+        {
+            "name": "text-insert",
+            "text": " As you enter the town, it's apparent that something is wrong.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:04:42",
+            "pos": 1305,
+            "progress": 0.48
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:04:44",
+            "progress": 0.48
+        },
+        {
+            "name": "text-insert",
+            "text": " There are no humans walking around and all of the cars have been abandoned.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:04:48",
+            "pos": 1367,
+            "progress": 0.51
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:04:50",
+            "progress": 0.51
+        },
+        {
+            "name": "text-insert",
+            "text": " You see a newspaper lying on the ground with \"This town is dead...\" printed in bold.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:04:55",
+            "pos": 1443,
+            "progress": 0.54
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:04:58",
+            "progress": 0.54
+        },
+        {
+            "name": "text-insert",
+            "text": " \n\nSuddenly, the Zombies come out of nowhere!",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:05:01",
+            "pos": 1528,
+            "progress": 0.55
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:05:06",
+            "progress": 0.55
+        },
+        {
+            "name": "text-insert",
+            "text": " \nYou fight off wave after wave of zombies, but you are outnumbered.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:05:12",
+            "pos": 1573,
+            "progress": 0.58
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:05:14",
+            "progress": 0.58
+        },
+        {
+            "name": "text-insert",
+            "text": " Lee Harvey Oswald comes to your aid with the Zombie-B-Gone.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:05:18",
+            "pos": 1641,
+            "progress": 0.6
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:05:21",
+            "progress": 0.6
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:05:44",
+            "pos": 1701,
+            "progress": 0.6
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:05:47",
+            "progress": 0.6
+        },
+        {
+            "name": "text-insert",
+            "text": "You all wave the magic sticks in unison, and the zombies disappear!",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:05:51",
+            "pos": 1702,
+            "progress": 0.62
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:05:53",
+            "progress": 0.62
+        },
+        {
+            "name": "text-insert",
+            "text": " \n\nThe zombies have been defeated, but you've discovered that they are hiding out in a town in Kansas.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:06:01",
+            "pos": 1769,
+            "progress": 0.66
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:06:04",
+            "progress": 0.66
+        },
+        {
+            "name": "text-insert",
+            "text": " You jump in the Zombie-B-Gone truck and head off to Kansas.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:06:11",
+            "pos": 1871,
+            "progress": 0.68
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:06:14",
+            "progress": 0.68
+        },
+        {
+            "name": "text-insert",
+            "text": " \n\nYou arrive in Kansas to find that the townspeople have all been turned into zombies!",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:06:18",
+            "pos": 1931,
+            "progress": 0.71
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:06:21",
+            "progress": 0.71
+        },
+        {
+            "name": "text-insert",
+            "text": " You and Lee go to investigate, but the zombies spot you before you can get a good look around.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:06:25",
+            "pos": 2018,
+            "progress": 0.74
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:06:28",
+            "progress": 0.74
+        },
+        {
+            "name": "text-insert",
+            "text": " \n\nThe zombies come at you, and there are so many of them!",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:06:33",
+            "pos": 2113,
+            "progress": 0.76
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:06:36",
+            "progress": 0.76
+        },
+        {
+            "name": "text-insert",
+            "text": " It looks like you are going to be overwhelmed, but Lee comes to your rescue yet again with the magic stick.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:06:42",
+            "pos": 2171,
+            "progress": 0.8
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:06:45",
+            "pos": 2279,
+            "progress": 0.8
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:06:47",
+            "progress": 0.8
+        },
+        {
+            "name": "text-insert",
+            "text": "\nThe zombies are gone, but you know that there must be a source of the zombie epidemic...\n",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:06:51",
+            "pos": 2281,
+            "progress": 0.83
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:06:56",
+            "progress": 0.83
+        },
+        {
+            "name": "text-insert",
+            "text": " \n\nYou head off to the center of the country and find a facility called \"The Center for Disease Control\".",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:07:02",
+            "pos": 2370,
+            "progress": 0.87
+        },
+        {
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:07:07",
+            "pos": 2372,
+            "progress": 0.87
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:07:09",
+            "pos": 2474,
+            "progress": 0.87
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:07:16",
+            "progress": 0.87
+        },
+        {
+            "name": "text-insert",
+            "text": "\nYou enter the facility and find out that a company called \"Military Industrial Pharmaceuticals\" has been doing experiments with a chemical called Z-\n",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:07:23",
+            "pos": 2476,
+            "progress": 0.92
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:07:25",
+            "progress": 0.92
+        },
+        {
+            "name": "text-insert",
+            "text": "Coffin-3.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:07:27",
+            "pos": 2625,
+            "progress": 0.93
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:07:30",
+            "progress": 0.93
+        },
+        {
+            "name": "text-insert",
+            "text": " \n\nYou must find the Chemical Z-Coffin-3 and destroy it to stop the zombie epidemic.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 14:07:36",
+            "pos": 2634,
+            "progress": 0.96
+        },
+        {
+            "name": "text-delete",
+            "text": "Presiden",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:07:59",
+            "pos": 642,
+            "progress": 0.95
+        },
+        {
+            "name": "text-delete",
+            "text": "y",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:07:59",
+            "pos": 643,
+            "progress": 0.95
+        },
+        {
+            "name": "text-insert",
+            "text": "ount",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:07:59",
+            "pos": 643,
+            "progress": 0.95
+        },
+        {
+            "name": "text-insert",
+            "text": "ry",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:08:00",
+            "pos": 647,
+            "progress": 0.95
+        },
+        {
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:08:32",
+            "pos": 1571,
+            "progress": 0.95
+        },
+        {
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:08:37",
+            "pos": 2111,
+            "progress": 0.95
+        },
+        {
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:08:38",
+            "pos": 2110,
+            "progress": 0.95
+        },
+        {
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:08:43",
+            "pos": 2470,
+            "progress": 0.95
+        },
+        {
+            "name": "text-delete",
+            "text": ".",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:08:49",
+            "pos": 2710,
+            "progress": 0.95
+        },
+        {
+            "name": "text-insert",
+            "text": "!",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:08:50",
+            "pos": 2710,
+            "progress": 0.95
+        },
+        {
+            "name": "text-insert",
+            "text": "You",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:08:56",
+            "pos": 2630,
+            "progress": 0.95
+        },
+        {
+            "name": "text-insert",
+            "text": "'ve ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:08:57",
+            "pos": 2633,
+            "progress": 0.95
+        },
+        {
+            "name": "text-insert",
+            "text": "temp",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:08:58",
+            "pos": 2637,
+            "progress": 0.96
+        },
+        {
+            "name": "text-insert",
+            "text": "orar",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:08:59",
+            "pos": 2641,
+            "progress": 0.96
+        },
+        {
+            "name": "text-insert",
+            "text": "ily h",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:00",
+            "pos": 2645,
+            "progress": 0.96
+        },
+        {
+            "name": "text-insert",
+            "text": "al",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:01",
+            "pos": 2650,
+            "progress": 0.96
+        },
+        {
+            "name": "text-insert",
+            "text": "ted t",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:02",
+            "pos": 2652,
+            "progress": 0.96
+        },
+        {
+            "name": "text-insert",
+            "text": "he zom",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:03",
+            "pos": 2657,
+            "progress": 0.96
+        },
+        {
+            "name": "text-insert",
+            "text": "bies,",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:04",
+            "pos": 2663,
+            "progress": 0.97
+        },
+        {
+            "name": "text-insert",
+            "text": " but",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:05",
+            "pos": 2668,
+            "progress": 0.97
+        },
+        {
+            "name": "text-insert",
+            "text": " now",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:06",
+            "pos": 2672,
+            "progress": 0.97
+        },
+        {
+            "name": "text-insert",
+            "text": " ha",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:07",
+            "pos": 2676,
+            "progress": 0.97
+        },
+        {
+            "name": "text-insert",
+            "text": "ve a ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:08",
+            "pos": 2679,
+            "progress": 0.97
+        },
+        {
+            "name": "text-insert",
+            "text": "new q",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:09",
+            "pos": 2684,
+            "progress": 0.97
+        },
+        {
+            "name": "text-insert",
+            "text": "uest",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:10",
+            "pos": 2689,
+            "progress": 0.97
+        },
+        {
+            "name": "text-insert",
+            "text": "! ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:11",
+            "pos": 2693,
+            "progress": 0.98
+        },
+        {
+            "name": "text-insert",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:27",
+            "pos": 283,
+            "progress": 0.98
+        },
+        {
+            "name": "text-insert",
+            "text": "\" yo",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:30",
+            "pos": 356,
+            "progress": 0.98
+        },
+        {
+            "name": "text-insert",
+            "text": "u think",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:31",
+            "pos": 360,
+            "progress": 0.98
+        },
+        {
+            "name": "text-insert",
+            "text": " to",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:32",
+            "pos": 368,
+            "progress": 0.98
+        },
+        {
+            "name": "text-insert",
+            "text": " yourse",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:33",
+            "pos": 371,
+            "progress": 0.98
+        },
+        {
+            "name": "text-insert",
+            "text": "lf. ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:34",
+            "pos": 377,
+            "progress": 0.98
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:35",
+            "pos": 381,
+            "progress": 0.98
+        },
+        {
+            "name": "text-insert",
+            "text": "is ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:43",
+            "pos": 618,
+            "progress": 0.99
+        },
+        {
+            "name": "text-insert",
+            "text": "mis",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:44",
+            "pos": 621,
+            "progress": 0.99
+        },
+        {
+            "name": "text-delete",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:45",
+            "pos": 623,
+            "progress": 0.99
+        },
+        {
+            "name": "text-delete",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:45",
+            "pos": 622,
+            "progress": 0.99
+        },
+        {
+            "name": "text-delete",
+            "text": "m",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:45",
+            "pos": 621,
+            "progress": 0.99
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:45",
+            "pos": 620,
+            "progress": 0.99
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:45",
+            "pos": 620,
+            "progress": 0.99
+        },
+        {
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:46",
+            "pos": 621,
+            "progress": 0.99
+        },
+        {
+            "name": "text-delete",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:46",
+            "pos": 621,
+            "progress": 0.99
+        },
+        {
+            "name": "text-insert",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:47",
+            "pos": 621,
+            "progress": 0.99
+        },
+        {
+            "name": "text-delete",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:47",
+            "pos": 621,
+            "progress": 0.99
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:47",
+            "pos": 620,
+            "progress": 0.99
+        },
+        {
+            "name": "text-delete",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:47",
+            "pos": 619,
+            "progress": 0.99
+        },
+        {
+            "name": "text-delete",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:47",
+            "pos": 618,
+            "progress": 0.98
+        },
+        {
+            "name": "text-insert",
+            "text": "has bee",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:48",
+            "pos": 618,
+            "progress": 0.99
+        },
+        {
+            "name": "text-insert",
+            "text": "n turn",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:49",
+            "pos": 626,
+            "progress": 0.99
+        },
+        {
+            "name": "text-insert",
+            "text": "ed into ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:50",
+            "pos": 631,
+            "progress": 0.99
+        },
+        {
+            "name": "text-insert",
+            "text": "a zo",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:51",
+            "pos": 639,
+            "progress": 0.99
+        },
+        {
+            "name": "text-insert",
+            "text": "mbie",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:52",
+            "pos": 643,
+            "progress": 0.99
+        },
+        {
+            "name": "text-insert",
+            "text": ", ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:53",
+            "pos": 647,
+            "progress": 1.0
+        },
+        {
+            "name": "text-insert",
+            "text": "and ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:09:54",
+            "pos": 649,
+            "progress": 1.0
+        },
+        {
+            "name": "text-insert",
+            "text": " lett",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:10:53",
+            "pos": 1584,
+            "progress": 1.0
+        },
+        {
+            "name": "text-insert",
+            "text": "ers",
+            "eventSource": "user",
+            "event_time": "2021-08-18 14:10:54",
+            "pos": 1589,
+            "progress": 1.0
+        }
+    ],
+    "end_time": "2021-08-18 14:11:16"
+}

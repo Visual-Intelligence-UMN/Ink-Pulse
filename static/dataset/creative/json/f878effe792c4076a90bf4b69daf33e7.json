@@ -1,0 +1,3176 @@
+{
+    "init_text": "When you're 28, science discovers a drug that stops all effects of aging, creating immortality. Your government decides to give the drug to all citizens under 26, but you and the rest of the \"Lost Generations\" are deemed too high-risk. When you're 85, the side effects are finally discovered.\n",
+    "init_time": "2021-08-18 11:30:22",
+    "text": 1469,
+    "actions": [
+        {
+            "name": "text-insert",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:30:28",
+            "pos": 292,
+            "progress": 0.2
+        },
+        {
+            "name": "text-insert",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:30:29",
+            "pos": 293,
+            "progress": 0.2
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:30:32",
+            "progress": 0.2
+        },
+        {
+            "name": "text-insert",
+            "text": "\nYou can't be sure if you're going to die of cancer or old age.\n",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:30:42",
+            "pos": 295,
+            "progress": 0.24
+        },
+        {
+            "name": "text-delete",
+            "text": "Y",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:30:44",
+            "pos": 296,
+            "progress": 0.24
+        },
+        {
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:30:45",
+            "pos": 295,
+            "progress": 0.24
+        },
+        {
+            "name": "text-delete",
+            "text": "an't be sure if you're going to die of cancer or old age.",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:30:50",
+            "pos": 299,
+            "progress": 0.2
+        },
+        {
+            "name": "text-delete",
+            "text": "c",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:30:50",
+            "pos": 298,
+            "progress": 0.2
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:30:50",
+            "pos": 297,
+            "progress": 0.2
+        },
+        {
+            "name": "text-delete",
+            "text": "u",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:30:50",
+            "pos": 296,
+            "progress": 0.2
+        },
+        {
+            "name": "text-delete",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:30:51",
+            "pos": 295,
+            "progress": 0.2
+        },
+        {
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:30:52",
+            "pos": 294,
+            "progress": 0.2
+        },
+        {
+            "name": "text-insert",
+            "text": "You ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:30:53",
+            "pos": 294,
+            "progress": 0.2
+        },
+        {
+            "name": "text-insert",
+            "text": "sit in",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:30:54",
+            "pos": 298,
+            "progress": 0.2
+        },
+        {
+            "name": "text-insert",
+            "text": " your ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:30:55",
+            "pos": 304,
+            "progress": 0.21
+        },
+        {
+            "name": "text-insert",
+            "text": "fav",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:30:56",
+            "pos": 310,
+            "progress": 0.21
+        },
+        {
+            "name": "text-insert",
+            "text": "or",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:30:57",
+            "pos": 313,
+            "progress": 0.21
+        },
+        {
+            "name": "text-insert",
+            "text": "ite cha",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:30:58",
+            "pos": 315,
+            "progress": 0.22
+        },
+        {
+            "name": "text-insert",
+            "text": "ri",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:30:59",
+            "pos": 322,
+            "progress": 0.22
+        },
+        {
+            "name": "text-delete",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:30:59",
+            "pos": 323,
+            "progress": 0.22
+        },
+        {
+            "name": "text-delete",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:00",
+            "pos": 322,
+            "progress": 0.22
+        },
+        {
+            "name": "text-insert",
+            "text": "ir, ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:00",
+            "pos": 322,
+            "progress": 0.22
+        },
+        {
+            "name": "text-insert",
+            "text": "wi",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:02",
+            "pos": 326,
+            "progress": 0.22
+        },
+        {
+            "name": "text-insert",
+            "text": "th your ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:03",
+            "pos": 328,
+            "progress": 0.22
+        },
+        {
+            "name": "text-insert",
+            "text": "fav",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:04",
+            "pos": 336,
+            "progress": 0.23
+        },
+        {
+            "name": "text-insert",
+            "text": "orit",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:05",
+            "pos": 339,
+            "progress": 0.23
+        },
+        {
+            "name": "text-insert",
+            "text": "e p",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:06",
+            "pos": 343,
+            "progress": 0.23
+        },
+        {
+            "name": "text-insert",
+            "text": "ipe",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:07",
+            "pos": 346,
+            "progress": 0.24
+        },
+        {
+            "name": "text-insert",
+            "text": ", c",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:10",
+            "pos": 349,
+            "progress": 0.24
+        },
+        {
+            "name": "text-insert",
+            "text": "omf",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:11",
+            "pos": 352,
+            "progress": 0.24
+        },
+        {
+            "name": "text-delete",
+            "text": "f",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:12",
+            "pos": 354,
+            "progress": 0.24
+        },
+        {
+            "name": "text-delete",
+            "text": "m",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:12",
+            "pos": 353,
+            "progress": 0.24
+        },
+        {
+            "name": "text-delete",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:12",
+            "pos": 352,
+            "progress": 0.24
+        },
+        {
+            "name": "text-delete",
+            "text": "c",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:12",
+            "pos": 351,
+            "progress": 0.24
+        },
+        {
+            "name": "text-insert",
+            "text": "th",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:12",
+            "pos": 351,
+            "progress": 0.24
+        },
+        {
+            "name": "text-insert",
+            "text": "e pict",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:13",
+            "pos": 353,
+            "progress": 0.24
+        },
+        {
+            "name": "text-insert",
+            "text": "ure of ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:14",
+            "pos": 359,
+            "progress": 0.25
+        },
+        {
+            "name": "text-insert",
+            "text": "comf",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:15",
+            "pos": 366,
+            "progress": 0.25
+        },
+        {
+            "name": "text-insert",
+            "text": "ort. ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:16",
+            "pos": 370,
+            "progress": 0.25
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:31:19",
+            "progress": 0.26
+        },
+        {
+            "name": "text-insert",
+            "text": "Your wife sits across from you, her face a mask of concern.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:31:22",
+            "pos": 375,
+            "progress": 0.3
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:24",
+            "pos": 434,
+            "progress": 0.3
+        },
+        {
+            "name": "text-insert",
+            "text": "\"I ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:26",
+            "pos": 435,
+            "progress": 0.3
+        },
+        {
+            "name": "text-insert",
+            "text": "feel ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:27",
+            "pos": 438,
+            "progress": 0.3
+        },
+        {
+            "name": "text-insert",
+            "text": "sor",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:28",
+            "pos": 443,
+            "progress": 0.3
+        },
+        {
+            "name": "text-insert",
+            "text": "ry for",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:29",
+            "pos": 446,
+            "progress": 0.3
+        },
+        {
+            "name": "text-insert",
+            "text": " all th",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:30",
+            "pos": 452,
+            "progress": 0.31
+        },
+        {
+            "name": "text-insert",
+            "text": "e you",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:31",
+            "pos": 459,
+            "progress": 0.31
+        },
+        {
+            "name": "text-insert",
+            "text": "ng peop",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:32",
+            "pos": 464,
+            "progress": 0.32
+        },
+        {
+            "name": "text-insert",
+            "text": "le",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:33",
+            "pos": 471,
+            "progress": 0.32
+        },
+        {
+            "name": "text-insert",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:34",
+            "pos": 473,
+            "progress": 0.32
+        },
+        {
+            "name": "text-delete",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:39",
+            "pos": 473,
+            "progress": 0.32
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:40",
+            "pos": 473,
+            "progress": 0.32
+        },
+        {
+            "name": "text-insert",
+            "text": "W",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:47",
+            "pos": 474,
+            "progress": 0.32
+        },
+        {
+            "name": "text-insert",
+            "text": "ho",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:48",
+            "pos": 475,
+            "progress": 0.32
+        },
+        {
+            "name": "text-delete",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:48",
+            "pos": 476,
+            "progress": 0.32
+        },
+        {
+            "name": "text-delete",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:49",
+            "pos": 475,
+            "progress": 0.32
+        },
+        {
+            "name": "text-delete",
+            "text": "W",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:49",
+            "pos": 474,
+            "progress": 0.32
+        },
+        {
+            "name": "text-insert",
+            "text": "wh",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:49",
+            "pos": 474,
+            "progress": 0.32
+        },
+        {
+            "name": "text-insert",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:51",
+            "pos": 476,
+            "progress": 0.33
+        },
+        {
+            "name": "text-delete",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:52",
+            "pos": 476,
+            "progress": 0.32
+        },
+        {
+            "name": "text-delete",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:53",
+            "pos": 475,
+            "progress": 0.32
+        },
+        {
+            "name": "text-delete",
+            "text": "w",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:53",
+            "pos": 474,
+            "progress": 0.32
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:55",
+            "pos": 473,
+            "progress": 0.32
+        },
+        {
+            "name": "text-insert",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:56",
+            "pos": 473,
+            "progress": 0.32
+        },
+        {
+            "name": "text-insert",
+            "text": " Sh",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:57",
+            "pos": 474,
+            "progress": 0.32
+        },
+        {
+            "name": "text-delete",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:58",
+            "pos": 476,
+            "progress": 0.32
+        },
+        {
+            "name": "text-delete",
+            "text": "S",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:58",
+            "pos": 475,
+            "progress": 0.32
+        },
+        {
+            "name": "text-insert",
+            "text": "she sa",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:31:59",
+            "pos": 475,
+            "progress": 0.32
+        },
+        {
+            "name": "text-insert",
+            "text": "y",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:00",
+            "pos": 481,
+            "progress": 0.33
+        },
+        {
+            "name": "text-insert",
+            "text": "s. ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:01",
+            "pos": 482,
+            "progress": 0.33
+        },
+        {
+            "name": "text-insert",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:03",
+            "pos": 485,
+            "progress": 0.33
+        },
+        {
+            "name": "text-delete",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:03",
+            "pos": 485,
+            "progress": 0.33
+        },
+        {
+            "name": "text-insert",
+            "text": "The ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:04",
+            "pos": 485,
+            "progress": 0.33
+        },
+        {
+            "name": "text-insert",
+            "text": "news",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:05",
+            "pos": 489,
+            "progress": 0.33
+        },
+        {
+            "name": "text-insert",
+            "text": "caster",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:06",
+            "pos": 493,
+            "progress": 0.34
+        },
+        {
+            "name": "text-insert",
+            "text": " on ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:07",
+            "pos": 499,
+            "progress": 0.34
+        },
+        {
+            "name": "text-insert",
+            "text": "T",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:08",
+            "pos": 503,
+            "progress": 0.34
+        },
+        {
+            "name": "text-insert",
+            "text": "V has",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:09",
+            "pos": 504,
+            "progress": 0.34
+        },
+        {
+            "name": "text-insert",
+            "text": " ann",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:10",
+            "pos": 509,
+            "progress": 0.35
+        },
+        {
+            "name": "text-insert",
+            "text": "ou",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:11",
+            "pos": 513,
+            "progress": 0.35
+        },
+        {
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:12",
+            "pos": 515,
+            "progress": 0.35
+        },
+        {
+            "name": "text-insert",
+            "text": "ced the",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:13",
+            "pos": 516,
+            "progress": 0.35
+        },
+        {
+            "name": "text-insert",
+            "text": " wide",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:14",
+            "pos": 523,
+            "progress": 0.36
+        },
+        {
+            "name": "text-insert",
+            "text": "spre",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:15",
+            "pos": 528,
+            "progress": 0.36
+        },
+        {
+            "name": "text-insert",
+            "text": "ad fi",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:16",
+            "pos": 532,
+            "progress": 0.36
+        },
+        {
+            "name": "text-insert",
+            "text": "nding",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:17",
+            "pos": 537,
+            "progress": 0.37
+        },
+        {
+            "name": "text-insert",
+            "text": ", ear",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:18",
+            "pos": 542,
+            "progress": 0.37
+        },
+        {
+            "name": "text-insert",
+            "text": "ly de",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:19",
+            "pos": 547,
+            "progress": 0.37
+        },
+        {
+            "name": "text-insert",
+            "text": "ath, ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:20",
+            "pos": 552,
+            "progress": 0.38
+        },
+        {
+            "name": "text-insert",
+            "text": "bir",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:21",
+            "pos": 557,
+            "progress": 0.38
+        },
+        {
+            "name": "text-insert",
+            "text": "th",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:22",
+            "pos": 560,
+            "progress": 0.38
+        },
+        {
+            "name": "text-insert",
+            "text": " def",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:23",
+            "pos": 562,
+            "progress": 0.38
+        },
+        {
+            "name": "text-insert",
+            "text": "ect",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:24",
+            "pos": 566,
+            "progress": 0.39
+        },
+        {
+            "name": "text-insert",
+            "text": "s, ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:25",
+            "pos": 569,
+            "progress": 0.39
+        },
+        {
+            "name": "text-insert",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:39",
+            "pos": 544,
+            "progress": 0.39
+        },
+        {
+            "name": "text-delete",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:39",
+            "pos": 544,
+            "progress": 0.39
+        },
+        {
+            "name": "text-insert",
+            "text": "su",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:39",
+            "pos": 544,
+            "progress": 0.39
+        },
+        {
+            "name": "text-insert",
+            "text": "dd",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:40",
+            "pos": 546,
+            "progress": 0.39
+        },
+        {
+            "name": "text-insert",
+            "text": "en ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:41",
+            "pos": 549,
+            "progress": 0.39
+        },
+        {
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:45",
+            "pos": 579,
+            "progress": 0.4
+        },
+        {
+            "name": "text-insert",
+            "text": "nd ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:46",
+            "pos": 580,
+            "progress": 0.4
+        },
+        {
+            "name": "text-insert",
+            "text": "other ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:47",
+            "pos": 583,
+            "progress": 0.4
+        },
+        {
+            "name": "text-insert",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:48",
+            "pos": 589,
+            "progress": 0.4
+        },
+        {
+            "name": "text-insert",
+            "text": "ssues ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:49",
+            "pos": 590,
+            "progress": 0.4
+        },
+        {
+            "name": "text-insert",
+            "text": "in near",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:50",
+            "pos": 596,
+            "progress": 0.41
+        },
+        {
+            "name": "text-insert",
+            "text": "y 100",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:51",
+            "pos": 603,
+            "progress": 0.41
+        },
+        {
+            "name": "text-insert",
+            "text": "% o",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:52",
+            "pos": 608,
+            "progress": 0.42
+        },
+        {
+            "name": "text-insert",
+            "text": "f the",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:53",
+            "pos": 611,
+            "progress": 0.42
+        },
+        {
+            "name": "text-insert",
+            "text": " gran",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:54",
+            "pos": 616,
+            "progress": 0.42
+        },
+        {
+            "name": "text-insert",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:55",
+            "pos": 621,
+            "progress": 0.42
+        },
+        {
+            "name": "text-delete",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:55",
+            "pos": 621,
+            "progress": 0.42
+        },
+        {
+            "name": "text-insert",
+            "text": "dchild",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:56",
+            "pos": 621,
+            "progress": 0.42
+        },
+        {
+            "name": "text-insert",
+            "text": "ren",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:32:57",
+            "pos": 627,
+            "progress": 0.43
+        },
+        {
+            "name": "text-insert",
+            "text": "l",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:00",
+            "pos": 603,
+            "progress": 0.43
+        },
+        {
+            "name": "text-insert",
+            "text": " o",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:02",
+            "pos": 631,
+            "progress": 0.43
+        },
+        {
+            "name": "text-insert",
+            "text": "f those",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:03",
+            "pos": 633,
+            "progress": 0.43
+        },
+        {
+            "name": "text-insert",
+            "text": " who t",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:04",
+            "pos": 640,
+            "progress": 0.44
+        },
+        {
+            "name": "text-insert",
+            "text": "ook the ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:05",
+            "pos": 646,
+            "progress": 0.44
+        },
+        {
+            "name": "text-insert",
+            "text": "drug.",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:06",
+            "pos": 654,
+            "progress": 0.45
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:07",
+            "pos": 659,
+            "progress": 0.45
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:33:10",
+            "progress": 0.45
+        },
+        {
+            "name": "text-insert",
+            "text": "\nYou look at your wife, and say \"I'm glad we didn't take it.\"\n",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:33:20",
+            "pos": 661,
+            "progress": 0.49
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:24",
+            "pos": 722,
+            "progress": 0.49
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:33:26",
+            "progress": 0.49
+        },
+        {
+            "name": "text-insert",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:38",
+            "pos": 723,
+            "progress": 0.49
+        },
+        {
+            "name": "text-insert",
+            "text": "Yes",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:40",
+            "pos": 724,
+            "progress": 0.49
+        },
+        {
+            "name": "text-insert",
+            "text": ",",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:41",
+            "pos": 727,
+            "progress": 0.5
+        },
+        {
+            "name": "text-delete",
+            "text": ",",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:41",
+            "pos": 727,
+            "progress": 0.5
+        },
+        {
+            "name": "text-delete",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:42",
+            "pos": 726,
+            "progress": 0.49
+        },
+        {
+            "name": "text-delete",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:42",
+            "pos": 725,
+            "progress": 0.49
+        },
+        {
+            "name": "text-delete",
+            "text": "Y",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:42",
+            "pos": 724,
+            "progress": 0.49
+        },
+        {
+            "name": "text-insert",
+            "text": "I ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:43",
+            "pos": 724,
+            "progress": 0.49
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:44",
+            "pos": 725,
+            "progress": 0.49
+        },
+        {
+            "name": "text-delete",
+            "text": "I",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:44",
+            "pos": 724,
+            "progress": 0.49
+        },
+        {
+            "name": "text-insert",
+            "text": "I",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:44",
+            "pos": 724,
+            "progress": 0.49
+        },
+        {
+            "name": "text-insert",
+            "text": " wouldn",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:45",
+            "pos": 725,
+            "progress": 0.49
+        },
+        {
+            "name": "text-insert",
+            "text": "'t tr",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:46",
+            "pos": 732,
+            "progress": 0.5
+        },
+        {
+            "name": "text-insert",
+            "text": "ade our",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:47",
+            "pos": 737,
+            "progress": 0.5
+        },
+        {
+            "name": "text-insert",
+            "text": " sweet",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:48",
+            "pos": 744,
+            "progress": 0.51
+        },
+        {
+            "name": "text-insert",
+            "text": " gra",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:49",
+            "pos": 750,
+            "progress": 0.51
+        },
+        {
+            "name": "text-insert",
+            "text": "ndchi",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:50",
+            "pos": 754,
+            "progress": 0.51
+        },
+        {
+            "name": "text-insert",
+            "text": "ldren",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:51",
+            "pos": 759,
+            "progress": 0.52
+        },
+        {
+            "name": "text-insert",
+            "text": " fo",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:52",
+            "pos": 764,
+            "progress": 0.52
+        },
+        {
+            "name": "text-insert",
+            "text": "r anyti",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:53",
+            "pos": 767,
+            "progress": 0.52
+        },
+        {
+            "name": "text-insert",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:54",
+            "pos": 774,
+            "progress": 0.53
+        },
+        {
+            "name": "text-delete",
+            "text": "n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:54",
+            "pos": 774,
+            "progress": 0.53
+        },
+        {
+            "name": "text-delete",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:54",
+            "pos": 773,
+            "progress": 0.53
+        },
+        {
+            "name": "text-insert",
+            "text": "hing",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:55",
+            "pos": 773,
+            "progress": 0.53
+        },
+        {
+            "name": "text-insert",
+            "text": ". ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:56",
+            "pos": 777,
+            "progress": 0.53
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:58",
+            "pos": 778,
+            "progress": 0.53
+        },
+        {
+            "name": "text-insert",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:58",
+            "pos": 778,
+            "progress": 0.53
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:33:59",
+            "pos": 779,
+            "progress": 0.53
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:01",
+            "pos": 779,
+            "progress": 0.53
+        },
+        {
+            "name": "text-insert",
+            "text": ", ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:01",
+            "pos": 779,
+            "progress": 0.53
+        },
+        {
+            "name": "text-insert",
+            "text": "you repl",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:02",
+            "pos": 781,
+            "progress": 0.53
+        },
+        {
+            "name": "text-insert",
+            "text": "y. ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:03",
+            "pos": 789,
+            "progress": 0.54
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:06",
+            "pos": 791,
+            "progress": 0.54
+        },
+        {
+            "name": "text-delete",
+            "text": ".",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:07",
+            "pos": 790,
+            "progress": 0.54
+        },
+        {
+            "name": "text-delete",
+            "text": "y",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:07",
+            "pos": 789,
+            "progress": 0.54
+        },
+        {
+            "name": "text-delete",
+            "text": "l",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:07",
+            "pos": 788,
+            "progress": 0.54
+        },
+        {
+            "name": "text-delete",
+            "text": "p",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:07",
+            "pos": 787,
+            "progress": 0.54
+        },
+        {
+            "name": "text-delete",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:07",
+            "pos": 786,
+            "progress": 0.54
+        },
+        {
+            "name": "text-delete",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:07",
+            "pos": 785,
+            "progress": 0.54
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:07",
+            "pos": 784,
+            "progress": 0.53
+        },
+        {
+            "name": "text-delete",
+            "text": "u",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:07",
+            "pos": 783,
+            "progress": 0.53
+        },
+        {
+            "name": "text-delete",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:07",
+            "pos": 782,
+            "progress": 0.53
+        },
+        {
+            "name": "text-delete",
+            "text": "y",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:08",
+            "pos": 781,
+            "progress": 0.53
+        },
+        {
+            "name": "text-insert",
+            "text": "she ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:08",
+            "pos": 781,
+            "progress": 0.53
+        },
+        {
+            "name": "text-insert",
+            "text": "replie",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:09",
+            "pos": 785,
+            "progress": 0.54
+        },
+        {
+            "name": "text-insert",
+            "text": "s. ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:10",
+            "pos": 791,
+            "progress": 0.54
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:34:12",
+            "progress": 0.54
+        },
+        {
+            "name": "text-insert",
+            "text": "You smile, and she smiles back.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:34:16",
+            "pos": 794,
+            "progress": 0.56
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:34:24",
+            "progress": 0.56
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:34:30",
+            "progress": 0.56
+        },
+        {
+            "name": "text-insert",
+            "text": " You both know that you've lived a good life.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:34:33",
+            "pos": 825,
+            "progress": 0.59
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:36",
+            "pos": 870,
+            "progress": 0.59
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:34:39",
+            "progress": 0.59
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:43",
+            "pos": 871,
+            "progress": 0.59
+        },
+        {
+            "name": "text-insert",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:48",
+            "pos": 872,
+            "progress": 0.59
+        },
+        {
+            "name": "text-insert",
+            "text": "I",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:49",
+            "pos": 873,
+            "progress": 0.6
+        },
+        {
+            "name": "text-insert",
+            "text": "'ll ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:51",
+            "pos": 874,
+            "progress": 0.6
+        },
+        {
+            "name": "text-insert",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:52",
+            "pos": 878,
+            "progress": 0.6
+        },
+        {
+            "name": "text-insert",
+            "text": "dmit, ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:53",
+            "pos": 879,
+            "progress": 0.6
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:54",
+            "pos": 884,
+            "progress": 0.6
+        },
+        {
+            "name": "text-delete",
+            "text": ",",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:54",
+            "pos": 883,
+            "progress": 0.6
+        },
+        {
+            "name": "text-insert",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:55",
+            "pos": 883,
+            "progress": 0.6
+        },
+        {
+            "name": "text-insert",
+            "text": ", y",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:56",
+            "pos": 884,
+            "progress": 0.6
+        },
+        {
+            "name": "text-insert",
+            "text": "ou say",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:57",
+            "pos": 887,
+            "progress": 0.61
+        },
+        {
+            "name": "text-insert",
+            "text": ", ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:58",
+            "pos": 893,
+            "progress": 0.61
+        },
+        {
+            "name": "text-insert",
+            "text": "I \"",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:34:59",
+            "pos": 895,
+            "progress": 0.61
+        },
+        {
+            "name": "text-insert",
+            "text": "di",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:00",
+            "pos": 898,
+            "progress": 0.61
+        },
+        {
+            "name": "text-delete",
+            "text": "i",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:00",
+            "pos": 899,
+            "progress": 0.61
+        },
+        {
+            "name": "text-delete",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:00",
+            "pos": 898,
+            "progress": 0.61
+        },
+        {
+            "name": "text-delete",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:01",
+            "pos": 897,
+            "progress": 0.61
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:01",
+            "pos": 896,
+            "progress": 0.61
+        },
+        {
+            "name": "text-delete",
+            "text": "I",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:01",
+            "pos": 895,
+            "progress": 0.61
+        },
+        {
+            "name": "text-insert",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:01",
+            "pos": 895,
+            "progress": 0.61
+        },
+        {
+            "name": "text-insert",
+            "text": "I d",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:02",
+            "pos": 896,
+            "progress": 0.61
+        },
+        {
+            "name": "text-insert",
+            "text": "id los",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:03",
+            "pos": 899,
+            "progress": 0.61
+        },
+        {
+            "name": "text-insert",
+            "text": "e s",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:04",
+            "pos": 905,
+            "progress": 0.62
+        },
+        {
+            "name": "text-insert",
+            "text": "leep ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:05",
+            "pos": 908,
+            "progress": 0.62
+        },
+        {
+            "name": "text-insert",
+            "text": "think",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:06",
+            "pos": 913,
+            "progress": 0.62
+        },
+        {
+            "name": "text-insert",
+            "text": "ing abou",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:07",
+            "pos": 918,
+            "progress": 0.63
+        },
+        {
+            "name": "text-insert",
+            "text": "t what ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:08",
+            "pos": 926,
+            "progress": 0.63
+        },
+        {
+            "name": "text-insert",
+            "text": "could ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:09",
+            "pos": 933,
+            "progress": 0.64
+        },
+        {
+            "name": "text-insert",
+            "text": "have be",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:10",
+            "pos": 939,
+            "progress": 0.64
+        },
+        {
+            "name": "text-insert",
+            "text": "en",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:11",
+            "pos": 946,
+            "progress": 0.65
+        },
+        {
+            "name": "text-insert",
+            "text": ".\" ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:12",
+            "pos": 948,
+            "progress": 0.65
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:35:14",
+            "progress": 0.65
+        },
+        {
+            "name": "text-insert",
+            "text": "\"But we made the right choice, and I'm glad we did.\"",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:35:21",
+            "pos": 951,
+            "progress": 0.68
+        },
+        {
+            "name": "text-delete",
+            "text": "You look at your wife, and say \"I'm glad we didn't take it.\" \"I wouldn't trade our sweet grandchildren for anything.\", she replies. You smile, and she smiles back. You both know that you've lived a good life. ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:25",
+            "pos": 662,
+            "progress": 0.54
+        },
+        {
+            "name": "text-insert",
+            "text": "\n\n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:29",
+            "pos": 794,
+            "progress": 0.54
+        },
+        {
+            "name": "text-insert",
+            "text": "\nYou look at your wife, and say \"I'm glad we didn't take it.\" \"I wouldn't trade our sweet grandchildren for anything.\", she replies. You smile, and she smiles back. You both know that you've lived a good life. ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:30",
+            "pos": 796,
+            "progress": 0.54
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:35:38",
+            "pos": 794,
+            "progress": 0.69
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:35:50",
+            "progress": 0.69
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:36:00",
+            "progress": 0.69
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:09",
+            "pos": 741,
+            "progress": 0.69
+        },
+        {
+            "name": "text-delete",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:09",
+            "pos": 741,
+            "progress": 0.68
+        },
+        {
+            "name": "text-insert",
+            "text": "'",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:16",
+            "pos": 724,
+            "progress": 0.69
+        },
+        {
+            "name": "text-insert",
+            "text": "'",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:19",
+            "pos": 740,
+            "progress": 0.69
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:24",
+            "pos": 742,
+            "progress": 0.69
+        },
+        {
+            "name": "text-insert",
+            "text": "I ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:25",
+            "pos": 743,
+            "progress": 0.69
+        },
+        {
+            "name": "text-insert",
+            "text": "th",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:26",
+            "pos": 745,
+            "progress": 0.69
+        },
+        {
+            "name": "text-insert",
+            "text": "ought ab",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:27",
+            "pos": 747,
+            "progress": 0.69
+        },
+        {
+            "name": "text-insert",
+            "text": "out sep",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:28",
+            "pos": 755,
+            "progress": 0.7
+        },
+        {
+            "name": "text-delete",
+            "text": "p",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:29",
+            "pos": 761,
+            "progress": 0.7
+        },
+        {
+            "name": "text-delete",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:29",
+            "pos": 760,
+            "progress": 0.7
+        },
+        {
+            "name": "text-insert",
+            "text": "p",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:29",
+            "pos": 760,
+            "progress": 0.7
+        },
+        {
+            "name": "text-insert",
+            "text": "en",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:30",
+            "pos": 761,
+            "progress": 0.7
+        },
+        {
+            "name": "text-insert",
+            "text": "di",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:31",
+            "pos": 763,
+            "progress": 0.7
+        },
+        {
+            "name": "text-insert",
+            "text": "ng ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:32",
+            "pos": 765,
+            "progress": 0.7
+        },
+        {
+            "name": "text-insert",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:33",
+            "pos": 768,
+            "progress": 0.7
+        },
+        {
+            "name": "text-insert",
+            "text": "terni",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:34",
+            "pos": 769,
+            "progress": 0.71
+        },
+        {
+            "name": "text-insert",
+            "text": "ty with",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:35",
+            "pos": 774,
+            "progress": 0.71
+        },
+        {
+            "name": "text-insert",
+            "text": " lov",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:36",
+            "pos": 781,
+            "progress": 0.71
+        },
+        {
+            "name": "text-insert",
+            "text": "ed ones",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:37",
+            "pos": 785,
+            "progress": 0.72
+        },
+        {
+            "name": "text-insert",
+            "text": ".",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:38",
+            "pos": 792,
+            "progress": 0.72
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:39",
+            "pos": 793,
+            "progress": 0.72
+        },
+        {
+            "name": "text-insert",
+            "text": "E",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:41",
+            "pos": 794,
+            "progress": 0.72
+        },
+        {
+            "name": "text-delete",
+            "text": "E",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:42",
+            "pos": 794,
+            "progress": 0.72
+        },
+        {
+            "name": "text-insert",
+            "text": "Ther",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:43",
+            "pos": 794,
+            "progress": 0.72
+        },
+        {
+            "name": "text-insert",
+            "text": "e is ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:44",
+            "pos": 798,
+            "progress": 0.72
+        },
+        {
+            "name": "text-insert",
+            "text": "alway",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:45",
+            "pos": 803,
+            "progress": 0.73
+        },
+        {
+            "name": "text-insert",
+            "text": "s a pr",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:46",
+            "pos": 808,
+            "progress": 0.73
+        },
+        {
+            "name": "text-insert",
+            "text": "ice to ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:47",
+            "pos": 814,
+            "progress": 0.74
+        },
+        {
+            "name": "text-insert",
+            "text": "b",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:48",
+            "pos": 821,
+            "progress": 0.74
+        },
+        {
+            "name": "text-delete",
+            "text": "b",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:48",
+            "pos": 821,
+            "progress": 0.74
+        },
+        {
+            "name": "text-insert",
+            "text": "p",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:48",
+            "pos": 821,
+            "progress": 0.74
+        },
+        {
+            "name": "text-insert",
+            "text": "ay thoug",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:49",
+            "pos": 822,
+            "progress": 0.74
+        },
+        {
+            "name": "text-insert",
+            "text": "h, an",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:50",
+            "pos": 830,
+            "progress": 0.75
+        },
+        {
+            "name": "text-insert",
+            "text": "d in thi",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:51",
+            "pos": 835,
+            "progress": 0.75
+        },
+        {
+            "name": "text-insert",
+            "text": "s c",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:52",
+            "pos": 843,
+            "progress": 0.76
+        },
+        {
+            "name": "text-insert",
+            "text": "as, ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:53",
+            "pos": 846,
+            "progress": 0.76
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:54",
+            "pos": 849,
+            "progress": 0.76
+        },
+        {
+            "name": "text-delete",
+            "text": ",",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:54",
+            "pos": 848,
+            "progress": 0.76
+        },
+        {
+            "name": "text-insert",
+            "text": "e, ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:54",
+            "pos": 848,
+            "progress": 0.76
+        },
+        {
+            "name": "text-insert",
+            "text": "we ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:55",
+            "pos": 851,
+            "progress": 0.76
+        },
+        {
+            "name": "text-insert",
+            "text": "c",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:56",
+            "pos": 854,
+            "progress": 0.76
+        },
+        {
+            "name": "text-delete",
+            "text": "c",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:56",
+            "pos": 854,
+            "progress": 0.76
+        },
+        {
+            "name": "text-insert",
+            "text": "w",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:56",
+            "pos": 854,
+            "progress": 0.76
+        },
+        {
+            "name": "text-insert",
+            "text": "ould ha",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:57",
+            "pos": 855,
+            "progress": 0.76
+        },
+        {
+            "name": "text-insert",
+            "text": "ve hur",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:58",
+            "pos": 862,
+            "progress": 0.77
+        },
+        {
+            "name": "text-insert",
+            "text": "t our ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:36:59",
+            "pos": 868,
+            "progress": 0.77
+        },
+        {
+            "name": "text-insert",
+            "text": "own fa",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:00",
+            "pos": 874,
+            "progress": 0.78
+        },
+        {
+            "name": "text-insert",
+            "text": "mily.",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:01",
+            "pos": 880,
+            "progress": 0.78
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:02",
+            "pos": 885,
+            "progress": 0.78
+        },
+        {
+            "name": "text-insert",
+            "text": "\" ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:04",
+            "pos": 887,
+            "progress": 0.78
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:37:07",
+            "progress": 0.79
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:37:12",
+            "progress": 0.79
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:37:17",
+            "progress": 0.79
+        },
+        {
+            "name": "text-delete",
+            "text": "\n",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:25",
+            "pos": 941,
+            "progress": 0.78
+        },
+        {
+            "name": "text-insert",
+            "text": " S",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:33",
+            "pos": 941,
+            "progress": 0.79
+        },
+        {
+            "name": "text-delete",
+            "text": "S",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:34",
+            "pos": 942,
+            "progress": 0.79
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:34",
+            "pos": 941,
+            "progress": 0.78
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:34",
+            "pos": 940,
+            "progress": 0.78
+        },
+        {
+            "name": "text-insert",
+            "text": ", she",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:35",
+            "pos": 940,
+            "progress": 0.78
+        },
+        {
+            "name": "text-insert",
+            "text": " sa",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:36",
+            "pos": 945,
+            "progress": 0.79
+        },
+        {
+            "name": "text-insert",
+            "text": "ys",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:38",
+            "pos": 948,
+            "progress": 0.79
+        },
+        {
+            "name": "text-insert",
+            "text": ". ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:39",
+            "pos": 950,
+            "progress": 0.79
+        },
+        {
+            "name": "text-insert",
+            "text": "\"",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:43",
+            "pos": 952,
+            "progress": 0.79
+        },
+        {
+            "name": "text-insert",
+            "text": "Yo",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:44",
+            "pos": 953,
+            "progress": 0.79
+        },
+        {
+            "name": "text-insert",
+            "text": "u have a ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:45",
+            "pos": 955,
+            "progress": 0.8
+        },
+        {
+            "name": "text-insert",
+            "text": "god ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:46",
+            "pos": 964,
+            "progress": 0.8
+        },
+        {
+            "name": "text-insert",
+            "text": "head,",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:47",
+            "pos": 968,
+            "progress": 0.8
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:48",
+            "pos": 973,
+            "progress": 0.81
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:48",
+            "pos": 973,
+            "progress": 0.81
+        },
+        {
+            "name": "text-delete",
+            "text": ",",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:49",
+            "pos": 972,
+            "progress": 0.81
+        },
+        {
+            "name": "text-delete",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:49",
+            "pos": 971,
+            "progress": 0.81
+        },
+        {
+            "name": "text-delete",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:49",
+            "pos": 970,
+            "progress": 0.8
+        },
+        {
+            "name": "text-delete",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:49",
+            "pos": 969,
+            "progress": 0.8
+        },
+        {
+            "name": "text-delete",
+            "text": "h",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:49",
+            "pos": 968,
+            "progress": 0.8
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:49",
+            "pos": 967,
+            "progress": 0.8
+        },
+        {
+            "name": "text-delete",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:49",
+            "pos": 966,
+            "progress": 0.8
+        },
+        {
+            "name": "text-insert",
+            "text": "od he",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:50",
+            "pos": 966,
+            "progress": 0.8
+        },
+        {
+            "name": "text-insert",
+            "text": "ad on ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:51",
+            "pos": 971,
+            "progress": 0.81
+        },
+        {
+            "name": "text-insert",
+            "text": "your sho",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:52",
+            "pos": 977,
+            "progress": 0.81
+        },
+        {
+            "name": "text-insert",
+            "text": "ulders",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:53",
+            "pos": 985,
+            "progress": 0.82
+        },
+        {
+            "name": "text-insert",
+            "text": ", and ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:54",
+            "pos": 991,
+            "progress": 0.82
+        },
+        {
+            "name": "text-insert",
+            "text": "y",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:37:59",
+            "pos": 997,
+            "progress": 0.82
+        },
+        {
+            "name": "text-delete",
+            "text": "y",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:00",
+            "pos": 997,
+            "progress": 0.82
+        },
+        {
+            "name": "text-insert",
+            "text": "a ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:00",
+            "pos": 997,
+            "progress": 0.82
+        },
+        {
+            "name": "text-insert",
+            "text": "good mor",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:01",
+            "pos": 999,
+            "progress": 0.83
+        },
+        {
+            "name": "text-insert",
+            "text": "al ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:02",
+            "pos": 1007,
+            "progress": 0.83
+        },
+        {
+            "name": "text-insert",
+            "text": "compass",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:03",
+            "pos": 1010,
+            "progress": 0.83
+        },
+        {
+            "name": "text-insert",
+            "text": ". ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:04",
+            "pos": 1017,
+            "progress": 0.84
+        },
+        {
+            "name": "text-insert",
+            "text": "The",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:06",
+            "pos": 1019,
+            "progress": 0.84
+        },
+        {
+            "name": "text-insert",
+            "text": "y are ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:07",
+            "pos": 1022,
+            "progress": 0.84
+        },
+        {
+            "name": "text-insert",
+            "text": "luc",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:09",
+            "pos": 1028,
+            "progress": 0.84
+        },
+        {
+            "name": "text-delete",
+            "text": "c",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:10",
+            "pos": 1030,
+            "progress": 0.85
+        },
+        {
+            "name": "text-delete",
+            "text": "u",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:10",
+            "pos": 1029,
+            "progress": 0.84
+        },
+        {
+            "name": "text-delete",
+            "text": "l",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:10",
+            "pos": 1028,
+            "progress": 0.84
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:10",
+            "pos": 1027,
+            "progress": 0.84
+        },
+        {
+            "name": "text-delete",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:10",
+            "pos": 1026,
+            "progress": 0.84
+        },
+        {
+            "name": "text-delete",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:10",
+            "pos": 1025,
+            "progress": 0.84
+        },
+        {
+            "name": "text-delete",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:10",
+            "pos": 1024,
+            "progress": 0.84
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:10",
+            "pos": 1023,
+            "progress": 0.84
+        },
+        {
+            "name": "text-delete",
+            "text": "y",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:11",
+            "pos": 1022,
+            "progress": 0.84
+        },
+        {
+            "name": "text-insert",
+            "text": " k",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:11",
+            "pos": 1022,
+            "progress": 0.84
+        },
+        {
+            "name": "text-insert",
+            "text": "ids a",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:12",
+            "pos": 1024,
+            "progress": 0.84
+        },
+        {
+            "name": "text-insert",
+            "text": "re luck",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:13",
+            "pos": 1029,
+            "progress": 0.85
+        },
+        {
+            "name": "text-insert",
+            "text": "y to ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:14",
+            "pos": 1036,
+            "progress": 0.85
+        },
+        {
+            "name": "text-insert",
+            "text": "call ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:15",
+            "pos": 1041,
+            "progress": 0.85
+        },
+        {
+            "name": "text-insert",
+            "text": "yo",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:16",
+            "pos": 1046,
+            "progress": 0.86
+        },
+        {
+            "name": "text-insert",
+            "text": "u ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:17",
+            "pos": 1048,
+            "progress": 0.86
+        },
+        {
+            "name": "text-insert",
+            "text": "da",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:23",
+            "pos": 1050,
+            "progress": 0.86
+        },
+        {
+            "name": "text-insert",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:24",
+            "pos": 1052,
+            "progress": 0.86
+        },
+        {
+            "name": "text-insert",
+            "text": ". ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:25",
+            "pos": 1053,
+            "progress": 0.86
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:25",
+            "pos": 1054,
+            "progress": 0.86
+        },
+        {
+            "name": "text-delete",
+            "text": ".",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:26",
+            "pos": 1053,
+            "progress": 0.86
+        },
+        {
+            "name": "text-delete",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:26",
+            "pos": 1052,
+            "progress": 0.86
+        },
+        {
+            "name": "text-delete",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:26",
+            "pos": 1051,
+            "progress": 0.86
+        },
+        {
+            "name": "text-delete",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:26",
+            "pos": 1050,
+            "progress": 0.86
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:26",
+            "pos": 1049,
+            "progress": 0.86
+        },
+        {
+            "name": "text-delete",
+            "text": "u",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:26",
+            "pos": 1048,
+            "progress": 0.86
+        },
+        {
+            "name": "text-delete",
+            "text": "o",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:26",
+            "pos": 1047,
+            "progress": 0.86
+        },
+        {
+            "name": "text-delete",
+            "text": "y",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:26",
+            "pos": 1046,
+            "progress": 0.86
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:26",
+            "pos": 1045,
+            "progress": 0.86
+        },
+        {
+            "name": "text-delete",
+            "text": "l",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:26",
+            "pos": 1044,
+            "progress": 0.86
+        },
+        {
+            "name": "text-delete",
+            "text": "l",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:26",
+            "pos": 1043,
+            "progress": 0.85
+        },
+        {
+            "name": "text-delete",
+            "text": "a",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:26",
+            "pos": 1042,
+            "progress": 0.85
+        },
+        {
+            "name": "text-delete",
+            "text": "c",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:27",
+            "pos": 1041,
+            "progress": 0.85
+        },
+        {
+            "name": "text-insert",
+            "text": "ha",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:27",
+            "pos": 1041,
+            "progress": 0.85
+        },
+        {
+            "name": "text-insert",
+            "text": "ve you ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:28",
+            "pos": 1043,
+            "progress": 0.86
+        },
+        {
+            "name": "text-insert",
+            "text": "as thei",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:29",
+            "pos": 1050,
+            "progress": 0.86
+        },
+        {
+            "name": "text-insert",
+            "text": "r Da",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:30",
+            "pos": 1057,
+            "progress": 0.86
+        },
+        {
+            "name": "text-insert",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:31",
+            "pos": 1061,
+            "progress": 0.87
+        },
+        {
+            "name": "text-insert",
+            "text": ".\"",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:33",
+            "pos": 1062,
+            "progress": 0.87
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:34",
+            "pos": 1064,
+            "progress": 0.87
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:38:38",
+            "progress": 0.87
+        },
+        {
+            "name": "text-insert",
+            "text": "You've had a good marriage, and raised good kids.",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:38:45",
+            "pos": 1276,
+            "progress": 0.9
+        },
+        {
+            "name": "text-delete",
+            "text": " both know that you've lived a good life. You",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:51",
+            "pos": 1234,
+            "progress": 0.87
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:53",
+            "pos": 1280,
+            "progress": 0.87
+        },
+        {
+            "name": "text-insert",
+            "text": "You both know that you've lived a good life. ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:38:54",
+            "pos": 1281,
+            "progress": 0.9
+        },
+        {
+            "name": "text-insert",
+            "text": "\"T",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:07",
+            "pos": 485,
+            "progress": 0.9
+        },
+        {
+            "name": "text-insert",
+            "text": "hey are",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:08",
+            "pos": 487,
+            "progress": 0.91
+        },
+        {
+            "name": "text-insert",
+            "text": " being",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:09",
+            "pos": 494,
+            "progress": 0.91
+        },
+        {
+            "name": "text-insert",
+            "text": " puni",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:10",
+            "pos": 500,
+            "progress": 0.91
+        },
+        {
+            "name": "text-insert",
+            "text": "shed for",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:11",
+            "pos": 505,
+            "progress": 0.92
+        },
+        {
+            "name": "text-insert",
+            "text": " the sin",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:12",
+            "pos": 513,
+            "progress": 0.92
+        },
+        {
+            "name": "text-insert",
+            "text": "s of",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:13",
+            "pos": 521,
+            "progress": 0.93
+        },
+        {
+            "name": "text-insert",
+            "text": " their",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:14",
+            "pos": 525,
+            "progress": 0.93
+        },
+        {
+            "name": "text-insert",
+            "text": " parent",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:15",
+            "pos": 531,
+            "progress": 0.94
+        },
+        {
+            "name": "text-insert",
+            "text": "s\"",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:16",
+            "pos": 538,
+            "progress": 0.94
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:17",
+            "pos": 540,
+            "progress": 0.94
+        },
+        {
+            "name": "text-delete",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:19",
+            "pos": 490,
+            "progress": 0.94
+        },
+        {
+            "name": "text-delete",
+            "text": "y",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:20",
+            "pos": 489,
+            "progress": 0.94
+        },
+        {
+            "name": "text-delete",
+            "text": "e",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:20",
+            "pos": 488,
+            "progress": 0.94
+        },
+        {
+            "name": "text-insert",
+            "text": "os",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:20",
+            "pos": 488,
+            "progress": 0.94
+        },
+        {
+            "name": "text-insert",
+            "text": "e inn",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:21",
+            "pos": 490,
+            "progress": 0.94
+        },
+        {
+            "name": "text-insert",
+            "text": "oc",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:22",
+            "pos": 495,
+            "progress": 0.94
+        },
+        {
+            "name": "text-insert",
+            "text": "ent chi",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:23",
+            "pos": 497,
+            "progress": 0.95
+        },
+        {
+            "name": "text-insert",
+            "text": "ldren",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:24",
+            "pos": 504,
+            "progress": 0.95
+        },
+        {
+            "name": "text-insert",
+            "text": " ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:25",
+            "pos": 509,
+            "progress": 0.95
+        },
+        {
+            "name": "text-insert",
+            "text": ".",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:28",
+            "pos": 558,
+            "progress": 0.96
+        },
+        {
+            "name": "suggestion-open",
+            "eventSource": "api",
+            "event_time": "2021-08-18 11:39:34",
+            "progress": 0.96
+        },
+        {
+            "name": "text-insert",
+            "text": "Sh",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:49",
+            "pos": 1204,
+            "progress": 0.96
+        },
+        {
+            "name": "text-insert",
+            "text": "e reac",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:50",
+            "pos": 1206,
+            "progress": 0.96
+        },
+        {
+            "name": "text-insert",
+            "text": "hes ar",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:51",
+            "pos": 1212,
+            "progress": 0.96
+        },
+        {
+            "name": "text-insert",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:52",
+            "pos": 1218,
+            "progress": 0.97
+        },
+        {
+            "name": "text-delete",
+            "text": "d",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:52",
+            "pos": 1218,
+            "progress": 0.96
+        },
+        {
+            "name": "text-delete",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:53",
+            "pos": 1217,
+            "progress": 0.96
+        },
+        {
+            "name": "text-insert",
+            "text": "cr",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:53",
+            "pos": 1217,
+            "progress": 0.96
+        },
+        {
+            "name": "text-insert",
+            "text": "oss the",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:54",
+            "pos": 1219,
+            "progress": 0.97
+        },
+        {
+            "name": "text-insert",
+            "text": " table",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:55",
+            "pos": 1226,
+            "progress": 0.97
+        },
+        {
+            "name": "text-insert",
+            "text": " and ho",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:56",
+            "pos": 1232,
+            "progress": 0.97
+        },
+        {
+            "name": "text-insert",
+            "text": "lds yo",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:57",
+            "pos": 1239,
+            "progress": 0.98
+        },
+        {
+            "name": "text-insert",
+            "text": "ur han",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:58",
+            "pos": 1245,
+            "progress": 0.98
+        },
+        {
+            "name": "text-insert",
+            "text": "d. ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:39:59",
+            "pos": 1251,
+            "progress": 0.99
+        },
+        {
+            "name": "text-insert",
+            "text": "s",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:40:14",
+            "pos": 618,
+            "progress": 0.99
+        },
+        {
+            "name": "text-delete",
+            "text": ",",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:40:15",
+            "pos": 619,
+            "progress": 0.99
+        },
+        {
+            "name": "text-insert",
+            "text": ":",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:40:16",
+            "pos": 619,
+            "progress": 0.99
+        },
+        {
+            "name": "text-insert",
+            "text": "chi",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:40:21",
+            "pos": 695,
+            "progress": 0.99
+        },
+        {
+            "name": "text-insert",
+            "text": "ldren",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:40:22",
+            "pos": 698,
+            "progress": 0.99
+        },
+        {
+            "name": "text-insert",
+            "text": " and ",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:40:23",
+            "pos": 703,
+            "progress": 1.0
+        },
+        {
+            "name": "text-delete",
+            "text": ".",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:40:37",
+            "pos": 1028,
+            "progress": 1.0
+        },
+        {
+            "name": "text-insert",
+            "text": "r",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:40:41",
+            "pos": 1035,
+            "progress": 1.0
+        },
+        {
+            "name": "text-delete",
+            "text": "says",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:40:41",
+            "pos": 1036,
+            "progress": 1.0
+        },
+        {
+            "name": "text-insert",
+            "text": "epl",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:40:41",
+            "pos": 1036,
+            "progress": 1.0
+        },
+        {
+            "name": "text-insert",
+            "text": "ies",
+            "eventSource": "user",
+            "event_time": "2021-08-18 11:40:42",
+            "pos": 1039,
+            "progress": 1.0
+        }
+    ],
+    "end_time": "2021-08-18 11:40:43"
+}

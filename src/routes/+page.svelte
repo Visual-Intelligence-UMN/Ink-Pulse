@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import "chartjs-adapter-date-fns";
   import { writable } from "svelte/store";
   import { tick } from "svelte";
@@ -10,10 +10,10 @@
   import LineChart from "../components/lineChart.svelte";
   import BarChartY from "../components/barChartY.svelte";
   import * as d3 from "d3";
-  import PatternChartPreview from "../components/patternChartPreview.svelte";
-  import PatternChartPreviewSerach from "../components/patternChartPreviewSerach.svelte";
+  // import PatternChartPreview from "../components/patternChartPreview.svelte";
+  // import PatternChartPreviewSerach from "../components/patternChartPreviewSerach.svelte";
   import SkeletonLoading from "../components/skeletonLoading.svelte";
-  import { getCategoryIcon } from "../components/topicIcons.js";
+  import { getCategoryIcon as getCategoryIconBase } from "../components/topicIcons.js";
   import "../components/styles.css";
   import LineChartPreview from "../components/lineChartPreview.svelte";
   import SessionCell from "../components/sessionCell.svelte";
@@ -22,23 +22,53 @@
   import SavedPatternsBar from "../components/SavedPatternsBar.svelte";
   import ConfirmDialog from "../components/ConfirmDialog.svelte";
   import EditPatternDialog from "../components/EditPatternDialog.svelte";
-  import { searchPatternSet, exportDB, triggerImport} from "../components/cache.js";
+  import {
+    searchPatternSet,
+    exportDB,
+    exportSinglePattern,
+    triggerImport,
+    loadPattern,
+  } from "../components/cache.js";
   import RankWorker from "../workers/rankWorker.js?worker";
+  import WeightPanel from "../components/weightPanel.svelte";
+  import Papa from "papaparse";
+  import JSZip from "jszip";
+  import initSqlJs from "sql.js";
+  import { getDB } from "$lib/dbLoader";
+  import { readSegmentResults } from "$lib/db/read";
+  import { browser } from '$app/environment';
+  import Interpreter from "../components/interpreter.svelte";
 
   let chartRefs = {};
   let filterButton;
   let collapseButton;
   let selectionMode = false;
+  let brushIsX = false;
   let selectedPatterns = {};
+
+  // Chart axis selection
+  let barChartXAxis = "progress";
+  let barChartYAxis = "semantic_change";
+
+  // LineChart axis selection
+  let lineChartXAxis = "time";
+  let lineChartYAxis = "progress";
   let showPatternSearch = false;
   let exactSourceButton;
   let exactTrendButton;
   let searchDetail = null;
   let sharedSelection;
+  let exactProgressButton;
+  let exactTimeButton;
 
-  $: if(selectedPatterns) {
-    // console.log("selectedPatterns", selectedPatterns);
-    isSearch = 0 // reset search state; 0: not searching, 1: searching, 2: search done
+  let lastSharedSelection = null;
+  $: if (sharedSelection) {
+    console.log("selectedPatterns", selectedPatterns);
+    // console.log("sharedSelection", sharedSelection);
+    if (sharedSelection !== lastSharedSelection) {
+      isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
+      lastSharedSelection = sharedSelection;
+    }
   }
 
   function initTippy(el, content) {
@@ -51,23 +81,18 @@
   }
   $: filterButton && initTippy(filterButton, "Filter based on prompt type");
   $: collapseButton && initTippy(collapseButton, "Collapse/Expand table view");
-  $: exactSourceButton &&
-    initTippy(exactSourceButton, "Open/Close exact search");
-  $: exactTrendButton && initTippy(exactTrendButton, "Open/Close exact search");
-
-  import { loadPattern } from "../components/cache.js"; // or adjust import path if different
 
   onMount(() => {
     loadPattern("patterns/load");
   });
 
   let dataDict = {
-    init_text: [], // Initial text
-    init_time: [], // Start time
+    init_text: "", // Initial text
+    init_time: "", // Start time
     json: [], // all operation
-    text: [], // final text
-    info: [], // insert, delete and suggestion-open operation
-    end_time: [],
+    text: "", // final text
+    action: [], // insert, delete and suggestion-open operation
+    end_time: "",
   };
   let chartData = []; // chart data
   let currentTime = 0;
@@ -95,14 +120,16 @@
     .scaleLinear()
     .domain([0, 100])
     .range([height - margin.top - margin.bottom, 0]);
+  let yScaleFactor = (height - margin.top - margin.bottom) / 100;
+  let xScaleBarChartFactor;
+  let xScaleLineChartFactor;
+
   let zoomTransforms = {};
   export const clickSession = writable(null);
   let patternData = [];
   let RangeSlider = null;
   let writingProgressRange = [];
-  let writingProgressRangeSlider = [];
   let timeRange = [];
-  let timeRangeSlider = [];
   let sourceRange = [];
   let semanticRange = [];
   let semanticData = [];
@@ -115,6 +142,9 @@
   let selectedPatternForDetail = null;
   let activePatternId = null;
 
+  // Loading state for pattern import
+  let isImporting = false;
+
   // Confirm dialog state
   let showDeleteConfirm = false;
   let patternToDelete = null;
@@ -122,17 +152,57 @@
   // Edit pattern dialog state
   let showEditDialog = false;
   let patternToEdit = null;
+
+  // Search functionality
+  let searchQuery = "";
+  let searchResults = [];
+  let showSearchResults = false;
+
+  // Export functionality
+  let showExportMenu = false;
   let isProgressChecked = false;
   let isTimeChecked = false;
   let isSourceChecked = true;
   let isSemanticChecked = true;
   let isValueRangeChecked = true;
   let isValueTrendChecked = true;
+
+  // Playback control variables
+  let isPlaying = false;
+  let playbackIndex = 0;
+  let playbackTimer = null;
+  let playbackSpeed = 1; // Default 1x speed (real-time)
+  const SPEED_OPTIONS = [1, 5, 100]; // Available speed options: 1x, 5x, 100x
+  const icons = [
+    `${base}/play.svg`,
+    `${base}/doubleplay.svg`,
+    `${base}/tripleplay.svg`,
+  ];
+  $: TIME_PER_MIN_MS = 60000 / playbackSpeed; // 1 real minute -> calculated ms based on speed
+
   $: if (!isSemanticChecked) {
     isValueRangeChecked = false;
     isValueTrendChecked = false;
   }
   let lastSession = null;
+  let datasets = [];
+  let selectedDataset = "creative";
+
+  // Reset playback state when session changes
+  let lastPlaybackSessionId = null;
+  $: if ($clickSession?.sessionId !== lastPlaybackSessionId) {
+    lastPlaybackSessionId = $clickSession?.sessionId || null;
+    if ($clickSession?.chartData?.length) {
+      playbackIndex = findIndexFromTime(
+        $clickSession.chartData,
+        $clickSession.currentTime || 0,
+      );
+    } else {
+      playbackIndex = 0;
+    }
+    clearPlaybackTimer();
+    isPlaying = false;
+  }
 
   export const patternDataList = writable([]);
   export const initData = writable([]);
@@ -143,11 +213,25 @@
 
   let isExactSearchSource = true;
   let isExactSearchTrend = true;
+  let isExactSearchProgress = false;
+  let isExactSearchTime = false;
   $: if (!isSemanticChecked || !isValueTrendChecked) {
     isExactSearchTrend = false;
   }
+  $: if (isValueTrendChecked) {
+    isExactSearchTrend = true;
+  }
+  $: if (isSourceChecked) {
+    isExactSearchSource = true;
+  }
   $: if (!isSourceChecked) {
     isExactSearchSource = false;
+  }
+  $: if (!isProgressChecked) {
+    isExactSearchProgress = false;
+  }
+  $: if (!isTimeChecked) {
+    isExactSearchTime = false;
   }
 
   export const displaySessions = writable([]);
@@ -170,7 +254,7 @@
 
   const removepattern = (segmentId) => {
     patternDataList.update((patternList) =>
-      patternList.filter((pattern) => pattern.segmentId !== segmentId)
+      patternList.filter((pattern) => pattern.segmentId !== segmentId),
     );
     showResultCount.update((count) => count - 1);
   };
@@ -178,6 +262,7 @@
   let isSave = false;
   let nameInput = "";
   let colorInput = "#66ccff";
+  let showSavedMessage = false;
   async function openSavePanel() {
     isSave = false;
     await tick();
@@ -188,55 +273,101 @@
 
   function handleSave(event) {
     const { name, color } = event.detail;
-    const allPatternData = get(patternDataList).slice(0, get(showResultCount));
-    const seenSessionIds = new Set();
-    const deduplicatedData = allPatternData.filter((session) => {
-      if (seenSessionIds.has(session.sessionId)) {
-        return false;
-      }
-      seenSessionIds.add(session.sessionId);
-      return true;
-    });
 
-    const processedSlice = deduplicatedData.map((session) => ({
-      ...session,
-      llmScore: session.similarityData[0].score || 0,
-    }));
+    // Top-N rows we're saving from the visible results
+    const allPatternData = get(patternDataList).slice(0, get(showResultCount));
+
+    // Group rows by sessionId so we can accumulate counts per session
+    const sessionsById = new Map();
+
+    const getOrInitSession = (row) => {
+      if (!sessionsById.has(row.sessionId)) {
+        const sim = Array.isArray(row.similarityData) ? row.similarityData : [];
+        // Keep similarityData for chart rendering, but remove large arrays like chartData
+        sessionsById.set(row.sessionId, {
+          sessionId: row.sessionId,
+          similarityData: sim, // Keep for chart display (small: ~5KB per session)
+          pattern_indices: Array(sim.length).fill(0),
+          llmScore: sim?.[0]?.score ?? 0,
+          // Removed: chartData (~586KB), time0, time100, segments, etc.
+        });
+      }
+      return sessionsById.get(row.sessionId);
+    };
+
+    const findIndex = (sim, time, field) =>
+      sim.findIndex((x) => x?.[field] === time);
+
+    // For each pattern occurrence (row), mark its segments into that session's counters
+    for (const row of allPatternData) {
+      const session = getOrInitSession(row);
+      const sim = Array.isArray(row.similarityData) ? row.similarityData : [];
+      const segs = Array.isArray(row.segments) ? row.segments : [];
+
+      for (const seg of segs) {
+        const startIdx = findIndex(sim, seg?.start_time, "start_time");
+        const endIdx = findIndex(sim, seg?.end_time, "end_time");
+        if (startIdx === -1 || endIdx === -1) continue;
+
+        const a = Math.min(startIdx, endIdx);
+        const b = Math.max(startIdx, endIdx);
+        for (let i = a; i <= b; i++) {
+          session.pattern_indices[i] += 1; // increment covered indices
+        }
+      }
+    }
+
+    // Final list of sessions (unique by sessionId), with accumulated pattern_indices
+    const processedSlice = Array.from(sessionsById.values());
 
     const itemToSave = {
       id: `pattern_${Date.now()}`,
       name,
       color,
+      dataset: selectedDataset,
       pattern: processedSlice,
       metadata: {
         createdAt: Date.now(),
-        totalSessions: processedSlice.length,
-        originalMatches: allPatternData.length,
+        totalSessions: processedSlice.length, // unique sessions
+        originalMatches: allPatternData.length, // raw rows
       },
-      searchDetail
+      searchDetail,
     };
 
-    searchPatternSet.update((current) => [...current, itemToSave]);
+    // Commit & refresh UI
+    searchPatternSet.update((cur) => [...cur, itemToSave]);
     isSave = false;
 
     tick().then(() => {
-      // Method1:  update showPatternColumn
-      //const currentPatterns = get(searchPatternSet);
-      //showPatternColumn = currentPatterns && currentPatterns.length > 0;
-      // Method2: refresh patternDataList
-      initData.update((data) => [...data]);
-      // Mathod3: update patternDataList
-      //displaySessions.update(sessions => [...sessions]);
+      initData.update((data) => [...data]); // poke reactivity
     });
+
+    showSavedMessage = true;
+    setTimeout(() => {
+      showSavedMessage = false;
+    }, 1000);
   }
 
   function handleClose() {
     isSave = false;
   }
 
+  function handleWeightsClose() {
+    isWeights = false;
+  }
+
+  function handleWeightsSave(event) {
+    weights.set(event.detail.weights);
+    isWeights = false;
+  }
+
   function getPromptCode(sessionId) {
     const found = sessions.find((s) => s.session_id === sessionId);
     return found?.prompt_code ?? "";
+  }
+
+  function getCategoryIcon(promptCode) {
+    return getCategoryIconBase(promptCode, selectedDataset);
   }
 
   // Functions about tables
@@ -248,6 +379,10 @@
   let sortDirection = "none";
 
   function handleSort(column) {
+    if (column === "topic" && selectedCategoryFilter) {
+      return;
+    }
+
     if (column === "pattern") {
       // Special logic for pattern sorting: toggle between sorted and original order
       if (sortColumn === "pattern") {
@@ -277,6 +412,10 @@
   }
 
   function getSortIcon(column) {
+    if (column === "topic" && selectedCategoryFilter) {
+      return "";
+    }
+
     if (column === "pattern") {
       // Special icon for pattern column
       if (sortColumn === "pattern") {
@@ -293,23 +432,65 @@
     }
   }
 
-  // FETCH SCORES
-  const fetchLLMScore = async (sessionFile) => {
-    const url = `${base}/chi2022-coauthor-v1.0/eval_results/${sessionFile}.json`;
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        console.error("Response not ok:", response.status, response.statusText);
-        throw new Error(`Failed to fetch LLM score: ${response.status}`);
-      }
+  async function getUploadedZipByName(name) {
+    await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction("uploadedZips", "readonly");
+      const store = tx.objectStore("uploadedZips");
+      const request = store.getAll();
+      request.onsuccess = () => {
+        const files = request.result;
+        const zipFile = files.find(
+          (f) => f.name.replace(/\.zip$/i, "") === name,
+        );
+        resolve(zipFile?.blob || null);
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
 
-      const data = await response.json();
-      const totalScore = data[0];
-      return totalScore;
+  const fetchCSVData = async () => {
+    try {
+      const datasetInfo = datasets.find((d) => d.name === selectedDataset);
+      if (!datasetInfo) return [];
+      if (datasetInfo.source === "repo") {
+        const response = await fetch(
+          `${base}/dataset/${selectedDataset}/session.csv`,
+        );
+        if (!response.ok) throw new Error("Failed to fetch CSV data");
+        const text = await response.text();
+        const parsedData = Papa.parse(text, { header: true }).data;
+
+        return parsedData;
+      }
+      if (datasetInfo.source === "upload") {
+        const zipBlob = await getUploadedZipByName(selectedDataset);
+        const zip = await JSZip.loadAsync(zipBlob);
+        const sessionFile = zip.file(`${selectedDataset}/session.csv`);
+        if (!sessionFile) throw new Error("session.csv not found in zip");
+        const text = await sessionFile.async("string");
+        const parsedData = Papa.parse(text, { header: true }).data;
+
+        return parsedData;
+      }
     } catch (error) {
-      console.error("Error when reading LLM score file:", error);
-      return null;
+      console.error("Error fetching or parsing CSV:", error);
+      return [];
     }
+  };
+
+  const fetchFeatureData = (data) => {
+    return data.map((item) => {
+      const filteredItem = Object.fromEntries(
+        Object.entries(item).filter(([key]) => key !== "prompt_code"),
+      );
+      return filteredItem;
+    });
+  };
+
+  const fetchLLMScore = async (sessionId, data) => {
+    const item = data.find((item) => item.session_id === sessionId);
+    return item ? item.judge_score : null;
   };
 
   function getColumnGroups() {
@@ -317,8 +498,8 @@
     // Topic
     if (sortColumn === "topic" && sortDirection !== "none") {
       sessions = [...sessions].sort((a, b) => {
-        const aCode = getPromptCode(a.sessionId);
-        const bCode = getPromptCode(b.sessionId);
+        const aCode = getPromptCode(a.session_id);
+        const bCode = getPromptCode(b.session_id);
 
         if (sortDirection === "asc") {
           return aCode.localeCompare(bCode);
@@ -370,15 +551,49 @@
   $: if (sortColumn || sortDirection) {
   }
 
-  // function calculateAccumulatedSemanticScore(data) {
-  //   if (!data || data.length === 0) return 0;
+  // Topic page, sort filteredByCategory data
+  $: sortedFilteredByCategory = (() => {
+    if (!selectedCategoryFilter || !filteredByCategory.length) {
+      return filteredByCategory;
+    }
 
-  //   const totalScore = data.reduce((sum, item) => {
-  //     return sum + (item.residual_vector_norm || 0);
-  //   }, 0);
+    let sorted = [...filteredByCategory];
 
-  //   return totalScore;
-  // }
+    // Score sort
+    if (sortColumn === "score" && sortDirection !== "none") {
+      sorted = sorted.sort((a, b) => {
+        const aScore = a.llmScore || 0;
+        const bScore = b.llmScore || 0;
+        if (sortDirection === "asc") {
+          return aScore - bScore;
+        } else {
+          return bScore - aScore;
+        }
+      });
+    }
+
+    // Pattern sort
+    if (sortColumn === "pattern" && sortDirection !== "none") {
+      sorted = sorted.sort((a, b) => {
+        const aHasPattern = hasPattern(a.sessionId);
+        const bHasPattern = hasPattern(b.sessionId);
+
+        if (sortDirection === "asc") {
+          // Show sessions with patterns first
+          if (aHasPattern && !bHasPattern) return -1;
+          if (!aHasPattern && bHasPattern) return 1;
+          return 0;
+        } else {
+          // Show sessions without patterns first
+          if (aHasPattern && !bHasPattern) return 1;
+          if (!aHasPattern && bHasPattern) return -1;
+          return 0;
+        }
+      });
+    }
+
+    return sorted;
+  })();
 
   function waitForSessionData(sessionId) {
     return new Promise((resolve) => {
@@ -400,125 +615,6 @@
   let groupedSessions = {};
   let sortedSessions = [];
   let filteredSessions = [];
-
-  // function groupSessionsByAttribute(attribute, specificValue = null) {
-  //   const grouped = {};
-  //   $initData.forEach((sessionData) => {
-  //     const sessionInfo = sessions.find(
-  //       (s) => s.session_id === sessionData.sessionId,
-  //     );
-  //     if (sessionInfo) {
-  //       const key = sessionInfo[attribute] || "unknown";
-  //       if (specificValue && key !== specificValue) {
-  //         return;
-  //       }
-
-  //       if (!grouped[key]) {
-  //         grouped[key] = [];
-  //       }
-  //       grouped[key].push(sessionData);
-  //     }
-  //   });
-
-  //   return grouped;
-  // }
-
-  // function filterSessionsByCategory(category) {
-  //   return $initData.filter((sessionData) => {
-  //     const sessionInfo = sessions.find(
-  //       (s) => s.session_id === sessionData.sessionId,
-  //     );
-  //     return sessionInfo && sessionInfo.prompt_code === category;
-  //   });
-  // }
-
-  // function rankSessionsByAttribute(attribute, sessionsData) {
-  //   const sessionsCopy = [...sessionsData];
-
-  //   switch (attribute) {
-  //     case "prompt_code":
-  //       return sessionsCopy.sort((a, b) => {
-  //         const aCode = getPromptCode(a.sessionId);
-  //         const bCode = getPromptCode(b.sessionId);
-  //         return aCode.localeCompare(bCode);
-  //       });
-
-  //     case "writing_time":
-  //       return sessionsCopy.sort((a, b) => {
-  //         const aTime = a.time100 || 0;
-  //         const bTime = b.time100 || 0;
-  //         return bTime - aTime;
-  //       });
-
-  //     case "text_length":
-  //       return sessionsCopy.sort((a, b) => {
-  //         const aLength = a.summaryData?.totalProcessedCharacters || 0;
-  //         const bLength = b.summaryData?.totalProcessedCharacters || 0;
-  //         return bLength - aLength;
-  //       });
-
-  //     case "suggestions_count":
-  //       return sessionsCopy.sort((a, b) => {
-  //         const aSuggestions = a.summaryData?.totalSuggestions || 0;
-  //         const bSuggestions = b.summaryData?.totalSuggestions || 0;
-  //         return bSuggestions - aSuggestions;
-  //       });
-
-  //     default:
-  //       return sessionsCopy;
-  //   }
-  // }
-
-  // function handleIconClick(attribute, mode = "group", specificValue = null) {
-  //   if (selectedCategoryFilter === specificValue && specificValue) {
-  //     groupingMode = false;
-  //     selectedGroupAttribute = null;
-  //     selectedCategoryFilter = null;
-  //     groupedSessions = {};
-  //     sortedSessions = [];
-  //     filteredSessions = [];
-  //     return;
-  //   }
-
-  //   if (specificValue) {
-  //     groupingMode = true;
-  //     selectedGroupAttribute = attribute;
-  //     selectedCategoryFilter = specificValue;
-
-  //     filteredSessions = filterSessionsByCategory(specificValue);
-  //     groupedSessions = {};
-  //     sortedSessions = [];
-  //     return;
-  //   }
-
-  //   if (
-  //     groupingMode &&
-  //     selectedGroupAttribute === attribute &&
-  //     !selectedCategoryFilter
-  //   ) {
-  //     groupingMode = false;
-  //     selectedGroupAttribute = null;
-  //     selectedCategoryFilter = null;
-  //     groupedSessions = {};
-  //     sortedSessions = [];
-  //     filteredSessions = [];
-  //   } else {
-  //     groupingMode = true;
-  //     selectedGroupAttribute = attribute;
-  //     selectedCategoryFilter = null;
-
-  //     if (mode === "group") {
-  //       groupedSessions = groupSessionsByAttribute(attribute);
-  //       sortedSessions = [];
-  //       filteredSessions = [];
-  //     } else if (mode === "rank") {
-  //       sortedSessions = rankSessionsByAttribute(attribute, $initData);
-  //       groupedSessions = {};
-  //       filteredSessions = [];
-  //     }
-  //   }
-  // }
-
   let filteredByCategory = [];
   function handleCategoryIconClick(category) {
     if (selectedCategoryFilter === category) {
@@ -526,7 +622,7 @@
       filteredByCategory = [];
 
       const originalFilteredData = tableData.filter((session) =>
-        $selectedTags.includes(session.prompt_code)
+        $selectedTags.includes(session.prompt_code),
       );
       const originalUpdatedData = originalFilteredData.map((row) => ({
         ...row,
@@ -538,19 +634,19 @@
 
       filteredByCategory = $initData.filter((sessionData) => {
         const sessionInfo = sessions.find(
-          (s) => s.session_id === sessionData.sessionId
+          (s) => s.session_id === sessionData.sessionId,
         );
         return sessionInfo && sessionInfo.prompt_code === category;
       });
 
       const categoryTableRows = tableData.filter(
-        (row) => row.prompt_code === category
+        (row) => row.prompt_code === category,
       );
       filterTableData.set(
         categoryTableRows.map((row) => ({
           ...row,
           selected: true,
-        }))
+        })),
       );
 
       categoryTableRows.forEach((row) => {
@@ -587,20 +683,6 @@
       return pattern.pattern.some((session) => session.sessionId === sessionId);
     });
   }
-
-  // function isIconActive(promptCode) {
-  //   return selectedCategoryFilter === promptCode;
-  // }
-
-  // function getGridItemClass(sessionId) {
-  //   if (!groupingMode) return "";
-
-  //   const sessionInfo = sessions.find((s) => s.session_id === sessionId);
-  //   if (!sessionInfo) return "";
-
-  //   const attributeValue = sessionInfo[selectedGroupAttribute];
-  //   return `grouped-${attributeValue}`;
-  // }
 
   async function handleContainerClick(event) {
     const sessionId = event.detail.sessionId;
@@ -651,39 +733,271 @@
     selectedPatterns = newSelectedPatterns;
   }
 
-  function isDataValid(item, checks, minCount) {
-    const fieldMap = {
-      progress: (d) => (d.end_progress - d.start_progress) * 100,
-      time: (d) => (d.end_time - d.start_time) / 60,
-      semantic: (d) => d.residual_vector_norm,
+  function buildWindowContext(selectedPatterns) {
+    const patterns = Object.values(selectedPatterns);
+    if (patterns.length === 0) return null;
+    const pattern = patterns[0];
+    if (!pattern || typeof pattern.count !== 'number') return null;
+    const WINDOW_SIZE = pattern.count;
+
+    return {
+      windowSize: WINDOW_SIZE,
+      positionOffset: {
+        first: 0,
+        last: WINDOW_SIZE - 1,
+        prev: WINDOW_SIZE - 2
+      }
     };
+  }
 
-    const relaxRatioMap = {
-      progress: 0.3,
-    };
+  async function handleInterpreterFilters(event) {
+    const ctx = buildWindowContext(selectedPatterns);
+    if (!ctx) return console.warn('No valid selected pattern');
+    const { windowSize, positionOffset } = ctx;
 
-    for (const [key, [checked, range]] of Object.entries(checks)) {
-      if (!checked || !(key in fieldMap)) continue;
-      const value = fieldMap[key](item);
-      if (value == null || isNaN(value)) return false;
-
-      if (minCount === 1) {
-        if (key === "semantic") {
-          const relaxedMin = range[0] - 0.05;
-          const relaxedMax = range[1] + 0.05;
-          if (value < relaxedMin || value > relaxedMax) return false;
-        } else {
-          const relaxRatio = relaxRatioMap[key] ?? 0.2;
-          const delta = (range[1] - range[0]) * relaxRatio;
-          const relaxedMin = range[0] - delta;
-          const relaxedMax = range[1] + delta;
-          if (value < relaxedMin || value > relaxedMax) return false;
-        }
-      } else {
-        if (value < range[0] || value > range[1]) return false;
+    function resolveSpanRange(span, anchorIdx, windowSize) {
+      switch (span) {
+        case 'prefix':
+          return { from: 0, to: anchorIdx };
+        case 'suffix':
+          return { from: anchorIdx, to: windowSize - 1 };
+        case 'full':
+          return { from: 0, to: windowSize - 1 };
+        default:
+          return null;
       }
     }
-    return true;
+
+    function buildExpr({ feature, position, span, source }, ref) {
+      const featureDef = featureMap[feature];
+      if (!featureDef) return null;
+      const sourceValue = source === 'Human' ? 'user' : source === 'AI' ? 'api' : null;
+      if (span) {
+        let range;
+        if (span === 'full') {
+          range = { from: 0, to: windowSize - 1 };
+        } else if (span === 'prefix' || span === 'suffix') {
+          const anchorIdx = positionOffset[position];
+          if (anchorIdx == null) {
+            console.warn(`Span ${span} requires position, but position ${position} not found in positionOffset`);
+            return null;
+          }
+          range = resolveSpanRange(span, anchorIdx, windowSize);
+        } else {
+          console.warn(`Unknown span type: ${span}`);
+          return null;
+        }
+        if (!range) return null;
+        return featureDef.range(range.from, range.to, ref, sourceValue);
+      }
+      const anchorIdx = positionOffset[position];
+      if (anchorIdx == null) {
+        console.warn(`Point query requires position, but position ${position} not found in positionOffset`);
+        return null;
+      }
+      return featureDef.point(anchorIdx, ref, sourceValue);
+    }
+
+    function parseRelation(relationString) {
+      if (!relationString) return null;
+      const match = relationString.match(/^(\w+)\(([\w_]+)\)\s*(>|<|=)\s*(\w+)\(([\w_]+)\)$/);
+      if (!match) return null;
+      
+      return {
+        l_source: match[1],
+        l_feature: match[2],
+        operator: match[3],
+        r_source: match[4],
+        r_feature: match[5]
+      };
+    }
+
+    const featureMap = {
+      progress: {
+        point: (idx, ref, source) => {
+          const baseExpr = `COALESCE(
+            CAST(JSON_EXTRACT(${ref}, '$[${idx}].end_progress') AS REAL),0
+          ) - COALESCE(
+            CAST(JSON_EXTRACT(${ref}, '$[${idx}].start_progress') AS REAL),0
+          )`;
+          if (source) {
+            return `CASE WHEN JSON_EXTRACT(${ref}, '$[${idx}].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+          }
+          return baseExpr;
+        },
+        range: (from, to, ref, source) => {
+          const sumExpr = source 
+            ? `CASE WHEN JSON_EXTRACT(${ref}, '$[' || k.i || '].source') = '${source}' 
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_progress') AS REAL),0
+                 ) - COALESCE(
+                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_progress') AS REAL),0
+                 ) ELSE 0 END`
+            : `COALESCE(
+                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_progress') AS REAL),0
+               ) - COALESCE(
+                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_progress') AS REAL),0
+               )`;
+          
+          return `(
+            SELECT SUM(${sumExpr})
+            FROM idx k
+            WHERE k.i BETWEEN ${from} AND ${to}
+          )`;
+        }
+      },
+      time: {
+        point: (idx, ref, source) => {
+          const baseExpr = `COALESCE(
+            CAST(JSON_EXTRACT(${ref}, '$[${idx}].end_time') AS REAL),0
+          ) - COALESCE(
+            CAST(JSON_EXTRACT(${ref}, '$[${idx}].start_time') AS REAL),0
+          )`;
+          
+          if (source) {
+            return `CASE WHEN JSON_EXTRACT(${ref}, '$[${idx}].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+          }
+          return baseExpr;
+        },
+        range: (from, to, ref, source) => {
+          const sumExpr = source
+            ? `CASE WHEN JSON_EXTRACT(${ref}, '$[' || k.i || '].source') = '${source}'
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_time') AS REAL),0
+                 ) - COALESCE(
+                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_time') AS REAL),0
+                 ) ELSE 0 END`
+            : `COALESCE(
+                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_time') AS REAL),0
+               ) - COALESCE(
+                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_time') AS REAL),0
+               )`;
+          
+          return `(
+            SELECT SUM(${sumExpr})
+            FROM idx k
+            WHERE k.i BETWEEN ${from} AND ${to}
+          )`;
+        }
+      },
+      semantic_change: {
+        point: (idx, ref, source) => {
+          const baseExpr = `COALESCE(
+            CAST(JSON_EXTRACT(${ref}, '$[${idx}].residual_vector_norm') AS REAL),0
+          )`;
+          if (source) {
+            return `CASE WHEN JSON_EXTRACT(${ref}, '$[${idx}].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+          }
+          return baseExpr;
+        },
+        range: (from, to, ref, source) => {
+          const sumExpr = source
+            ? `CASE WHEN JSON_EXTRACT(${ref}, '$[' || k.i || '].source') = '${source}'
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].residual_vector_norm') AS REAL),0
+                 ) ELSE 0 END`
+            : `COALESCE(
+                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].residual_vector_norm') AS REAL),0
+               )`;
+          
+          return `(
+            SELECT SUM(${sumExpr})
+            FROM idx k
+            WHERE k.i BETWEEN ${from} AND ${to}
+          )`;
+        }
+      }
+    };
+    const { explanations, filters } = event.detail;
+    // console.log("explanations", explanations, "filters", filters)
+    const comparisons = filters
+    .map((filter, i) => {
+      if (explanations[i]?.feature === 'source') return null;
+      const parsed = parseRelation(filter.relation);
+      if (!parsed) {
+        console.warn('Could not parse relation:', filter.relation);
+        return null;
+      }
+      const lExpr = buildExpr(
+        {
+          feature: parsed.l_feature,
+          position: filter.l_position,
+          span: filter.span,
+          source: parsed.l_source
+        },
+        'window_content'
+      );
+      const rExpr = buildExpr(
+        {
+          feature: parsed.r_feature,
+          position: filter.r_position,
+          span: filter.span,
+          source: parsed.r_source
+        },
+        'window_content'
+      );
+      
+      if (!lExpr || !rExpr) {
+        console.warn('Could not build expressions for:', parsed);
+        return null;
+      }
+      const ratio = filter.ratio;
+      let comparison;
+      if (ratio !== null && ratio !== undefined) {
+        if (parsed.operator === '>') {
+          comparison = `(${lExpr}) ${parsed.operator} ((${rExpr}) * ${ratio})`;
+        } else if (parsed.operator === '<') {
+          comparison = `((${lExpr}) * ${ratio}) ${parsed.operator} (${rExpr})`;
+        } else {
+          comparison = `(${lExpr}) ${parsed.operator} ((${rExpr}) * ${ratio})`;
+        }
+      } else {
+        comparison = `(${lExpr}) ${parsed.operator} (${rExpr})`;
+      }
+
+      return comparison;
+    })
+    .filter(Boolean);
+    const hasSourceConstraint = explanations.some(exp => exp.feature === 'source');
+    const sourcePattern = Object.values(selectedPatterns)[0].sources || [];
+    const sourceConstraints = hasSourceConstraint
+      ? sourcePattern.map((src, i) => `JSON_EXTRACT(window_content, '$[${i}].source') = '${src}'`)
+      : [];
+    const whereClause = [...comparisons, ...sourceConstraints].join(' AND ');
+    const elements = Array(windowSize).fill(0).map((_, i) => i);
+    const sqlQuery = `
+      WITH RECURSIVE 
+      numbers(n) AS (
+        SELECT 0
+        UNION ALL
+        SELECT n + 1 FROM numbers 
+        WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
+      ),
+      idx AS (
+        SELECT 0 as i
+        UNION ALL
+        SELECT i + 1 FROM idx WHERE i < ${windowSize - 1}
+      )
+      SELECT 
+        d.rowid as original_rowid,
+        d.content as original_content,
+        n.n as window_start,
+        json_array(${
+          elements.map(i => 
+            `json_extract(d.content, '$[' || (n.n + ${i}) || ']')`
+          ).join(', ')
+        }) as window_content
+      FROM data d
+      JOIN numbers n 
+        ON n.n + ${windowSize - 1} < json_array_length(d.content)
+      WHERE json_array_length(d.content) = ${windowSize}
+        ${elements.map(i => 
+          `AND json_extract(d.content, '$[' || (n.n + ${i}) || ']') IS NOT NULL`
+        ).join(' ')}
+        ${whereClause ? 'AND (' + whereClause + ')' : ''}
+      ORDER BY original_rowid, window_start
+    `;
+    console.log('SQL:', sqlQuery);
   }
 
   function getTrendPattern(values) {
@@ -700,17 +1014,138 @@
     return actual.every((v, i) => v === expectedTrend[i]);
   }
 
+  function deriveTimeRangeFromProgress(progressRange, data) {
+    if (!progressRange || !data || !data.length) {
+      return null;
+    }
+
+    const getClosestTime = (targetPercentage) => {
+      let closestPoint = data[0];
+      let smallestDelta = Infinity;
+
+      for (const point of data) {
+        const percentage = Number(point?.percentage ?? point?.progress ?? 0);
+        const delta = Math.abs(percentage - targetPercentage);
+        if (delta < smallestDelta) {
+          smallestDelta = delta;
+          closestPoint = point;
+        }
+      }
+
+      return Number(closestPoint?.time ?? 0);
+    };
+
+    const start = getClosestTime(progressRange.min);
+    const end = getClosestTime(progressRange.max);
+
+    return {
+      min: Math.min(start, end),
+      max: Math.max(start, end),
+    };
+  }
+
   function findSegments(data, checks, minCount) {
     const segments = [];
     const isSourceCheckRequired =
-      isExactSearchSource && checks.source && checks.source[1];
+      isExactSearchSource && checks.source && checks.source[0];
     const isTrendCheckRequired =
-      isExactSearchTrend && checks.trend && checks.trend[1] && minCount > 1;
+      isExactSearchTrend && checks.trend && checks.trend[0] && minCount > 1;
+    const isProgressCheckRequired =
+      isExactSearchProgress && checks.progress && checks.progress[0];
+    const isTimeCheckRequired =
+      isExactSearchTime && checks.time && checks.time[0];
 
     for (let i = 1; i <= data.length - minCount; i++) {
       const window = data.slice(i, i + minCount);
-      if (!window.every((item) => isDataValid(item, checks, minCount)))
+
+      // Safety check
+      if (!window || window.length === 0 || !window[0]) {
+        // console.log("Invalid window at index", i, "window:", window);
         continue;
+      }
+
+      if (checks.progress && checks.progress[0]) {
+        const [min, max] = checks.progress[1];
+        const deltaTarget = max - min;
+        const relax = deltaTarget * 0.1;
+
+        // Check if required properties exist
+        if (
+          typeof window[0].start_progress !== "number" ||
+          typeof window[window.length - 1].end_progress !== "number"
+        ) {
+          // console.log("Missing progress data in window:", window[0]);
+          continue;
+        }
+
+        const start = window[0].start_progress * 100;
+        const end = window[window.length - 1].end_progress * 100;
+        const delta = end - start;
+        const relaxedStartMin = min - relax;
+        const relaxedStartMax = min + relax;
+        const relaxedEndMin = max - relax;
+        const relaxedEndMax = max + relax;
+        const relaxedDeltaMin = deltaTarget - relax;
+        const relaxedDeltaMax = deltaTarget + relax;
+        if (isProgressCheckRequired) {
+          if (
+            start < relaxedStartMin ||
+            start > relaxedStartMax ||
+            end < relaxedEndMin ||
+            end > relaxedEndMax ||
+            delta < relaxedDeltaMin ||
+            delta > relaxedDeltaMax
+          ) {
+            continue;
+          }
+        } else {
+          if (delta < relaxedDeltaMin || delta > relaxedDeltaMax) continue;
+        }
+      }
+
+      if (checks.time && checks.time[0]) {
+        let [minTime, maxTime] = checks.time[1];
+        // console.log("Time check - original range:", minTime, maxTime);
+
+        // Check if required time properties exist
+        if (
+          typeof window[0].start_time !== "number" ||
+          typeof window[window.length - 1].end_time !== "number"
+        ) {
+          // console.log("Missing time data in window:", window[0]);
+          continue;
+        }
+
+        maxTime = maxTime * 60;
+        minTime = minTime * 60;
+        const deltaTarget = maxTime - minTime;
+        const relax = deltaTarget * 0.3;
+        const startTime = window[0].start_time;
+        const endTime = window[window.length - 1].end_time;
+        const deltaTime = endTime - startTime;
+        const relaxedStartMin = minTime - relax;
+        const relaxedStartMax = minTime + relax;
+        const relaxedEndMin = maxTime - relax;
+        const relaxedEndMax = maxTime + relax;
+        const relaxedDeltaMin = deltaTarget - relax;
+        const relaxedDeltaMax = deltaTarget + relax;
+        if (isTimeCheckRequired) {
+          if (
+            startTime < relaxedStartMin ||
+            startTime > relaxedStartMax ||
+            endTime < relaxedEndMin ||
+            endTime > relaxedEndMax ||
+            deltaTime < relaxedDeltaMin ||
+            deltaTime > relaxedDeltaMax
+          ) {
+            continue;
+          }
+        } else {
+          if (deltaTime < relaxedDeltaMin || deltaTime > relaxedDeltaMax)
+            continue;
+        }
+      }
+
       if (isSourceCheckRequired) {
         const expectedSources = checks.source[1];
         if (expectedSources.length !== minCount) continue;
@@ -719,6 +1154,19 @@
         if (!expectedSources.every((src, idx) => src === actualSources[idx]))
           continue;
       }
+
+      if (checks.semantic && checks.semantic[0]) {
+        const [minScore, maxScore] = checks.semantic[1];
+        const relax = (maxScore - minScore) * 0.1;
+        const relaxedMin = minScore - relax;
+        const relaxedMax = maxScore + relax;
+        const allScores = window.map((item) => item.residual_vector_norm);
+        const isScoreValid = allScores.every(
+          (score) => score >= relaxedMin && score <= relaxedMax,
+        );
+        if (!isScoreValid) continue;
+      }
+
       if (isTrendCheckRequired) {
         const values = window.map((item) => item.residual_vector_norm);
         if (!matchesTrend(values, checks.trend[1])) continue;
@@ -743,13 +1191,13 @@
 
       if (checks.time[0]) {
         currentVector.t.push(
-          currentItem.endTime * 60 - currentItem.startTime * 60
+          currentItem.endTime * 60 - currentItem.startTime * 60,
         );
       }
 
       if (checks.progress[0]) {
         currentVector.p.push(
-          currentItem.endProgress - currentItem.startProgress
+          currentItem.endProgress - currentItem.startProgress,
         );
       }
 
@@ -804,7 +1252,8 @@
   async function searchPattern(sessionId) {
     isSearch = 1; // 0: not searching, 1: searching, 2: search done
     const sessionData = selectedPatterns[sessionId];
-    const count = sessionData.count;
+    const count =
+      sessionData.count || Math.max(1, sessionData.data?.length || 1);
     searchDetail = {
       sessionId,
       data: sessionData.data,
@@ -812,16 +1261,20 @@
       count,
       wholeData: sessionData.wholeData,
       range: sessionData.range,
-      flag:{
+      selectionSource: sessionData.selectionSource ?? null,
+      flag: {
         isProgressChecked,
         isTimeChecked,
         isSourceChecked,
+        isSemanticChecked,
         isValueRangeChecked,
         isValueTrendChecked,
         isExactSearchSource,
         isExactSearchTrend,
+        isExactSearchProgress,
+        isExactSearchTime,
       },
-    }
+    };
     let results = [];
     let patternVectors = [];
     const checks = {
@@ -833,62 +1286,134 @@
     };
 
     try {
-      const fileListResponse = await fetch(`${base}/session_name.json`);
-      const fileList = await fileListResponse.json();
+      const datasetInfo = datasets.find((d) => d.name === selectedDataset);
+      let segmentSources = [];
+      let useDB = false;
+      try {
+        const isLocalBrowser =
+          browser &&
+          (window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1");
+        console.log("Is local browser?", isLocalBrowser);
+        if (isLocalBrowser) {
+          const dbRes = await fetch(
+            `${base}/api/getSegment?dataset=${selectedDataset}`,
+          );
+          if (dbRes.ok) {
+            const json = await dbRes.json();
+            if (
+              Array.isArray(json.segmentData) &&
+              json.segmentData.length > 0
+            ) {
+              segmentSources = json.segmentData.map((item) => ({
+                sessionId: item.id.replace(/\.json$/, ""),
+                data: JSON.parse(item.content),
+              }));
+              useDB = true;
+            }
+          }
+        } else {
+          const SQL = await initSqlJs({
+            locateFile: (file) => `${base}/sql-wasm/${file}`,
+          });
+          const res = await fetch(
+            `${base}/db/${selectedDataset}_segment_results.db`,
+          );
+          if (!res.ok) throw new Error("DB not found");
+          const buf = await res.arrayBuffer();
+          const db = new SQL.Database(new Uint8Array(buf));
+          const result = db.exec("SELECT id, content FROM data");
+          if (!result.length) throw new Error("DB empty");
+          const { columns, values } = result[0];
+          const idIdx = columns.indexOf("id");
+          const contentIdx = columns.indexOf("content");
 
-      for (const fileName of fileList) {
-        // const fileId = fileName.split(".")[0].replace(/_similarity$/, "");
-        // if (fileId === sessionId) {
-        //   continue;
-        // }
-        const dataResponse = await fetch(
-          `${base}/chi2022-coauthor-v1.0/similarity_results/${fileName}`
-        );
-        const data = await dataResponse.json();
+          segmentSources = values.map((row) => {
+            const sessionIdRaw = row[idIdx];
+            const contentRaw = row[contentIdx];
+            return {
+              sessionId: String(sessionIdRaw ?? "").replace(/\.json$/, ""),
+              data: JSON.parse(String(contentRaw ?? "")),
+            };
+          });
+          useDB = true;
+        }
+      } catch (e) {
+        console.log("No .db file or .db file is empty.", e);
+      }
+      if (!useDB) {
+        const fileList = CSVData.map((item) => item.session_id);
+        for (const fileName of fileList) {
+          let data;
+          if (datasetInfo.source === "repo") {
+            const dataResponse = await fetch(
+              `${base}/dataset/${selectedDataset}/segment_results/${fileName}.json`,
+            );
+            data = await dataResponse.json();
+          }
+          if (datasetInfo.source === "upload") {
+            const zipBlob = await getUploadedZipByName(selectedDataset);
+            if (!zipBlob) throw new Error("Uploaded zip not found");
+            const zip = await JSZip.loadAsync(zipBlob);
+            const filePathRegex = new RegExp(
+              `^${selectedDataset}/segment_results/${fileName}\\.json$`,
+              "i",
+            );
+            const files = zip.file(filePathRegex);
+            if (!files || files.length === 0)
+              throw new Error(`${fileName}.json not found in zip`);
+            const file = files[0];
+            const text = await file.async("string");
+            data = JSON.parse(text);
+          }
+          segmentSources.push({
+            sessionId: fileName,
+            data,
+          });
+        }
+        console.log("Use json files for search");
+      }
+      for (const { sessionId, data } of segmentSources) {
         if (Array.isArray(data.chartData)) {
           data.chartData = data.chartData.map(
-            ({ currentText, ...rest }) => rest
+            ({ currentText, ...rest }) => rest,
           );
         }
         delete data.paragraphColor;
         delete data.textElements;
-
-        const segments = findSegments(data, checks, count);
-        const extractedFileName = fileName
-          .split(".")[0]
-          .replace(/_similarity$/, "");
-
+        const dataToProcess = Array.isArray(data)
+          ? data
+          : data.chartData || data.totalSimilarityData || [];
+        const segments = findSegments(dataToProcess, checks, count);
         const taggedSegments = segments.map((segment, index) =>
           segment.map((item) => ({
             ...item,
-            id: extractedFileName,
-            segmentId: `${extractedFileName}_${index}`,
-          }))
+            id: sessionId,
+            segmentId: `${sessionId}_${index}`,
+          })),
         );
-
         for (const segment of taggedSegments) {
           const vector = buildVectorFromSegment(segment, checks);
           vector.id = segment[0]?.id ?? null;
           vector.segmentId = segment[0]?.segmentId ?? null;
           patternVectors.push(vector);
         }
-
         results.push(...taggedSegments);
       }
       const currentVector = buildVectorForCurrentSegment(
         currentResults,
-        checks
+        checks,
       );
       patternData = results;
       const finalScore = await calculateRankAuto(patternVectors, currentVector);
       const idToData = Object.fromEntries(
-        patternData.map((d) => [d[0].segmentId, d])
+        patternData.map((d) => [d[0].segmentId, d]),
       );
       const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
       searchCount = fullData.length;
       patternDataLoad(fullData);
     } catch (error) {
-      isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
+      isSearch = 0;
       console.error("Search failed", error);
     }
   }
@@ -902,19 +1427,46 @@
     return sum;
   }
 
-  const weights = {
+  let isWeights = false;
+  function setWeight() {
+    isWeights = !isWeights;
+  }
+  let weights = writable({
     s: 1.5, // user 1, api 0
-    t: 0.01, // 1s
+    t: 0.2, // 1s
     p: 1, // 1% -> 0.01
     tr: 2.5, // up 1, down -1
     sem: 2, // 1% -> 0.01
-  };
+  });
+  let initialWeights = get(weights);
+
+  $: if (xScaleBarChartFactor || xScaleLineChartFactor) {
+    initialWeights.p = Math.round((yScaleFactor + Number.EPSILON) * 100) / 100;
+    initialWeights.sem =
+      Math.round((xScaleBarChartFactor + Number.EPSILON) * 100) / 100;
+    initialWeights.t =
+      Math.round((xScaleLineChartFactor + Number.EPSILON) * 1e2) / 1e2;
+  }
+
+  $: if (zoomTransforms && $clickSession?.sessionId && initialWeights) {
+    const scale = zoomTransforms[$clickSession.sessionId]?.k ?? 1;
+
+    weights.update((w) => {
+      const updated = {
+        ...w,
+        t: Math.round((initialWeights.t * scale + Number.EPSILON) * 1e2) / 1e2,
+        p: Math.round((initialWeights.p * scale + Number.EPSILON) * 100) / 100,
+        sem: initialWeights.sem,
+      };
+      return updated;
+    });
+  }
 
   export async function calculateRankAuto(
     patternVectors,
     currentVector,
     threadCount = 4,
-    threshold = 100
+    threshold = 100,
   ) {
     if (patternVectors.length <= threshold) {
       return calculateRank(patternVectors, currentVector);
@@ -925,11 +1477,12 @@
 
   function calculateRank(patternVectors, currentVector) {
     let finalScore = [];
+    const weightValues = get(weights);
     for (const item of patternVectors) {
       let score = 0;
       for (const key in item) {
         if (key != "id" && key != "segmentId") {
-          let weight = weights[key] ?? 1;
+          let weight = weightValues[key] ?? 1;
           let arr = item[key];
           score += weight * l2(arr, currentVector[key]);
         }
@@ -943,10 +1496,11 @@
   async function calculateRankWorkers(
     patternVectors,
     currentVector,
-    threadCount = 4
+    threadCount = 4,
   ) {
     const chunkSize = Math.ceil(patternVectors.length / threadCount);
     let completed = 0;
+    const weightValues = get(weights);
     const allResults = [];
 
     return new Promise((resolve, reject) => {
@@ -957,7 +1511,11 @@
           continue;
         }
         const worker = new RankWorker();
-        worker.postMessage({ patternVectors: chunk, currentVector, weights });
+        worker.postMessage({
+          patternVectors: chunk,
+          currentVector,
+          weights: weightValues,
+        });
         worker.onmessage = (e) => {
           allResults.push(...e.data);
           completed++;
@@ -974,10 +1532,182 @@
     });
   }
 
+  let fetchProgress = 0;
+
+  function computeHighlightRangesFromSegments(segments) {
+    if (!Array.isArray(segments) || segments.length === 0) {
+      return { time: null, progress: null, windows: [] };
+    }
+
+    const toMinutes = (secondsValue, minutesValue, fallbackValue) => {
+      if (Number.isFinite(secondsValue)) {
+        return secondsValue / 60;
+      }
+      if (Number.isFinite(minutesValue)) {
+        return minutesValue;
+      }
+      if (Number.isFinite(fallbackValue)) {
+        return fallbackValue;
+      }
+      return null;
+    };
+
+    const toPercentage = (primaryValue, fallbackValue) => {
+      if (Number.isFinite(primaryValue)) {
+        const base =
+          Math.abs(primaryValue) <= 1.0001 ? primaryValue * 100 : primaryValue;
+        return base;
+      }
+      if (Number.isFinite(fallbackValue)) {
+        const base =
+          Math.abs(fallbackValue) <= 1.0001
+            ? fallbackValue * 100
+            : fallbackValue;
+        return base;
+      }
+      return null;
+    };
+
+    const allTimes = [];
+    const allProgresses = [];
+
+    segments.forEach((item) => {
+      const startTimeSeconds = Number(item.start_time);
+      const endTimeSeconds = Number(item.end_time);
+      const startTimeMinutes = Number(item.startTime ?? item.startTimeMinutes);
+      const endTimeMinutes = Number(item.endTime ?? item.endTimeMinutes);
+      const singleTime = Number(item.time);
+
+      const startTime = toMinutes(
+        startTimeSeconds,
+        startTimeMinutes,
+        singleTime,
+      );
+      const endTime = toMinutes(endTimeSeconds, endTimeMinutes, singleTime);
+
+      if (startTime !== null) {
+        allTimes.push(startTime);
+      }
+      if (endTime !== null) {
+        allTimes.push(endTime);
+      }
+
+      const startProgress = toPercentage(
+        Number(item.start_progress ?? item.startProgress ?? item.progressStart),
+        Number(item.percentage),
+      );
+      const endProgress = toPercentage(
+        Number(item.end_progress ?? item.endProgress ?? item.progressEnd),
+        Number(item.percentage),
+      );
+
+      if (startProgress !== null) {
+        allProgresses.push(startProgress);
+      }
+      if (endProgress !== null) {
+        allProgresses.push(endProgress);
+      }
+    });
+
+    let timeRange = null;
+    if (allTimes.length) {
+      const minTime = Math.min(...allTimes);
+      const maxTime = Math.max(...allTimes);
+      if (Number.isFinite(minTime) && Number.isFinite(maxTime)) {
+        timeRange = {
+          min: Math.min(minTime, maxTime),
+          max: Math.max(minTime, maxTime),
+        };
+      }
+    }
+
+    let progressRange = null;
+    if (allProgresses.length) {
+      const rawMin = Math.min(...allProgresses);
+      const rawMax = Math.max(...allProgresses);
+      if (Number.isFinite(rawMin) && Number.isFinite(rawMax)) {
+        const clampedMin = Math.min(Math.max(rawMin, 0), 100);
+        const clampedMax = Math.min(Math.max(rawMax, clampedMin), 100);
+        progressRange = {
+          min: clampedMin,
+          max: clampedMax,
+        };
+      }
+    }
+
+    const windows =
+      timeRange || progressRange
+        ? [
+            {
+              time: timeRange,
+              progress: progressRange,
+            },
+          ]
+        : [];
+
+    const mode =
+      timeRange && progressRange
+        ? "both"
+        : timeRange
+          ? "time"
+          : progressRange
+            ? "progress"
+            : null;
+
+    const selectionContext =
+      mode === "time"
+        ? {
+            selectionSource: "lineChart_x",
+            timeMin: timeRange?.min ?? null,
+            timeMax: timeRange?.max ?? null,
+            progressMin: progressRange?.min ?? null,
+            progressMax: progressRange?.max ?? null,
+          }
+        : mode === "progress"
+          ? {
+              selectionSource: "lineChart_y",
+              timeMin: timeRange?.min ?? null,
+              timeMax: timeRange?.max ?? null,
+              progressMin: progressRange?.min ?? null,
+              progressMax: progressRange?.max ?? null,
+            }
+          : mode === "both"
+            ? {
+                selectionSource: "lineChart_y",
+                timeMin: timeRange?.min ?? null,
+                timeMax: timeRange?.max ?? null,
+                progressMin: progressRange?.min ?? null,
+                progressMax: progressRange?.max ?? null,
+              }
+            : {
+                selectionSource: null,
+                timeMin: timeRange?.min ?? null,
+                timeMax: timeRange?.max ?? null,
+                progressMin: progressRange?.min ?? null,
+                progressMax: progressRange?.max ?? null,
+              };
+
+    return {
+      time: timeRange,
+      progress: progressRange,
+      windows,
+      mode,
+      selectionContext,
+    };
+  }
+
   async function patternDataLoad(results) {
     const ids = results.map((group) => group[0]?.id).filter(Boolean);
-    const fetchPromises = ids.map((id) => fetchDataSummary(id));
-    await Promise.all(fetchPromises);
+    const BATCH_SIZE = 100;
+    for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+      // console.log("processing", i, "out of", ids.length);
+      fetchProgress =
+        Math.round((i / ids.length) * 100) > 100
+          ? 100
+          : Math.round((i / ids.length) * 100);
+      const chunk = ids.slice(i, i + BATCH_SIZE);
+      await Promise.allSettled(chunk.map((id) => fetchDataSummary(id)));
+    }
 
     const sessionDataMap = get(storeSessionSummaryData);
     patternDataList.set(
@@ -999,101 +1729,501 @@
               return newItem;
             });
           }
+          const highlightRanges = computeHighlightRangesFromSegments(group);
+          const fallbackMode = resolveHighlightModeFromSource(
+            searchDetail?.selectionSource ?? null,
+          );
+          const highlightMode = fallbackMode ?? highlightRanges.mode ?? null;
+          const selectionContext = highlightRanges.selectionContext ?? {
+            selectionSource:
+              highlightMode === "time"
+                ? "lineChart_x"
+                : highlightMode === "progress"
+                  ? "lineChart_y"
+                  : null,
+            timeMin: highlightRanges.time?.min ?? null,
+            timeMax: highlightRanges.time?.max ?? null,
+            progressMin: highlightRanges.progress?.min ?? null,
+            progressMax: highlightRanges.progress?.max ?? null,
+          };
           return {
             ...newSessionData,
+            chartData: Array.isArray(newSessionData.chartData)
+              ? newSessionData.chartData
+              : [],
             segments: group,
             segmentId: group[0]?.segmentId,
+            highlightRanges: {
+              ...highlightRanges,
+              mode: highlightMode,
+              selectionContext,
+            },
           };
         })
-        .filter(Boolean)
+        .filter(Boolean),
     );
     isSearch = 2; // reset search state; 0: not searching, 1: searching, 2: search done
+    fetchProgress = 0;
   }
 
   function closePatternSearch() {
     showPatternSearch = false;
     selectionMode = false;
+  }
 
-    // Object.keys(selectedPatterns).forEach((sessionId) => {
-    //   const chartRef = chartRefs[sessionId + "-barChart"];
-    //   if (chartRef && chartRef.clearSelection) {
-    //     chartRef.clearSelection();
-    //   }
-    // });
+  let selectionSrc = null;
 
-    // selectedPatterns = {};
-    // patternData = [];
-    // patternDataList.set([]);
-    // currentResults = {};
+  function resolveHighlightModeFromSource(source) {
+    if (source === "lineChart_x") return "time";
+    if (source === "lineChart_y" || source === "barChart_y") return "progress";
+    return null;
   }
 
   function handleSelectionChanged(event) {
     showResultCount.set(5);
-    if (sharedSelection && sharedSelection.selectionSource === "lineChart_x") {
-      isProgressChecked = false;
-      isTimeChecked = true;
-    }
-    else if (sharedSelection && sharedSelection.selectionSource === "lineChart_y" || sharedSelection.selectionSource === "barChart_y") {
-      isProgressChecked = true;
-      isTimeChecked = false;
-    }
-    else {
-      isProgressChecked = false;
-      isTimeChecked = false;
+
+    if (sharedSelection) {
+      selectionSrc = sharedSelection.selectionSource;
     }
 
-    isSourceChecked = true;
-    isSemanticChecked = true;
-    isValueRangeChecked = true;
-    isValueTrendChecked = true;
-    isExactSearchSource = true;
-    isExactSearchTrend = true;
+    if (sharedSelection && sharedSelection.selectionSource === "lineChart_x") {
+      // console.log("Setting lineChart_x options");
+      isProgressChecked = true;
+      isTimeChecked = true;
+      isSourceChecked = false;
+      isSemanticChecked = false;
+      isValueRangeChecked = false;
+      isValueTrendChecked = false;
+      isExactSearchTime = true;
+      isExactSearchProgress = true;
+      isExactSearchSource = false;
+      isExactSearchTrend = false;
+    } else if (
+      sharedSelection &&
+      sharedSelection.selectionSource === "lineChart_y"
+    ) {
+      // console.log("Setting lineChart_y options");
+      isProgressChecked = true;
+      isTimeChecked = true;
+      isSourceChecked = true;
+      isSemanticChecked = true;
+      isValueRangeChecked = true;
+      isValueTrendChecked = true;
+      isExactSearchProgress = true;
+      isExactSearchTime = true;
+      isExactSearchSource = true;
+      isExactSearchTrend = true;
+    } else if (
+      sharedSelection &&
+      sharedSelection.selectionSource === "barChart_y"
+    ) {
+      // console.log("Setting barChart_y options");
+      isProgressChecked = true;
+      isTimeChecked = false;
+      isSourceChecked = true;
+      isSemanticChecked = true;
+      isValueRangeChecked = true;
+      isValueTrendChecked = true;
+      isExactSearchProgress = true;
+      isExactSearchSource = true;
+      isExactSearchTrend = true;
+    } else {
+      // console.log("Setting default options");
+      isProgressChecked = false;
+      isTimeChecked = false;
+      isSourceChecked = true;
+      isExactSearchSource = true;
+      isSemanticChecked = true;
+      isValueRangeChecked = true;
+      isValueTrendChecked = true;
+      isExactSearchTrend = true;
+    }
+
     semanticTrend = [];
     selectedPatterns = {};
     patternData = [];
     patternDataList.set([]);
     currentResults = {};
-    const { sessionId, range, dataRange, data, wholeData, sources } =
-      event.detail;
-    writingProgressRangeSlider = [
-      dataRange.progressRange.min,
-      dataRange.progressRange.max,
-    ];
-    timeRangeSlider = [dataRange.timeRange.min, dataRange.timeRange.max];
-    const progressDiffs = data.map(d => (d.end_progress - d.start_progress) * 100);
-    writingProgressRange = [
-      Math.min(...progressDiffs),
-      Math.max(...progressDiffs)
-    ];
-    const timeDiffs = data.map(d => (d.end_time - d.start_time) / 60);
-    timeRange = [
-      Math.min(...timeDiffs),
-      Math.max(...timeDiffs)
-    ];
-    sourceRange = sources;
-    semanticRange = [dataRange.scRange.min, dataRange.scRange.max];
-    semanticData = dataRange.sc.sc;
-    semanticTrend = getTrendPattern(semanticData);
-    currentResults = data;
-    lastSession = $clickSession;
-
-    selectedPatterns[sessionId] = {
+    const {
+      sessionId: rawSessionId,
       range,
       dataRange,
       data,
       wholeData,
       sources,
-      scRange: `${range.sc.min.toFixed(1)} - ${range.sc.max.toFixed(1)}%`,
-      progressRange: `${range.progress.min.toFixed(1)} - ${range.progress.max.toFixed(1)}%`,
-      count: data.length,
+    } = event.detail;
+
+    const resolvedSessionId =
+      rawSessionId ??
+      sharedSelection?.sessionId ??
+      $clickSession?.sessionId ??
+      lastSession?.sessionId;
+
+    if (!resolvedSessionId) {
+      return;
+    }
+
+    const sessionStore = get(storeSessionData);
+    const sessionSummaryStore = get(storeSessionSummaryData);
+    const sessionRecord =
+      sessionStore.get(resolvedSessionId) ??
+      sessionSummaryStore.get(resolvedSessionId) ??
+      {};
+
+    const similaritySeries = Array.isArray(sessionRecord.totalSimilarityData)
+      ? sessionRecord.totalSimilarityData
+      : Array.isArray(sessionRecord.similarityData)
+        ? sessionRecord.similarityData
+        : [];
+
+    const chartSeries =
+      Array.isArray(wholeData) && wholeData.length
+        ? wholeData
+        : Array.isArray(sessionRecord.chartData)
+          ? sessionRecord.chartData
+          : [];
+
+    const selectionSource =
+      sharedSelection?.selectionSource ??
+      selectionSrc ??
+      event.detail.selectionSource ??
+      null;
+
+    const baseRange = range
+      ? {
+          sc: {
+            min: range?.sc?.min ?? 0,
+            max: range?.sc?.max ?? 0,
+          },
+          progress: {
+            min: range?.progress?.min ?? 0,
+            max: range?.progress?.max ?? 0,
+          },
+        }
+      : {
+          sc: { min: 0, max: 0 },
+          progress: { min: 0, max: 0 },
+        };
+
+    let effectiveRange = baseRange;
+
+    const baseDataRange = dataRange
+      ? {
+          scRange: {
+            min: dataRange?.scRange?.min ?? 0,
+            max: dataRange?.scRange?.max ?? 0,
+          },
+          progressRange: {
+            min: dataRange?.progressRange?.min ?? 0,
+            max: dataRange?.progressRange?.max ?? 0,
+          },
+          timeRange: {
+            min: dataRange?.timeRange?.min ?? 0,
+            max: dataRange?.timeRange?.max ?? 0,
+          },
+          sc: { sc: [...(dataRange?.sc?.sc ?? [])] },
+        }
+      : {
+          scRange: { min: 0, max: 0 },
+          progressRange: { min: 0, max: 0 },
+          timeRange: { min: 0, max: 0 },
+          sc: { sc: [] },
+        };
+
+    let effectiveDataRange = baseDataRange;
+
+    let effectiveData =
+      data && data.length ? data.map((item) => ({ ...item })) : [];
+
+    let effectiveSources = sources && sources.length ? [...sources] : [];
+
+    let scValues = [...effectiveDataRange.sc.sc];
+
+    if (!effectiveData.length && similaritySeries.length) {
+      effectiveData = similaritySeries.map((item) => ({ ...item }));
+      scValues = effectiveData
+        .map((point) => Number(point?.residual_vector_norm ?? 0))
+        .filter((value) => Number.isFinite(value));
+    }
+
+    if (selectionSource === "lineChart_x" && similaritySeries.length) {
+      const timeMinRaw =
+        sharedSelection?.timeMin ?? effectiveDataRange.timeRange.min ?? 0;
+      const timeMaxRaw =
+        sharedSelection?.timeMax ??
+        effectiveDataRange.timeRange.max ??
+        timeMinRaw;
+      const timeMin = Math.min(timeMinRaw, timeMaxRaw);
+      const timeMax = Math.max(timeMinRaw, timeMaxRaw);
+
+      const filteredSimilarity = similaritySeries.filter((segment) => {
+        const startSeconds = Number(
+          segment?.start_time ?? segment?.startTime ?? 0,
+        );
+        const endSeconds = Number(
+          segment?.end_time ??
+            segment?.endTime ??
+            segment?.last_event_time ??
+            segment?.start_time ??
+            startSeconds,
+        );
+        const startMinutes = startSeconds / 60;
+        const endMinutes = endSeconds / 60;
+        const segStart = Math.min(startMinutes, endMinutes);
+        const segEnd = Math.max(startMinutes, endMinutes);
+        return segEnd >= timeMin && segStart <= timeMax;
+      });
+
+      if (filteredSimilarity.length) {
+        effectiveData = filteredSimilarity.map((segment) => ({ ...segment }));
+
+        scValues = filteredSimilarity
+          .map((segment) => Number(segment?.residual_vector_norm ?? 0))
+          .filter((value) => Number.isFinite(value));
+
+        if (scValues.length) {
+          effectiveRange = {
+            ...effectiveRange,
+            sc: {
+              min: Math.min(...scValues),
+              max: Math.max(...scValues),
+            },
+          };
+        } else {
+          effectiveRange = {
+            ...effectiveRange,
+            sc: { min: 0, max: 0 },
+          };
+        }
+
+        const progressValues = filteredSimilarity
+          .flatMap((segment) => [
+            Number(segment?.start_progress ?? 0) * 100,
+            Number(segment?.end_progress ?? 0) * 100,
+          ])
+          .filter((value) => Number.isFinite(value));
+
+        if (progressValues.length) {
+          effectiveRange = {
+            ...effectiveRange,
+            progress: {
+              min: Math.min(...progressValues),
+              max: Math.max(...progressValues),
+            },
+          };
+        }
+
+        effectiveSources = filteredSimilarity.map(
+          (segment) => segment?.source ?? "user",
+        );
+
+        effectiveDataRange = {
+          ...effectiveDataRange,
+          scRange: { ...effectiveRange.sc },
+          progressRange: { ...effectiveRange.progress },
+          timeRange: { min: timeMin, max: timeMax },
+          sc: { sc: scValues },
+        };
+      } else {
+        effectiveDataRange = {
+          ...effectiveDataRange,
+          timeRange: { min: timeMin, max: timeMax },
+        };
+      }
+    } else {
+      if (!scValues.length) {
+        scValues = effectiveData
+          .map((point) => Number(point?.residual_vector_norm ?? 0))
+          .filter((value) => Number.isFinite(value));
+      }
+      if (scValues.length) {
+        effectiveRange = {
+          ...effectiveRange,
+          sc: {
+            min: Math.min(...scValues),
+            max: Math.max(...scValues),
+          },
+        };
+        effectiveDataRange.scRange = { ...effectiveRange.sc };
+        effectiveDataRange.sc = { sc: scValues };
+      }
+    }
+
+    if (!effectiveSources.length) {
+      effectiveSources = effectiveData.map((point) => point?.source ?? "user");
+    }
+
+    writingProgressRange = [
+      effectiveDataRange.progressRange.min ?? 0,
+      effectiveDataRange.progressRange.max ?? 0,
+    ];
+
+    // Use time range in dataRange, no different bewteen Time and Progress mode
+    timeRange = [
+      effectiveDataRange.timeRange.min ?? 0,
+      effectiveDataRange.timeRange.max ?? 0,
+    ];
+    sourceRange = effectiveSources;
+    semanticRange = [
+      effectiveDataRange.scRange.min ?? 0,
+      effectiveDataRange.scRange.max ?? 0,
+    ];
+    semanticData = scValues;
+    semanticTrend = getTrendPattern(semanticData);
+    currentResults = effectiveData;
+    lastSession = $clickSession ?? sessionRecord;
+
+    let highlightTimeRange = null;
+    if (selectionSource === "lineChart_x") {
+      highlightTimeRange = { min: timeRange[0], max: timeRange[1] };
+    } else if (
+      sharedSelection &&
+      sharedSelection.timeMin !== undefined &&
+      sharedSelection.timeMax !== undefined
+    ) {
+      highlightTimeRange = {
+        min: Math.min(sharedSelection.timeMin, sharedSelection.timeMax),
+        max: Math.max(sharedSelection.timeMin, sharedSelection.timeMax),
+      };
+    } else if (
+      effectiveRange?.progress &&
+      Number.isFinite(effectiveRange.progress.min) &&
+      Number.isFinite(effectiveRange.progress.max) &&
+      Array.isArray(chartSeries) &&
+      chartSeries.length > 0
+    ) {
+      const derivedRange = deriveTimeRangeFromProgress(
+        effectiveRange.progress,
+        chartSeries,
+      );
+
+      if (
+        derivedRange &&
+        derivedRange.min !== undefined &&
+        derivedRange.max !== undefined
+      ) {
+        highlightTimeRange = derivedRange;
+      }
+    }
+
+    const selectionHighlightWindows = [];
+    const selectionHighlightMode =
+      resolveHighlightModeFromSource(selectionSource);
+    const highlightInfo = computeHighlightRangesFromSegments(effectiveData);
+    const highlightMode = selectionHighlightMode ?? highlightInfo.mode ?? null;
+
+    const selectionContext = {
+      selectionSource,
+      timeMin: null,
+      timeMax: null,
+      progressMin: Number.isFinite(effectiveRange.progress.min)
+        ? effectiveRange.progress.min
+        : null,
+      progressMax: Number.isFinite(effectiveRange.progress.max)
+        ? effectiveRange.progress.max
+        : null,
     };
+
+    if (
+      (highlightMode === "progress" || highlightMode === "both") &&
+      Number.isFinite(effectiveRange.progress.min) &&
+      Number.isFinite(effectiveRange.progress.max)
+    ) {
+      selectionHighlightWindows.push({
+        progress: {
+          min: effectiveRange.progress.min,
+          max: effectiveRange.progress.max,
+        },
+      });
+    }
+
+    const resolvedSelectedTimeRangeCandidate =
+      highlightTimeRange ??
+      (highlightMode === "time" || highlightMode === "both"
+        ? {
+            min: timeRange[0],
+            max: timeRange[1],
+          }
+        : null);
+
+    if (
+      (highlightMode === "time" || highlightMode === "both") &&
+      resolvedSelectedTimeRangeCandidate &&
+      Number.isFinite(resolvedSelectedTimeRangeCandidate.min) &&
+      Number.isFinite(resolvedSelectedTimeRangeCandidate.max)
+    ) {
+      selectionContext.timeMin = resolvedSelectedTimeRangeCandidate.min;
+      selectionContext.timeMax = resolvedSelectedTimeRangeCandidate.max;
+      selectionHighlightWindows.push({
+        time: {
+          min: resolvedSelectedTimeRangeCandidate.min,
+          max: resolvedSelectedTimeRangeCandidate.max,
+        },
+      });
+    }
+
+    const resolvedSelectedTimeRange =
+      highlightTimeRange ?? highlightInfo.time ?? null;
+
+    const resolvedHighlightWindows =
+      selectionHighlightWindows.length > 0
+        ? selectionHighlightWindows
+        : (highlightInfo.windows ?? []);
+    const resolvedSelectionContext =
+      selectionContext.timeMin !== null ||
+      selectionContext.timeMax !== null ||
+      selectionContext.progressMin !== null ||
+      selectionContext.progressMax !== null
+        ? selectionContext
+        : (highlightInfo.selectionContext ?? {
+            selectionSource,
+            timeMin: highlightInfo.time?.min ?? null,
+            timeMax: highlightInfo.time?.max ?? null,
+            progressMin: highlightInfo.progress?.min ?? null,
+            progressMax: highlightInfo.progress?.max ?? null,
+          });
+
+    const updatedPattern = {
+      range: effectiveRange,
+      dataRange: effectiveDataRange,
+      data: effectiveData,
+      wholeData: chartSeries,
+      sources: effectiveSources,
+      scRange: `${effectiveRange.sc.min.toFixed(1)} - ${effectiveRange.sc.max.toFixed(1)}%`,
+      progressRange: `${effectiveRange.progress.min.toFixed(1)} - ${effectiveRange.progress.max.toFixed(1)}%`,
+      count: effectiveData.length,
+      // Save selected time range, used for highlight in time mode
+      selectedTimeRange: resolvedSelectedTimeRange,
+      highlightWindows: resolvedHighlightWindows,
+      highlightMode,
+      selectionSource,
+      selectionContext: resolvedSelectionContext,
+    };
+
+    selectedPatterns = {
+      ...selectedPatterns,
+      [resolvedSessionId]: updatedPattern,
+    };
+
+    // console.log("-------------------------------");
+    // console.log("Debug Selection Changed:");
+    // console.log("event selection dataRange_progressRange", event.detail.dataRange.progressRange);
+    // console.log("shared selection", sharedSelection);
+    // console.log("updated pattern progressRange", updatedPattern.progressRange);
+    // console.log("updated pattern dataRange_progressRange", updatedPattern.dataRange.progressRange);
+    // console.log("-------------------------------");
   }
 
   function handleSelectionCleared(event) {
-    const { sessionId } = event.detail;
+    const resolvedSessionId =
+      event.detail.sessionId ??
+      sharedSelection?.sessionId ??
+      $clickSession?.sessionId ??
+      lastSession?.sessionId;
 
-    if (selectedPatterns[sessionId]) {
-      delete selectedPatterns[sessionId];
+    if (resolvedSessionId && selectedPatterns[resolvedSessionId]) {
+      const { [resolvedSessionId]: _, ...rest } = selectedPatterns;
+      selectedPatterns = rest;
     }
   }
 
@@ -1102,137 +2232,39 @@
     clickSession.set([]);
   }
 
-  const fetchLengthData = async () => {
-    try {
-      const response = await fetch(`${base}/chi2022-coauthor-v1.0/length.json`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
+  function change2main() {
+    showMulti = false;
+    clickSession.set([]);
+  }
 
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
+  function backToLanding() {
+    selectedCategoryFilter = null;
+    filteredByCategory = [];
 
-  const fetchOverallSemScoreSummaryData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/overall_sem_score_summary.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
-
-  const fetchOverallSemScoreData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/overall_sem_score.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
-
-  const fetchLengthSummaryData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/length_summary.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
-
-  const fetchPercentageSummaryData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/percentage_summary.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
-
-  const fetchPercentageData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/percentage.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
-
-  const fetchScoreSummaryData = async () => {
-    try {
-      const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/score_summary.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch summary data: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error when reading the data file:", error);
-      return null;
-    }
-  };
+    const originalFilteredData = tableData.filter((session) =>
+      $selectedTags.includes(session.prompt_code),
+    );
+    const originalUpdatedData = originalFilteredData.map((row) => ({
+      ...row,
+      selected: true,
+    }));
+    filterTableData.set(originalUpdatedData);
+  }
 
   async function fetchInitData(sessionId, isDelete) {
     if (isDelete) {
       initData.update((data) =>
-        data.filter((item) => item.sessionId !== sessionId)
+        data.filter((item) => item.sessionId !== sessionId),
       );
       return;
     }
     const similarityData = await fetchSimilarityData(sessionId);
-    const llmScore = await fetchLLMScore(sessionId);
+    const llmScore = await fetchLLMScore(sessionId, CSVData);
 
     if (similarityData) {
       initData.update((sessions) => {
         const existingIndex = sessions.findIndex(
-          (s) => s.sessionId === sessionId
+          (s) => s.sessionId === sessionId,
         );
 
         if (existingIndex !== -1) {
@@ -1255,9 +2287,32 @@
 
   const fetchSessions = async () => {
     try {
-      const response = await fetch(`${base}/fine.json`);
-      const data = await response.json();
-      sessions = data || [];
+      const datasetInfo = datasets.find((d) => d.name === selectedDataset);
+      let text;
+      if (datasetInfo.source === "repo") {
+        const response = await fetch(
+          `${base}/dataset/${selectedDataset}/session.csv`,
+        );
+        if (!response.ok) throw new Error("Failed to fetch CSV data");
+        text = await response.text();
+      }
+      if (datasetInfo.source === "upload") {
+        const zipBlob = await getUploadedZipByName(selectedDataset);
+        if (!zipBlob) throw new Error("Uploaded zip not found");
+        const zip = await JSZip.loadAsync(zipBlob);
+        const sessionFiles = zip.file(
+          new RegExp(`^${selectedDataset}/session\\.csv$`, "i"),
+        );
+        if (!sessionFiles || sessionFiles.length === 0)
+          throw new Error("session.csv not found in zip");
+        const sessionFile = sessionFiles[0];
+        text = await sessionFile.async("string");
+      }
+      const parsedData = Papa.parse(text, { header: true }).data;
+      sessions = parsedData.map((session) => ({
+        session_id: session.session_id,
+        prompt_code: session.prompt_code,
+      }));
 
       if (firstSession) {
         tableData = sessions.map((session) => {
@@ -1281,14 +2336,15 @@
           "mattdamon",
           "shapeshifter",
           "isolation",
+          "cat",
         ]);
 
         $filterTableData = tableData.filter((session) =>
-          $selectedTags.includes(session.prompt_code)
+          $selectedTags.includes(session.prompt_code),
         );
 
         filterOptions = Array.from(
-          new Set(tableData.map((row) => row.prompt_code))
+          new Set(tableData.map((row) => row.prompt_code)),
         );
       }
     } catch (error) {
@@ -1298,19 +2354,39 @@
 
   const fetchDataSummary = async (sessionFile) => {
     try {
-      const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/coauthor-json/${sessionFile}.jsonl`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch session data: ${response.status}`);
+      let data;
+      const datasetInfo = datasets.find((d) => d.name === selectedDataset);
+      if (datasetInfo.source === "repo") {
+        const response = await fetch(
+          `${base}/dataset/${selectedDataset}/json/${sessionFile}.json`,
+        );
+        if (!response.ok)
+          throw new Error(`Failed to fetch session data: ${response.status}`);
+        data = await response.json();
+      }
+      if (datasetInfo.source === "upload") {
+        const zipBlob = await getUploadedZipByName(selectedDataset);
+        if (!zipBlob) throw new Error("Uploaded zip not found");
+        const zip = await JSZip.loadAsync(zipBlob);
+        const filePathRegex = new RegExp(
+          `^${selectedDataset}/json/${sessionFile}\\.json$`,
+          "i",
+        );
+        const files = zip.file(filePathRegex);
+        if (!files || files.length === 0)
+          throw new Error(`${sessionFile}.json not found in zip`);
+        const file = files[0];
+        const text = await file.async("string");
+        data = JSON.parse(text);
       }
 
-      const data = await response.json();
-      const time0 = new Date(data.init_time);
-      const time100 = new Date(data.end_time);
+      const time0 = new Date(data.actions[0].event_time);
+      const time100 = new Date(
+        data.actions[data.actions.length - 1].event_time,
+      );
       const currentTime = (time100.getTime() - time0.getTime()) / (1000 * 60); // in minutes
-      const chartData = handleEventsSummary(data);
       const similarityData = await fetchSimilarityData(sessionFile);
+      const chartData = handleEventsSummary(data, similarityData);
       let updatedSession = {
         sessionId: sessionFile,
         time0,
@@ -1348,21 +2424,39 @@
       return;
     }
     try {
-      const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/coauthor-json/${sessionFile}.jsonl`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch session data: ${response.status}`);
+      const datasetInfo = datasets.find((d) => d.name === selectedDataset);
+      let data;
+      if (datasetInfo.source === "repo") {
+        const response = await fetch(
+          `${base}/dataset/${selectedDataset}/json/${sessionFile}.json`,
+        );
+        if (!response.ok)
+          throw new Error(`Failed to fetch session data: ${response.status}`);
+        data = await response.json();
       }
-      const data = await response.json();
+      if (datasetInfo.source === "upload") {
+        const zipBlob = await getUploadedZipByName(selectedDataset);
+        if (!zipBlob) throw new Error("Uploaded zip not found");
+        const zip = await JSZip.loadAsync(zipBlob);
+        const filePathRegex = new RegExp(
+          `^${selectedDataset}/json/${sessionFile}\\.json$`,
+          "i",
+        );
+        const files = zip.file(filePathRegex);
+        if (!files || files.length === 0)
+          throw new Error(`${sessionFile}.json not found in zip`);
+        const file = files[0];
+        const text = await file.async("string");
+        data = JSON.parse(text);
+      }
 
-      time0 = new Date(data.init_time);
-      time100 = new Date(data.end_time);
+      time0 = new Date(data.actions[0].event_time);
+      time100 = new Date(data.actions[data.actions.length - 1].event_time);
       time100 = (time100.getTime() - time0.getTime()) / (1000 * 60);
       currentTime = time100;
 
       const { chartData, textElements, paragraphColor, summaryData } =
-        handleEvents(data, sessionFile);
+        handleEvents(data);
       const similarityData = await fetchSimilarityData(sessionFile);
       let updatedSession = {
         sessionId: sessionFile,
@@ -1395,14 +2489,32 @@
 
   const fetchSimilarityData = async (sessionFile) => {
     try {
-      const response = await fetch(
-        `${base}/chi2022-coauthor-v1.0/similarity_results/${sessionFile}_similarity.json`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch session data: ${response.status}`);
+      const datasetInfo = datasets.find((d) => d.name === selectedDataset);
+      let data;
+      if (datasetInfo.source === "repo") {
+        const response = await fetch(
+          `${base}/dataset/${selectedDataset}/segment_results/${sessionFile}.json`,
+        );
+        if (!response.ok)
+          throw new Error(`Failed to fetch session data: ${response.status}`);
+        data = (await response.json()) || [];
+      }
+      if (datasetInfo.source === "upload") {
+        const zipBlob = await getUploadedZipByName(selectedDataset);
+        if (!zipBlob) throw new Error("Uploaded zip not found");
+        const zip = await JSZip.loadAsync(zipBlob);
+        const filePathRegex = new RegExp(
+          `^${selectedDataset}/segment_results/${sessionFile}\\.json$`,
+          "i",
+        );
+        const files = zip.file(filePathRegex);
+        if (!files || files.length === 0)
+          throw new Error(`${sessionFile}.json not found in zip`);
+        const file = files[0];
+        const text = await file.async("string");
+        data = JSON.parse(text) || [];
       }
 
-      const data = await response.json();
       return data;
     } catch (error) {
       console.error("Error when reading the data file:", error);
@@ -1410,60 +2522,310 @@
     }
   };
 
-  let scoreSummary = [];
-  let percentageData = [];
-  let percentageSummaryData = [];
-  let lengthData = [];
-  let lengthSummaryData = [];
-  let overallSemScoreData = [];
-  let overallSemScoreSummaryData = [];
-  let isLoadOverallData = false
+  let db;
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open("InkPulseDB", 1);
+
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains("uploadedZips")) {
+          db.createObjectStore("uploadedZips", {
+            keyPath: "id",
+            autoIncrement: true,
+          });
+        }
+      };
+
+      request.onsuccess = () => {
+        db = request.result;
+        resolve(db);
+      };
+
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  function addZip(file) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction("uploadedZips", "readwrite");
+      const store = tx.objectStore("uploadedZips");
+      const request = store.add({
+        name: file.name,
+        blob: file,
+        date: new Date(),
+      });
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  function getAllZips() {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction("uploadedZips", "readonly");
+      const store = tx.objectStore("uploadedZips");
+      const request = store.getAll();
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  let isLoadOverallData = false;
+  let CSVData = [];
+  let featureData = [];
   onMount(async () => {
     document.title = "Ink-Pulse";
-    scoreSummary = await fetchScoreSummaryData();
-    percentageData = await fetchPercentageData();
-    percentageSummaryData = await fetchPercentageSummaryData();
-    lengthData = await fetchLengthData();
-    lengthSummaryData = await fetchLengthSummaryData();
-    overallSemScoreData = await fetchOverallSemScoreData();
-    overallSemScoreSummaryData = await fetchOverallSemScoreSummaryData();
+    await openDB();
+    const res = await fetch(`${base}/dataset_name.json`);
+    const staticDatasets = await res.json();
+    datasets = staticDatasets.map((name) => ({ name, source: "repo" }));
+    const uploaded = await getAllZips();
+    datasets = [
+      ...datasets,
+      ...uploaded
+        .filter((u) => !datasets.find((d) => d.name === u.name))
+        .map((u) => ({
+          name: u.name.replace(/\.zip$/i, ""),
+          source: "upload",
+        })),
+    ];
+
+    const btn = document.getElementById("uploadBtn");
+    const uploadInput = document.getElementById("uploadZip");
+    if (!btn || !uploadInput) return;
+    btn.onclick = () => uploadInput.click();
+
+    uploadInput.addEventListener("change", async (e) => {
+      const input = e.target;
+      if (!(input instanceof HTMLInputElement)) return;
+      const file = input.files?.[0];
+      if (!file) return;
+
+      const datasetName = file.name.replace(/\.zip$/i, "");
+      if (!datasets.find((d) => d.name === datasetName)) {
+        await addZip(file);
+        const newDataset = { name: datasetName, source: "upload" };
+        datasets = [...datasets, newDataset];
+      }
+      input.value = "";
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    const datasetParam = params.get("dataset");
+    if (datasetParam && datasets.some((d) => d.name === datasetParam)) {
+      selectedDataset = datasetParam;
+    }
+    CSVData = (await fetchCSVData()).filter(
+      (item) => item.session_id && item.session_id.trim() !== "",
+    );
+    featureData = await fetchFeatureData(CSVData);
+
     if (isLoadOverallData == false) {
+      const prefix = selectedDataset.slice(0, 2);
       const itemToSave = {
-      id: `pattern_0`,
-      name: "Overall",
-      pattern: [],
-      metadata: {},
-      scoreSummary,
-      percentageSummaryData,
-      lengthSummaryData,
-      overallSemScoreData,
-      overallSemScoreSummaryData
-    };
-      searchPatternSet.update(current => {
-        if (!current.find(p => p.id === "pattern_0")) {
+        id: `pattern_0`,
+        name: `Others-${prefix}`,
+        dataset: selectedDataset,
+        pattern: [],
+        metadata: {},
+        featuredata: featureData,
+      };
+      searchPatternSet.update((current) => {
+        const index = current.findIndex(
+          (p) => p.id === "pattern_0" && p.dataset === selectedDataset,
+        );
+
+        if (index >= 0) {
+          const copy = [...current];
+          copy[index] = itemToSave;
+          return copy;
+        } else {
           return [...current, itemToSave];
         }
-        return current;
       });
       isLoadOverallData = true;
     }
-    await fetchSessions();
-    for (let i = 0; i < selectedSession.length; i++) {
-      const sessionId = selectedSession[i];
-      const similarityData = await fetchSimilarityData(sessionId);
-      const llmScore = await fetchLLMScore(sessionId);
 
-      initData.update((sessions) => {
-        const newSession = {
-          sessionId: sessionId,
-          similarityData: similarityData,
-          totalSimilarityData: similarityData,
-          llmScore: llmScore,
-        };
-        sessions.push(newSession);
-        return [...sessions];
-      });
+    await fetchSessions();
+
+    let useDB = false;
+    let segmentData = [];
+    try {
+      const isLocalBrowser =
+        browser &&
+        (window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1");
+      console.log("Is local browser?", isLocalBrowser);
+      if (isLocalBrowser) {
+        const segmentDB = await fetch(
+          `${base}/api/getSegment?dataset=${selectedDataset}`,
+        );
+        if (segmentDB.ok) {
+          const json = await segmentDB.json();
+          if (Array.isArray(json.segmentData) && json.segmentData.length > 0) {
+            segmentData = json.segmentData;
+            useDB = true;
+          }
+        }
+      } else {
+        const SQL = await initSqlJs({
+          locateFile: (file) => `${base}/sql-wasm/${file}`,
+        });
+
+        const res = await fetch(
+          `${base}/db/${selectedDataset}_segment_results.db`,
+        );
+        if (!res.ok) throw new Error("DB not found");
+        const buf = await res.arrayBuffer();
+        const db = new SQL.Database(new Uint8Array(buf));
+        const result = db.exec("SELECT id, content FROM data");
+        if (!result.length) throw new Error("DB empty");
+        const { columns, values } = result[0];
+        const idIdx = columns.indexOf("id");
+        const contentIdx = columns.indexOf("content");
+
+        segmentData = values.map((row) => {
+          const idRaw = row[idIdx];
+          const contentRaw = row[contentIdx];
+          return {
+            id: String(idRaw ?? "").replace(/\.json$/, ""),
+            content: JSON.parse(String(contentRaw ?? "")),
+          };
+        });
+        useDB = true;
+      }
+
+      console.log("Use DB:", useDB, "Segment data length:", segmentData.length);
+    } catch (e) {
+      console.log("No .db file or .db file is empty.", e);
     }
+
+    if (useDB) {
+      const scoreMap = new Map(
+        CSVData.map((row) => [row.session_id, row.judge_score]),
+      );
+      const initArray = segmentData.map((item) => {
+        const sessionId = item.id;
+        const content =
+          typeof item.content === "string"
+            ? JSON.parse(item.content)
+            : item.content;
+
+        return {
+          sessionId,
+          similarityData: content,
+          totalSimilarityData: content,
+          llmScore: scoreMap.get(sessionId) ?? null,
+        };
+      });
+
+      initData.set(initArray);
+      console.log("Use .db file to init data.");
+    } else {
+      for (let i = 0; i < selectedSession.length; i++) {
+        const sessionId = selectedSession[i];
+        const similarityData = await fetchSimilarityData(sessionId);
+        const llmScore = await fetchLLMScore(sessionId, CSVData);
+        initData.update((sessions) => {
+          const newSession = {
+            sessionId,
+            similarityData,
+            totalSimilarityData: similarityData,
+            llmScore,
+          };
+          return [...sessions, newSession];
+        });
+      }
+      console.log("Use .json file to init data.");
+    }
+
+async function debugData() {
+  try {
+    const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
+    const wasmBinary = await wasmResponse.arrayBuffer();
+    const SQL = await initSqlJs({ wasmBinary });
+    
+    const dbResponse = await fetch(`${base}/db/${selectedDataset}_segment_results.db`);
+    const dbBuffer = await dbResponse.arrayBuffer();
+    const db = new SQL.Database(new Uint8Array(dbBuffer));
+
+const stepStats = db.exec(`
+WITH RECURSIVE 
+      numbers(n) AS (
+        SELECT 0
+        UNION ALL
+        SELECT n + 1 FROM numbers 
+        WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
+      ),
+      idx AS (
+        SELECT 0 as i
+        UNION ALL
+        SELECT i + 1 FROM idx WHERE i < 1
+      )
+      SELECT 
+        d.rowid as original_rowid,
+        d.content as original_content,
+        n.n as window_start,
+        json_array(json_extract(d.content, '$[' || (n.n + 0) || ']'), json_extract(d.content, '$[' || (n.n + 1) || ']')) as window_content
+      FROM data d
+      JOIN numbers n 
+        ON n.n + 1 < json_array_length(d.content)
+      WHERE json_array_length(d.content) >= 2
+        AND json_extract(d.content, '$[' || (n.n + 0) || ']') IS NOT NULL AND json_extract(d.content, '$[' || (n.n + 1) || ']') IS NOT NULL
+        AND (((
+            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user' 
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
+                 ) - COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].start_progress') AS REAL),0
+                 ) ELSE 0 END)
+            FROM idx k
+            WHERE k.i BETWEEN 0 AND 1
+          )) > (((
+            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api' 
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
+                 ) - COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].start_progress') AS REAL),0
+                 ) ELSE 0 END)
+            FROM idx k
+            WHERE k.i BETWEEN 0 AND 1
+          )) * 2.5) AND ((
+            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api'
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].residual_vector_norm') AS REAL),0
+                 ) ELSE 0 END)
+            FROM idx k
+            WHERE k.i BETWEEN 0 AND 1
+          )) > (((
+            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user'
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].residual_vector_norm') AS REAL),0
+                 ) ELSE 0 END)
+            FROM idx k
+            WHERE k.i BETWEEN 0 AND 1
+          )) * 1.5) AND JSON_EXTRACT(window_content, '$[0].source') = 'api' AND JSON_EXTRACT(window_content, '$[1].source') = 'user')
+      ORDER BY original_rowid, window_start
+`)[0];
+
+const filteredWindows = stepStats.values.map(row => JSON.parse(row[3]));
+
+console.log("Num:", filteredWindows.length);
+console.log("Test:", filteredWindows
+  .sort(() => Math.random() - 0.5)
+  .slice(0, 5)
+);
+    
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+await debugData();
+
+
   });
 
   function handleChartZoom(event) {
@@ -1490,7 +2852,7 @@
     const minTranslateY = -chartHeight * (newK - 1);
     const clampedY = Math.max(
       minTranslateY,
-      Math.min(newTranslateY, maxTranslateY)
+      Math.min(newTranslateY, maxTranslateY),
     );
 
     zoomTransforms[sessionId] = d3.zoomIdentity
@@ -1510,10 +2872,10 @@
     let textLength = wholeText.length;
 
     let newParagraph = [...wholeText.matchAll(/\n/g)].map(
-      (match) => match.index
+      (match) => match.index,
     );
     let paragraphPercentages = newParagraph.map(
-      (pos) => (pos / textLength) * 100
+      (pos) => (pos / textLength) * 100,
     );
     let mergeParagraph = [0];
     for (let i = 0; i < paragraphPercentages.length; i++) {
@@ -1531,7 +2893,7 @@
         Math.abs(curr.percentage - percentage) <
         Math.abs(prev.percentage - percentage)
           ? curr
-          : prev
+          : prev,
       );
 
       return closest.time;
@@ -1544,139 +2906,209 @@
     return newParagraphTime;
   }
 
-  const handleEventsSummary = (data) => {
+  const handleEventsSummary = (data, similarityData) => {
     const chartData = [];
     let firstTime = null;
     let index = 0;
-    const totalTextLength = data.text[0].slice(0, -1).length;
-    let currentCharCount = data.init_text.join("").length;
+    const totalTextLength = data.text;
+    let currentCharCount = data.init_text.length;
 
-    data.info.forEach((event) => {
-      const {
-        name,
-        event_time,
-        eventSource,
-        text = "",
-        count = 0,
-        pos = 0,
-      } = event;
+    data.actions.forEach((event, idx) => {
+      const { name, event_time, eventSource, text = "", count = 0 } = event;
+
       const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
       const eventTime = new Date(event_time);
       if (!firstTime) firstTime = eventTime;
       const relativeTime = (eventTime.getTime() - firstTime.getTime()) / 60000;
 
+      let percentage;
       if (name === "text-insert") {
-        currentCharCount += text.length;
-      } else if (name === "text-delete") {
-        currentCharCount -= count;
-      }
-
-      const percentage = (currentCharCount / totalTextLength) * 100;
-
-      chartData.push({
-        time: relativeTime,
-        percentage,
-        eventSource,
-        color: textColor,
-        isSuggestionOpen: name === "suggestion-open",
-        index: index++,
-      });
-    });
-
-    return chartData;
-  };
-
-  const handleEvents = (data, _) => {
-    const initText = data.init_text.join("");
-    let currentText = initText;
-    let currentColor = [];
-    let chartData = [];
-    let paragraphColor = [];
-    let firstTime = null;
-    let indexOfAct = 0;
-    const wholeText = data.text[0].slice(0, -1);
-    const totalTextLength = wholeText.length;
-
-    let totalInsertions = 0;
-    let totalDeletions = 0;
-    let totalSuggestions = 0;
-    let totalInsertionTime = 0;
-    let totalDeletionTime = 0;
-    let totalSuggestionTime = 0;
-    let totalProcessedCharacters = totalTextLength;
-    let currentCharArray = initText.split("");
-
-    const initColor = "#FC8D62";
-    currentColor = new Array(currentCharArray.length).fill(initColor);
-
-    let combinedText = data.info.reduce(
-      (acc, event) => {
-        const {
-          name,
-          text = "",
-          eventSource,
-          event_time,
-          count = 0,
-          pos = 0,
-        } = event;
-        const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
-        const eventTime = new Date(event_time);
-
-        if (firstTime === null) {
-          firstTime = eventTime;
-          paragraphTime = [{ time: 0, pos: 0 }];
-        }
-
-        const relativeTime =
-          (eventTime.getTime() - firstTime.getTime()) / 60000;
-        let percentage;
-
-        if (name === "text-insert") {
-          const insertChars = [...text];
-          currentCharArray.splice(pos, 0, ...insertChars);
-          currentColor.splice(pos, 0, ...insertChars.map(() => textColor));
-          currentText = currentCharArray.join("");
-          insertChars.forEach((char, i) => {
-            acc.splice(pos + i, 0, { text: char, textColor });
+        const insertChars = [...text];
+        insertChars.forEach(() => {
+          currentCharCount++;
+          percentage = (currentCharCount / totalTextLength) * 100;
+          chartData.push({
+            time: relativeTime,
+            percentage,
+            eventSource,
+            color: textColor,
+            isSuggestionOpen: false,
+            isSuggestionAccept: false,
+            index: index++,
           });
-          totalInsertions++;
-          totalInsertionTime += relativeTime;
+        });
+      } else if (name === "text-delete") {
+        const deleteCount = text.length || count;
+        currentCharCount -= deleteCount;
+        percentage = (currentCharCount / totalTextLength) * 100;
+        chartData.push({
+          time: relativeTime,
+          percentage,
+          eventSource,
+          color: textColor,
+          isSuggestionOpen: false,
+          isSuggestionAccept: false,
+          index: index++,
+        });
+      } else {
+        percentage = (currentCharCount / totalTextLength) * 100;
+        let isSuggestionAccept = false;
+        if (name === "suggestion-open" && data.actions[idx + 1]) {
+          const nextEvent = data.actions[idx + 1];
+          if (
+            nextEvent.eventSource === "api" &&
+            nextEvent.name === "text-insert"
+          ) {
+            isSuggestionAccept = true;
+          }
         }
-
-        if (name === "text-delete") {
-          currentCharArray.splice(pos, count);
-          currentColor.splice(pos, count);
-          currentText = currentCharArray.join("");
-          acc.splice(pos, count);
-          totalDeletions++;
-          totalDeletionTime += relativeTime;
-        }
-
-        if (name === "suggestion-open") {
-          totalSuggestions++;
-          totalSuggestionTime += relativeTime;
-        }
-
-        percentage = (currentCharArray.length / totalTextLength) * 100;
 
         chartData.push({
           time: relativeTime,
           percentage,
           eventSource,
           color: textColor,
-          currentText,
-          currentColor: [...currentColor],
-          opacity: 1,
           isSuggestionOpen: name === "suggestion-open",
-          index: indexOfAct++,
+          isSuggestionAccept,
+          index: index++,
         });
+      }
+    });
+    return chartData;
+  };
 
-        return acc;
-      },
-      [...initText].map((ch) => ({ text: ch, textColor: "#FC8D62" }))
-    );
+  const handleEvents = (data) => {
+    const initText = data.init_text;
+    let currentCharArray = initText.split("");
+    let currentColor = new Array(currentCharArray.length).fill("#FC8D62");
+    let chartData = [];
+    let paragraphColor = [];
+    let firstTime = null;
+    let indexOfAct = 0;
+    const totalTextLength = data.text;
+    let totalInsertions = 0;
+    let totalDeletions = 0;
+    let totalSuggestions = 0;
+    let totalProcessedCharacters = totalTextLength;
+    const sortedEvents = [...data.actions].sort((a, b) => a.id - b.id);
 
-    paragraphTime = adjustTime(currentText, chartData);
+    let combinedText = [...initText].map((ch) => ({
+      text: ch,
+      textColor: "#FC8D62",
+    }));
+    sortedEvents.forEach((event, idx) => {
+      const {
+        name,
+        text = "",
+        eventSource,
+        event_time,
+        count = 0,
+        pos = 0,
+      } = event;
+      const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
+      const eventTime = new Date(event_time);
+
+      if (firstTime === null) {
+        firstTime = eventTime;
+        paragraphTime = [{ time: 0, pos: 0 }];
+      }
+
+      const relativeTime = (eventTime.getTime() - firstTime.getTime()) / 60000;
+
+      if (name === "text-insert") {
+        const insertChars = [...text];
+        const insertPos = Math.min(pos, currentCharArray.length);
+
+        // For API (AI-generated) text, add the entire chunk at once
+        if (eventSource === "api") {
+          // Add all characters to the arrays
+          insertChars.forEach((ch, i) => {
+            currentCharArray.splice(insertPos + i, 0, ch);
+            currentColor.splice(insertPos + i, 0, textColor);
+            combinedText.splice(insertPos + i, 0, { text: ch, textColor });
+          });
+
+          // Create only ONE chartData entry for the entire AI chunk
+          const percentage = (currentCharArray.length / totalTextLength) * 100;
+          chartData.push({
+            time: relativeTime,
+            percentage,
+            eventSource,
+            color: textColor,
+            currentText: currentCharArray.join(""),
+            currentColor: [...currentColor],
+            opacity: 1,
+            isSuggestionOpen: name === "suggestion-open",
+            isSuggestionAccept: false,
+            index: indexOfAct++,
+          });
+
+          totalInsertions += insertChars.length;
+        } else {
+          // For user input, add character by character (original behavior)
+          insertChars.forEach((ch, i) => {
+            currentCharArray.splice(insertPos + i, 0, ch);
+            currentColor.splice(insertPos + i, 0, textColor);
+            combinedText.splice(insertPos + i, 0, { text: ch, textColor });
+
+            const percentage =
+              (currentCharArray.length / totalTextLength) * 100;
+
+            chartData.push({
+              time: relativeTime,
+              percentage,
+              eventSource,
+              color: textColor,
+              currentText: currentCharArray.join(""),
+              currentColor: [...currentColor],
+              opacity: 1,
+              isSuggestionOpen: name === "suggestion-open",
+              isSuggestionAccept: false,
+              index: indexOfAct++,
+            });
+
+            totalInsertions++;
+          });
+        }
+      }
+
+      if (name === "text-delete") {
+        const deleteCount = text.length || count;
+        currentCharArray.splice(pos, deleteCount);
+        currentColor.splice(pos, deleteCount);
+        combinedText.splice(pos, deleteCount);
+        totalDeletions++;
+        totalProcessedCharacters -= deleteCount;
+      }
+
+      let isSuggestionAccept = false;
+      if (name === "suggestion-open" && sortedEvents[idx + 1]) {
+        const nextEvent = sortedEvents[idx + 1];
+        if (
+          nextEvent.eventSource === "api" &&
+          nextEvent.name === "text-insert"
+        ) {
+          isSuggestionAccept = true;
+        }
+      }
+
+      const percentage = (currentCharArray.length / totalTextLength) * 100;
+
+      chartData.push({
+        time: relativeTime,
+        percentage,
+        eventSource,
+        color: textColor,
+        currentText: currentCharArray.join(""),
+        currentColor: [...currentColor],
+        opacity: 1,
+        isSuggestionOpen: name === "suggestion-open",
+        isSuggestionAccept,
+        index: indexOfAct++,
+      });
+    });
+
+    paragraphTime = adjustTime(currentCharArray.join(""), chartData);
     for (let i = 0; i < paragraphTime.length - 1; i++) {
       const { time: startTime } = paragraphTime[i];
       const { time: endTime } = paragraphTime[i + 1];
@@ -1707,8 +3139,32 @@
       totalInsertions--;
     }
 
-    if (chartData.length) {
-      chartData[0].isSuggestionOpen = false;
+    totalSuggestions = chartData.filter((d) => d.isSuggestionOpen).length;
+
+    let i = 0; // code about making $text$ grey
+    while (i < combinedText.length) {
+      if (combinedText[i].text === "$") {
+        let start = i;
+        let end = -1;
+
+        for (let j = i + 1; j < combinedText.length; j++) {
+          if (combinedText[j].text === "$") {
+            end = j;
+            break;
+          }
+        }
+
+        if (end !== -1 && end > start) {
+          for (let k = start; k <= end; k++) {
+            combinedText[k].textColor = "#cccccc";
+          }
+          i = end + 1;
+        } else {
+          i++;
+        }
+      } else {
+        i++;
+      }
     }
 
     return {
@@ -1726,36 +3182,178 @@
 
   function handlePointSelected(e, sessionId) {
     const d = e.detail;
-    clickSession.update((currentSession) => {
-      if (currentSession.sessionId !== sessionId) return currentSession;
-      const textElements = d.currentText.split("").map((char, index) => ({
-        text: char,
-        textColor: d.currentColor?.[index] ?? "#000",
+    // clickSession.update((currentSession) => {
+    //   if (currentSession.sessionId !== sessionId) return currentSession;
+    //   const textElements = d.currentText.split("").map((char, index) => ({
+    //     text: char,
+    //     textColor: d.currentColor?.[index] ?? "#000",
+    //   }));
+    //   const chartData = currentSession.chartData.map((point) => ({
+    //     ...point,
+    //     opacity: point.index > d.index ? 0.01 : 1,
+    //   }));
+    //   const similarityData = currentSession.totalSimilarityData;
+    //   const endIndex = similarityData.findIndex(
+    //     (item) => d.percentage < item.end_progress * 100
+    //   );
+    //   const selectedData =
+    //     endIndex === -1 ? similarityData : similarityData.slice(0, endIndex);
+
+    //   return {
+    //     ...currentSession,
+    //     textElements,
+    //     currentTime: d.time,
+    //     chartData,
+    //     similarityData: selectedData,
+    //   };
+    // });
+    let idx = findIndexFromTime(get(clickSession)?.chartData, d.time);
+    applyPlaybackFrame(sessionId, idx);
+    if (isPlaying) schedulePlayback(sessionId, idx);
+  }
+
+  // Playback control functions
+  function clearPlaybackTimer() {
+    if (playbackTimer) {
+      clearTimeout(playbackTimer);
+      playbackTimer = null;
+    }
+  }
+
+  function findIndexFromTime(data, time) {
+    if (!data || !data.length) return 0;
+    const idx = data.findIndex((d) => d.time >= time - 1e-6);
+    return idx === -1 ? data.length - 1 : idx;
+  }
+
+  function applyPlaybackFrame(sessionId, index) {
+    clickSession.update((session) => {
+      if (!session || session.sessionId !== sessionId) return session;
+      const data = session.chartData || [];
+      const point = data[index];
+      if (!point) return session;
+      const textElements = (point.currentText || "")
+        .split("")
+        .map((char, i) => ({
+          text: char,
+          textColor: point.currentColor?.[i] ?? "#000",
+        }));
+      const chartData = data.map((p) => ({
+        ...p,
+        opacity: p.index > point.index ? 0.01 : 1,
       }));
-      const chartData = currentSession.chartData.map((point) => ({
-        ...point,
-        opacity: point.index > d.index ? 0.01 : 1,
-      }));
-      const similarityData = currentSession.totalSimilarityData;
+      const similarityData = session.totalSimilarityData || [];
       const endIndex = similarityData.findIndex(
-        (item) => d.percentage < item.end_progress * 100
+        (item) => point.percentage < item.end_progress * 100,
       );
       const selectedData =
         endIndex === -1 ? similarityData : similarityData.slice(0, endIndex);
 
       return {
-        ...currentSession,
+        ...session,
         textElements,
-        currentTime: d.time,
+        currentTime: point.time,
         chartData,
         similarityData: selectedData,
       };
     });
   }
 
+  function schedulePlayback(sessionId, startIndex) {
+    clearPlaybackTimer();
+    const session = get(clickSession);
+    if (!session || session.sessionId !== sessionId) {
+      isPlaying = false;
+      return;
+    }
+    const data = session.chartData || [];
+
+    // If at or past the last frame, stop playing
+    if (!isPlaying || !data.length || startIndex >= data.length - 1) {
+      isPlaying = false;
+      // Make sure we're at the last frame
+      if (data.length > 0 && startIndex < data.length) {
+        applyPlaybackFrame(sessionId, data.length - 1);
+      }
+      return;
+    }
+
+    const current = data[startIndex];
+    const next = data[startIndex + 1];
+    const deltaMinutes = Math.max(
+      (next.time || 0) - (current.time || 0),
+      (1 / 60) * 0.01,
+    ); // Minimum 10ms to avoid too fast playback
+    const delay = deltaMinutes * TIME_PER_MIN_MS;
+
+    playbackTimer = setTimeout(() => {
+      if (!isPlaying) return;
+      const latest = get(clickSession);
+      if (!latest || latest.sessionId !== sessionId) {
+        isPlaying = false;
+        return;
+      }
+      playbackIndex = Math.min(startIndex + 1, data.length - 1);
+      applyPlaybackFrame(sessionId, playbackIndex);
+      schedulePlayback(sessionId, playbackIndex);
+    }, delay);
+  }
+
+  function togglePlayback() {
+    const session = get(clickSession);
+    if (!session || !session.chartData?.length) return;
+    if (isPlaying) {
+      isPlaying = false;
+      clearPlaybackTimer();
+      return;
+    }
+    // Continue from current position, but restart from 0 if at the end
+    const currentTime = session.currentTime || 0;
+    const maxTime = session.time100 || 0;
+    const data = session.chartData;
+    const lastDataTime = data[data.length - 1]?.time || maxTime;
+
+    const isAtEnd =
+      currentTime >= maxTime - 0.05 || currentTime >= lastDataTime - 0.01;
+
+    const start = isAtEnd
+      ? 0
+      : findIndexFromTime(session.chartData, currentTime);
+    playbackIndex = start;
+    applyPlaybackFrame(session.sessionId, start);
+    isPlaying = true;
+    schedulePlayback(session.sessionId, start);
+  }
+
+  function handleScrub(event) {
+    const session = get(clickSession);
+    if (!session || !session.chartData?.length) return;
+    const maxTime = session.time100 || 0;
+    const targetTime = Math.min(
+      Math.max(Number(event.target.value) || 0, 0),
+      maxTime,
+    );
+    const idx = findIndexFromTime(session.chartData, targetTime);
+    playbackIndex = idx;
+    applyPlaybackFrame(session.sessionId, idx);
+    if (isPlaying) schedulePlayback(session.sessionId, idx);
+  }
+
+  function togglePlaybackSpeed() {
+    const currentIndex = SPEED_OPTIONS.indexOf(playbackSpeed);
+    const nextIndex = (currentIndex + 1) % SPEED_OPTIONS.length;
+    playbackSpeed = SPEED_OPTIONS[nextIndex];
+    // If playing, restart playback with new speed
+    if (isPlaying) {
+      const session = get(clickSession);
+      if (session) {
+        schedulePlayback(session.sessionId, playbackIndex);
+      }
+    }
+  }
+
   function handlePatternClick(event) {
     const { pattern } = event.detail;
-
     selectedPatternForDetail = pattern;
     activePatternId = pattern.id;
     currentView = "pattern-detail";
@@ -1763,14 +3361,14 @@
 
   function handlePatternContextMenu(event) {
     const { pattern } = event.detail;
-    console.log("Right clicked on pattern from table:", pattern.name);
+    // console.log("Right clicked on pattern from table:", pattern.name);
   }
 
   $: showPatternColumn = $searchPatternSet && $searchPatternSet.length > 0;
   let maxVisible = 8;
   function handleShowMorePatterns() {
     maxVisible = $searchPatternSet.length;
-    console.log(`Total patterns: ${$searchPatternSet.length}`);
+    // console.log(`Total patterns: ${$searchPatternSet.length}`);
   }
 
   function handleBackFromDetail() {
@@ -1797,7 +3395,7 @@
   function handleEditSave(event) {
     const { pattern, newName } = event.detail;
     searchPatternSet.update((patterns) =>
-      patterns.map((p) => (p.id === pattern.id ? { ...p, name: newName } : p))
+      patterns.map((p) => (p.id === pattern.id ? { ...p, name: newName } : p)),
     );
     if (
       selectedPatternForDetail &&
@@ -1826,7 +3424,7 @@
   function confirmDeletePattern() {
     if (patternToDelete) {
       searchPatternSet.update((patterns) =>
-        patterns.filter((p) => p.id !== patternToDelete.id)
+        patterns.filter((p) => p.id !== patternToDelete.id),
       );
       if (currentView === "pattern-detail") {
         handleBackFromDetail();
@@ -1846,46 +3444,429 @@
     handleContainerClick({ detail: { sessionId: sessionData.sessionId } });
     handleBackFromDetail();
   }
+
+  function handleDatasetChange(event) {
+    const value = event.target.value;
+    selectedDataset = value;
+    window.location.href = `${window.location.pathname}?dataset=${selectedDataset}`;
+  }
+
+  function openDatasetHelp() {
+    // Open GitHub README section about dataset import
+    window.open(
+      "https://github.com/Visual-Intelligence-UMN/Ink-Pulse/blob/main/README.md#how-to-import-your-own-dataset",
+      "_blank",
+    );
+  }
+
+  // --- Virtual table configuration ---
+  export let vtRowHeight = 65; // height of each row in px
+  export let vtHeaderHeight = 120; // header height in px
+  export let vtOverscan = 2; // number of extra rows rendered above/below
+
+  // --- Data for the table (replace with your dataset) ---
+  export let vtData = [];
+
+  // --- Internal state ---
+  let vtScrollY = 0; // current vertical scroll offset of window
+  let vtViewportH = 0; // current viewport height
+
+  // --- Derived values (recomputed automatically when deps change) ---
+  $: if (
+    $initData ||
+    sortColumn ||
+    sortDirection ||
+    !selectedCategoryFilter ||
+    !selectedPatternForDetail
+  ) {
+    const colgrp = getColumnGroups();
+    if (!(colgrp.length === 0 || colgrp[0].length === 0)) {
+      vtData = colgrp;
+    }
+  }
+  $: vtTotalRows = Math.max(...vtData.map((group) => group.length)); // total number of rows
+  $: vtRowsInView = Math.max(
+    1,
+    Math.ceil((vtViewportH - vtHeaderHeight) / vtRowHeight),
+  );
+  $: vtVisibleCnt = vtRowsInView + vtOverscan * 2; // rows to render including overscan
+  $: vtStartIndex = Math.max(
+    0,
+    Math.floor(vtScrollY / vtRowHeight) - vtOverscan,
+  );
+  $: vtEndIndex = Math.min(vtTotalRows, vtStartIndex + vtVisibleCnt); // slice end index
+  $: vtVisibleRows = vtData.map((col) => col.slice(vtStartIndex, vtEndIndex)); // actual rows rendered
+  $: vtOverlayY =
+    vtHeaderHeight -
+    (vtScrollY < vtRowHeight * vtOverscan
+      ? vtScrollY
+      : (vtScrollY % vtRowHeight) + vtRowHeight * vtOverscan); // overlay vertical offset
+
+  // --- Lifecycle hooks ---
+  onMount(() => {
+    function vtOnScroll() {
+      vtScrollY = window.scrollY || 0;
+    }
+    function vtOnResize() {
+      vtViewportH = window.innerHeight || 0;
+    }
+
+    vtOnResize();
+    vtOnScroll();
+
+    // setInterval(() => {
+    // console.log("displaySessions:", getDisplaySessions());
+    //   console.log("columnGroups:", getColumnGroups());
+    //   console.log("vtData:", vtData);
+    //   console.log("filteredByCategory:", filteredByCategory);
+    //   console.log("-----------------------");
+    //   console.log("-----------------------");
+    // }, 2000);
+
+    window.addEventListener("scroll", vtOnScroll, { passive: true });
+    window.addEventListener("resize", vtOnResize);
+
+    onDestroy(() => {
+      window.removeEventListener("scroll", vtOnScroll);
+      window.removeEventListener("resize", vtOnResize);
+      clearPlaybackTimer();
+    });
+  });
+
+  function scrollToTop() {
+    const panel = document.querySelector(".pattern-panel-content");
+    if (panel) panel.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // Search functionality
+  function handleSearch() {
+    if (!searchQuery.trim()) {
+      searchResults = [];
+      showSearchResults = false;
+      return;
+    }
+
+    // Search through all sessions in initData
+    const query = searchQuery.toLowerCase().trim();
+    searchResults = $initData
+      .filter(
+        (session) =>
+          session.sessionId && session.sessionId.toLowerCase().includes(query),
+      )
+      .slice(0, 10); // Limit to 10 results
+
+    showSearchResults = searchResults.length > 0;
+  }
+
+  function handleSearchInput(event) {
+    searchQuery = event.target.value;
+    handleSearch();
+  }
+
+  function selectSearchResult(sessionId) {
+    // Navigate to the session detail
+    handleContainerClick({ detail: { sessionId } });
+
+    // Clear search
+    searchQuery = "";
+    searchResults = [];
+    showSearchResults = false;
+  }
+
+  function handleSearchKeydown(event) {
+    if (event.key === "Enter") {
+      if (searchResults.length > 0) {
+        selectSearchResult(searchResults[0].sessionId);
+      }
+    } else if (event.key === "Escape") {
+      searchQuery = "";
+      searchResults = [];
+      showSearchResults = false;
+    }
+  }
+
+  // Close search results when clicking outside
+  function handleDocumentClick(event) {
+    const searchContainer = document.querySelector(".search-container");
+    if (searchContainer && !searchContainer.contains(event.target)) {
+      showSearchResults = false;
+    }
+
+    // Close export menu when clicking outside
+    const exportContainer = document.querySelector(".export-dropdown");
+    if (exportContainer && !exportContainer.contains(event.target)) {
+      showExportMenu = false;
+    }
+  }
+
+  // Export functions
+  function toggleExportMenu() {
+    showExportMenu = !showExportMenu;
+    if (showExportMenu) {
+      console.log("=== Export Menu Debug ===");
+      console.log("searchPatternSet:", $searchPatternSet);
+      console.log("selectedDataset:", selectedDataset);
+      console.log(
+        "all patterns:",
+        $searchPatternSet.filter((p) => p.id !== "pattern_0"),
+      );
+      console.log(
+        "filtered patterns:",
+        $searchPatternSet.filter(
+          (p) => p.dataset === selectedDataset && p.id !== "pattern_0",
+        ),
+      );
+    }
+  }
+
+  async function handleExportAll() {
+    showExportMenu = false;
+    await exportDB();
+  }
+
+  async function handleExportSingle(patternId) {
+    showExportMenu = false;
+    await exportSinglePattern(patternId);
+  }
+
+  let showButton = false;
+  async function updateVisibility() {
+    await tick();
+    const panel = document.querySelector(".pattern-panel-content");
+    if (panel) {
+      showButton = panel.scrollHeight > panel.clientHeight;
+    }
+  }
+
+  onMount(() => {
+    updateVisibility();
+    window.addEventListener("resize", updateVisibility);
+
+    // Add document click listener for search
+    document.addEventListener("click", handleDocumentClick);
+
+    return () => {
+      window.removeEventListener("resize", updateVisibility);
+      document.removeEventListener("click", handleDocumentClick);
+    };
+  });
+
+  function handleNavigation() {
+    if (currentView === "pattern-detail") {
+      handleBackFromDetail();
+    } else if (selectedCategoryFilter) {
+      backToLanding();
+    } else if (showMulti) {
+      change2bar();
+    }
+  }
+
+  function generateBarchartSelection(sessionData, barChartXAxis) {
+    if (barChartXAxis === "progress") {
+      return {
+        progressMin:
+          ((sessionData.segments[0].start_progress +
+            sessionData.segments[0].end_progress) /
+            2) *
+          100,
+        progressMax:
+          ((sessionData.segments[sessionData.segments.length - 1]
+            .start_progress +
+            sessionData.segments[sessionData.segments.length - 1]
+              .end_progress) /
+            2) *
+          100,
+      };
+    } else if (barChartXAxis === "time") {
+      return {
+        timeMin:
+          (sessionData.segments[0].start_time +
+            sessionData.segments[0].end_time) /
+          2 /
+          60,
+        timeMax:
+          (sessionData.segments[sessionData.segments.length - 1].start_time +
+            sessionData.segments[sessionData.segments.length - 1].end_time) /
+          2 /
+          60,
+      };
+    }
+    return {};
+  }
 </script>
 
 <div class="App">
   <header class="App-header">
-    <nav>
-      <div class="chart-explanation">
-        <span class="triangle-text">▼</span> user open the AI suggestion &nbsp;
-        <span class="user-line">●</span> User written&nbsp;
-        <span class="api-line">●</span> AI writing
+    <nav style="display: flex; align-items: center;">
+      <div class="brand-section">
+        <div class="brand-content">
+          <div class="brand-logo" style="zoom: 150%;">
+            <img
+              src="{base}/favicon.png"
+              alt="InkPulse Logo"
+              class="ink-icon"
+              style="width: 40px; height: auto; cursor: pointer;"
+              on:click={handleNavigation}
+            />
+
+            <span
+              class="brand-name"
+              style="cursor: pointer;"
+              on:click={handleNavigation}>InkPulse</span
+            >
+          </div>
+        </div>
+      </div>
+      <div
+        class="chart-explanation"
+        style="font-size: 13px; align-items: center; display: flex;"
+      >
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <span class="triangle-text-accept">▼</span> Accept AI suggestion &nbsp;
+        <span class="triangle-text-reject">▼</span> Reject AI suggestion &nbsp;
+        <span class="user-line">●</span> User &nbsp;
+        <span class="api-line">●</span> AI
+      </div>
+
+      <!-- Search Box -->
+      <div
+        class="search-container"
+        style="position: relative; margin-left: 20px;"
+      >
+        <input
+          type="text"
+          placeholder="Search Session ID..."
+          bind:value={searchQuery}
+          on:input={handleSearchInput}
+          on:keydown={handleSearchKeydown}
+          class="search-input"
+          style="
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            width: 200px;
+            outline: none;
+          "
+        />
+
+        {#if showSearchResults && searchResults.length > 0}
+          <div
+            class="search-results"
+            style="
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+          "
+          >
+            {#each searchResults as session}
+              <div
+                class="search-result-item"
+                on:click={() => selectSearchResult(session.sessionId)}
+                style="
+                  padding: 8px 12px;
+                  cursor: pointer;
+                  border-bottom: 1px solid #eee;
+                  font-size: 13px;
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                "
+              >
+                <span style="font-weight: 500;">{session.sessionId}</span>
+                {#if session.llmScore}
+                  <span style="color: #666; font-size: 12px;"
+                    >Score: {session.llmScore}</span
+                  >
+                {/if}
+              </div>
+            {/each}
+          </div>
+        {/if}
+
+        {#if showSearchResults && searchResults.length === 0 && searchQuery.trim()}
+          <div
+            class="search-results"
+            style="
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 12px;
+            text-align: center;
+            color: #666;
+            font-size: 13px;
+          "
+          >
+            No sessions found
+          </div>
+        {/if}
       </div>
       <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded"
         rel="stylesheet"
       />
-      {#if showMulti}
+      {#if currentView === "pattern-detail"}
+        <a
+          on:click={handleBackFromDetail}
+          href=" "
+          aria-label="Back from Pattern Detail"
+          class="humbleicons--arrow-go-back"
+        ></a>
+      {:else if showMulti}
         <a
           on:click={change2bar}
           href=" "
           aria-label="Toggle View"
-          class="material-symbols-rounded"
-        >
-          swap_horiz
-        </a>
+          class="humbleicons--arrow-go-back"
+        ></a>
+      {:else if selectedCategoryFilter}
+        <a
+          on:click={backToLanding}
+          href=" "
+          aria-label="Back to Landing"
+          class="humbleicons--arrow-go-back"
+        ></a>
       {/if}
       <div style="flex: 1;"></div>
-      <div style="display: flex; gap: 0.5em; align-items: right;">
-        <button
-          class="pattern-search-button"
-          on:click={exportDB}
-          aria-label="Save Pattern"
-        >
-          Save Pattern
-        </button>
-        <button
-          class="pattern-search-button"
-          on:click={triggerImport}
-          aria-label="Load Pattern"
-        >
-          Load Pattern
-        </button>
+      <div style="display: flex; gap: 0.5em; align-items: center;">
+        <div style="margin-right: 30px;">
+          <a id="uploadBtn" class="upload-icon">
+            <span class="material-symbols--upload-file-rounded"></span>
+          </a>
+          <input
+            type="file"
+            id="uploadZip"
+            accept=".zip"
+            style="display: none;"
+          />
+          <label for="dataset-select" style="font-size: 14px;">Dataset:</label>
+          <select
+            id="dataset-select"
+            bind:value={selectedDataset}
+            on:change={handleDatasetChange}
+            style="width: min-content;"
+          >
+            {#each datasets as dataset}
+              <option value={dataset.name}>{dataset.name}</option>
+            {/each}
+          </select>
+        </div>
         <button
           class="pattern-search-button"
           class:active={showPatternSearch}
@@ -1911,14 +3892,104 @@
         </div>
 
         <div class="pattern-panel-content">
+          {#if Object.keys(selectedPatterns).length > 0}
+            <button class="scroll-to-top" on:click={scrollToTop}>↑</button>
+          {/if}
           <div class="pattern-instructions">
             <p>
               Select a portion in the chart to identify patterns in writing
               behavior.
             </p>
           </div>
-          {#if $searchPatternSet && $searchPatternSet.length > 1} 
-            <div class="saved-patterns-section">
+
+          <div class="patterns-header">
+            <h4 class="patterns-title">Manage Patterns</h4>
+            <div
+              class="patterns-actions"
+              role="toolbar"
+              aria-label="Pattern actions"
+            >
+              <button
+                class="search-pattern-button"
+                class:loading={isImporting}
+                on:click={async () => {
+                  isImporting = true;
+                  try {
+                    await triggerImport();
+                  } finally {
+                    isImporting = false;
+                  }
+                }}
+                aria-label="Upload patterns"
+                title="Upload patterns"
+                disabled={isImporting}
+              >
+                {#if isImporting}
+                  <span class="loading-spinner"></span>
+                  Loading...
+                {:else}
+                  Upload
+                {/if}
+              </button>
+
+              {#if $searchPatternSet && $searchPatternSet.length > 1}
+                <div class="export-dropdown">
+                  <button
+                    class="search-pattern-button"
+                    on:click={toggleExportMenu}
+                    aria-label="Download patterns"
+                    title="Download saved patterns"
+                  >
+                    Download ▼
+                  </button>
+
+                  {#if showExportMenu}
+                    <div class="export-menu">
+                      <button
+                        class="export-option"
+                        on:click={handleExportAll}
+                        title="Export all patterns as separate files"
+                      >
+                        📁 Export All (Separate Files)
+                      </button>
+
+                      <div class="export-divider">Individual Patterns:</div>
+
+                      {#each $searchPatternSet.filter((p) => p.dataset === selectedDataset && p.id !== "pattern_0") as pattern}
+                        <button
+                          class="export-option pattern-export"
+                          on:click={() => handleExportSingle(pattern.id)}
+                          title="Export {pattern.name}"
+                        >
+                          <span
+                            class="pattern-color"
+                            style="background-color: {pattern.color}"
+                          ></span>
+                          {pattern.name}
+                        </button>
+                      {:else}
+                        <div class="export-no-patterns">
+                          No patterns found for dataset: {selectedDataset}
+                          <br />
+                          <small>Available patterns in other datasets:</small>
+                          {#each $searchPatternSet.filter((p) => p.id !== "pattern_0") as pattern}
+                            <small class="other-dataset-pattern">
+                              • {pattern.name} ({pattern.dataset})
+                            </small>
+                          {:else}
+                            <small>No saved patterns yet</small>
+                          {/each}
+                        </div>
+                      {/each}
+                    </div>
+                  {/if}
+                </div>
+              {/if}
+            </div>
+          </div>
+
+          {#if $searchPatternSet && $searchPatternSet.length > 1}
+            <div class="saved-patterns-section" style="margin-top: 20px;">
               <h4>Saved Patterns</h4>
               <div class="saved-patterns-list">
                 <SavedPatternsBar
@@ -1928,19 +3999,37 @@
                   on:pattern-contextmenu={handlePatternContextMenu}
                   on:show-more-patterns={handleShowMorePatterns}
                   {maxVisible}
+                  dataset={selectedDataset}
                 />
+              </div>
+            </div>
+          {:else}
+            <div class="saved-patterns-section">
+              <h4>Saved Patterns</h4>
+              <div class="no-patterns-message">
+                <p>
+                  No saved patterns yet. Start by selecting a portion in the
+                  chart and saving your first pattern!
+                </p>
               </div>
             </div>
           {/if}
 
           {#if Object.keys(selectedPatterns).length > 0}
-            <div class="pattern-results-summary">
+            <div class="pattern-results-summary" style="margin-top: 20px;">
               <h4>Selection Results</h4>
               {#each Object.entries(selectedPatterns) as [sessionId, pattern]}
                 <div class="pattern-item">
                   <div class="pattern-header">
                     <h5>Session: {sessionId.slice(0, 4)}</h5>
                     <div class="pattern-buttons">
+                      <button
+                        class="weight-button"
+                        on:click={setWeight}
+                        title="Adjust Weight"
+                      >
+                        🔧
+                      </button>
                       <button
                         class="search-pattern-button"
                         on:click={() => searchPattern(sessionId)}>Search</button
@@ -1954,124 +4043,607 @@
                   <div class="pattern-details">
                     <div>
                       Semantic Change: {pattern.dataRange.scRange.min.toFixed(
-                        2
+                        2,
                       )} - {pattern.dataRange.scRange.max.toFixed(2)}
                     </div>
                     <div>
                       Progress Range: {pattern.dataRange.progressRange.min.toFixed(
-                        2
+                        2,
                       )}% - {pattern.dataRange.progressRange.max.toFixed(2)}%
                     </div>
                     <div>
                       Counts: {pattern.count}
                     </div>
                   </div>
-                  <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <div class="pattern-chart-preview small-preview">
-                      <PatternChartPreview
-                        {sessionId}
-                        data={pattern.data}
-                        wholeData={pattern.wholeData}
-                        selectedRange={pattern.range}
-                        bind:this={chartRefs[sessionId]}
-                      />
-                    </div>
-                    <div style="margin-top: 5px; width: 60%">
+                  {#if selectionSrc == "lineChart_y"}
+                    <div
+                      style="display: flex; flex-wrap: wrap; gap: 0; width: 100%; align-items: flex-start;"
+                    >
                       <div
-                        class:dimmed={!isProgressChecked}
-                        style="display: flex; align-items: center; font-size: 13px;"
+                        style="
+                          display: flex;
+                          gap: 0;
+                          width: 100%;
+                          align-items: flex-start;
+                          border: 1px solid #e0e0e0;
+                          border-radius: 4px;
+                          background-color: white;
+                        "
                       >
-                        <input
-                          type="checkbox"
-                          bind:checked={isProgressChecked}
-                        />
-                        Writing Progress
-                        <div style="flex: 1;"></div>
-                        <RangeSlider
-                          range
-                          float
-                          class="rangeSlider"
-                          min={0}
-                          max={100}
-                          bind:values={writingProgressRangeSlider}
-                        />
-                      </div>
-                      <div
-                        class:dimmed={!isTimeChecked}
-                        style="display: flex; align-items: center; font-size: 13px;"
-                      >
-                        <input type="checkbox" bind:checked={isTimeChecked} />
-                        Time
-                        <div style="flex: 1"></div>
-                        <RangeSlider
-                          range
-                          float
-                          class="rangeSlider"
-                          min={0}
-                          max={lastSession?.time100}
-                          bind:values={timeRangeSlider}
-                        />
-                      </div>
-                      <div
-                        class:dimmed={!isSourceChecked}
-                        style="font-size: 13px;"
-                      >
-                        <input type="checkbox" bind:checked={isSourceChecked} />
-                        Source(human/AI)
-                        <label
-                          class="switch"
-                          style="transform: translateY(4px);"
-                          bind:this={exactSourceButton}
+                        <!-- Pattern chart -->
+                        <div
+                          style="flex: 1 1 50%; margin-top: 10px; padding: 0;"
                         >
-                          <input
-                            type="checkbox"
-                            bind:checked={isExactSearchSource}
-                            disabled={!isSourceChecked}
-                          />
-                          <span class="slider"></span>
-                        </label>
-                      </div>
-                      <div style="font-size: 13px;">
-                        <div class:dimmed={!isSemanticChecked}>
-                          <input
-                            type="checkbox"
-                            bind:checked={isSemanticChecked}
-                          />
-                          Semantic Expansion
-                        </div>
-                        <div style="margin-left: 20px;">
-                          <div class:dimmed={!isValueRangeChecked}>
-                            <input
-                              type="checkbox"
-                              bind:checked={isValueRangeChecked}
-                              disabled={!isSemanticChecked}
+                          <!-- Barchart for vertical selection preview -->
+                          <div style="margin: 0; padding: 0;">
+                            <BarChartY
+                              sessionId={$clickSession.sessionId}
+                              similarityData={$clickSession.similarityData}
+                              height={150}
+                              width={180}
+                              {yScale}
+                              xAxisField={barChartXAxis}
+                              yAxisField={barChartYAxis}
+                              bind:sharedSelection
+                              readOnly={true}
+                              on:selectionChanged={handleSelectionChanged}
+                              on:selectionCleared={handleSelectionCleared}
+                              bind:this={
+                                chartRefs[$clickSession.sessionId + "-barChart"]
+                              }
+                              on:chartLoaded={handleChartLoaded}
+                              bind:xScaleBarChartFactor
                             />
-                            Value Range
                           </div>
-                          <div class:dimmed={!isValueTrendChecked}>
+                        </div>
+
+                        <!-- Line chart -->
+                        <div
+                          style="flex: 1 1 50%; margin-top: 7px; padding: 0; margin-left: 0;"
+                        >
+                          <div
+                            style="
+                              position: relative;
+                              height: 160px;
+                              overflow: hidden;
+                              transform-origin: top left;
+                              margin-left: 0;
+                            "
+                          >
+                            <LineChartPreview
+                              bind:this={chartRefs[sessionId]}
+                              chartData={$clickSession.chartData}
+                              selectedTimeRange={pattern.selectedTimeRange ??
+                                deriveTimeRangeFromProgress(
+                                  pattern.range?.progress,
+                                  pattern.wholeData,
+                                ) ??
+                                null}
+                              selectedProgressRange={pattern.range?.progress ??
+                                null}
+                              highlightWindows={pattern.highlightWindows ?? []}
+                              highlightMode={pattern.highlightMode ?? null}
+                              selectionContext={pattern.selectionContext ??
+                                null}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        style="
+                          display: grid;
+                          grid-template-columns: 1fr 1fr;
+                          column-gap: 20px;
+                          width: 100%;
+                          margin-top: 8px;
+                          align-items: start;
+                        "
+                      >
+                        <div style="font-size: 13px;">
+                          <div
+                            class:dimmed={!isProgressChecked}
+                            style="font-size: 13px; display: flex; align-items: center; gap: 8px;"
+                          >
                             <input
                               type="checkbox"
-                              bind:checked={isValueTrendChecked}
-                              disabled={!isSemanticChecked}
+                              bind:checked={isProgressChecked}
                             />
-                            Value Trend
+                            <span>Writing Progress</span>
                             <label
                               class="switch"
-                              style="transform: translateY(4px);"
-                              bind:this={exactTrendButton}
+                              style="transform: translateY(4px); margin-left: auto;"
+                              bind:this={exactProgressButton}
                             >
                               <input
                                 type="checkbox"
-                                bind:checked={isExactSearchTrend}
-                                disabled={!isSemanticChecked ||
-                                  !isValueTrendChecked}
+                                bind:checked={isExactSearchProgress}
+                                disabled={!isProgressChecked}
                               />
-                              <span class="slider"></span>
+                              <span class="slider">
+                                <span
+                                  class="switch-text {isExactSearchProgress
+                                    ? 'exact'
+                                    : 'duration'}"
+                                >
+                                  {isExactSearchProgress ? "Exact" : "Duration"}
+                                </span>
+                              </span>
                             </label>
+                          </div>
+
+                          <div
+                            class:dimmed={!isTimeChecked}
+                            style="font-size: 13px; display: flex; align-items: center; gap: 8px;"
+                          >
+                            <input
+                              type="checkbox"
+                              bind:checked={isTimeChecked}
+                            />
+                            <span>Time</span>
+                            <label
+                              class="switch"
+                              style="transform: translateY(4px); margin-left: auto;"
+                              bind:this={exactTimeButton}
+                            >
+                              <input
+                                type="checkbox"
+                                bind:checked={isExactSearchTime}
+                                disabled={!isTimeChecked}
+                              />
+                              <span class="slider">
+                                <span
+                                  class="switch-text {isExactSearchTime
+                                    ? 'exact'
+                                    : 'duration'}"
+                                >
+                                  {isExactSearchTime ? "Exact" : "Duration"}
+                                </span>
+                              </span>
+                            </label>
+                          </div>
+
+                          <div
+                            class:dimmed={!isSourceChecked}
+                            style="font-size: 13px; display: flex; align-items: center; gap: 8px; white-space: nowrap;"
+                          >
+                            <input
+                              type="checkbox"
+                              bind:checked={isSourceChecked}
+                            />
+                            <span>Source (human/AI)</span>
+                            <label
+                              class="switch"
+                              style="transform: translateY(4px); margin-left: auto;"
+                              bind:this={exactSourceButton}
+                            >
+                              <input
+                                type="checkbox"
+                                bind:checked={isExactSearchSource}
+                                disabled={!isSourceChecked}
+                              />
+                            </label>
+                          </div>
+                        </div>
+
+                        <div style="font-size: 13px;">
+                          <div
+                            class:dimmed={!isSemanticChecked}
+                            style="display: flex; align-items: center; gap: 8px; white-space: nowrap; font-weight: 600; padding: 2px 4px; border-radius: 4px;"
+                          >
+                            <input
+                              type="checkbox"
+                              bind:checked={isSemanticChecked}
+                            />
+                            <span>Semantic Expansion</span>
+                          </div>
+
+                          <div
+                            style="
+                              margin: 0;
+                              padding: 0px 10px;
+                              border-left: 3px solid #dcdcdc;
+                              background: rgba(0,0,0,0.03);
+                              border-radius: 4px;
+                            "
+                          >
+                            <div
+                              class:dimmed={!isValueRangeChecked}
+                              style="display: flex; align-items: center; gap: 8px; white-space: nowrap;"
+                            >
+                              <input
+                                type="checkbox"
+                                bind:checked={isValueRangeChecked}
+                                disabled={!isSemanticChecked}
+                              />
+                              <span>Value Range</span>
+                            </div>
+
+                            <div
+                              class:dimmed={!isValueTrendChecked}
+                              style="display: flex; align-items: center; gap: 8px; white-space: nowrap;"
+                            >
+                              <input
+                                type="checkbox"
+                                bind:checked={isValueTrendChecked}
+                                disabled={!isSemanticChecked}
+                              />
+                              <span>Value Trend</span>
+                              <label
+                                class="switch"
+                                style="transform: translateY(4px); margin-left: auto;"
+                                bind:this={exactTrendButton}
+                              >
+                                <input
+                                  type="checkbox"
+                                  bind:checked={isExactSearchTrend}
+                                  disabled={!isSemanticChecked ||
+                                    !isValueTrendChecked}
+                                />
+                              </label>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
+                  {:else}
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                      {#if selectionSrc == "lineChart_x"}
+                        <!-- Time mode: Show LineChart with time selection highlight -->
+                        <div
+                          class="pattern-chart-preview small-preview"
+                          style="height: 160px; width: fit-content; max-width: 100%;"
+                        >
+                          <LineChartPreview
+                            bind:this={chartRefs[sessionId]}
+                            chartData={(() => {
+                              // Make sure charts always display
+                              let data = $clickSession?.chartData;
+
+                              // If current data cannot use
+                              if (
+                                !data ||
+                                !Array.isArray(data) ||
+                                data.length === 0
+                              ) {
+                                data = pattern.wholeData;
+                              }
+
+                              // Empty array
+                              if (!data || !Array.isArray(data)) {
+                                data = [];
+                              }
+
+                              return data;
+                            })()}
+                            selectedTimeRange={pattern.selectedTimeRange}
+                            selectedProgressRange={pattern.range?.progress ??
+                              null}
+                            highlightWindows={pattern.highlightWindows ?? []}
+                            highlightMode={pattern.highlightMode ?? null}
+                            selectionContext={pattern.selectionContext ?? null}
+                          />
+                        </div>
+                        <div
+                          style="
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            column-gap: 20px;
+                            width: 100%;
+                            margin-top: 8px;
+                            align-items: start;
+                          "
+                        >
+                          <div style="font-size: 13px;">
+                            <div
+                              class:dimmed={!isProgressChecked}
+                              style="font-size: 13px; display: flex; align-items: center; gap: 8px;"
+                            >
+                              <input
+                                type="checkbox"
+                                bind:checked={isProgressChecked}
+                              />
+                              <span>Writing Progress</span>
+                              <label
+                                class="switch"
+                                style="transform: translateY(4px); margin-left: auto;"
+                                bind:this={exactProgressButton}
+                              >
+                                <input
+                                  type="checkbox"
+                                  bind:checked={isExactSearchProgress}
+                                  disabled={!isProgressChecked}
+                                />
+                                <span class="slider">
+                                  <span
+                                    class="switch-text {isExactSearchProgress
+                                      ? 'exact'
+                                      : 'duration'}"
+                                  >
+                                    {isExactSearchProgress
+                                      ? "Exact"
+                                      : "Duration"}
+                                  </span>
+                                </span>
+                              </label>
+                            </div>
+
+                            <div
+                              class:dimmed={!isTimeChecked}
+                              style="font-size: 13px; display: flex; align-items: center; gap: 8px;"
+                            >
+                              <input
+                                type="checkbox"
+                                bind:checked={isTimeChecked}
+                              />
+                              <span>Time</span>
+                              <label
+                                class="switch"
+                                style="transform: translateY(4px); margin-left: auto;"
+                                bind:this={exactTimeButton}
+                              >
+                                <input
+                                  type="checkbox"
+                                  bind:checked={isExactSearchTime}
+                                  disabled={!isTimeChecked}
+                                />
+                                <span class="slider">
+                                  <span
+                                    class="switch-text {isExactSearchTime
+                                      ? 'exact'
+                                      : 'duration'}"
+                                  >
+                                    {isExactSearchTime ? "Exact" : "Duration"}
+                                  </span>
+                                </span>
+                              </label>
+                            </div>
+
+                            <div
+                              class:dimmed={!isSourceChecked}
+                              style="font-size: 13px; display: flex; align-items: center; gap: 8px; white-space: nowrap;"
+                            >
+                              <input
+                                type="checkbox"
+                                bind:checked={isSourceChecked}
+                              />
+                              <span>Source (human/AI)</span>
+                              <label
+                                class="switch"
+                                style="transform: translateY(4px); margin-left: auto;"
+                                bind:this={exactSourceButton}
+                              >
+                                <input
+                                  type="checkbox"
+                                  bind:checked={isExactSearchSource}
+                                  disabled={!isSourceChecked}
+                                />
+                              </label>
+                            </div>
+                          </div>
+
+                          <div style="font-size: 13px;">
+                            <div
+                              class:dimmed={!isSemanticChecked}
+                              style="display: flex; align-items: center; gap: 8px; white-space: nowrap; font-weight: 600; padding: 2px 4px; border-radius: 4px;"
+                            >
+                              <input
+                                type="checkbox"
+                                bind:checked={isSemanticChecked}
+                              />
+                              <span>Semantic Expansion</span>
+                            </div>
+
+                            <div
+                              style="
+                                margin: 0;
+                                padding: 0px 10px;
+                                border-left: 3px solid #dcdcdc;
+                                background: rgba(0,0,0,0.03);
+                                border-radius: 4px;
+                              "
+                            >
+                              <div
+                                class:dimmed={!isValueRangeChecked}
+                                style="display: flex; align-items: center; gap: 8px; white-space: nowrap;"
+                              >
+                                <input
+                                  type="checkbox"
+                                  bind:checked={isValueRangeChecked}
+                                  disabled={!isSemanticChecked}
+                                />
+                                <span>Value Range</span>
+                              </div>
+
+                              <div
+                                class:dimmed={!isValueTrendChecked}
+                                style="display: flex; align-items: center; gap: 8px; white-space: nowrap;"
+                              >
+                                <input
+                                  type="checkbox"
+                                  bind:checked={isValueTrendChecked}
+                                  disabled={!isSemanticChecked}
+                                />
+                                <span>Value Trend</span>
+                                <label
+                                  class="switch"
+                                  style="transform: translateY(4px); margin-left: auto;"
+                                  bind:this={exactTrendButton}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    bind:checked={isExactSearchTrend}
+                                    disabled={!isSemanticChecked ||
+                                      !isValueTrendChecked}
+                                  />
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      {:else}
+                        <!-- Progress/Bar modes: Show PatternChartPreview -->
+                        <!-- Barchart for horizontal selection preview -->
+                        <div class="pattern-chart-preview small-preview">
+                          <BarChartY
+                            sessionId={$clickSession.sessionId}
+                            similarityData={$clickSession.similarityData}
+                            height={150}
+                            width={180}
+                            {yScale}
+                            xAxisField={barChartXAxis}
+                            yAxisField={barChartYAxis}
+                            bind:sharedSelection
+                            readOnly={true}
+                            on:selectionChanged={handleSelectionChanged}
+                            on:selectionCleared={handleSelectionCleared}
+                            bind:this={
+                              chartRefs[$clickSession.sessionId + "-barChart"]
+                            }
+                            on:chartLoaded={handleChartLoaded}
+                            bind:xScaleBarChartFactor
+                          />
+                        </div>
+                        <div style="margin-top: 10px; width: 50%">
+                          <div
+                            class:dimmed={!isProgressChecked}
+                            style="font-size: 13px;"
+                          >
+                            <input
+                              type="checkbox"
+                              bind:checked={isProgressChecked}
+                            />
+                            Writing Progress
+                            <label
+                              class="switch"
+                              style="transform: translateY(4px);"
+                              bind:this={exactProgressButton}
+                            >
+                              <input
+                                type="checkbox"
+                                bind:checked={isExactSearchProgress}
+                                disabled={!isProgressChecked}
+                              />
+                              <span class="slider">
+                                <span
+                                  class="switch-text {isExactSearchProgress
+                                    ? 'exact'
+                                    : 'duration'}"
+                                >
+                                  {isExactSearchProgress ? "Exact" : "Duration"}
+                                </span>
+                              </span>
+                            </label>
+                          </div>
+                          <div
+                            class:dimmed={!isTimeChecked}
+                            style="font-size: 13px;"
+                          >
+                            <input
+                              type="checkbox"
+                              bind:checked={isTimeChecked}
+                            />
+                            Time
+                            <label
+                              class="switch"
+                              style="transform: translateY(4px);"
+                              bind:this={exactTimeButton}
+                            >
+                              <input
+                                type="checkbox"
+                                bind:checked={isExactSearchTime}
+                                disabled={!isTimeChecked}
+                              />
+                              <span class="slider">
+                                <span
+                                  class="switch-text {isExactSearchTime
+                                    ? 'exact'
+                                    : 'duration'}"
+                                >
+                                  {isExactSearchTime ? "Exact" : "Duration"}
+                                </span>
+                              </span>
+                            </label>
+                          </div>
+                          <div
+                            class:dimmed={!isSourceChecked}
+                            style="font-size: 13px;"
+                          >
+                            <input
+                              type="checkbox"
+                              bind:checked={isSourceChecked}
+                            />
+                            Source(human/AI)
+                            <label
+                              class="switch"
+                              style="transform: translateY(4px);"
+                              bind:this={exactSourceButton}
+                            >
+                              <input
+                                type="checkbox"
+                                bind:checked={isExactSearchSource}
+                                disabled={!isSourceChecked}
+                              />
+                              <!-- <span class="slider">
+                                <span class="switch-text">
+                                  {isExactSearchSource ? "Exact" : "Proximity"}
+                                </span>
+                              </span> -->
+                            </label>
+                          </div>
+                          <div style="font-size: 13px;">
+                            <div class:dimmed={!isSemanticChecked}>
+                              <input
+                                type="checkbox"
+                                bind:checked={isSemanticChecked}
+                              />
+                              Semantic Expansion
+                            </div>
+                            <div style="margin-left: 20px;">
+                              <div class:dimmed={!isValueRangeChecked}>
+                                <input
+                                  type="checkbox"
+                                  bind:checked={isValueRangeChecked}
+                                  disabled={!isSemanticChecked}
+                                />
+                                Value Range
+                              </div>
+                              <div class:dimmed={!isValueTrendChecked}>
+                                <input
+                                  type="checkbox"
+                                  bind:checked={isValueTrendChecked}
+                                  disabled={!isSemanticChecked}
+                                />
+                                Value Trend
+                                <label
+                                  class="switch"
+                                  style="transform: translateY(4px);"
+                                  bind:this={exactTrendButton}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    bind:checked={isExactSearchTrend}
+                                    disabled={!isSemanticChecked ||
+                                      !isValueTrendChecked}
+                                  />
+                                  <!-- <span class="slider">
+                                    <span class="switch-text">
+                                      {isExactSearchTrend ? "Exact" : "Proximity"}
+                                    </span>
+                                  </span> -->
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      {/if}
+                    </div>
+                  {/if}
+                  <div class="chat-panel">
+                    <Interpreter 
+                      pattern={pattern}
+                      on:parsedFilters={handleInterpreterFilters}
+                    />
                   </div>
                   {#if $patternDataList.length > 0 && isSearch == 2}
                     <div>Search Results</div>
@@ -2090,17 +4662,47 @@
                             >
                           </div>
                           <div style="display: flex; align-items: flex-start">
+                            <!--Barchart for search result preview-->
                             <div>
-                              <PatternChartPreviewSerach
+                              <BarChartY
                                 sessionId={sessionData.sessionId}
-                                data={sessionData.segments}
-                                wholeData={sessionData.similarityData}
+                                similarityData={sessionData.similarityData}
+                                height={150}
+                                width={180}
+                                {yScale}
+                                xAxisField={barChartXAxis}
+                                yAxisField={barChartYAxis}
+                                readOnly={true}
+                                sharedSelection={generateBarchartSelection(
+                                  sessionData,
+                                  barChartXAxis,
+                                )}
+                                on:selectionChanged={() => {}}
+                                on:selectionCleared={() => {}}
+                                bind:this={
+                                  chartRefs[sessionData.sessionId + "-barChart"]
+                                }
+                                on:chartLoaded={() => {}}
+                                bind:xScaleBarChartFactor
                               />
                             </div>
                             <div>
                               <LineChartPreview
                                 bind:this={chartRefs[sessionData.sessionId]}
                                 chartData={sessionData.chartData}
+                                selectedTimeRange={sessionData.highlightRanges
+                                  ?.time ?? null}
+                                selectedProgressRange={sessionData
+                                  .highlightRanges?.progress ?? null}
+                                highlightWindows={sessionData.highlightRanges
+                                  ?.windows ?? []}
+                                highlightMode={sessionData.highlightRanges
+                                  ?.mode ??
+                                  resolveHighlightModeFromSource(
+                                    searchDetail?.selectionSource ?? null,
+                                  )}
+                                selectionContext={sessionData.highlightRanges
+                                  ?.selectionContext ?? null}
                               />
                             </div>
                           </div>
@@ -2131,7 +4733,7 @@
                         <button
                           class="search-pattern-button"
                           on:click={openSavePanel}
-                          >Save NOW pattern
+                          >Save NOW Pattern
                         </button>
                       </div>
                       <div style="text-align: center; margin-top: 10px;">
@@ -2143,7 +4745,39 @@
                       No data found matching the search criteria.
                     </div>
                   {:else if isSearch == 1}
-                    <div class="loading-message">Searching for patterns...</div>
+                    <div
+                      style="
+                        display: flex;
+                        align-items: center;
+                        gap: 40px;
+                        margin-top: 10px;
+                        width: 100%;
+                      "
+                    >
+                      <div class="loading-message" style="margin: 0;">
+                        Searching for patterns...
+                      </div>
+                      {#if fetchProgress > 0}
+                        <div
+                          class="progress-container"
+                          style="margin-top: 5px;"
+                        >
+                          <span style="font-size: 12px; top: 0%"
+                            >{fetchProgress} %</span
+                          >
+                          <progress
+                            value={fetchProgress}
+                            max={100}
+                            style="
+                              width: 180px;
+                              height: 15px;
+                              border-radius: 15px;
+                              --progHeight: 15px;
+                            "
+                          ></progress>
+                        </div>
+                      {/if}
+                    </div>
                   {/if}
                 </div>
               {/each}
@@ -2162,6 +4796,16 @@
         color={colorInput}
         on:save={handleSave}
         on:close={handleClose}
+      />
+    {/if}
+    {#if showSavedMessage}
+      <div class="saved-message">Saved successfully</div>
+    {/if}
+    {#if isWeights}
+      <WeightPanel
+        {weights}
+        on:save={handleWeightsSave}
+        on:close={handleWeightsClose}
       />
     {/if}
     <div
@@ -2187,6 +4831,10 @@
             <p>
               Discover insights into <b>human-AI collaboration</b> and have fun!
             </p>
+            <p>
+              Want to use your own dataset?
+              <a href=" " on:click={openDatasetHelp}> Check here!</a>
+            </p>
             <button class="start-button" on:click={open2close}
               >Start Exploring</button
             >
@@ -2201,8 +4849,7 @@
             searchPatternSet={$searchPatternSet}
             {sessions}
             {chartRefs}
-            {percentageData}
-            {lengthData}
+            {selectedDataset}
             on:back={handleBackFromDetail}
             on:apply-pattern={handleApplyPattern}
             on:edit-pattern={handleEditPattern}
@@ -2218,7 +4865,10 @@
                 <div class="category-filter-header">
                   <h2>
                     <span class="category-icon-large">
-                      {getCategoryIcon(selectedCategoryFilter)}
+                      {@html getCategoryIconBase(
+                        selectedCategoryFilter,
+                        selectedDataset,
+                      )}
                     </span>
                     {selectedCategoryFilter.toUpperCase()} Sessions
                   </h2>
@@ -2229,25 +4879,41 @@
                       <tr>
                         <th
                           class="sortable-header"
+                          class:disabled={selectedCategoryFilter}
                           on:click={() => handleSort("topic")}
+                          style="min-width: 70px;"
                         >
-                          <span>Topic</span>
-                          <span class="sort-icon">{getSortIcon("topic")}</span>
+                          <span
+                            style="cursor: {selectedCategoryFilter
+                              ? 'default'
+                              : 'pointer'};">Topic</span
+                          >
+                          <span
+                            class="sort-icon"
+                            style="cursor: {selectedCategoryFilter
+                              ? 'default'
+                              : 'pointer'};"
+                            >{getSortIcon("topic")}
+                          </span>
                         </th>
                         <th
                           class="sortable-header"
                           on:click={() => handleSort("score")}
+                          style="min-width: 90px;"
                         >
-                          <span>Score</span>
-                          <span class="sort-icon">{getSortIcon("score")}</span>
+                          <span style="cursor: pointer;">Score</span>
+                          <span class="sort-icon" style="cursor: pointer;"
+                            >{getSortIcon("score")}</span
+                          >
                         </th>
                         {#if showPatternColumn}
                           <th
                             class="sortable-header"
                             on:click={() => handleSort("pattern")}
+                            style="min-width: 100px;"
                           >
-                            <span>Pattern</span>
-                            <span class="sort-icon"
+                            <span style="cursor: pointer;">Pattern</span>
+                            <span class="sort-icon" style="cursor: pointer;"
                               >{getSortIcon("pattern")}</span
                             >
                           </th>
@@ -2256,7 +4922,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      {#each selectedCategoryFilter ? filteredByCategory : filteredSessions as sessionData (sessionData.sessionId)}
+                      {#each selectedCategoryFilter ? sortedFilteredByCategory : filteredSessions as sessionData}
                         <tr
                           class="session-row"
                           on:click={() => handleRowClick(sessionData)}
@@ -2292,8 +4958,9 @@
                             on:click={() => handleSort("topic")}
                             style="min-width: 70px;"
                           >
-                            <span>Topic</span>
-                            <span class="sort-icon">{getSortIcon("topic")}</span
+                            <span style="cursor: pointer;">Topic</span>
+                            <span class="sort-icon" style="cursor: pointer;"
+                              >{getSortIcon("topic")}</span
                             >
                           </th>
                           <th
@@ -2301,8 +4968,9 @@
                             on:click={() => handleSort("score")}
                             style="min-width: 90px;"
                           >
-                            <span>Score</span>
-                            <span class="sort-icon">{getSortIcon("score")}</span
+                            <span style="cursor: pointer;">Score</span>
+                            <span class="sort-icon" style="cursor: pointer;"
+                              >{getSortIcon("score")}</span
                             >
                           </th>
                           {#if showPatternColumn}
@@ -2311,8 +4979,8 @@
                               on:click={() => handleSort("pattern")}
                               style="min-width: 100px;"
                             >
-                              <span>Pattern</span>
-                              <span class="sort-icon"
+                              <span style="cursor: pointer;">Pattern</span>
+                              <span class="sort-icon" style="cursor: pointer;"
                                 >{getSortIcon("pattern")}</span
                               >
                             </th>
@@ -2324,12 +4992,21 @@
                         {/each}
                       </tr>
                     </thead>
-                    <tbody>
-                      {#each Array(Math.ceil(Math.max(...getColumnGroups().map((group) => group.length)))) as _, rowIndex (rowIndex + sortColumn + sortDirection)}
-                        <tr class="unified-session-row">
-                          {#each getColumnGroups() as group, colIndex}
+                    <tbody
+                      aria-hidden="true"
+                      style="
+                        visibility:hidden;
+                        pointer-events:none;
+                      "
+                    >
+                      {#if vtVisibleRows && vtVisibleRows.length}
+                        <tr
+                          class="unified-session-row"
+                          style="height:0; padding:0; border:0;"
+                        >
+                          {#each vtVisibleRows as group, colIndex}
                             <SessionCell
-                              sessionData={group[rowIndex]}
+                              sessionData={group[0]}
                               {chartRefs}
                               onRowClick={handleRowClick}
                               onCategoryIconClick={handleCategoryIconClick}
@@ -2341,12 +5018,87 @@
                               {activePatternId}
                               on:pattern-click={handlePatternClick}
                               on:pattern-contextmenu={handlePatternContextMenu}
+                              noRightBorder={true}
                             />
                           {/each}
                         </tr>
-                      {/each}
+                      {/if}
                     </tbody>
                   </table>
+
+                  <!-- Spacer to push rows below sticky header -->
+                  <div
+                    style="
+                      height:{vtHeaderHeight}px;
+                      margin-top:-1px;
+                    "
+                  ></div>
+
+                  <!-- Tall pad to create correct scrollbar height -->
+                  <div style="height:{vtTotalRows * vtRowHeight}px;"></div>
+
+                  <!-- Fixed overlay that actually renders only visible rows -->
+                  <div
+                    style="
+                      position:fixed;
+                      left:0;
+                      right:0;
+                      top:0;
+                      z-index:2;
+                      pointer-events:auto;
+                      transform: translateY({vtOverlayY}px);
+                      --vt-row-h:{vtRowHeight}px;
+
+                      display: flex;
+                      justify-content: center;
+                    "
+                  >
+                    <table class="unified-sessions-table">
+                      <thead
+                        aria-hidden="true"
+                        style="visibility:hidden; height:0; overflow:hidden; pointer-events:none;"
+                      >
+                        <tr>
+                          {#each Array(3) as _, colIndex}
+                            <th style="min-width:70px;"></th>
+                            <th style="min-width:90px;"></th>
+                            {#if showPatternColumn}
+                              <th style="min-width:100px;"></th>
+                            {/if}
+                            <th></th>
+                            {#if colIndex < 2}
+                              <th class="spacer" style="width:8vw;"></th>
+                            {/if}
+                          {/each}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {#each Array(Math.ceil(Math.max(...vtVisibleRows.map((group) => group.length)))) as _, rowIndex (rowIndex + sortColumn + sortDirection)}
+                          <tr
+                            class="unified-session-row"
+                            style="height: {vtRowHeight}px;"
+                          >
+                            {#each vtVisibleRows as group, colIndex}
+                              <SessionCell
+                                sessionData={group[rowIndex]}
+                                {chartRefs}
+                                onRowClick={handleRowClick}
+                                onCategoryIconClick={handleCategoryIconClick}
+                                {getPromptCode}
+                                {getCategoryIcon}
+                                {colIndex}
+                                showPatterns={showPatternColumn}
+                                patterns={$searchPatternSet}
+                                {activePatternId}
+                                on:pattern-click={handlePatternClick}
+                                on:pattern-contextmenu={handlePatternContextMenu}
+                              />
+                            {/each}
+                          </tr>
+                        {/each}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             {/if}
@@ -2355,7 +5107,7 @@
 
         {#if showMulti}
           {#if $clickSession}
-            <div style="margin-top: 70px;">
+            <div style="margin-top: 50px; margin-bottom: 0px;">
               {#if !loadedMap[$clickSession.sessionId]}
                 <SkeletonLoading />
               {/if}
@@ -2366,7 +5118,7 @@
                       <h3>
                         {#if sessions && sessions.find((s) => s.session_id === $clickSession.sessionId)}
                           {sessions.find(
-                            (s) => s.session_id === $clickSession.sessionId
+                            (s) => s.session_id === $clickSession.sessionId,
                           ).prompt_code} - {$clickSession.sessionId}
                         {:else}
                           Session: {$clickSession.sessionId}
@@ -2396,60 +5148,199 @@
                         </div>
                         <div class="totalSuggestions">
                           {$clickSession.summaryData
-                            ? `Suggestions: ${$clickSession.summaryData.totalSuggestions - 1}`
+                            ? `Suggestions: ${$clickSession.summaryData.totalSuggestions}`
                             : ""}
                         </div>
                       </div>
                     </div>
-                    <div class="" on:wheel={handleChartZoom}>
-                      <div class="chart-wrapper">
-                        {#if $clickSession.similarityData}
-                          <BarChartY
-                            sessionId={$clickSession.sessionId}
-                            similarityData={$clickSession.similarityData}
-                            {yScale}
-                            {height}
-                            bind:zoomTransform={
-                              zoomTransforms[$clickSession.sessionId]
-                            }
-                            {selectionMode}
-                            bind:sharedSelection={sharedSelection}
-                            on:selectionChanged={handleSelectionChanged}
-                            on:selectionCleared={handleSelectionCleared}
-                            bind:this={
-                              chartRefs[$clickSession.sessionId + "-barChart"]
-                            }
-                            on:chartLoaded={handleChartLoaded}
-                          />
-                        {/if}
-                        <div>
+
+                    <!-- Chart Axis Controls -->
+                    <div class="chart-axis-controls">
+                      <div class="axis-control-row">
+                        <label>
+                          <span class="control-label">BlockEvent X:</span>
+                          <select bind:value={barChartXAxis}>
+                            <option value="progress">Progress</option>
+                            <option value="time">Time</option>
+                            <option value="semantic_change"
+                              >Semantic Change</option
+                            >
+                          </select>
+                        </label>
+                        <label>
+                          <span class="control-label">Event X:</span>
+                          <select bind:value={lineChartXAxis}>
+                            <option value="time">Time</option>
+                            <option value="progress">Progress</option>
+                          </select>
+                        </label>
+                      </div>
+                      <div class="axis-control-row">
+                        <label>
+                          <span class="control-label">BlockEvent Y:</span>
+                          <select bind:value={barChartYAxis}>
+                            <option value="progress">Progress</option>
+                            <option value="time">Time</option>
+                            <option value="semantic_change"
+                              >Semantic Change</option
+                            >
+                          </select>
+                        </label>
+                        <label>
+                          <span class="control-label">Event Y:</span>
+                          <select bind:value={lineChartYAxis}>
+                            <option value="progress">Progress</option>
+                            <option value="time">Time</option>
+                          </select>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="chart-container-split">
+                      <!-- Left: BarChart (Semantic Similarity) -->
+                      <div class="chart-section">
+                        <h4 class="chart-title">
+                          {barChartYAxis === "semantic_change"
+                            ? "Semantic Change"
+                            : barChartYAxis === "progress"
+                              ? "Progress"
+                              : "Time"}
+                        </h4>
+                        <div
+                          class="chart-wrapper-independent"
+                          on:wheel={handleChartZoom}
+                        >
+                          {#if $clickSession.similarityData}
+                            <BarChartY
+                              sessionId={$clickSession.sessionId}
+                              similarityData={$clickSession.similarityData}
+                              {yScale}
+                              {height}
+                              xAxisField={barChartXAxis}
+                              yAxisField={barChartYAxis}
+                              bind:zoomTransform={
+                                zoomTransforms[$clickSession.sessionId]
+                              }
+                              {selectionMode}
+                              bind:sharedSelection
+                              on:selectionChanged={handleSelectionChanged}
+                              on:selectionCleared={handleSelectionCleared}
+                              bind:this={
+                                chartRefs[$clickSession.sessionId + "-barChart"]
+                              }
+                              on:chartLoaded={handleChartLoaded}
+                              bind:xScaleBarChartFactor
+                            />
+                          {/if}
+                        </div>
+                      </div>
+
+                      <!-- Right: LineChart (Writing Progress) -->
+                      <div class="chart-section">
+                        <h4 class="chart-title">
+                          {lineChartYAxis === "progress"
+                            ? "Writing Progress"
+                            : "Time"}
+                        </h4>
+                        <div
+                          class="chart-wrapper-independent"
+                          on:wheel={handleChartZoom}
+                        >
                           <LineChart
                             bind:this={chartRefs[$clickSession.sessionId]}
                             chartData={$clickSession.chartData}
+                            similarityData={$clickSession.similarityData}
                             paragraphColor={$clickSession.paragraphColor}
                             on:pointSelected={(e) =>
                               handlePointSelected(e, $clickSession.sessionId)}
                             {yScale}
                             {height}
+                            xAxisField={lineChartXAxis}
+                            yAxisField={lineChartYAxis}
                             bind:zoomTransform={
                               zoomTransforms[$clickSession.sessionId]
                             }
                             {selectionMode}
-                            bind:sharedSelection={sharedSelection}
+                            bind:sharedSelection
+                            on:selectionChanged={handleSelectionChanged}
+                            on:selectionCleared={handleSelectionCleared}
+                            bind:xScaleLineChartFactor
+                            bind:brushIsX
                           />
                         </div>
+
+                        <!-- Brush toggle: Progress/Time -->
+                        {#if selectionMode}
+                          <div class="brush-toggle-container">
+                            <span class="label" class:active={!brushIsX}
+                              >Progress</span
+                            >
+                            <label
+                              class="switch"
+                              aria-label="Toggle brush axis"
+                            >
+                              <input type="checkbox" bind:checked={brushIsX} />
+                              <span class="slider"></span>
+                            </label>
+                            <span class="label" class:active={brushIsX}
+                              >Time</span
+                            >
+                          </div>
+                        {/if}
                       </div>
                     </div>
                   </div>
-                  <div class="content-box">
-                    <div class="progress-container">
-                      <span
-                        >{($clickSession?.currentTime || 0).toFixed(2)} mins</span
-                      >
-                      <progress
-                        value={$clickSession?.currentTime || 0}
-                        max={$clickSession?.time100 || 1}
-                      ></progress>
+                  <div
+                    class="content-box"
+                    style="height:65vh; width:35vw; margin-left: 20px;"
+                  >
+                    <div class="playback-row">
+                      <div class="progress-container-new" style="width: 100%;">
+                        <input
+                          type="range"
+                          class="progress-slider"
+                          min="0"
+                          max={$clickSession?.time100 || 1}
+                          step="0.01"
+                          bind:value={$clickSession.currentTime}
+                          style={`--progress-ratio:${(
+                            Math.min(
+                              Math.max(
+                                ($clickSession?.currentTime || 0) /
+                                  ($clickSession?.time100 || 1 || 1),
+                                0,
+                              ),
+                              1,
+                            ) * 100
+                          ).toFixed(2)}%;`}
+                          on:input={handleScrub}
+                          aria-label="Playback scrubber"
+                        />
+                        <span class="progress-label"
+                          >{($clickSession?.currentTime || 0).toFixed(2)} mins</span
+                        >
+                      </div>
+                      {#if $clickSession?.chartData?.length}
+                        <div class="playback-controls">
+                          <button
+                            class="play-button"
+                            on:click={togglePlayback}
+                            style="width:8.5ch; text-align:center;"
+                          >
+                            {isPlaying ? "Pause" : "Play"}
+                          </button>
+                          <button
+                            class="speed-button"
+                            on:click={togglePlaybackSpeed}
+                          >
+                            <img
+                              src={icons[SPEED_OPTIONS.indexOf(playbackSpeed)]}
+                              alt="Playback speed"
+                              height="12"
+                            />
+                          </button>
+                        </div>
+                      {/if}
                     </div>
                     <div class="scale-container">
                       <div class="scale" id="scale"></div>
@@ -2531,7 +5422,7 @@
     align-items: stretch;
     gap: 10px;
     border-radius: 15px;
-    padding: 25px;
+    padding: 10px 10px 5px;
     box-shadow:
       0px 1px 5px rgba(0, 0, 0, 0.1),
       1px 1px 5px rgba(0, 0, 0, 0.1),
@@ -2548,7 +5439,8 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    height: 400px;
+    height: auto;
+    min-height: 500px;
     font-size: 14px;
     white-space: pre-wrap;
     text-align: left;
@@ -2560,6 +5452,7 @@
     width: 100%;
     max-height: 100%;
     overflow-y: auto;
+    scrollbar-gutter: stable;
     margin-top: 20px;
   }
 
@@ -2586,6 +5479,131 @@
     top: 10%;
   }
 
+  /* New playback controls styles */
+  .progress-container-new {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    position: relative;
+  }
+
+  .progress-slider {
+    width: 100%;
+    appearance: none;
+    background: var(--progBackgroundColor);
+    border-radius: 20px;
+    height: var(--progHeight);
+    outline: none;
+    padding: 6px 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .progress-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    border: 3px solid var(--progColor);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.35);
+  }
+
+  .progress-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    border: 3px solid var(--progColor);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.35);
+  }
+
+  .progress-slider::-webkit-slider-runnable-track {
+    height: var(--progHeight);
+    border-radius: 20px;
+    background: linear-gradient(
+      to right,
+      var(--progColor) 0%,
+      var(--progColor) var(--progress-ratio, 0%),
+      var(--progBackgroundColor) var(--progress-ratio, 0%),
+      var(--progBackgroundColor) 100%
+    );
+  }
+
+  .progress-slider::-moz-range-track {
+    height: var(--progHeight);
+    border-radius: 20px;
+    background: linear-gradient(
+      to right,
+      var(--progColor) 0%,
+      var(--progColor) var(--progress-ratio, 0%),
+      var(--progBackgroundColor) var(--progress-ratio, 0%),
+      var(--progBackgroundColor) 100%
+    );
+  }
+
+  .progress-label {
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font-weight: 700;
+    pointer-events: none;
+  }
+
+  .playback-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .playback-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .play-button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 8px;
+    background: var(--progColor);
+    color: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  .play-button:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+
+  .speed-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border: 2px solid var(--progColor);
+    border-radius: 8px;
+    background: #ff8c80;
+    color: var(--progColor);
+    cursor: pointer;
+    font-weight: 600;
+    min-width: 50px;
+    transition: all 0.2s ease;
+  }
+
+  .speed-button:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+
   progress {
     width: 600px;
     appearance: none;
@@ -2610,9 +5628,9 @@
   }
 
   .session-identifier {
-    padding: 8px 12px;
+    padding: 6px 12px;
     border-radius: 4px;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
   }
 
   .session-identifier h3 {
@@ -2649,9 +5667,64 @@
     margin-right: 15px;
   }
 
+  .brand-section {
+    display: flex;
+    align-items: flex-start;
+    margin-left: 10px;
+    margin-top: -5px;
+  }
+
+  .brand-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+  }
+
+  .ink-icon {
+    width: 28px;
+    height: 28px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    border-radius: 4px;
+  }
+
+  .brand-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2563eb;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Search Box Styles */
+  .search-input {
+    transition: all 0.2s ease;
+  }
+
+  .search-input:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1) !important;
+  }
+
+  .search-result-item:hover {
+    background-color: #f8f9fa !important;
+  }
+
+  .search-result-item:last-child {
+    border-bottom: none !important;
+  }
+
   .chart-explanation {
-    margin-top: 5px;
-    font-size: 12px;
+    font-size: 11px;
     display: flex;
   }
 
@@ -2690,7 +5763,7 @@
     top: 0;
     width: 100%;
     background-color: white;
-    padding: 1em 0;
+    padding: 0.5em 0;
     margin: 0px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     z-index: 600;
@@ -2711,6 +5784,7 @@
     top: 0;
     background: white;
     z-index: 10;
+    font-size: 14px;
   }
 
   table {
@@ -2723,10 +5797,168 @@
     display: table-row;
   }
 
+  .chart-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: visible;
+  }
+
   .chart-wrapper {
     display: flex;
     align-items: flex-start;
-    margin: 15px 0;
+    padding-right: 35px;
+    transform: scale(1.25);
+    transform-origin: center top;
+  }
+
+  /* Chart axis controls */
+  .chart-axis-controls {
+    max-width: 700px;
+    padding: 3px 15px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    margin: 0 auto 5px;
+  }
+
+  .axis-control-row {
+    display: flex;
+    gap: 70px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .axis-control-row label {
+    display: flex;
+    align-items: center;
+    gap: 0px;
+  }
+
+  .control-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+  }
+
+  .axis-control-row select {
+    padding: 3px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 11px;
+    background: white;
+    cursor: pointer;
+    min-width: 140px;
+  }
+
+  .axis-control-row select:hover {
+    border-color: #999;
+  }
+
+  .axis-control-row select:focus {
+    outline: none;
+    border-color: #66c2a5;
+    box-shadow: 0 0 0 2px rgba(102, 194, 165, 0.2);
+  }
+
+  /* New split layout for charts */
+  .chart-container-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    max-width: 700px;
+    padding: 5px 10px 0;
+    margin: 0 auto;
+  }
+
+  .chart-section {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 10px;
+    background: #fafafa;
+  }
+
+  .chart-title {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    text-align: center;
+  }
+
+  .chart-wrapper-independent {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: visible;
+  }
+
+  .brush-toggle-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 8px auto 0;
+    width: 100%;
+  }
+
+  .brush-toggle-container .label {
+    font-size: 15px;
+    color: #777;
+    user-select: none;
+    font-weight: normal;
+  }
+
+  .brush-toggle-container .label.active {
+    color: black;
+    font-weight: bold;
+  }
+
+  .brush-toggle-container .switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 26px;
+  }
+
+  .brush-toggle-container .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .brush-toggle-container input:checked + .slider {
+    background-color: #ffbbcc;
+  }
+
+  .brush-toggle-container input:checked + .slider::before {
+    transform: translateX(22px);
+  }
+
+  .brush-toggle-container .slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: #ffbbcc;
+    transition: 0.2s;
+    border-radius: 30px;
+  }
+
+  .brush-toggle-container .slider::before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: 0.2s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
   }
 
   .pattern-search-panel {
@@ -2801,8 +6033,8 @@
   }
 
   .pattern-chart-preview.small-preview {
-    width: 150px;
-    height: 120px;
+    width: 190px;
+    height: 160px;
   }
 
   .pattern-details {
@@ -2852,7 +6084,7 @@
   .switch {
     position: relative;
     display: inline-block;
-    width: 25px;
+    width: 62px;
     height: 14px;
   }
 
@@ -2881,4 +6113,205 @@
     display: none;
   }
 
+  .pattern-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .no-patterns-message {
+    padding: 20px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+    background-color: #f9fafb;
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+
+  /* Loading state styles */
+  .search-pattern-button.loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+    position: relative;
+  }
+
+  .loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  .search-pattern-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  /* Large topic icon styling with dynamic colors */
+  .category-icon-large :global(.topic-letters) {
+    font-family:
+      "Inter",
+      "SF Pro Display",
+      "Segoe UI",
+      "Roboto",
+      -apple-system,
+      sans-serif;
+    font-weight: 800;
+    font-size: 24px;
+    letter-spacing: 1px;
+
+    /* Fallback color */
+    color: var(--topic-color-primary, #667eea);
+
+    /* Dynamic gradient text effect */
+    background: linear-gradient(
+      135deg,
+      var(--topic-color-primary, #667eea) 0%,
+      var(--topic-color-secondary, #764ba2) 100%
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    /* Enhanced typography */
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /* Enhanced shadow for large size using dynamic color */
+    filter: drop-shadow(
+      0 2px 6px
+        color-mix(in srgb, var(--topic-color-primary, #667eea) 35%, transparent)
+    );
+
+    display: inline-block;
+    transform: translateZ(0);
+  }
+
+  /* Export dropdown styles */
+  .export-dropdown {
+    position: relative;
+    display: inline-block;
+  }
+
+  .export-menu {
+    position: absolute;
+    top: 100%;
+    left: 0; /* 改为左对齐，避免超出屏幕 */
+    background: white;
+    border: 2px solid #007acc;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    z-index: 9999;
+    min-width: 300px;
+    max-width: 400px;
+    margin-top: 8px;
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: #ffffff;
+  }
+
+  .export-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 16px 20px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    border-radius: 0;
+    color: #333;
+  }
+
+  .export-option:first-child {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+
+  .export-option:last-child {
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+  }
+
+  .export-option:hover {
+    background-color: #f5f5f5;
+  }
+
+  .export-divider {
+    padding: 12px 20px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #666;
+    background-color: #f9f9f9;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .pattern-export {
+    font-size: 12px;
+  }
+
+  .pattern-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    display: inline-block;
+    flex-shrink: 0;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .export-no-patterns {
+    padding: 16px;
+    color: #666;
+    font-size: 12px;
+    text-align: left;
+    font-style: italic;
+    border-top: 1px solid #eee;
+  }
+
+  .export-no-patterns small {
+    color: #999;
+    font-size: 10px;
+    display: block;
+    margin-top: 4px;
+  }
+
+  .other-dataset-pattern {
+    display: block;
+    margin-left: 8px;
+    margin-top: 2px;
+    color: #777;
+  }
+
+  .sortable-header.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .sortable-header.disabled span {
+    color: #999 !important;
+  }
 </style>

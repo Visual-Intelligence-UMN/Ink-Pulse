@@ -1,37 +1,56 @@
-<script>
+<script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import SessionCell from './sessionCell.svelte';
-  import { getCategoryIcon } from './topicIcons.js';
-  import ScoreSummaryChart from './scoreSummaryChart.svelte';
-  import PercentageChart from './percentageChart.svelte'
-  import LengthChart from './lengthChart.svelte';
-  import OverallSemScoreChart from './overallSemScoreChart.svelte';
+  import { getCategoryIcon as getCategoryIconBase } from './topicIcons.js';
+  // import ScoreSummaryChart from './scoreSummaryChart.svelte';
+  // import PercentageChart from './percentageChart.svelte'
+  // import LengthChart from './lengthChart.svelte';
+  // import OverallSemScoreChart from './overallSemScoreChart.svelte';
+  import FeatureChart from './featureChart.svelte';
   import PatternChartPreview from './patternChartPreview.svelte';
   
   export let pattern;
   export let sessions;
   export let chartRefs = {};
-  export let percentageData;
-  export let lengthData;
   export let searchPatternSet;
-  const init = searchPatternSet.find(p => p.id === "pattern_0");
-  let scoreSummary = init.scoreSummary;
-  let percentageSummaryData = init.percentageSummaryData;
-  let lengthSummaryData = init.lengthSummaryData;
-  let overallSemScoreData = init.overallSemScoreData;
-  let overallSemScoreSummaryData = init.overallSemScoreSummaryData;
+  export let selectedDataset;
+
+  const init = searchPatternSet.find(
+    (p) => p.id === "pattern_0" && p.dataset === pattern.dataset
+  );
+  let featureData = init?.featuredata || [];
+
+  $: featureKeys = featureData.length > 0 
+    ? Object.keys(featureData[0]).filter(k => k !== 'session_id') 
+    : [];
+  function getFeatureValues(feature, sessionIds) {
+    return featureData
+      .filter(d => sessionIds.includes(d.session_id))
+      .map(d => ({ session_id: d.session_id, value: d[feature] }));
+  }
+
+  $: patternSessionIds = patternSessions.map(s => s.sessionId);
+
+  const NOWColor = '#999999';
+  // let scoreSummary = init.scoreSummary;
+  // let percentageSummaryData = init.percentageSummaryData;
+  // let percentageData = init.percentageData;
+  // let lengthData = init.lengthData;
+  // let lengthSummaryData = init.lengthSummaryData;
+  // let overallSemScoreData = init.overallSemScoreData;
+  // let overallSemScoreSummaryData = init.overallSemScoreSummaryData;
+  let patternData = featureData;
   let flag = "overall";
-  let selectedId = "pattern_0";
-  let title = [pattern.name, searchPatternSet.find(p => p.id === selectedId).name];
+  let selectedIdDataset = `${init.id}::${init.dataset}`;
+  $: title = [
+    pattern?.name,
+    normalizeName(findPatternByKey(selectedIdDataset)?.name)
+  ] as [string, string];
   
   const dispatch = createEventDispatcher();
   
   function handleBack() {
     dispatch('back');
-  }
-  
-  function handleApplyPattern() {
-    dispatch('apply-pattern', { pattern });
   }
   
   function handleEditPattern() {
@@ -50,56 +69,87 @@
     const found = sessions.find((s) => s.session_id === sessionId);
     return found?.prompt_code ?? "";
   }
-  
-  function getScoreDisplay(score) {
-    if (!score) return 'N/A';
-    const stars = '⭐'.repeat(Math.floor(score / 20)) + '☆'.repeat(5 - Math.floor(score / 20));
-    return `${score.toFixed(1)} ${stars}`;
+
+  function getCategoryIcon(promptCode) {
+    return getCategoryIconBase(promptCode, selectedDataset);
+  }
+
+  function findPatternByKey(key) {
+    const [id, dataset] = key.split("::");
+    return searchPatternSet.find(p => p.id === id && p.dataset === dataset);
   }
 
   function handleSelectChange(event) {
-    const selectedValue = event.target.value;
-    if (selectedValue == "pattern_0") {
+    const selectedKey = event.target.value;
+    selectedIdDataset = selectedKey;
+    const select = findPatternByKey(selectedKey);
+    if (!select) return;
+
+    const [selectedValue, _] = selectedKey.split("::");
+
+    if (selectedValue === "pattern_0") {
       flag = "overall";
-      title = [pattern.name, searchPatternSet.find(p => p.id === selectedValue).name];
-      scoreSummary = init.scoreSummary;
-      percentageSummaryData = init.percentageSummaryData;
-      lengthSummaryData = init.lengthSummaryData;
-      overallSemScoreData = init.overallSemScoreData;
-      overallSemScoreSummaryData = init.overallSemScoreSummaryData;
-    } 
-    else {
+      title = [pattern.name, normalizeName(select?.name)];
+      patternData = select?.featuredata;
+      // scoreSummary = select?.scoreSummary;
+      // percentageSummaryData = select?.percentageSummaryData;
+      // percentageData = select?.percentageData;
+      // lengthData = select?.lengthData;
+      // lengthSummaryData = select?.lengthSummaryData;
+      // overallSemScoreData = select?.overallSemScoreData;
+      // overallSemScoreSummaryData = select?.overallSemScoreSummaryData;
+    } else {
       flag = selectedValue;
-      title = [pattern.name, searchPatternSet.find(p => p.id === selectedValue).name]
-      let select = searchPatternSet.find(p => p.id === selectedValue);
-      const patternSessions = select.pattern || [];
-      const temp = {};
-      for (const session of patternSessions) {
-        const score = Number(session.llmScore);
-        temp[score] = (temp[score] || 0) + 1;
-      }
-      scoreSummary = Object.fromEntries(
-        Object.entries(temp).map(([k, v]) => [Number(k), v])
-      );
-      percentageSummaryData = select.pattern;
-      lengthSummaryData = select.pattern;
-      overallSemScoreSummaryData = select.pattern;
+      title = [pattern.name, normalizeName(select?.name)];
+      const selectData = select?.pattern || [];
+      patternData = selectData.map(item => item.sessionId);
+      // const patternSessions = select.pattern || [];
+      // const temp = {};
+      // for (const session of patternSessions) {
+      //   const score = Number(session.llmScore);
+      //   temp[score] = (temp[score] || 0) + 1;
+      // }
+      // scoreSummary = Object.fromEntries(
+      //   Object.entries(temp).map(([k, v]) => [Number(k), v])
+      // );
+      // percentageSummaryData = select.pattern;
+      // lengthSummaryData = select.pattern;
+      // overallSemScoreSummaryData = select.pattern;
     }
-    
   }
 
   $: patternSessions = pattern?.pattern || [];
-  let scoreCount = {};
-  $: {
-    const temp = {};
-    for (const session of patternSessions) {
-      const score = Number(session.llmScore);
-      temp[score] = (temp[score] || 0) + 1;
-    }
-    scoreCount = Object.fromEntries(
-      Object.entries(temp).map(([k, v]) => [Number(k), v])
-    );
+  // let scoreCount = {};
+  // $: {
+  //   const temp = {};
+  //   for (const session of patternSessions) {
+  //     const score = Number(session.llmScore);
+  //     temp[score] = (temp[score] || 0) + 1;
+  //   }
+  //   scoreCount = Object.fromEntries(
+  //     Object.entries(temp).map(([k, v]) => [Number(k), v])
+  //   );
+  // }
+
+  function normalizeName(s) {
+    return s?.startsWith('Others-') ? 'Others' : s;
   }
+
+  $: filteredPatterns = searchPatternSet.filter(p => p.dataset === pattern.dataset);
+  $: {
+    if (!filteredPatterns.find(p => `${p.id}::${p.dataset}` === selectedIdDataset)) {
+      const defaultPattern = filteredPatterns.find(p => p.id === "pattern_0") || filteredPatterns[0];
+      if (defaultPattern) {
+        const dataset = defaultPattern.dataset.startsWith("Others-")
+          ? "Others"
+          : defaultPattern.dataset;
+
+        selectedIdDataset = `${defaultPattern.id}::${dataset}`;
+        handleSelectChange({ target: { value: selectedIdDataset } });
+      }
+    }
+  }
+
 </script>
 
 <div class="pattern-detail-container">
@@ -124,9 +174,11 @@
           aria-label="color dot"></span>
           {pattern.name}</span>
         <span>VS</span>
-        <select id="pattern-select" bind:value={selectedId} on:change={handleSelectChange}>
-          {#each searchPatternSet as pattern}
-            <option value={pattern.id}>{pattern.name}</option>
+        <select id="pattern-select" bind:value={selectedIdDataset} on:change={handleSelectChange}>
+          {#each filteredPatterns as filteredPattern}
+            <option value={`${filteredPattern.id}::${filteredPattern.dataset}`}>
+              {normalizeName(filteredPattern.name)}
+            </option>
           {/each}
         </select>
       </div>
@@ -174,7 +226,20 @@
             disabled
           />
           Writing Progress
-          <div style="flex: 1;"></div>
+          <div></div>
+            <label
+              class="switch"
+              style="transform: translateY(1px);"
+            >
+            <input
+              type="checkbox"
+              class="readonly"
+              checked={pattern.searchDetail.flag.isExactSearchProgress}
+              disabled
+              hidden
+            />
+            <span class="slider readonly"></span>
+            </label>
         </div>
         <div
           style="display: flex; align-items: center; font-size: 13px; color: #5f6368;"
@@ -185,7 +250,20 @@
             checked={pattern.searchDetail.flag.isTimeChecked}
             disabled />
           Time
-          <div style="flex: 1"></div>
+          <div></div>
+          <label
+              class="switch"
+              style="transform: translateY(1px);"
+            >
+            <input
+              type="checkbox"
+              class="readonly"
+              checked={pattern.searchDetail.flag.isTimeCheckRequired}
+              disabled
+              hidden
+            />
+            <span class="slider readonly"></span>
+            </label>
         </div>
         <div
           style="font-size: 13px; color: #5f6368;"
@@ -197,19 +275,6 @@
             disabled
           />
           Source(human/AI)
-          <label
-            class="switch"
-            style="transform: translateY(4px);"
-          >
-            <input
-              type="checkbox"
-              class="readonly"
-              checked={pattern.searchDetail.flag.isExactSearchSource}
-              disabled
-              hidden
-            />
-            <span class="slider readonly"></span>
-          </label>
         </div>
         <div style="font-size: 13px; color: #5f6368;">
           <div>
@@ -239,19 +304,6 @@
                 disabled
               />
               Value Trend
-              <label
-                class="switch"
-                style="transform: translateY(4px);"
-              >
-                <input
-                  type="checkbox"
-                  class="readonly"
-                  checked={pattern.searchDetail.flag.isExactSearchTrend}
-                  disabled
-                  hidden
-                />
-                <span class="slider readonly"></span>
-              </label>
             </div>
           </div>
         </div>
@@ -259,40 +311,67 @@
     </div>
   </div>
 
-  <div style="display: flex; justify-content: center;">
-    <ScoreSummaryChart
-      rawData = {scoreSummary}
-      nowData = {scoreCount}
-      {title}
-    />
+  <div class="chart-legend">
+    <div class="legend-item">
+      <div class="color-box" style="background-color: {NOWColor}; border-color: {NOWColor}"></div>
+      <span>{title[0]}</span>
+    </div>
+    <div class="legend-item">
+      <div
+        class="color-box striped"
+        style="
+          border-color: {NOWColor};
+          background-image: repeating-linear-gradient(
+            -45deg,
+            #999999 0 2px,
+            transparent 1px 6px
+          );
+        "
+      ></div>
+      <span>{title[1]}</span>
+    </div>
   </div>
-  <div style="display: flex; justify-content: center;">
-    <PercentageChart
-      {patternSessions}
-      {percentageSummaryData}
-      {percentageData}
-      {flag}
-      {title}
-    />
-  </div>
-  <div style="display: flex; justify-content: center;">
-    <LengthChart
-      {patternSessions}
-      {lengthData}
-      {lengthSummaryData}
-      {flag}
-      {title}
-    />
-  </div>
-  <div style="display: flex; justify-content: center;">
-    <OverallSemScoreChart
-      {patternSessions}
-      {overallSemScoreData}
-      {overallSemScoreSummaryData}
-      {flag}
-      {title}
-    />
-  </div>
+
+  <div class="charts-grid">
+    {#each featureKeys as key}
+      <FeatureChart
+        featureName={key}
+        data={getFeatureValues(key, patternSessionIds)}
+        {patternData}
+        {featureData}
+        {flag}
+        {title}
+      />
+    {/each}
+    
+  <!-- <ScoreSummaryChart
+    rawData={scoreSummary}
+    nowData={scoreCount}
+    {flag}
+    {title}
+  />
+  <OverallSemScoreChart
+    {patternSessions}
+    {overallSemScoreData}
+    {overallSemScoreSummaryData}
+    {flag}
+    {title}
+  />
+  <PercentageChart
+    {patternSessions}
+    {percentageSummaryData}
+    {percentageData}
+    {flag}
+    {title}
+  />
+  <LengthChart
+    {patternSessions}
+    {lengthData}
+    {lengthSummaryData}
+    {flag}
+    {title}
+  /> -->
+</div>
   
   <div class="table-container">
     <table class="pattern-sessions-table">
@@ -314,7 +393,7 @@
                 onCategoryIconClick={() => {}}
                 {getPromptCode}
                 {getCategoryIcon}
-
+                highlightPatterns={sessionData.pattern_indices || null}
               />
             </td>
           </tr>
@@ -332,12 +411,9 @@
   </div>
   
   <div class="action-buttons">
-    <button class="btn btn-primary" on:click={handleApplyPattern}>
-      Apply This Pattern
-    </button>
-    <button class="btn btn-secondary" on:click={handleEditPattern}>
+    <!-- <button class="btn btn-secondary" on:click={handleEditPattern}>
       Edit Pattern
-    </button>
+    </button> -->
     <button class="btn btn-danger" on:click={handleDeletePattern}>
       Delete Pattern
     </button>
@@ -347,9 +423,9 @@
 <style>
   .pattern-detail-container {
     width: 100%;
-    max-width: 1200px;
+    max-width: 800px;
     margin: 0 auto;
-    padding: 20px;
+    /* padding: 20px; */
     min-height: 100vh;
     overflow: visible;
   }
@@ -387,7 +463,6 @@
     display: flex;
     align-items: center;
     gap: 15px;
-    margin-bottom: 25px;
     padding: 15px;
     background-color: #f8f9fa;
     border-radius: 8px;
@@ -460,32 +535,6 @@
   
   .activity-cell {
     vertical-align: top;
-  }
-  
-  .topic-cell {
-    padding: 15px;
-    vertical-align: middle;
-  }
-  
-  .topic-content {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  
-  .topic-icon {
-    font-size: 18px;
-  }
-  
-  .topic-name {
-    font-weight: 500;
-    color: #333;
-  }
-  
-  .score-cell {
-    padding: 15px;
-    vertical-align: middle;
-    font-size: 14px;
   }
   
   .empty-state {
@@ -577,44 +626,76 @@
   }
 
   input:checked+.slider {
-  background-color: #ffbbcc;
-}
+    background-color: #ffbbcc;
+  }
 
-input:checked+.slider::before {
-  transform: translateX(11px);
-}
+  input:checked+.slider::before {
+    transform: translateX(11px);
+  }
 
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: 0.2s;
-  border-radius: 28px;
-}
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.2s;
+    border-radius: 28px;
+  }
 
-.slider::before {
-  position: absolute;
-  content: "";
-  height: 11px;
-  width: 11px;
-  left: 1.5px;
-  bottom: 1.5px;
-  background-color: white;
-  transition: 0.2s;
-  border-radius: 50%;
-}
+  .slider::before {
+    position: absolute;
+    content: "";
+    height: 11px;
+    width: 11px;
+    left: 1.5px;
+    bottom: 1.5px;
+    background-color: white;
+    transition: 0.2s;
+    border-radius: 50%;
+  }
 
-.switch {
-  position: relative;
-  display: inline-block;  /* or inline-flex */
-  width: 26px;             /* or whatever width you need */
-  height: 14px;
-  margin-left: 3px;
-}
-  
-  
+  .switch {
+    position: relative;
+    display: inline-block;  /* or inline-flex */
+    width: 26px;             /* or whatever width you need */
+    height: 14px;
+    margin-left: 3px;
+  }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .chart-legend {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 5px;
+    font-size: 10px;
+  }
+
+  .color-box {
+    width: 12px;
+    height: 12px;
+    border: 0.3px solid #000;
+  }
+
+  .striped {
+    background-image: repeating-linear-gradient(
+      45deg,
+      #000 0 2px,
+      transparent 2px 4px
+    );
+  }
 </style>

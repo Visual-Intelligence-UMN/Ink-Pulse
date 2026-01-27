@@ -1,16 +1,23 @@
-import adapter from '@sveltejs/adapter-static';
+import adapterStatic from '@sveltejs/adapter-static';
+import adapterVercel from '@sveltejs/adapter-vercel';
 
 /** @type {import('@sveltejs/kit').Config} */
+const isVercel = process.env.VERCEL === '1';
+
 const config = {
-	kit: {
-		adapter: adapter({
-			fallback: '404.html'
-		}),
-		paths: {
-			base: process.argv.includes('dev') ? '' : '/Ink-Pulse',
-			relative: false
-		}
-	}
+  kit: {
+    adapter: isVercel
+      ? adapterVercel()
+      : adapterStatic({
+          pages: 'build',
+          assets: 'build',
+          fallback: '404.html'
+        }),
+    paths: {
+      base: isVercel ? '' : '/Ink-Pulse',
+      relative: false
+    }
+  }
 };
 
 export default config;
