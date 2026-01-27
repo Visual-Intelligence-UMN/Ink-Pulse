@@ -1730,9 +1730,9 @@
     // Load initial batch
     await loadMoreResultsInternal(initialLoadCount);
 
-    console.timeEnd("⏱️ Initial load time");
+    console.timeEnd("Initial load time");
     console.log(
-      `✅ Loaded ${loadedResultCount} of ${allSearchResults.length} results (showing first ${$showResultCount})`,
+      `Loaded ${loadedResultCount} of ${allSearchResults.length} results (showing first ${$showResultCount})`,
     );
 
     isSearch = 2; // reset search state; 0: not searching, 1: searching, 2: search done
@@ -1747,7 +1747,7 @@
       return; // No more results to load
     }
 
-    console.log(`📥 Loading results ${startIndex + 1}-${endIndex}...`);
+    console.log(`Loading results ${startIndex + 1}-${endIndex}...`);
     isLoadingMore = true;
 
     try {
@@ -1823,7 +1823,7 @@
         `✅ Loaded ${newData.length} results (total loaded: ${loadedResultCount}/${allSearchResults.length})`,
       );
     } catch (error) {
-      console.error("❌ Error loading more results:", error);
+      console.error("Error loading more results:", error);
     } finally {
       isLoadingMore = false;
     }
