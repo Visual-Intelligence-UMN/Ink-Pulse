@@ -36,7 +36,7 @@
   import initSqlJs from "sql.js";
   import { getDB } from "$lib/dbLoader";
   import { readSegmentResults } from "$lib/db/read";
-  import { browser } from '$app/environment';
+  import { browser } from "$app/environment";
   import Interpreter from "../components/interpreter.svelte";
 
   let chartRefs = {};
@@ -737,7 +737,7 @@
     const patterns = Object.values(selectedPatterns);
     if (patterns.length === 0) return null;
     const pattern = patterns[0];
-    if (!pattern || typeof pattern.count !== 'number') return null;
+    if (!pattern || typeof pattern.count !== "number") return null;
     const WINDOW_SIZE = pattern.count;
 
     return {
@@ -745,23 +745,23 @@
       positionOffset: {
         first: 0,
         last: WINDOW_SIZE - 1,
-        prev: WINDOW_SIZE - 2
-      }
+        prev: WINDOW_SIZE - 2,
+      },
     };
   }
 
   async function handleInterpreterFilters(event) {
     const ctx = buildWindowContext(selectedPatterns);
-    if (!ctx) return console.warn('No valid selected pattern');
+    if (!ctx) return console.warn("No valid selected pattern");
     const { windowSize, positionOffset } = ctx;
 
     function resolveSpanRange(span, anchorIdx, windowSize) {
       switch (span) {
-        case 'prefix':
+        case "prefix":
           return { from: 0, to: anchorIdx };
-        case 'suffix':
+        case "suffix":
           return { from: anchorIdx, to: windowSize - 1 };
-        case 'full':
+        case "full":
           return { from: 0, to: windowSize - 1 };
         default:
           return null;
@@ -771,15 +771,18 @@
     function buildExpr({ feature, position, span, source }, ref) {
       const featureDef = featureMap[feature];
       if (!featureDef) return null;
-      const sourceValue = source === 'Human' ? 'user' : source === 'AI' ? 'api' : null;
+      const sourceValue =
+        source === "Human" ? "user" : source === "AI" ? "api" : null;
       if (span) {
         let range;
-        if (span === 'full') {
+        if (span === "full") {
           range = { from: 0, to: windowSize - 1 };
-        } else if (span === 'prefix' || span === 'suffix') {
+        } else if (span === "prefix" || span === "suffix") {
           const anchorIdx = positionOffset[position];
           if (anchorIdx == null) {
-            console.warn(`Span ${span} requires position, but position ${position} not found in positionOffset`);
+            console.warn(
+              `Span ${span} requires position, but position ${position} not found in positionOffset`,
+            );
             return null;
           }
           range = resolveSpanRange(span, anchorIdx, windowSize);
@@ -792,7 +795,9 @@
       }
       const anchorIdx = positionOffset[position];
       if (anchorIdx == null) {
-        console.warn(`Point query requires position, but position ${position} not found in positionOffset`);
+        console.warn(
+          `Point query requires position, but position ${position} not found in positionOffset`,
+        );
         return null;
       }
       return featureDef.point(anchorIdx, ref, sourceValue);
@@ -800,15 +805,17 @@
 
     function parseRelation(relationString) {
       if (!relationString) return null;
-      const match = relationString.match(/^(\w+)\(([\w_]+)\)\s*(>|<|=)\s*(\w+)\(([\w_]+)\)$/);
+      const match = relationString.match(
+        /^(\w+)\(([\w_]+)\)\s*(>|<|=)\s*(\w+)\(([\w_]+)\)$/,
+      );
       if (!match) return null;
-      
+
       return {
         l_source: match[1],
         l_feature: match[2],
         operator: match[3],
         r_source: match[4],
-        r_feature: match[5]
+        r_feature: match[5],
       };
     }
 
@@ -826,7 +833,7 @@
           return baseExpr;
         },
         range: (from, to, ref, source) => {
-          const sumExpr = source 
+          const sumExpr = source
             ? `CASE WHEN JSON_EXTRACT(${ref}, '$[' || k.i || '].source') = '${source}' 
                  THEN COALESCE(
                    CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_progress') AS REAL),0
@@ -838,13 +845,13 @@
                ) - COALESCE(
                  CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_progress') AS REAL),0
                )`;
-          
+
           return `(
             SELECT SUM(${sumExpr})
             FROM idx k
             WHERE k.i BETWEEN ${from} AND ${to}
           )`;
-        }
+        },
       },
       time: {
         point: (idx, ref, source) => {
@@ -853,7 +860,7 @@
           ) - COALESCE(
             CAST(JSON_EXTRACT(${ref}, '$[${idx}].start_time') AS REAL),0
           )`;
-          
+
           if (source) {
             return `CASE WHEN JSON_EXTRACT(${ref}, '$[${idx}].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
           }
@@ -872,13 +879,13 @@
                ) - COALESCE(
                  CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_time') AS REAL),0
                )`;
-          
+
           return `(
             SELECT SUM(${sumExpr})
             FROM idx k
             WHERE k.i BETWEEN ${from} AND ${to}
           )`;
-        }
+        },
       },
       semantic_change: {
         point: (idx, ref, source) => {
@@ -899,72 +906,79 @@
             : `COALESCE(
                  CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].residual_vector_norm') AS REAL),0
                )`;
-          
+
           return `(
             SELECT SUM(${sumExpr})
             FROM idx k
             WHERE k.i BETWEEN ${from} AND ${to}
           )`;
-        }
-      }
+        },
+      },
     };
     const { explanations, filters } = event.detail;
     // console.log("explanations", explanations, "filters", filters)
     const comparisons = filters
-    .map((filter, i) => {
-      if (explanations[i]?.feature === 'source') return null;
-      const parsed = parseRelation(filter.relation);
-      if (!parsed) {
-        console.warn('Could not parse relation:', filter.relation);
-        return null;
-      }
-      const lExpr = buildExpr(
-        {
-          feature: parsed.l_feature,
-          position: filter.l_position,
-          span: filter.span,
-          source: parsed.l_source
-        },
-        'window_content'
-      );
-      const rExpr = buildExpr(
-        {
-          feature: parsed.r_feature,
-          position: filter.r_position,
-          span: filter.span,
-          source: parsed.r_source
-        },
-        'window_content'
-      );
-      
-      if (!lExpr || !rExpr) {
-        console.warn('Could not build expressions for:', parsed);
-        return null;
-      }
-      const ratio = filter.ratio;
-      let comparison;
-      if (ratio !== null && ratio !== undefined) {
-        if (parsed.operator === '>') {
-          comparison = `(${lExpr}) ${parsed.operator} ((${rExpr}) * ${ratio})`;
-        } else if (parsed.operator === '<') {
-          comparison = `((${lExpr}) * ${ratio}) ${parsed.operator} (${rExpr})`;
-        } else {
-          comparison = `(${lExpr}) ${parsed.operator} ((${rExpr}) * ${ratio})`;
+      .map((filter, i) => {
+        if (explanations[i]?.feature === "source") return null;
+        const parsed = parseRelation(filter.relation);
+        if (!parsed) {
+          console.warn("Could not parse relation:", filter.relation);
+          return null;
         }
-      } else {
-        comparison = `(${lExpr}) ${parsed.operator} (${rExpr})`;
-      }
+        const lExpr = buildExpr(
+          {
+            feature: parsed.l_feature,
+            position: filter.l_position,
+            span: filter.span,
+            source: parsed.l_source,
+          },
+          "window_content",
+        );
+        const rExpr = buildExpr(
+          {
+            feature: parsed.r_feature,
+            position: filter.r_position,
+            span: filter.span,
+            source: parsed.r_source,
+          },
+          "window_content",
+        );
 
-      return comparison;
-    })
-    .filter(Boolean);
-    const hasSourceConstraint = explanations.some(exp => exp.feature === 'source');
+        if (!lExpr || !rExpr) {
+          console.warn("Could not build expressions for:", parsed);
+          return null;
+        }
+        const ratio = filter.ratio;
+        let comparison;
+        if (ratio !== null && ratio !== undefined) {
+          if (parsed.operator === ">") {
+            comparison = `(${lExpr}) ${parsed.operator} ((${rExpr}) * ${ratio})`;
+          } else if (parsed.operator === "<") {
+            comparison = `((${lExpr}) * ${ratio}) ${parsed.operator} (${rExpr})`;
+          } else {
+            comparison = `(${lExpr}) ${parsed.operator} ((${rExpr}) * ${ratio})`;
+          }
+        } else {
+          comparison = `(${lExpr}) ${parsed.operator} (${rExpr})`;
+        }
+
+        return comparison;
+      })
+      .filter(Boolean);
+    const hasSourceConstraint = explanations.some(
+      (exp) => exp.feature === "source",
+    );
     const sourcePattern = Object.values(selectedPatterns)[0].sources || [];
     const sourceConstraints = hasSourceConstraint
-      ? sourcePattern.map((src, i) => `JSON_EXTRACT(window_content, '$[${i}].source') = '${src}'`)
+      ? sourcePattern.map(
+          (src, i) =>
+            `JSON_EXTRACT(window_content, '$[${i}].source') = '${src}'`,
+        )
       : [];
-    const whereClause = [...comparisons, ...sourceConstraints].join(' AND ');
-    const elements = Array(windowSize).fill(0).map((_, i) => i);
+    const whereClause = [...comparisons, ...sourceConstraints].join(" AND ");
+    const elements = Array(windowSize)
+      .fill(0)
+      .map((_, i) => i);
     const sqlQuery = `
       WITH RECURSIVE 
       numbers(n) AS (
@@ -982,22 +996,23 @@
         d.rowid as original_rowid,
         d.content as original_content,
         n.n as window_start,
-        json_array(${
-          elements.map(i => 
-            `json_extract(d.content, '$[' || (n.n + ${i}) || ']')`
-          ).join(', ')
-        }) as window_content
+        json_array(${elements
+          .map((i) => `json_extract(d.content, '$[' || (n.n + ${i}) || ']')`)
+          .join(", ")}) as window_content
       FROM data d
       JOIN numbers n 
         ON n.n + ${windowSize - 1} < json_array_length(d.content)
       WHERE json_array_length(d.content) = ${windowSize}
-        ${elements.map(i => 
-          `AND json_extract(d.content, '$[' || (n.n + ${i}) || ']') IS NOT NULL`
-        ).join(' ')}
-        ${whereClause ? 'AND (' + whereClause + ')' : ''}
+        ${elements
+          .map(
+            (i) =>
+              `AND json_extract(d.content, '$[' || (n.n + ${i}) || ']') IS NOT NULL`,
+          )
+          .join(" ")}
+        ${whereClause ? "AND (" + whereClause + ")" : ""}
       ORDER BY original_rowid, window_start
     `;
-    console.log('SQL:', sqlQuery);
+    console.log("SQL:", sqlQuery);
   }
 
   function getTrendPattern(values) {
@@ -1251,6 +1266,8 @@
 
   async function searchPattern(sessionId) {
     isSearch = 1; // 0: not searching, 1: searching, 2: search done
+    allSearchResults = []; // Reset search results
+    loadedResultCount = 0;
     const sessionData = selectedPatterns[sessionId];
     const count =
       sessionData.count || Math.max(1, sessionData.data?.length || 1);
@@ -1533,6 +1550,9 @@
   }
 
   let fetchProgress = 0;
+  let allSearchResults = []; // Store all search results for lazy loading
+  let loadedResultCount = 0; // Track how many results have been loaded
+  let isLoadingMore = false; // Track if we're loading more results
 
   function computeHighlightRangesFromSegments(segments) {
     if (!Array.isArray(segments) || segments.length === 0) {
@@ -1696,22 +1716,56 @@
     };
   }
 
-  async function patternDataLoad(results) {
-    const ids = results.map((group) => group[0]?.id).filter(Boolean);
-    const BATCH_SIZE = 100;
-    for (let i = 0; i < ids.length; i += BATCH_SIZE) {
-      // console.log("processing", i, "out of", ids.length);
-      fetchProgress =
-        Math.round((i / ids.length) * 100) > 100
-          ? 100
-          : Math.round((i / ids.length) * 100);
-      const chunk = ids.slice(i, i + BATCH_SIZE);
-      await Promise.allSettled(chunk.map((id) => fetchDataSummary(id)));
+  async function patternDataLoad(results, initialLoadCount = 15) {
+    console.log(`Search complete: ${results.length} total results found`);
+    console.time("Initial load time");
+
+    // Store all results for lazy loading
+    allSearchResults = results;
+    loadedResultCount = 0;
+
+    // Clear existing data
+    patternDataList.set([]);
+
+    // Load initial batch
+    await loadMoreResultsInternal(initialLoadCount);
+
+    console.timeEnd("⏱️ Initial load time");
+    console.log(
+      `✅ Loaded ${loadedResultCount} of ${allSearchResults.length} results (showing first ${$showResultCount})`,
+    );
+
+    isSearch = 2; // reset search state; 0: not searching, 1: searching, 2: search done
+    fetchProgress = 0;
+  }
+
+  async function loadMoreResultsInternal(count = 10) {
+    const startIndex = loadedResultCount;
+    const endIndex = Math.min(startIndex + count, allSearchResults.length);
+
+    if (startIndex >= allSearchResults.length) {
+      return; // No more results to load
     }
 
-    const sessionDataMap = get(storeSessionSummaryData);
-    patternDataList.set(
-      results
+    console.log(`📥 Loading results ${startIndex + 1}-${endIndex}...`);
+    isLoadingMore = true;
+
+    try {
+      const resultsToLoad = allSearchResults.slice(startIndex, endIndex);
+      const ids = resultsToLoad.map((group) => group[0]?.id).filter(Boolean);
+
+      // Load data in smaller batches for better UX
+      const BATCH_SIZE = 10;
+      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        fetchProgress = Math.round(
+          ((startIndex + i) / allSearchResults.length) * 100,
+        );
+        const chunk = ids.slice(i, i + BATCH_SIZE);
+        await Promise.allSettled(chunk.map((id) => fetchDataSummary(id)));
+      }
+
+      const sessionDataMap = get(storeSessionSummaryData);
+      const newData = resultsToLoad
         .map((group) => {
           const id = group[0]?.id;
           const sessionData = sessionDataMap.get(id);
@@ -1760,10 +1814,19 @@
             },
           };
         })
-        .filter(Boolean),
-    );
-    isSearch = 2; // reset search state; 0: not searching, 1: searching, 2: search done
-    fetchProgress = 0;
+        .filter(Boolean);
+
+      // Append new data to existing list
+      patternDataList.update((current) => [...current, ...newData]);
+      loadedResultCount = endIndex;
+      console.log(
+        `✅ Loaded ${newData.length} results (total loaded: ${loadedResultCount}/${allSearchResults.length})`,
+      );
+    } catch (error) {
+      console.error("❌ Error loading more results:", error);
+    } finally {
+      isLoadingMore = false;
+    }
   }
 
   function closePatternSearch() {
@@ -2741,17 +2804,19 @@
       console.log("Use .json file to init data.");
     }
 
-async function debugData() {
-  try {
-    const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
-    const wasmBinary = await wasmResponse.arrayBuffer();
-    const SQL = await initSqlJs({ wasmBinary });
-    
-    const dbResponse = await fetch(`${base}/db/${selectedDataset}_segment_results.db`);
-    const dbBuffer = await dbResponse.arrayBuffer();
-    const db = new SQL.Database(new Uint8Array(dbBuffer));
+    async function debugData() {
+      try {
+        const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
+        const wasmBinary = await wasmResponse.arrayBuffer();
+        const SQL = await initSqlJs({ wasmBinary });
 
-const stepStats = db.exec(`
+        const dbResponse = await fetch(
+          `${base}/db/${selectedDataset}_segment_results.db`,
+        );
+        const dbBuffer = await dbResponse.arrayBuffer();
+        const db = new SQL.Database(new Uint8Array(dbBuffer));
+
+        const stepStats = db.exec(`
 WITH RECURSIVE 
       numbers(n) AS (
         SELECT 0
@@ -2810,22 +2875,21 @@ WITH RECURSIVE
       ORDER BY original_rowid, window_start
 `)[0];
 
-const filteredWindows = stepStats.values.map(row => JSON.parse(row[3]));
+        const filteredWindows = stepStats.values.map((row) =>
+          JSON.parse(row[3]),
+        );
 
-console.log("Num:", filteredWindows.length);
-console.log("Test:", filteredWindows
-  .sort(() => Math.random() - 0.5)
-  .slice(0, 5)
-);
-    
-  } catch (error) {
-    console.error(error);
-  }
-}
+        console.log("Num:", filteredWindows.length);
+        console.log(
+          "Test:",
+          filteredWindows.sort(() => Math.random() - 0.5).slice(0, 5),
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    }
 
-await debugData();
-
-
+    await debugData();
   });
 
   function handleChartZoom(event) {
@@ -4640,13 +4704,26 @@ await debugData();
                     </div>
                   {/if}
                   <div class="chat-panel">
-                    <Interpreter 
-                      pattern={pattern}
+                    <Interpreter
+                      {pattern}
                       on:parsedFilters={handleInterpreterFilters}
                     />
                   </div>
                   {#if $patternDataList.length > 0 && isSearch == 2}
-                    <div>Search Results</div>
+                    <div
+                      style="display: flex; justify-content: space-between; align-items: center;"
+                    >
+                      <span>Search Results</span>
+                      <span style="font-size: 12px; color: #666;">
+                        Showing {Math.min(
+                          $showResultCount,
+                          $patternDataList.length,
+                        )} of {allSearchResults.length} results
+                        {#if loadedResultCount < allSearchResults.length}
+                          (Loaded {loadedResultCount})
+                        {/if}
+                      </span>
+                    </div>
                     {#each $patternDataList as sessionData, index (sessionData.segmentId)}
                       {#if index < $showResultCount}
                         <div class="search-result-container">
@@ -4721,11 +4798,20 @@ await debugData();
                         </button>
                         <button
                           class="search-pattern-button"
-                          on:click={() => {
-                            $showResultCount += 5;
+                          on:click={async () => {
+                            const newShowCount = $showResultCount + 5;
+                            // If we need more data than what's loaded, load it first
+                            if (
+                              newShowCount > loadedResultCount &&
+                              loadedResultCount < allSearchResults.length
+                            ) {
+                              await loadMoreResultsInternal(10); // Load 10 more at a time
+                            }
+                            $showResultCount = newShowCount;
                           }}
+                          disabled={isLoadingMore}
                         >
-                          More Results
+                          {isLoadingMore ? "Loading..." : "More Results"}
                         </button>
                       </div>
                     {:else}
