@@ -6,8 +6,8 @@
   export let width = 300;
   export let height;
   export let yScale;
-  export let xAxisField = "progress"; // 新增：X轴字段
-  export let yAxisField = "semantic_change"; // 新增：Y轴字段
+  export let xAxisField = "progress";
+  export let yAxisField = "semantic_change";
   export let selectionMode = false;
   export let readOnly = false;
   export let sharedSelection = null;
@@ -27,7 +27,7 @@
   let xScale;
   let newyScale;
 
-  // 属性配置池（从父组件传入，或使用默认值）
+  // attribute config for the chart
   export let attributeConfig = {
     progress: {
       label: "Writing length",
@@ -43,7 +43,7 @@
       getStart: (item) => item.start_time / 60,
       getEnd: (item) => item.end_time / 60,
       hasRange: true,
-      domain: null, // 动态计算
+      domain: null,
     },
     semantic_change: {
       label: "Semantic Change",
@@ -60,7 +60,7 @@
 
   import colors from "./colors.js";
   const colorPalette = colors(
-    "7fc97fbeaed4fdc086ffff99386cb0f0027fbf5b17666666"
+    "7fc97fbeaed4fdc086ffff99386cb0f0027fbf5b17666666",
   );
   let colorIndex = 0;
 
@@ -75,7 +75,7 @@
     zoomTransform = d3.zoomIdentity;
   }
 
-  // 监听轴字段变化，重新渲染
+  // listen to the axis field changes, re-render the chart
   $: if (xAxisField && yAxisField && similarityData && container) {
     renderChart();
   }
@@ -266,7 +266,9 @@
 
     // Safety check: ensure selected fields exist in config
     if (!xConfig || !yConfig) {
-      console.warn(`⚠️ Field not found in config: x=${xAxisField}, y=${yAxisField}`);
+      console.warn(
+        `⚠️ Field not found in config: x=${xAxisField}, y=${yAxisField}`,
+      );
       return;
     }
 
@@ -317,7 +319,7 @@
     if (!xDomain) {
       // automatically calculate the domain (e.g. time)
       const xValues = processedData.flatMap((d) =>
-        xConfig.hasRange ? [d.xStart, d.xEnd] : [d.xValue]
+        xConfig.hasRange ? [d.xStart, d.xEnd] : [d.xValue],
       );
       xDomain = [Math.min(...xValues), Math.max(...xValues)];
     }
@@ -325,7 +327,7 @@
     let yDomain = yConfig.domain;
     if (!yDomain) {
       const yValues = processedData.flatMap((d) =>
-        yConfig.hasRange ? [d.yStart, d.yEnd] : [d.yValue]
+        yConfig.hasRange ? [d.yStart, d.yEnd] : [d.yValue],
       );
       yDomain = [Math.min(...yValues), Math.max(...yValues)];
     }
@@ -464,7 +466,7 @@
       if (readOnly) {
         return;
       }
-      
+
       if (!event.selection) {
         resetBars();
         sharedSelection = null;

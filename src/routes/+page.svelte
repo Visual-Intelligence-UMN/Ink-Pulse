@@ -2411,7 +2411,7 @@
         };
       }
 
-      console.log(`  ✅ Added range field config: ${key}`);
+      console.log(`    Added range field config: ${key}`);
     }
 
     // Add point value fields
@@ -2427,7 +2427,7 @@
           domain: [0, 1],
         };
         console.log(
-          `  ✅ Added point field config: semantic_change (from ${key})`,
+          `    Added point field config: semantic_change (from ${key})`,
         );
       } else {
         // Generic point field
@@ -2437,11 +2437,11 @@
           hasRange: false,
           domain: null, // auto-calculate
         };
-        console.log(`  ✅ Added point field config: ${key}`);
+        console.log(`    Added point field config: ${key}`);
       }
     }
 
-    console.log("🎉 Config built successfully:", config);
+    console.log("  Config built successfully:", config);
     return config;
   }
 
@@ -2486,10 +2486,10 @@
         key,
         label: formatLabel(key),
       });
-      console.log(`  ✅ Numeric field detected: ${key}`);
+      console.log(`    Numeric field detected: ${key}`);
     }
 
-    console.log("🎯 LineChart detection complete:", fields);
+    console.log("  LineChart detection complete:", fields);
     return fields;
   }
 
@@ -2526,10 +2526,10 @@
         };
       }
 
-      console.log(`  ✅ Added LineChart field config: ${key}`);
+      console.log(`    Added LineChart field config: ${key}`);
     }
 
-    console.log("🎉 LineChart config built:", config);
+    console.log("  LineChart config built:", config);
     return config;
   }
 
@@ -2599,7 +2599,7 @@
               label: formatLabel(baseKey),
               hasRange: true,
             });
-            console.log(`  ✅ Range field detected: ${baseKey}`);
+            console.log(`    Range field detected: ${baseKey}`);
           }
           continue;
         }
@@ -2617,13 +2617,13 @@
           label: formatLabel(key),
           hasRange: false,
         });
-        console.log(`  ✅ Point field detected: ${key}`);
+        console.log(`    Point field detected: ${key}`);
       }
 
-      console.log("🎯 Detection complete:", fields);
+      console.log("  Detection complete:", fields);
       return fields;
     } catch (error) {
-      console.error("❌ Field detection failed:", error);
+      console.error("  Field detection failed:", error);
       return null;
     }
   }
@@ -2662,13 +2662,13 @@
   // Detect LineChart fields when first session data is available
   let lineChartFieldsDetected = false;
   let lastDetectedDataset = null;
-  
+
   // Reset detection flag when dataset changes
   $: if (selectedDataset !== lastDetectedDataset) {
     lineChartFieldsDetected = false;
     lastDetectedDataset = selectedDataset;
   }
-  
+
   $: if (
     $clickSession?.chartData &&
     !lineChartFieldsDetected &&
