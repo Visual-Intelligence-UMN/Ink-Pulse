@@ -5284,8 +5284,9 @@
                       <!-- Left: BarChart (Semantic Similarity) -->
                       <div class="chart-section">
                         <h4 class="chart-title">
-                          {barChartAttributeConfig[barChartYAxis]?.label ||
-                            barChartYAxis}
+                          {(barChartAttributeConfig[barChartXAxis]?.label || barChartXAxis) + 
+                            " vs " + 
+                            (barChartAttributeConfig[barChartYAxis]?.label || barChartYAxis)}
                         </h4>
                         <div
                           class="chart-wrapper-independent"
@@ -5320,8 +5321,9 @@
                       <!-- Right: LineChart (Writing Progress) -->
                       <div class="chart-section">
                         <h4 class="chart-title">
-                          {lineChartAttributeConfig[lineChartYAxis]?.label ||
-                            lineChartYAxis}
+                          {(lineChartAttributeConfig[lineChartXAxis]?.label || lineChartXAxis) + 
+                            " vs " + 
+                            (lineChartAttributeConfig[lineChartYAxis]?.label || lineChartYAxis)}
                         </h4>
                         <div
                           class="chart-wrapper-independent"
