@@ -6,8 +6,8 @@
   export let width = 300;
   export let height;
   export let yScale;
-  export let xAxisField = "progress"; // 新增：X轴字段
-  export let yAxisField = "semantic_change"; // 新增：Y轴字段
+  export let xAxisField = "progress";
+  export let yAxisField = "semantic_change";
   export let selectionMode = false;
   export let readOnly = false;
   export let sharedSelection = null;
@@ -27,8 +27,8 @@
   let xScale;
   let newyScale;
 
-  // 属性配置池
-  const attributeConfig = {
+  // attribute config for the chart
+  export let attributeConfig = {
     progress: {
       label: "Writing length",
       getValue: (item) => ((item.start_progress + item.end_progress) / 2) * 100,
@@ -43,7 +43,7 @@
       getStart: (item) => item.start_time / 60,
       getEnd: (item) => item.end_time / 60,
       hasRange: true,
-      domain: null, // 动态计算
+      domain: null,
     },
     semantic_change: {
       label: "Semantic Change",
@@ -60,7 +60,7 @@
 
   import colors from "./colors.js";
   const colorPalette = colors(
-    "7fc97fbeaed4fdc086ffff99386cb0f0027fbf5b17666666"
+    "7fc97fbeaed4fdc086ffff99386cb0f0027fbf5b17666666",
   );
   let colorIndex = 0;
 
@@ -75,7 +75,7 @@
     zoomTransform = d3.zoomIdentity;
   }
 
-  // 监听轴字段变化，重新渲染
+  // listen to the axis field changes, re-render the chart
   $: if (xAxisField && yAxisField && similarityData && container) {
     renderChart();
   }
@@ -255,8 +255,22 @@
   function renderChart() {
     d3.select(container).selectAll("svg").remove();
 
+    // Safety check: ensure attributeConfig is not empty
+    if (!attributeConfig || Object.keys(attributeConfig).length === 0) {
+      console.warn("⚠️ attributeConfig is empty, skipping render");
+      return;
+    }
+
     const xConfig = attributeConfig[xAxisField];
     const yConfig = attributeConfig[yAxisField];
+
+    // Safety check: ensure selected fields exist in config
+    if (!xConfig || !yConfig) {
+      console.warn(
+        `⚠️ Field not found in config: x=${xAxisField}, y=${yAxisField}`,
+      );
+      return;
+    }
 
     // process the data, calculate all the attribute values
     processedData = similarityData.map((item, i) => {
@@ -305,7 +319,7 @@
     if (!xDomain) {
       // automatically calculate the domain (e.g. time)
       const xValues = processedData.flatMap((d) =>
-        xConfig.hasRange ? [d.xStart, d.xEnd] : [d.xValue]
+        xConfig.hasRange ? [d.xStart, d.xEnd] : [d.xValue],
       );
       xDomain = [Math.min(...xValues), Math.max(...xValues)];
     }
@@ -313,7 +327,7 @@
     let yDomain = yConfig.domain;
     if (!yDomain) {
       const yValues = processedData.flatMap((d) =>
-        yConfig.hasRange ? [d.yStart, d.yEnd] : [d.yValue]
+        yConfig.hasRange ? [d.yStart, d.yEnd] : [d.yValue],
       );
       yDomain = [Math.min(...yValues), Math.max(...yValues)];
     }
@@ -374,8 +388,8 @@
           // X axis is range: use the start point
           return Math.min(xScale(d.xStart), xScale(d.xEnd));
         } else {
-          // X axis is point value: center
-          return xScale(d.xValue) - fixedBarWidth / 2;
+          // X axis is point value: extend from 0 to the value (horizontal bar)
+          return xScale(xDomain[0]);
         }
       })
       .attr("y", (d) => {
@@ -383,7 +397,7 @@
           // Y axis is range: use the end point (larger Y coordinate)
           return Math.min(newyScale(d.yStart), newyScale(d.yEnd));
         } else {
-          // Y axis is point value: extend from the point downward
+          // Y axis is point value: extend from 0 to the value (vertical bar)
           return newyScale(d.yValue);
         }
       })
@@ -392,8 +406,8 @@
           // X axis is range: width = range span
           return Math.abs(xScale(d.xEnd) - xScale(d.xStart));
         } else {
-          // X axis is point value: fixed width
-          return fixedBarWidth;
+          // X axis is point value: extend from 0 to value (rotation effect)
+          return xScale(d.xValue) - xScale(xDomain[0]);
         }
       })
       .attr("height", (d) => {
@@ -401,7 +415,7 @@
           // Y axis is range: height = range span
           return Math.abs(newyScale(d.yStart) - newyScale(d.yEnd));
         } else {
-          // Y axis is point value: extend from the point downward
+          // Y axis is point value: extend from value to 0 (rotation effect)
           return newyScale(yDomain[0]) - newyScale(d.yValue);
         }
       })
@@ -452,7 +466,7 @@
       if (readOnly) {
         return;
       }
-      
+
       if (!event.selection) {
         resetBars();
         sharedSelection = null;

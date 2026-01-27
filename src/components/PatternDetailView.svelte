@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-  import SessionCell from './sessionCell.svelte';
-  import { getCategoryIcon as getCategoryIconBase } from './topicIcons.js';
+  import { createEventDispatcher } from "svelte";
+  import SessionCell from "./sessionCell.svelte";
+  import { getCategoryIcon as getCategoryIconBase } from "./topicIcons.js";
   // import ScoreSummaryChart from './scoreSummaryChart.svelte';
   // import PercentageChart from './percentageChart.svelte'
   // import LengthChart from './lengthChart.svelte';
   // import OverallSemScoreChart from './overallSemScoreChart.svelte';
-  import FeatureChart from './featureChart.svelte';
-  import PatternChartPreview from './patternChartPreview.svelte';
-  
+  import FeatureChart from "./featureChart.svelte";
+  import PatternChartPreview from "./patternChartPreview.svelte";
+
   export let pattern;
   export let sessions;
   export let chartRefs = {};
@@ -16,22 +16,23 @@
   export let selectedDataset;
 
   const init = searchPatternSet.find(
-    (p) => p.id === "pattern_0" && p.dataset === pattern.dataset
+    (p) => p.id === "pattern_0" && p.dataset === pattern.dataset,
   );
   let featureData = init?.featuredata || [];
 
-  $: featureKeys = featureData.length > 0 
-    ? Object.keys(featureData[0]).filter(k => k !== 'session_id') 
-    : [];
+  $: featureKeys =
+    featureData.length > 0
+      ? Object.keys(featureData[0]).filter((k) => k !== "session_id")
+      : [];
   function getFeatureValues(feature, sessionIds) {
     return featureData
-      .filter(d => sessionIds.includes(d.session_id))
-      .map(d => ({ session_id: d.session_id, value: d[feature] }));
+      .filter((d) => sessionIds.includes(d.session_id))
+      .map((d) => ({ session_id: d.session_id, value: d[feature] }));
   }
 
-  $: patternSessionIds = patternSessions.map(s => s.sessionId);
+  $: patternSessionIds = patternSessions.map((s) => s.sessionId);
 
-  const NOWColor = '#999999';
+  const NOWColor = "#999999";
   // let scoreSummary = init.scoreSummary;
   // let percentageSummaryData = init.percentageSummaryData;
   // let percentageData = init.percentageData;
@@ -44,27 +45,27 @@
   let selectedIdDataset = `${init.id}::${init.dataset}`;
   $: title = [
     pattern?.name,
-    normalizeName(findPatternByKey(selectedIdDataset)?.name)
+    normalizeName(findPatternByKey(selectedIdDataset)?.name),
   ] as [string, string];
-  
+
   const dispatch = createEventDispatcher();
-  
+
   function handleBack() {
-    dispatch('back');
+    dispatch("back");
   }
-  
+
   function handleEditPattern() {
-    dispatch('edit-pattern', { pattern });
+    dispatch("edit-pattern", { pattern });
   }
-  
+
   function handleDeletePattern() {
-    dispatch('delete-pattern', { pattern });
+    dispatch("delete-pattern", { pattern });
   }
-  
+
   function handleRowClick(sessionData) {
-    dispatch('row-click', { sessionData });
+    dispatch("row-click", { sessionData });
   }
-  
+
   function getPromptCode(sessionId) {
     const found = sessions.find((s) => s.session_id === sessionId);
     return found?.prompt_code ?? "";
@@ -76,7 +77,7 @@
 
   function findPatternByKey(key) {
     const [id, dataset] = key.split("::");
-    return searchPatternSet.find(p => p.id === id && p.dataset === dataset);
+    return searchPatternSet.find((p) => p.id === id && p.dataset === dataset);
   }
 
   function handleSelectChange(event) {
@@ -102,7 +103,7 @@
       flag = selectedValue;
       title = [pattern.name, normalizeName(select?.name)];
       const selectData = select?.pattern || [];
-      patternData = selectData.map(item => item.sessionId);
+      patternData = selectData.map((item) => item.sessionId);
       // const patternSessions = select.pattern || [];
       // const temp = {};
       // for (const session of patternSessions) {
@@ -132,13 +133,21 @@
   // }
 
   function normalizeName(s) {
-    return s?.startsWith('Others-') ? 'Others' : s;
+    return s?.startsWith("Others-") ? "Others" : s;
   }
 
-  $: filteredPatterns = searchPatternSet.filter(p => p.dataset === pattern.dataset);
+  $: filteredPatterns = searchPatternSet.filter(
+    (p) => p.dataset === pattern.dataset,
+  );
   $: {
-    if (!filteredPatterns.find(p => `${p.id}::${p.dataset}` === selectedIdDataset)) {
-      const defaultPattern = filteredPatterns.find(p => p.id === "pattern_0") || filteredPatterns[0];
+    if (
+      !filteredPatterns.find(
+        (p) => `${p.id}::${p.dataset}` === selectedIdDataset,
+      )
+    ) {
+      const defaultPattern =
+        filteredPatterns.find((p) => p.id === "pattern_0") ||
+        filteredPatterns[0];
       if (defaultPattern) {
         const dataset = defaultPattern.dataset.startsWith("Others-")
           ? "Others"
@@ -149,32 +158,41 @@
       }
     }
   }
-
 </script>
 
 <div class="pattern-detail-container">
   <div class="pattern-detail-header">
-    <button class="back-button" on:click={handleBack}>
-      ← Back
-    </button>
+    <button class="back-button" on:click={handleBack}> ← Back </button>
     <h2>Pattern "{pattern?.name}" Details</h2>
     <button class="close-button" on:click={handleBack}>✕</button>
   </div>
-  
+
   <div class="pattern-info">
     <div class="pattern-icon-large" style="background-color: {pattern?.color}">
-      {pattern?.name?.slice(0, 2).toUpperCase() || '?'}
+      {pattern?.name?.slice(0, 2).toUpperCase() || "?"}
     </div>
     <div class="pattern-stats">
-      <span>📊 {patternSessions.length} sessions</span>
-      <span>📅 Created: {pattern?.metadata?.createdAt ? new Date(pattern.metadata.createdAt).toLocaleDateString() : 'Recently'}</span>
+      <span> {patternSessions.length} sessions</span>
+      <span
+        >📅 Created: {pattern?.metadata?.createdAt
+          ? new Date(pattern.metadata.createdAt).toLocaleDateString()
+          : "Recently"}</span
+      >
       <div style="display: flex; align-items: center; gap: 10px;">
-        <span>⚖️ 
-          <span style="width: 10px; height: 10px; background-color: {pattern.color}; border-radius: 50%; display: inline-block;"
-          aria-label="color dot"></span>
-          {pattern.name}</span>
+        <span
+          >⚖️
+          <span
+            style="width: 10px; height: 10px; background-color: {pattern.color}; border-radius: 50%; display: inline-block;"
+            aria-label="color dot"
+          ></span>
+          {pattern.name}</span
+        >
         <span>VS</span>
-        <select id="pattern-select" bind:value={selectedIdDataset} on:change={handleSelectChange}>
+        <select
+          id="pattern-select"
+          bind:value={selectedIdDataset}
+          on:change={handleSelectChange}
+        >
           {#each filteredPatterns as filteredPattern}
             <option value={`${filteredPattern.id}::${filteredPattern.dataset}`}>
               {normalizeName(filteredPattern.name)}
@@ -186,19 +204,18 @@
     </div>
   </div>
 
-  <div class="pattern-item" >
+  <div class="pattern-item">
     <div class="pattern-header">
       <h5>Session: {pattern.searchDetail.sessionId.slice(0, 4)}</h5>
     </div>
     <div class="pattern-details">
       <div>
-        Semantic Change: {pattern.searchDetail.dataRange.scRange.min.toFixed(
-          2
-        )} - {pattern.searchDetail.dataRange.scRange.max.toFixed(2)}
+        Semantic Change: {pattern.searchDetail.dataRange.scRange.min.toFixed(2)}
+        - {pattern.searchDetail.dataRange.scRange.max.toFixed(2)}
       </div>
       <div>
         Progress Range: {pattern.searchDetail.dataRange.progressRange.min.toFixed(
-          2
+          2,
         )}% - {pattern.searchDetail.dataRange.progressRange.max.toFixed(2)}%
       </div>
       <div>
@@ -208,11 +225,11 @@
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
       <div class="pattern-chart-preview small-preview">
         <PatternChartPreview
-        sessionId = {pattern.searchDetail.sessionId}
-        data={pattern.searchDetail.data}
-        wholeData={pattern.searchDetail.wholeData}
-        selectedRange={pattern.searchDetail.range}
-        bind:this={chartRefs[pattern.searchDetail.sessionId]}
+          sessionId={pattern.searchDetail.sessionId}
+          data={pattern.searchDetail.data}
+          wholeData={pattern.searchDetail.wholeData}
+          selectedRange={pattern.searchDetail.range}
+          bind:this={chartRefs[pattern.searchDetail.sessionId]}
         />
       </div>
       <div style="margin-top: 15px; margin-left:10px; width: 40%">
@@ -227,10 +244,7 @@
           />
           Writing Progress
           <div></div>
-            <label
-              class="switch"
-              style="transform: translateY(1px);"
-            >
+          <label class="switch" style="transform: translateY(1px);">
             <input
               type="checkbox"
               class="readonly"
@@ -239,7 +253,7 @@
               hidden
             />
             <span class="slider readonly"></span>
-            </label>
+          </label>
         </div>
         <div
           style="display: flex; align-items: center; font-size: 13px; color: #5f6368;"
@@ -248,13 +262,11 @@
             type="checkbox"
             class="readonly"
             checked={pattern.searchDetail.flag.isTimeChecked}
-            disabled />
+            disabled
+          />
           Time
           <div></div>
-          <label
-              class="switch"
-              style="transform: translateY(1px);"
-            >
+          <label class="switch" style="transform: translateY(1px);">
             <input
               type="checkbox"
               class="readonly"
@@ -263,11 +275,9 @@
               hidden
             />
             <span class="slider readonly"></span>
-            </label>
+          </label>
         </div>
-        <div
-          style="font-size: 13px; color: #5f6368;"
-        >
+        <div style="font-size: 13px; color: #5f6368;">
           <input
             type="checkbox"
             class="readonly"
@@ -313,7 +323,10 @@
 
   <div class="chart-legend">
     <div class="legend-item">
-      <div class="color-box" style="background-color: {NOWColor}; border-color: {NOWColor}"></div>
+      <div
+        class="color-box"
+        style="background-color: {NOWColor}; border-color: {NOWColor}"
+      ></div>
       <span>{title[0]}</span>
     </div>
     <div class="legend-item">
@@ -343,8 +356,8 @@
         {title}
       />
     {/each}
-    
-  <!-- <ScoreSummaryChart
+
+    <!-- <ScoreSummaryChart
     rawData={scoreSummary}
     nowData={scoreCount}
     {flag}
@@ -371,16 +384,15 @@
     {flag}
     {title}
   /> -->
-</div>
-  
+  </div>
+
   <div class="table-container">
     <table class="pattern-sessions-table">
       <thead>
         <tr>
           <th style="width: 100%">Activity</th>
         </tr>
-        <tr>
-        </tr>
+        <tr> </tr>
       </thead>
       <tbody>
         {#each patternSessions as sessionData, _ (sessionData.sessionId)}
@@ -398,7 +410,7 @@
             </td>
           </tr>
         {/each}
-        
+
         {#if patternSessions.length === 0}
           <tr>
             <td colspan="1" class="empty-state">
@@ -409,7 +421,7 @@
       </tbody>
     </table>
   </div>
-  
+
   <div class="action-buttons">
     <!-- <button class="btn btn-secondary" on:click={handleEditPattern}>
       Edit Pattern
@@ -429,7 +441,7 @@
     min-height: 100vh;
     overflow: visible;
   }
-  
+
   .pattern-detail-header {
     display: flex;
     align-items: center;
@@ -438,14 +450,15 @@
     padding-bottom: 15px;
     border-bottom: 2px solid #e0e0e0;
   }
-  
+
   .pattern-detail-header h2 {
     margin: 0;
     font-size: 24px;
     color: #333;
   }
-  
-  .back-button, .close-button {
+
+  .back-button,
+  .close-button {
     background: none;
     border: none;
     font-size: 16px;
@@ -454,11 +467,12 @@
     border-radius: 4px;
     transition: background-color 0.2s ease;
   }
-  
-  .back-button:hover, .close-button:hover {
+
+  .back-button:hover,
+  .close-button:hover {
     background-color: #f0f0f0;
   }
-  
+
   .pattern-info {
     display: flex;
     align-items: center;
@@ -467,7 +481,7 @@
     background-color: #f8f9fa;
     border-radius: 8px;
   }
-  
+
   .pattern-icon-large {
     width: 48px;
     height: 48px;
@@ -479,7 +493,7 @@
     font-size: 18px;
     color: white;
   }
-  
+
   .pattern-stats {
     display: flex;
     flex-direction: column;
@@ -487,7 +501,7 @@
     font-size: 14px;
     color: #666;
   }
-  
+
   .table-container {
     background: white;
     border-radius: 8px;
@@ -496,16 +510,16 @@
     margin-bottom: 25px;
     max-height: none;
   }
-  
+
   .pattern-sessions-table {
     width: 100%;
     border-collapse: collapse;
   }
-  
+
   .pattern-sessions-table thead {
     background-color: #f8f9fa;
   }
-  
+
   .pattern-sessions-table th {
     padding: 15px;
     text-align: left;
@@ -513,44 +527,44 @@
     color: #333;
     border-bottom: 2px solid #e0e0e0;
   }
-  
+
   .pattern-sessions-table tbody {
     max-height: none;
     overflow: visible;
   }
-  
+
   .session-row {
     cursor: pointer;
     transition: background-color 0.2s ease;
     margin-bottom: 0px;
   }
-  
+
   .session-row:hover {
     background-color: #f8f9fa;
   }
-  
+
   .session-row:not(:last-child) {
     border-bottom: 1px solid #e0e0e0;
   }
-  
+
   .activity-cell {
     vertical-align: top;
   }
-  
+
   .empty-state {
     padding: 40px;
     text-align: center;
     color: #666;
     font-style: italic;
   }
-  
+
   .action-buttons {
     display: flex;
     gap: 12px;
     justify-content: center;
     padding-top: 20px;
   }
-  
+
   .btn {
     padding: 12px 24px;
     border: none;
@@ -560,58 +574,58 @@
     cursor: pointer;
     transition: all 0.2s ease;
   }
-  
+
   .btn-primary {
     background-color: #007bff;
     color: white;
   }
-  
+
   .btn-primary:hover {
     background-color: #0056b3;
     transform: translateY(-1px);
   }
-  
+
   .btn-secondary {
     background-color: #6c757d;
     color: white;
   }
-  
+
   .btn-secondary:hover {
     background-color: #545b62;
     transform: translateY(-1px);
   }
-  
+
   .btn-danger {
     background-color: #dc3545;
     color: white;
   }
-  
+
   .btn-danger:hover {
     background-color: #c82333;
     transform: translateY(-1px);
   }
 
-   .pattern-item {
+  .pattern-item {
     background-color: #f8f9fa;
     border-radius: 6px;
     padding: 20px;
     margin-bottom: 12px;
   }
-  
-   .pattern-header {
+
+  .pattern-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
   }
 
-    .pattern-details {
+  .pattern-details {
     font-size: 13px;
     color: #5f6368;
     margin-bottom: 10px;
   }
 
-    .pattern-chart-preview {
+  .pattern-chart-preview {
     width: 240px;
     height: 192px;
     border: 1px solid #e0e0e0;
@@ -622,14 +636,13 @@
 
   .readonly {
     opacity: 0.5;
-
   }
 
-  input:checked+.slider {
+  input:checked + .slider {
     background-color: #ffbbcc;
   }
 
-  input:checked+.slider::before {
+  input:checked + .slider::before {
     transform: translateX(11px);
   }
 
@@ -659,8 +672,8 @@
 
   .switch {
     position: relative;
-    display: inline-block;  /* or inline-flex */
-    width: 26px;             /* or whatever width you need */
+    display: inline-block; /* or inline-flex */
+    width: 26px; /* or whatever width you need */
     height: 14px;
     margin-left: 3px;
   }
