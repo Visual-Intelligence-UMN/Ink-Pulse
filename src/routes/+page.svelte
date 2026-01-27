@@ -2461,8 +2461,8 @@
       numericFields: [],
     };
 
-    // Known numeric fields in chartData
-    const knownNumericFields = ["time", "percentage"];
+    // Fields to exclude from LineChart (not useful for visualization)
+    const excludedFields = ["index", "opacity"];
 
     // Iterate all keys in sample
     for (const key in sample) {
@@ -2476,9 +2476,9 @@
         continue;
       }
 
-      // Skip index (not useful for visualization)
-      if (key === "index") {
-        console.log(`  ⏭️  Skipping index field`);
+      // Skip excluded fields
+      if (excludedFields.includes(key)) {
+        console.log(`  ⏭️  Skipping excluded field: ${key}`);
         continue;
       }
 
@@ -2661,6 +2661,14 @@
 
   // Detect LineChart fields when first session data is available
   let lineChartFieldsDetected = false;
+  let lastDetectedDataset = null;
+  
+  // Reset detection flag when dataset changes
+  $: if (selectedDataset !== lastDetectedDataset) {
+    lineChartFieldsDetected = false;
+    lastDetectedDataset = selectedDataset;
+  }
+  
   $: if (
     $clickSession?.chartData &&
     !lineChartFieldsDetected &&

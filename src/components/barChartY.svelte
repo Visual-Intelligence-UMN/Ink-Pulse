@@ -386,8 +386,8 @@
           // X axis is range: use the start point
           return Math.min(xScale(d.xStart), xScale(d.xEnd));
         } else {
-          // X axis is point value: center
-          return xScale(d.xValue) - fixedBarWidth / 2;
+          // X axis is point value: extend from 0 to the value (horizontal bar)
+          return xScale(xDomain[0]);
         }
       })
       .attr("y", (d) => {
@@ -395,7 +395,7 @@
           // Y axis is range: use the end point (larger Y coordinate)
           return Math.min(newyScale(d.yStart), newyScale(d.yEnd));
         } else {
-          // Y axis is point value: extend from the point downward
+          // Y axis is point value: extend from 0 to the value (vertical bar)
           return newyScale(d.yValue);
         }
       })
@@ -404,8 +404,8 @@
           // X axis is range: width = range span
           return Math.abs(xScale(d.xEnd) - xScale(d.xStart));
         } else {
-          // X axis is point value: fixed width
-          return fixedBarWidth;
+          // X axis is point value: extend from 0 to value (rotation effect)
+          return xScale(d.xValue) - xScale(xDomain[0]);
         }
       })
       .attr("height", (d) => {
@@ -413,7 +413,7 @@
           // Y axis is range: height = range span
           return Math.abs(newyScale(d.yStart) - newyScale(d.yEnd));
         } else {
-          // Y axis is point value: extend from the point downward
+          // Y axis is point value: extend from value to 0 (rotation effect)
           return newyScale(yDomain[0]) - newyScale(d.yValue);
         }
       })
