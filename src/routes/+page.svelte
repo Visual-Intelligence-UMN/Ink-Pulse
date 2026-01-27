@@ -2455,7 +2455,7 @@
     }
 
     const sample = chartDataSample[0];
-    console.log("📊 LineChart sample:", sample);
+    console.log("  LineChart sample:", sample);
 
     const fields = {
       numericFields: [],
@@ -2471,14 +2471,14 @@
       // Check if numeric
       if (typeof value !== "number") {
         console.log(
-          `  ⏭️  Skipping non-numeric field: ${key} (${typeof value})`,
+          `     Skipping non-numeric field: ${key} (${typeof value})`,
         );
         continue;
       }
 
       // Skip excluded fields
       if (excludedFields.includes(key)) {
-        console.log(`  ⏭️  Skipping excluded field: ${key}`);
+        console.log(`     Skipping excluded field: ${key}`);
         continue;
       }
 
@@ -2560,7 +2560,7 @@
 
       // 2. Analyze first segment's fields
       const sample = segmentData[0];
-      console.log("📊 Sample data:", sample);
+      console.log("  Sample data:", sample);
 
       const fields = {
         rangeFields: [],
@@ -2577,7 +2577,7 @@
         // Skip non-numeric fields
         if (typeof value !== "number") {
           console.log(
-            `  ⏭️  Skipping non-numeric field: ${key} (${typeof value})`,
+            `     Skipping non-numeric field: ${key} (${typeof value})`,
           );
           continue;
         }
@@ -2655,7 +2655,7 @@
   $: if (barChartAttributeConfig && selectedDataset) {
     // Triggered whenever barChartAttributeConfig or selectedDataset changes
     if (Object.keys(barChartAttributeConfig).length > 0) {
-      console.log("📊 Configuration updated for dataset:", selectedDataset);
+      console.log("  Configuration updated for dataset:", selectedDataset);
     }
   }
 
