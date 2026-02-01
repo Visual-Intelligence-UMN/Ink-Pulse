@@ -782,62 +782,53 @@
       return featureDef.range(range.from, range.to, ref);
     }
 
+    // Helpers to avoid code duplication and support unrolling
+    const getProgressExpr = (idx, ref) => `COALESCE(
+      CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].end_progress') AS REAL),0
+    ) - COALESCE(
+      CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].start_progress') AS REAL),0
+    )`;
+
+    const getTimeExpr = (idx, ref) => `COALESCE(
+      CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].end_time') AS REAL),0
+    ) - COALESCE(
+      CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].start_time') AS REAL),0
+    )`;
+
+    const getSemanticExpr = (idx, ref) => `COALESCE(
+      CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].residual_vector_norm') AS REAL),0
+    )`;
+
     const featureMap = {
       progress: {
-        point: (idx, ref) => `COALESCE(
-          CAST(JSON_EXTRACT(${ref}, '$[${idx}].end_progress') AS REAL),0
-        ) - COALESCE(
-          CAST(JSON_EXTRACT(${ref}, '$[${idx}].start_progress') AS REAL),0
-        )`,
-        range: (from, to, ref) => `
-          (
-            SELECT SUM(
-              COALESCE(
-                CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_progress') AS REAL),0
-              ) - COALESCE(
-                CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_progress') AS REAL),0
-              )
-            )
-            FROM idx k
-            WHERE k.i BETWEEN ${from} AND ${to}
-          )
-        `
+        point: (idx, ref) => getProgressExpr(idx, ref),
+        range: (from, to, ref) => {
+          const parts = [];
+          for (let i = from; i <= to; i++) {
+            parts.push(getProgressExpr(i, ref));
+          }
+          return `(${parts.join(' + ')})`;
+        }
       },
       time: {
-        point: (idx, ref) => `COALESCE(
-          CAST(JSON_EXTRACT(${ref}, '$[${idx}].end_time') AS REAL),0
-        ) - COALESCE(
-          CAST(JSON_EXTRACT(${ref}, '$[${idx}].start_time') AS REAL),0
-        )`,
-        range: (from, to, ref) => `
-          (
-            SELECT SUM(
-              COALESCE(
-                CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_time') AS REAL),0
-              ) - COALESCE(
-                CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_time') AS REAL),0
-              )
-            )
-            FROM idx k
-            WHERE k.i BETWEEN ${from} AND ${to}
-          )
-        `
+        point: (idx, ref) => getTimeExpr(idx, ref),
+        range: (from, to, ref) => {
+          const parts = [];
+          for (let i = from; i <= to; i++) {
+            parts.push(getTimeExpr(i, ref));
+          }
+          return `(${parts.join(' + ')})`;
+        }
       },
       semantic_change: {
-        point: (idx, ref) => `COALESCE(
-          CAST(JSON_EXTRACT(${ref}, '$[${idx}].residual_vector_norm') AS REAL),0
-        )`,
-        range: (from, to, ref) => `
-          (
-            SELECT SUM(
-              COALESCE(
-                CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].residual_vector_norm') AS REAL),0
-              )
-            )
-            FROM idx k
-            WHERE k.i BETWEEN ${from} AND ${to}
-          )
-        `
+        point: (idx, ref) => getSemanticExpr(idx, ref),
+        range: (from, to, ref) => {
+          const parts = [];
+          for (let i = from; i <= to; i++) {
+            parts.push(getSemanticExpr(i, ref));
+          }
+          return `(${parts.join(' + ')})`;
+        }
       }
     };
 
@@ -851,7 +842,7 @@
           position: filter.l_position,
           span: filter.span
         },
-        'window_content'
+        'd.content' 
       );
       const rExpr = buildExpr(
         {
@@ -859,7 +850,7 @@
           position: filter.r_position,
           span: filter.span
         },
-        'window_content'
+        'd.content'
       );
       if (!lExpr || !rExpr) return null;
 
@@ -870,7 +861,7 @@
     const hasSourceConstraint = explanations.some(exp => exp.feature === 'source');
     const sourcePattern = Object.values(selectedPatterns)[0].sources || [];
     const sourceConstraints = hasSourceConstraint
-      ? sourcePattern.map((src, i) => `JSON_EXTRACT(window_content, '$[${i}].source') = '${src}'`)
+      ? sourcePattern.map((src, i) => `JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = '${src}'`)
       : [];
     const whereClause = [...comparisons, ...sourceConstraints].join(' AND ');
     const elements = Array(windowSize).fill(0).map((_, i) => i);
@@ -1198,6 +1189,7 @@
       await segmentQuery(patternVectors, checks);
       return;
     }
+    console.log("Search with manual checks..."); 
 
     try {
       const datasetInfo = datasets.find((d) => d.name === selectedDataset);
@@ -1335,7 +1327,7 @@
   async function segmentQuery(patternVectors, checks) {
     // Temporarily use checkboxes to build vector, later will be replaced by interpreter output
     // Function called when interpretedQuery is not empty
-    // console.log("Executing segment query:", interpretedQuery);
+    console.log("search with interpreted query...");
 
     if (!interpretedQuery || interpretedQuery.trim() === "") {
       console.warn("No query provided");
