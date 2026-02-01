@@ -187,6 +187,7 @@
   let lastSession = null;
   let datasets = [];
   let selectedDataset = "creative";
+  let interpretedQuery = null;
 
   // Reset playback state when session changes
   let lastPlaybackSessionId = null;
@@ -1188,6 +1189,11 @@
       trend: [isValueTrendChecked, semanticTrend],
     };
 
+    if (interpretedQuery && interpretedQuery.trim() !== "") {
+      await segmentQuery(patternVectors, checks);
+      return;
+    }
+
     try {
       const datasetInfo = datasets.find((d) => d.name === selectedDataset);
       let segmentSources = [];
@@ -1319,6 +1325,50 @@
       isSearch = 0;
       console.error("Search failed", error);
     }
+  }
+
+  async function segmentQuery(patternVectors, checks) {
+    // Temporarily use checkboxes to build vector, later will be replaced by interpreter output
+    // Function called when interpretedQuery is not empty
+    console.log("Executing segment query:", interpretedQuery);
+
+    if (!interpretedQuery || interpretedQuery.trim() === "") {
+      console.warn("No query provided");
+      return;
+    }
+    const currentVector = buildVectorForCurrentSegment(
+      currentResults,
+      checks,
+    );
+    const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
+    const wasmBinary = await wasmResponse.arrayBuffer();
+    const SQL = await initSqlJs({ wasmBinary });
+    
+    const dbResponse = await fetch(`${base}/db/${selectedDataset}_segment_results.db`);
+    const dbBuffer = await dbResponse.arrayBuffer();
+    const db = new SQL.Database(new Uint8Array(dbBuffer));
+    const stepStats = db.exec(interpretedQuery)[0];
+    const filteredWindows = stepStats.values.map(row => JSON.parse(row[3]));
+    patternData = filteredWindows;
+
+    //slicing for testing purposes
+    patternData = patternData.slice(0, 100);
+
+    patternVectors = [];
+    for(const segment of patternData) {
+      const vector = buildVectorFromSegment(segment, checks);
+      vector.id = segment[0]?.id ?? null;
+      vector.segmentId = segment[0]?.segmentId ?? null;
+      patternVectors.push(vector);
+    }
+
+    const finalScore = await calculateRankAuto(patternVectors, currentVector);
+    const idToData = Object.fromEntries(
+      patternData.map((d) => [d[0].segmentId, d]),
+    );
+    const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
+    searchCount = fullData.length;
+    patternDataLoad(fullData);
   }
 
   function l2(arr1, arr2) {
@@ -2653,37 +2703,57 @@ async function debugData() {
     const dbResponse = await fetch(`${base}/db/${selectedDataset}_segment_results.db`);
     const dbBuffer = await dbResponse.arrayBuffer();
     const db = new SQL.Database(new Uint8Array(dbBuffer));
-
-const stepStats = db.exec(`
-WITH RECURSIVE 
-numbers(n) AS (
-  SELECT 0
-  UNION ALL
-  SELECT n + 1 FROM numbers 
-  WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
-)
-SELECT 
-  d.rowid as original_rowid,
-  d.content as original_content,
-  n.n as window_start,
-  json_array(json_extract(d.content, '$[' || (n.n + 0) || ']'), json_extract(d.content, '$[' || (n.n + 1) || ']'), json_extract(d.content, '$[' || (n.n + 2) || ']')) as window_content
-FROM data d
-JOIN numbers n 
-  ON n.n + 2 < json_array_length(d.content)
-WHERE json_array_length(d.content) >= 3
-  AND json_extract(d.content, '$[' || (n.n + 0) || ']') IS NOT NULL AND json_extract(d.content, '$[' || (n.n + 1) || ']') IS NOT NULL AND json_extract(d.content, '$[' || (n.n + 2) || ']') IS NOT NULL
-  AND (JSON_EXTRACT(window_content, '$[0].source') = 'api' AND JSON_EXTRACT(window_content, '$[1].source') = 'api' AND JSON_EXTRACT(window_content, '$[2].source') = 'user')
-ORDER BY original_rowid, window_start
-`)[0];
-
-const filteredWindows = stepStats.values.map(row => JSON.parse(row[3]));
-
-
-console.log("Num:", filteredWindows.length);
-console.log("Test:", filteredWindows
-  .sort(() => Math.random() - 0.5)
-  .slice(0, 5)
-);
+    interpretedQuery = `
+      WITH RECURSIVE numbers(n) AS (
+        SELECT 0
+        UNION ALL
+        SELECT n + 1
+        FROM numbers
+        WHERE n < (
+          SELECT MAX(json_array_length(content))
+          FROM data
+        )
+      )
+      SELECT
+        d.rowid AS original_rowid,
+        d.content AS original_content,
+        n.n AS window_start,
+        json_array(
+          json_set(
+            json_extract(d.content, '$[' || (n.n + 0) || ']'),
+            '$.id', d.id,
+            '$.segmentId', d.id || '_' || (n.n + 0)
+          ),
+          json_set(
+            json_extract(d.content, '$[' || (n.n + 1) || ']'),
+            '$.id', d.id,
+            '$.segmentId', d.id || '_' || (n.n + 1)
+          ),
+          json_set(
+            json_extract(d.content, '$[' || (n.n + 2) || ']'),
+            '$.id', d.id,
+            '$.segmentId', d.id || '_' || (n.n + 2)
+          )
+        ) AS window_content
+      FROM data d
+      JOIN numbers n
+        ON n.n + 2 < json_array_length(d.content)
+      WHERE json_array_length(d.content) >= 3
+        AND json_extract(d.content, '$[' || (n.n + 0) || ']') IS NOT NULL
+        AND json_extract(d.content, '$[' || (n.n + 1) || ']') IS NOT NULL
+        AND json_extract(d.content, '$[' || (n.n + 2) || ']') IS NOT NULL
+        AND json_extract(d.content, '$[' || (n.n + 0) || '].source') = 'api'
+        AND json_extract(d.content, '$[' || (n.n + 1) || '].source') = 'api'
+        AND json_extract(d.content, '$[' || (n.n + 2) || '].source') = 'user'
+      ORDER BY original_rowid, window_start
+      `;
+    const stepStats = db.exec(interpretedQuery)[0];
+    const filteredWindows = stepStats.values.map(row => JSON.parse(row[3]));
+    console.log("Num:", filteredWindows.length);
+    console.log("Test:", filteredWindows
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 5)
+    );
     
   } catch (error) {
     console.error(error);
