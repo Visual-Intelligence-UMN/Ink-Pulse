@@ -887,8 +887,12 @@
         d.content as original_content,
         n.n as window_start,
         json_array(${
-          elements.map(i => 
-            `json_extract(d.content, '$[' || (n.n + ${i}) || ']')`
+          elements.map(i =>
+            `json_set(
+              json_extract(d.content, '$[' || (n.n + ${i}) || ']'),
+              '$.id', d.id,
+              '$.segmentId', d.id || '_' || (n.n + ${i})
+            )`
           ).join(', ')
         }) as window_content
       FROM data d
@@ -902,6 +906,7 @@
       ORDER BY original_rowid, window_start
     `;
     console.log('SQL:', sqlQuery);
+    interpretedQuery = sqlQuery;
   }
 
   function getTrendPattern(values) {
@@ -1330,7 +1335,7 @@
   async function segmentQuery(patternVectors, checks) {
     // Temporarily use checkboxes to build vector, later will be replaced by interpreter output
     // Function called when interpretedQuery is not empty
-    console.log("Executing segment query:", interpretedQuery);
+    // console.log("Executing segment query:", interpretedQuery);
 
     if (!interpretedQuery || interpretedQuery.trim() === "") {
       console.warn("No query provided");
