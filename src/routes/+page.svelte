@@ -1440,7 +1440,7 @@
     patternData = filteredWindows;
 
     //slicing for testing purposes
-    patternData = patternData.slice(0, 100);
+    // patternData = patternData.slice(0, 100);
 
     patternVectors = [];
     for (const segment of patternData) {
