@@ -28,7 +28,7 @@
   }
 
   function handleSave() {
-    // 保存所有修改的颜色
+    // save all modified colors
     Object.entries(sourceColors).forEach(([source, color]) => {
       if (color !== originalColors[source]) {
         sourceColorManager.setCustomColor(source, color);
@@ -65,7 +65,7 @@
     }
   }
 
-  // 格式化来源名称显示
+  // format source name for display
   function formatSourceName(source) {
     const nameMap = {
       user: "Human",
