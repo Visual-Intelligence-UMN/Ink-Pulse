@@ -5539,7 +5539,7 @@ WITH RECURSIVE
   bind:show={showColorSettings}
   {knownSources}
   on:save={() => {
-    // 触发所有图表重新渲染以反映新颜色
+    // trigger all charts to re-render to reflect new colors
     initData.update((data) => [...data]);
   }}
   on:close={() => {
