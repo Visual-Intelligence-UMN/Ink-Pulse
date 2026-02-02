@@ -6,8 +6,8 @@
   export let width = 300;
   export let height;
   export let yScale;
-  export let xAxisField = "progress"; // 新增：X轴字段
-  export let yAxisField = "semantic_change"; // 新增：Y轴字段
+  export let xAxisField = "progress"; // default x axis field
+  export let yAxisField = "semantic_change"; // default y axis field
   export let selectionMode = false;
   export let readOnly = false;
   export let sharedSelection = null;
@@ -44,14 +44,14 @@
       getEnd: (item) => {
         const startTime = item.start_time / 60;
         const endTime = item.end_time / 60;
-        // 如果是AI且时间相同（瞬时操作），添加一个很小的时间跨度（0.05分钟 = 3秒）
+        // if the source is api and the start time is the same as the end time, add a small time span (0.05 minutes = 3 seconds)
         if (item.source === "api" && startTime === endTime) {
           return endTime + 0.05;
         }
         return endTime;
       },
       hasRange: true,
-      domain: null, // 动态计算
+      domain: null,
     },
     semantic_change: {
       label: "Semantic Change",
@@ -63,7 +63,7 @@
 
   import sourceColorManager from "./sourceColorManager.js";
 
-  // 使用颜色管理器获取颜色
+  // use color manager to get color
   function getSourceColor(source) {
     return sourceColorManager.getColor(source);
   }
@@ -79,7 +79,7 @@
     zoomTransform = d3.zoomIdentity;
   }
 
-  // 监听轴字段变化，重新渲染
+  // listen to axis field changes and re-render
   $: if (xAxisField && yAxisField && similarityData && container) {
     renderChart();
   }
