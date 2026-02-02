@@ -61,16 +61,12 @@
     },
   };
 
-  const colorMap = {
-    user: "#66C2A5",
-    api: "#FC8D62",
-  };
+  import sourceColorManager from "./sourceColorManager.js";
 
-  import colors from "./colors.js";
-  const colorPalette = colors(
-    "7fc97fbeaed4fdc086ffff99386cb0f0027fbf5b17666666"
-  );
-  let colorIndex = 0;
+  // 使用颜色管理器获取颜色
+  function getSourceColor(source) {
+    return sourceColorManager.getColor(source);
+  }
 
   onMount(() => {
     if (similarityData && container) {
@@ -413,28 +409,8 @@
           return newyScale(yDomain[0]) - newyScale(d.yValue);
         }
       })
-      .attr("fill", (d) => {
-        if (d.source === "user") {
-          return colorMap.user;
-        } else if (d.source === "api") {
-          return colorMap.api;
-        } else {
-          const color = colorPalette[colorIndex % colorPalette.length];
-          colorIndex++;
-          return color;
-        }
-      })
-      .attr("stroke", (d) => {
-        if (d.source === "user") {
-          return colorMap.user;
-        } else if (d.source === "api") {
-          return colorMap.api;
-        } else {
-          const color = colorPalette[colorIndex % colorPalette.length];
-          colorIndex++;
-          return color;
-        }
-      })
+      .attr("fill", (d) => getSourceColor(d.source))
+      .attr("stroke", (d) => getSourceColor(d.source))
       .attr("opacity", 0.5)
       .attr("stroke-width", 0.1)
       .attr("clip-path", `url(#clip_bar_${uniqueId})`);

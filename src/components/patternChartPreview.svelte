@@ -15,16 +15,11 @@
   let width = 150;
   let height = 120;
 
-  const colorMap = {
-    user: "#66C2A5",
-    api: "#FC8D62",
-  };
+  import sourceColorManager from "./sourceColorManager.js";
 
-  import colors from "./colors.js";
-  const colorPalette = colors(
-    "7fc97fbeaed4fdc086ffff99386cb0f0027fbf5b17666666",
-  );
-  let colorIndex = 0;
+  function getSourceColor(source) {
+    return sourceColorManager.getColor(source);
+  }
 
   onMount(() => {
     if (data && container) {
@@ -83,7 +78,7 @@
       .attr("height", "100%")
       .attr(
         "viewBox",
-        `0 0 ${chartWidth + margin.left + margin.right} ${chartHeight + margin.top + margin.bottom}`,
+        `0 0 ${chartWidth + margin.left + margin.right} ${chartHeight + margin.top + margin.bottom}`
       )
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
@@ -134,7 +129,7 @@
       .attr("y", (d) =>
         newyScale(d.startProgress) < newyScale(d.endProgress)
           ? newyScale(d.startProgress)
-          : newyScale(d.endProgress),
+          : newyScale(d.endProgress)
       )
       .attr("x", (d) => xScale(d.residual_vector_norm))
       .attr("width", (d) => {
@@ -148,28 +143,8 @@
         return isNaN(y1) || isNaN(y2) ? 0 : Math.abs(y1 - y2);
       })
 
-      .attr("fill", (d) => {
-        if (d.source === "user") {
-          return colorMap.user;
-        } else if (d.source === "api") {
-          return colorMap.api;
-        } else {
-          const color = colorPalette[colorIndex % colorPalette.length];
-          colorIndex++;
-          return color;
-        }
-      })
-      .attr("stroke", (d) => {
-        if (d.source === "user") {
-          return colorMap.user;
-        } else if (d.source === "api") {
-          return colorMap.api;
-        } else {
-          const color = colorPalette[colorIndex % colorPalette.length];
-          colorIndex++;
-          return color;
-        }
-      })
+      .attr("fill", (d) => getSourceColor(d.source))
+      .attr("stroke", (d) => getSourceColor(d.source))
       .attr("stroke-width", 0.1)
       .attr("opacity", 0.2)
       .attr("clip-path", `url(#clip_bar_preview_${sessionId})`);
@@ -183,7 +158,7 @@
       .attr("y", (d) =>
         newyScale(d.startProgress) < newyScale(d.endProgress)
           ? newyScale(d.startProgress)
-          : newyScale(d.endProgress),
+          : newyScale(d.endProgress)
       )
       .attr("x", (d) => xScale(d.residual_vector_norm))
       .attr("width", (d) => {
@@ -196,28 +171,8 @@
         const y2 = newyScale(d.endProgress);
         return isNaN(y1) || isNaN(y2) ? 0 : Math.abs(y1 - y2);
       })
-      .attr("fill", (d) => {
-        if (d.source === "user") {
-          return colorMap.user;
-        } else if (d.source === "api") {
-          return colorMap.api;
-        } else {
-          const color = colorPalette[colorIndex % colorPalette.length];
-          colorIndex++;
-          return color;
-        }
-      })
-      .attr("stroke", (d) => {
-        if (d.source === "user") {
-          return colorMap.user;
-        } else if (d.source === "api") {
-          return colorMap.api;
-        } else {
-          const color = colorPalette[colorIndex % colorPalette.length];
-          colorIndex++;
-          return color;
-        }
-      })
+      .attr("fill", (d) => getSourceColor(d.source))
+      .attr("stroke", (d) => getSourceColor(d.source))
       .attr("stroke-width", 0.1)
       .attr("opacity", 0.9)
       .attr("clip-path", `url(#clip_bar_preview_${sessionId})`);
