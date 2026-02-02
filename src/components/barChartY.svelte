@@ -41,7 +41,15 @@
       label: "Time (min)",
       getValue: (item) => (item.start_time + item.end_time) / 2 / 60,
       getStart: (item) => item.start_time / 60,
-      getEnd: (item) => item.end_time / 60,
+      getEnd: (item) => {
+        const startTime = item.start_time / 60;
+        const endTime = item.end_time / 60;
+        // 如果是AI且时间相同（瞬时操作），添加一个很小的时间跨度（0.05分钟 = 3秒）
+        if (item.source === "api" && startTime === endTime) {
+          return endTime + 0.05;
+        }
+        return endTime;
+      },
       hasRange: true,
       domain: null, // 动态计算
     },
@@ -452,7 +460,7 @@
       if (readOnly) {
         return;
       }
-      
+
       if (!event.selection) {
         resetBars();
         sharedSelection = null;
