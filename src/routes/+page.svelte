@@ -36,7 +36,7 @@
   import initSqlJs from "sql.js";
   import { getDB } from "$lib/dbLoader";
   import { readSegmentResults } from "$lib/db/read";
-  import { browser } from '$app/environment';
+  import { browser } from "$app/environment";
   import Interpreter from "../components/interpreter.svelte";
 
   let chartRefs = {};
@@ -735,136 +735,251 @@
   }
 
   function buildWindowContext(selectedPatterns) {
-  const patterns = Object.values(selectedPatterns);
-  if (patterns.length === 0) return null;
-  const pattern = patterns[0];
-  if (!pattern || typeof pattern.count !== 'number') return null;
-  const WINDOW_SIZE = pattern.count;
+    const patterns = Object.values(selectedPatterns);
+    if (patterns.length === 0) return null;
+    const pattern = patterns[0];
+    if (!pattern || typeof pattern.count !== "number") return null;
+    const WINDOW_SIZE = pattern.count;
 
-  return {
-    windowSize: WINDOW_SIZE,
-    positionOffset: {
-      first: 0,
-      last: WINDOW_SIZE - 1,
-      prev: WINDOW_SIZE - 2
-    }
-  };
-}
+    return {
+      windowSize: WINDOW_SIZE,
+      positionOffset: {
+        first: 0,
+        last: WINDOW_SIZE - 1,
+        prev: WINDOW_SIZE - 2,
+      },
+    };
+  }
 
   async function handleInterpreterFilters(event) {
     const ctx = buildWindowContext(selectedPatterns);
-    if (!ctx) return console.warn('No valid selected pattern');
+    if (!ctx) return console.warn("No valid selected pattern");
     const { windowSize, positionOffset } = ctx;
 
     function resolveSpanRange(span, anchorIdx, windowSize) {
       switch (span) {
-        case 'prefix':
+        case "prefix":
           return { from: 0, to: anchorIdx };
-        case 'suffix':
+        case "suffix":
           return { from: anchorIdx, to: windowSize - 1 };
-        case 'full':
+        case "full":
           return { from: 0, to: windowSize - 1 };
         default:
           return null;
       }
     }
 
-    function buildExpr({ feature, position, span }, ref) {
-      const anchorIdx = positionOffset[position];
-      if (anchorIdx == null) return null;
+    function buildExpr({ feature, position, span, source }, ref) {
       const featureDef = featureMap[feature];
       if (!featureDef) return null;
-      if (!span) {
-        return featureDef.point(anchorIdx, ref);
+      const sourceValue =
+        source === "Human" ? "user" : source === "AI" ? "api" : null;
+      if (span) {
+        let range;
+        if (span === "full") {
+          range = { from: 0, to: windowSize - 1 };
+        } else if (span === "prefix" || span === "suffix") {
+          const anchorIdx = positionOffset[position];
+          if (anchorIdx == null) {
+            console.warn(
+              `Span ${span} requires position, but position ${position} not found in positionOffset`,
+            );
+            return null;
+          }
+          range = resolveSpanRange(span, anchorIdx, windowSize);
+        } else {
+          console.warn(`Unknown span type: ${span}`);
+          return null;
+        }
+        if (!range) return null;
+        return featureDef.range(range.from, range.to, ref, sourceValue);
       }
-      const range = resolveSpanRange(span, anchorIdx, windowSize);
-      if (!range) return null;
-      return featureDef.range(range.from, range.to, ref);
+      const anchorIdx = positionOffset[position];
+      if (anchorIdx == null) {
+        console.warn(
+          `Point query requires position, but position ${position} not found in positionOffset`,
+        );
+        return null;
+      }
+      return featureDef.point(anchorIdx, ref, sourceValue);
     }
 
-    // Helpers to avoid code duplication and support unrolling
-    const getProgressExpr = (idx, ref) => `COALESCE(
-      CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].end_progress') AS REAL),0
-    ) - COALESCE(
-      CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].start_progress') AS REAL),0
-    )`;
+    function parseRelation(relationString) {
+      if (!relationString) return null;
+      const match = relationString.match(
+        /^(\w+)\(([\w_]+)\)\s*(>|<|=)\s*(\w+)\(([\w_]+)\)$/,
+      );
+      if (!match) return null;
 
-    const getTimeExpr = (idx, ref) => `COALESCE(
-      CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].end_time') AS REAL),0
-    ) - COALESCE(
-      CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].start_time') AS REAL),0
-    )`;
-
-    const getSemanticExpr = (idx, ref) => `COALESCE(
-      CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].residual_vector_norm') AS REAL),0
-    )`;
+      return {
+        l_source: match[1],
+        l_feature: match[2],
+        operator: match[3],
+        r_source: match[4],
+        r_feature: match[5],
+      };
+    }
 
     const featureMap = {
       progress: {
-        point: (idx, ref) => getProgressExpr(idx, ref),
-        range: (from, to, ref) => {
-          const parts = [];
-          for (let i = from; i <= to; i++) {
-            parts.push(getProgressExpr(i, ref));
+        point: (idx, ref, source) => {
+          const baseExpr = `COALESCE(
+            CAST(JSON_EXTRACT(${ref}, '$[${idx}].end_progress') AS REAL),0
+          ) - COALESCE(
+            CAST(JSON_EXTRACT(${ref}, '$[${idx}].start_progress') AS REAL),0
+          )`;
+          if (source) {
+            return `CASE WHEN JSON_EXTRACT(${ref}, '$[${idx}].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
           }
-          return `(${parts.join(' + ')})`;
-        }
+          return baseExpr;
+        },
+        range: (from, to, ref, source) => {
+          const sumExpr = source
+            ? `CASE WHEN JSON_EXTRACT(${ref}, '$[' || k.i || '].source') = '${source}' 
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_progress') AS REAL),0
+                 ) - COALESCE(
+                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_progress') AS REAL),0
+                 ) ELSE 0 END`
+            : `COALESCE(
+                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_progress') AS REAL),0
+               ) - COALESCE(
+                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_progress') AS REAL),0
+               )`;
+
+          return `(
+            SELECT SUM(${sumExpr})
+            FROM idx k
+            WHERE k.i BETWEEN ${from} AND ${to}
+          )`;
+        },
       },
       time: {
-        point: (idx, ref) => getTimeExpr(idx, ref),
-        range: (from, to, ref) => {
-          const parts = [];
-          for (let i = from; i <= to; i++) {
-            parts.push(getTimeExpr(i, ref));
+        point: (idx, ref, source) => {
+          const baseExpr = `COALESCE(
+            CAST(JSON_EXTRACT(${ref}, '$[${idx}].end_time') AS REAL),0
+          ) - COALESCE(
+            CAST(JSON_EXTRACT(${ref}, '$[${idx}].start_time') AS REAL),0
+          )`;
+
+          if (source) {
+            return `CASE WHEN JSON_EXTRACT(${ref}, '$[${idx}].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
           }
-          return `(${parts.join(' + ')})`;
-        }
+          return baseExpr;
+        },
+        range: (from, to, ref, source) => {
+          const sumExpr = source
+            ? `CASE WHEN JSON_EXTRACT(${ref}, '$[' || k.i || '].source') = '${source}'
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_time') AS REAL),0
+                 ) - COALESCE(
+                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_time') AS REAL),0
+                 ) ELSE 0 END`
+            : `COALESCE(
+                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_time') AS REAL),0
+               ) - COALESCE(
+                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_time') AS REAL),0
+               )`;
+
+          return `(
+            SELECT SUM(${sumExpr})
+            FROM idx k
+            WHERE k.i BETWEEN ${from} AND ${to}
+          )`;
+        },
       },
       semantic_change: {
-        point: (idx, ref) => getSemanticExpr(idx, ref),
-        range: (from, to, ref) => {
-          const parts = [];
-          for (let i = from; i <= to; i++) {
-            parts.push(getSemanticExpr(i, ref));
+        point: (idx, ref, source) => {
+          const baseExpr = `COALESCE(
+            CAST(JSON_EXTRACT(${ref}, '$[${idx}].residual_vector_norm') AS REAL),0
+          )`;
+          if (source) {
+            return `CASE WHEN JSON_EXTRACT(${ref}, '$[${idx}].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
           }
-          return `(${parts.join(' + ')})`;
-        }
-      }
+          return baseExpr;
+        },
+        range: (from, to, ref, source) => {
+          const sumExpr = source
+            ? `CASE WHEN JSON_EXTRACT(${ref}, '$[' || k.i || '].source') = '${source}'
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].residual_vector_norm') AS REAL),0
+                 ) ELSE 0 END`
+            : `COALESCE(
+                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].residual_vector_norm') AS REAL),0
+               )`;
+
+          return `(
+            SELECT SUM(${sumExpr})
+            FROM idx k
+            WHERE k.i BETWEEN ${from} AND ${to}
+          )`;
+        },
+      },
     };
-
     const { explanations, filters } = event.detail;
+    // console.log("explanations", explanations, "filters", filters)
     const comparisons = filters
-    .map((filter, i) => {
-      if (explanations[i]?.feature === 'source') return null;
-      const lExpr = buildExpr(
-        {
-          feature: filter.l_feature,
-          position: filter.l_position,
-          span: filter.span
-        },
-        'd.content' 
-      );
-      const rExpr = buildExpr(
-        {
-          feature: filter.r_feature,
-          position: filter.r_position,
-          span: filter.span
-        },
-        'd.content'
-      );
-      if (!lExpr || !rExpr) return null;
+      .map((filter, i) => {
+        if (explanations[i]?.feature === "source") return null;
+        const parsed = parseRelation(filter.relation);
+        if (!parsed) {
+          console.warn("Could not parse relation:", filter.relation);
+          return null;
+        }
+        const lExpr = buildExpr(
+          {
+            feature: parsed.l_feature,
+            position: filter.l_position,
+            span: filter.span,
+            source: parsed.l_source,
+          },
+          "window_content",
+        );
+        const rExpr = buildExpr(
+          {
+            feature: parsed.r_feature,
+            position: filter.r_position,
+            span: filter.span,
+            source: parsed.r_source,
+          },
+          "window_content",
+        );
 
-      return `(${lExpr}) ${filter.operator} (${rExpr})`;
-    })
-    .filter(Boolean);
+        if (!lExpr || !rExpr) {
+          console.warn("Could not build expressions for:", parsed);
+          return null;
+        }
+        const ratio = filter.ratio;
+        let comparison;
+        if (ratio !== null && ratio !== undefined) {
+          if (parsed.operator === ">") {
+            comparison = `(${lExpr}) ${parsed.operator} ((${rExpr}) * ${ratio})`;
+          } else if (parsed.operator === "<") {
+            comparison = `((${lExpr}) * ${ratio}) ${parsed.operator} (${rExpr})`;
+          } else {
+            comparison = `(${lExpr}) ${parsed.operator} ((${rExpr}) * ${ratio})`;
+          }
+        } else {
+          comparison = `(${lExpr}) ${parsed.operator} (${rExpr})`;
+        }
 
-    const hasSourceConstraint = explanations.some(exp => exp.feature === 'source');
+        return comparison;
+      })
+      .filter(Boolean);
+    const hasSourceConstraint = explanations.some(
+      (exp) => exp.feature === "source",
+    );
     const sourcePattern = Object.values(selectedPatterns)[0].sources || [];
     const sourceConstraints = hasSourceConstraint
-      ? sourcePattern.map((src, i) => `JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = '${src}'`)
+      ? sourcePattern.map(
+          (src, i) =>
+            `JSON_EXTRACT(window_content, '$[${i}].source') = '${src}'`,
+        )
       : [];
-    const whereClause = [...comparisons, ...sourceConstraints].join(' AND ');
-    const elements = Array(windowSize).fill(0).map((_, i) => i);
+    const whereClause = [...comparisons, ...sourceConstraints].join(" AND ");
+    const elements = Array(windowSize)
+      .fill(0)
+      .map((_, i) => i);
     const sqlQuery = `
       WITH RECURSIVE 
       numbers(n) AS (
@@ -872,32 +987,33 @@
         UNION ALL
         SELECT n + 1 FROM numbers 
         WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
+      ),
+      idx AS (
+        SELECT 0 as i
+        UNION ALL
+        SELECT i + 1 FROM idx WHERE i < ${windowSize - 1}
       )
       SELECT 
         d.rowid as original_rowid,
         d.content as original_content,
         n.n as window_start,
-        json_array(${
-          elements.map(i =>
-            `json_set(
-              json_extract(d.content, '$[' || (n.n + ${i}) || ']'),
-              '$.id', d.id,
-              '$.segmentId', d.id || '_' || (n.n + ${i})
-            )`
-          ).join(', ')
-        }) as window_content
+        json_array(${elements
+          .map((i) => `json_extract(d.content, '$[' || (n.n + ${i}) || ']')`)
+          .join(", ")}) as window_content
       FROM data d
       JOIN numbers n 
         ON n.n + ${windowSize - 1} < json_array_length(d.content)
-      WHERE json_array_length(d.content) >= ${windowSize}
-        ${elements.map(i => 
-          `AND json_extract(d.content, '$[' || (n.n + ${i}) || ']') IS NOT NULL`
-        ).join(' ')}
-        ${whereClause ? 'AND (' + whereClause + ')' : ''}
+      WHERE json_array_length(d.content) = ${windowSize}
+        ${elements
+          .map(
+            (i) =>
+              `AND json_extract(d.content, '$[' || (n.n + ${i}) || ']') IS NOT NULL`,
+          )
+          .join(" ")}
+        ${whereClause ? "AND (" + whereClause + ")" : ""}
       ORDER BY original_rowid, window_start
     `;
-    console.log('SQL:', sqlQuery);
-    interpretedQuery = sqlQuery;
+    console.log("SQL:", sqlQuery);
   }
 
   function getTrendPattern(values) {
@@ -1151,6 +1267,8 @@
 
   async function searchPattern(sessionId) {
     isSearch = 1; // 0: not searching, 1: searching, 2: search done
+    allSearchResults = []; // Reset search results
+    loadedResultCount = 0;
     const sessionData = selectedPatterns[sessionId];
     const count =
       sessionData.count || Math.max(1, sessionData.data?.length || 1);
@@ -1189,7 +1307,7 @@
       await segmentQuery(patternVectors, checks);
       return;
     }
-    console.log("Search with manual checks..."); 
+    console.log("Search with manual checks...");
 
     try {
       const datasetInfo = datasets.find((d) => d.name === selectedDataset);
@@ -1333,26 +1451,25 @@
       console.warn("No query provided");
       return;
     }
-    const currentVector = buildVectorForCurrentSegment(
-      currentResults,
-      checks,
-    );
+    const currentVector = buildVectorForCurrentSegment(currentResults, checks);
     const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
     const wasmBinary = await wasmResponse.arrayBuffer();
     const SQL = await initSqlJs({ wasmBinary });
-    
-    const dbResponse = await fetch(`${base}/db/${selectedDataset}_segment_results.db`);
+
+    const dbResponse = await fetch(
+      `${base}/db/${selectedDataset}_segment_results.db`,
+    );
     const dbBuffer = await dbResponse.arrayBuffer();
     const db = new SQL.Database(new Uint8Array(dbBuffer));
     const stepStats = db.exec(interpretedQuery)[0];
-    const filteredWindows = stepStats.values.map(row => JSON.parse(row[3]));
+    const filteredWindows = stepStats.values.map((row) => JSON.parse(row[3]));
     patternData = filteredWindows;
 
     //slicing for testing purposes
     patternData = patternData.slice(0, 100);
 
     patternVectors = [];
-    for(const segment of patternData) {
+    for (const segment of patternData) {
       const vector = buildVectorFromSegment(segment, checks);
       vector.id = segment[0]?.id ?? null;
       vector.segmentId = segment[0]?.segmentId ?? null;
@@ -1483,6 +1600,9 @@
   }
 
   let fetchProgress = 0;
+  let allSearchResults = []; // Store all search results for lazy loading
+  let loadedResultCount = 0; // Track how many results have been loaded
+  let isLoadingMore = false; // Track if we're loading more results
 
   function computeHighlightRangesFromSegments(segments) {
     if (!Array.isArray(segments) || segments.length === 0) {
@@ -1646,22 +1766,56 @@
     };
   }
 
-  async function patternDataLoad(results) {
-    const ids = results.map((group) => group[0]?.id).filter(Boolean);
-    const BATCH_SIZE = 100;
-    for (let i = 0; i < ids.length; i += BATCH_SIZE) {
-      // console.log("processing", i, "out of", ids.length);
-      fetchProgress =
-        Math.round((i / ids.length) * 100) > 100
-          ? 100
-          : Math.round((i / ids.length) * 100);
-      const chunk = ids.slice(i, i + BATCH_SIZE);
-      await Promise.allSettled(chunk.map((id) => fetchDataSummary(id)));
+  async function patternDataLoad(results, initialLoadCount = 15) {
+    console.log(`Search complete: ${results.length} total results found`);
+    console.time("Initial load time");
+
+    // Store all results for lazy loading
+    allSearchResults = results;
+    loadedResultCount = 0;
+
+    // Clear existing data
+    patternDataList.set([]);
+
+    // Load initial batch
+    await loadMoreResultsInternal(initialLoadCount);
+
+    console.timeEnd("Initial load time");
+    console.log(
+      `Loaded ${loadedResultCount} of ${allSearchResults.length} results (showing first ${$showResultCount})`,
+    );
+
+    isSearch = 2; // reset search state; 0: not searching, 1: searching, 2: search done
+    fetchProgress = 0;
+  }
+
+  async function loadMoreResultsInternal(count = 10) {
+    const startIndex = loadedResultCount;
+    const endIndex = Math.min(startIndex + count, allSearchResults.length);
+
+    if (startIndex >= allSearchResults.length) {
+      return; // No more results to load
     }
 
-    const sessionDataMap = get(storeSessionSummaryData);
-    patternDataList.set(
-      results
+    console.log(`Loading results ${startIndex + 1}-${endIndex}...`);
+    isLoadingMore = true;
+
+    try {
+      const resultsToLoad = allSearchResults.slice(startIndex, endIndex);
+      const ids = resultsToLoad.map((group) => group[0]?.id).filter(Boolean);
+
+      // Load data in smaller batches for better UX
+      const BATCH_SIZE = 10;
+      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        fetchProgress = Math.round(
+          ((startIndex + i) / allSearchResults.length) * 100,
+        );
+        const chunk = ids.slice(i, i + BATCH_SIZE);
+        await Promise.allSettled(chunk.map((id) => fetchDataSummary(id)));
+      }
+
+      const sessionDataMap = get(storeSessionSummaryData);
+      const newData = resultsToLoad
         .map((group) => {
           const id = group[0]?.id;
           const sessionData = sessionDataMap.get(id);
@@ -1710,10 +1864,19 @@
             },
           };
         })
-        .filter(Boolean),
-    );
-    isSearch = 2; // reset search state; 0: not searching, 1: searching, 2: search done
-    fetchProgress = 0;
+        .filter(Boolean);
+
+      // Append new data to existing list
+      patternDataList.update((current) => [...current, ...newData]);
+      loadedResultCount = endIndex;
+      console.log(
+        `✅ Loaded ${newData.length} results (total loaded: ${loadedResultCount}/${allSearchResults.length})`,
+      );
+    } catch (error) {
+      console.error("Error loading more results:", error);
+    } finally {
+      isLoadingMore = false;
+    }
   }
 
   function closePatternSearch() {
@@ -2691,75 +2854,92 @@
       console.log("Use .json file to init data.");
     }
 
-async function debugData() {
-  try {
-    const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
-    const wasmBinary = await wasmResponse.arrayBuffer();
-    const SQL = await initSqlJs({ wasmBinary });
-    
-    const dbResponse = await fetch(`${base}/db/${selectedDataset}_segment_results.db`);
-    const dbBuffer = await dbResponse.arrayBuffer();
-    const db = new SQL.Database(new Uint8Array(dbBuffer));
-    interpretedQuery = `
-      WITH RECURSIVE numbers(n) AS (
+    async function debugData() {
+      try {
+        const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
+        const wasmBinary = await wasmResponse.arrayBuffer();
+        const SQL = await initSqlJs({ wasmBinary });
+
+        const dbResponse = await fetch(
+          `${base}/db/${selectedDataset}_segment_results.db`,
+        );
+        const dbBuffer = await dbResponse.arrayBuffer();
+        const db = new SQL.Database(new Uint8Array(dbBuffer));
+
+        const stepStats = db.exec(`
+WITH RECURSIVE 
+      numbers(n) AS (
         SELECT 0
         UNION ALL
-        SELECT n + 1
-        FROM numbers
-        WHERE n < (
-          SELECT MAX(json_array_length(content))
-          FROM data
-        )
+        SELECT n + 1 FROM numbers 
+        WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
+      ),
+      idx AS (
+        SELECT 0 as i
+        UNION ALL
+        SELECT i + 1 FROM idx WHERE i < 1
       )
-      SELECT
-        d.rowid AS original_rowid,
-        d.content AS original_content,
-        n.n AS window_start,
-        json_array(
-          json_set(
-            json_extract(d.content, '$[' || (n.n + 0) || ']'),
-            '$.id', d.id,
-            '$.segmentId', d.id || '_' || (n.n + 0)
-          ),
-          json_set(
-            json_extract(d.content, '$[' || (n.n + 1) || ']'),
-            '$.id', d.id,
-            '$.segmentId', d.id || '_' || (n.n + 1)
-          ),
-          json_set(
-            json_extract(d.content, '$[' || (n.n + 2) || ']'),
-            '$.id', d.id,
-            '$.segmentId', d.id || '_' || (n.n + 2)
-          )
-        ) AS window_content
+      SELECT 
+        d.rowid as original_rowid,
+        d.content as original_content,
+        n.n as window_start,
+        json_array(json_extract(d.content, '$[' || (n.n + 0) || ']'), json_extract(d.content, '$[' || (n.n + 1) || ']')) as window_content
       FROM data d
-      JOIN numbers n
-        ON n.n + 2 < json_array_length(d.content)
-      WHERE json_array_length(d.content) >= 3
-        AND json_extract(d.content, '$[' || (n.n + 0) || ']') IS NOT NULL
-        AND json_extract(d.content, '$[' || (n.n + 1) || ']') IS NOT NULL
-        AND json_extract(d.content, '$[' || (n.n + 2) || ']') IS NOT NULL
-        AND json_extract(d.content, '$[' || (n.n + 0) || '].source') = 'api'
-        AND json_extract(d.content, '$[' || (n.n + 1) || '].source') = 'api'
-        AND json_extract(d.content, '$[' || (n.n + 2) || '].source') = 'user'
+      JOIN numbers n 
+        ON n.n + 1 < json_array_length(d.content)
+      WHERE json_array_length(d.content) >= 2
+        AND json_extract(d.content, '$[' || (n.n + 0) || ']') IS NOT NULL AND json_extract(d.content, '$[' || (n.n + 1) || ']') IS NOT NULL
+        AND (((
+            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user' 
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
+                 ) - COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].start_progress') AS REAL),0
+                 ) ELSE 0 END)
+            FROM idx k
+            WHERE k.i BETWEEN 0 AND 1
+          )) > (((
+            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api' 
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
+                 ) - COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].start_progress') AS REAL),0
+                 ) ELSE 0 END)
+            FROM idx k
+            WHERE k.i BETWEEN 0 AND 1
+          )) * 2.5) AND ((
+            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api'
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].residual_vector_norm') AS REAL),0
+                 ) ELSE 0 END)
+            FROM idx k
+            WHERE k.i BETWEEN 0 AND 1
+          )) > (((
+            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user'
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].residual_vector_norm') AS REAL),0
+                 ) ELSE 0 END)
+            FROM idx k
+            WHERE k.i BETWEEN 0 AND 1
+          )) * 1.5) AND JSON_EXTRACT(window_content, '$[0].source') = 'api' AND JSON_EXTRACT(window_content, '$[1].source') = 'user')
       ORDER BY original_rowid, window_start
-      `;
-    const stepStats = db.exec(interpretedQuery)[0];
-    const filteredWindows = stepStats.values.map(row => JSON.parse(row[3]));
-    console.log("Num:", filteredWindows.length);
-    console.log("Test:", filteredWindows
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 5)
-    );
-    
-  } catch (error) {
-    console.error(error);
-  }
-}
+`)[0];
 
-await debugData();
+        const filteredWindows = stepStats.values.map((row) =>
+          JSON.parse(row[3]),
+        );
 
+        console.log("Num:", filteredWindows.length);
+        console.log(
+          "Test:",
+          filteredWindows.sort(() => Math.random() - 0.5).slice(0, 5),
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    }
 
+    await debugData();
   });
 
   function handleChartZoom(event) {
@@ -4574,13 +4754,26 @@ await debugData();
                     </div>
                   {/if}
                   <div class="chat-panel">
-                    <Interpreter 
-                      pattern={pattern}
+                    <Interpreter
+                      {pattern}
                       on:parsedFilters={handleInterpreterFilters}
                     />
                   </div>
                   {#if $patternDataList.length > 0 && isSearch == 2}
-                    <div>Search Results</div>
+                    <div
+                      style="display: flex; justify-content: space-between; align-items: center;"
+                    >
+                      <span>Search Results</span>
+                      <span style="font-size: 12px; color: #666;">
+                        Showing {Math.min(
+                          $showResultCount,
+                          $patternDataList.length,
+                        )} of {allSearchResults.length} results
+                        {#if loadedResultCount < allSearchResults.length}
+                          (Loaded {loadedResultCount})
+                        {/if}
+                      </span>
+                    </div>
                     {#each $patternDataList as sessionData, index (sessionData.segmentId)}
                       {#if index < $showResultCount}
                         <div class="search-result-container">
@@ -4655,11 +4848,20 @@ await debugData();
                         </button>
                         <button
                           class="search-pattern-button"
-                          on:click={() => {
-                            $showResultCount += 5;
+                          on:click={async () => {
+                            const newShowCount = $showResultCount + 5;
+                            // If we need more data than what's loaded, load it first
+                            if (
+                              newShowCount > loadedResultCount &&
+                              loadedResultCount < allSearchResults.length
+                            ) {
+                              await loadMoreResultsInternal(10); // Load 10 more at a time
+                            }
+                            $showResultCount = newShowCount;
                           }}
+                          disabled={isLoadingMore}
                         >
-                          More Results
+                          {isLoadingMore ? "Loading..." : "More Results"}
                         </button>
                       </div>
                     {:else}
