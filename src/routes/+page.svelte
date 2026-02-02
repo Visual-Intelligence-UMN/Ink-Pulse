@@ -820,99 +820,70 @@
       };
     }
 
+    // Helpers to support JavaScript unrolling and offset logic
+    const getProgressExpr = (idx, ref, source) => {
+      const baseExpr = `COALESCE(
+        CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].end_progress') AS REAL),0
+      ) - COALESCE(
+        CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].start_progress') AS REAL),0
+      )`;
+      if (source) {
+        return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+      }
+      return baseExpr;
+    };
+
+    const getTimeExpr = (idx, ref, source) => {
+      const baseExpr = `COALESCE(
+        CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].end_time') AS REAL),0
+      ) - COALESCE(
+        CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].start_time') AS REAL),0
+      )`;
+      if (source) {
+        return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+      }
+      return baseExpr;
+    };
+
+    const getSemanticExpr = (idx, ref, source) => {
+      const baseExpr = `COALESCE(
+        CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].residual_vector_norm') AS REAL),0
+      )`;
+      if (source) {
+        return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+      }
+      return baseExpr;
+    };
+
     const featureMap = {
       progress: {
-        point: (idx, ref, source) => {
-          const baseExpr = `COALESCE(
-            CAST(JSON_EXTRACT(${ref}, '$[${idx}].end_progress') AS REAL),0
-          ) - COALESCE(
-            CAST(JSON_EXTRACT(${ref}, '$[${idx}].start_progress') AS REAL),0
-          )`;
-          if (source) {
-            return `CASE WHEN JSON_EXTRACT(${ref}, '$[${idx}].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
-          }
-          return baseExpr;
-        },
+        point: (idx, ref, source) => getProgressExpr(idx, ref, source),
         range: (from, to, ref, source) => {
-          const sumExpr = source
-            ? `CASE WHEN JSON_EXTRACT(${ref}, '$[' || k.i || '].source') = '${source}' 
-                 THEN COALESCE(
-                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_progress') AS REAL),0
-                 ) - COALESCE(
-                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_progress') AS REAL),0
-                 ) ELSE 0 END`
-            : `COALESCE(
-                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_progress') AS REAL),0
-               ) - COALESCE(
-                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_progress') AS REAL),0
-               )`;
-
-          return `(
-            SELECT SUM(${sumExpr})
-            FROM idx k
-            WHERE k.i BETWEEN ${from} AND ${to}
-          )`;
+          const parts = [];
+          for (let i = from; i <= to; i++) {
+            parts.push(getProgressExpr(i, ref, source));
+          }
+          return `(${parts.join(' + ')})`;
         },
       },
       time: {
-        point: (idx, ref, source) => {
-          const baseExpr = `COALESCE(
-            CAST(JSON_EXTRACT(${ref}, '$[${idx}].end_time') AS REAL),0
-          ) - COALESCE(
-            CAST(JSON_EXTRACT(${ref}, '$[${idx}].start_time') AS REAL),0
-          )`;
-
-          if (source) {
-            return `CASE WHEN JSON_EXTRACT(${ref}, '$[${idx}].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
-          }
-          return baseExpr;
-        },
+        point: (idx, ref, source) => getTimeExpr(idx, ref, source),
         range: (from, to, ref, source) => {
-          const sumExpr = source
-            ? `CASE WHEN JSON_EXTRACT(${ref}, '$[' || k.i || '].source') = '${source}'
-                 THEN COALESCE(
-                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_time') AS REAL),0
-                 ) - COALESCE(
-                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_time') AS REAL),0
-                 ) ELSE 0 END`
-            : `COALESCE(
-                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].end_time') AS REAL),0
-               ) - COALESCE(
-                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].start_time') AS REAL),0
-               )`;
-
-          return `(
-            SELECT SUM(${sumExpr})
-            FROM idx k
-            WHERE k.i BETWEEN ${from} AND ${to}
-          )`;
+          const parts = [];
+          for (let i = from; i <= to; i++) {
+            parts.push(getTimeExpr(i, ref, source));
+          }
+          return `(${parts.join(' + ')})`;
         },
       },
       semantic_change: {
-        point: (idx, ref, source) => {
-          const baseExpr = `COALESCE(
-            CAST(JSON_EXTRACT(${ref}, '$[${idx}].residual_vector_norm') AS REAL),0
-          )`;
-          if (source) {
-            return `CASE WHEN JSON_EXTRACT(${ref}, '$[${idx}].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
-          }
-          return baseExpr;
-        },
+        point: (idx, ref, source) => getSemanticExpr(idx, ref, source),
         range: (from, to, ref, source) => {
-          const sumExpr = source
-            ? `CASE WHEN JSON_EXTRACT(${ref}, '$[' || k.i || '].source') = '${source}'
-                 THEN COALESCE(
-                   CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].residual_vector_norm') AS REAL),0
-                 ) ELSE 0 END`
-            : `COALESCE(
-                 CAST(JSON_EXTRACT(${ref}, '$[' || k.i || '].residual_vector_norm') AS REAL),0
-               )`;
-
-          return `(
-            SELECT SUM(${sumExpr})
-            FROM idx k
-            WHERE k.i BETWEEN ${from} AND ${to}
-          )`;
+          const parts = [];
+          for (let i = from; i <= to; i++) {
+            parts.push(getSemanticExpr(i, ref, source));
+          }
+          return `(${parts.join(' + ')})`;
         },
       },
     };
@@ -926,6 +897,7 @@
           console.warn("Could not parse relation:", filter.relation);
           return null;
         }
+        
         const lExpr = buildExpr(
           {
             feature: parsed.l_feature,
@@ -933,7 +905,7 @@
             span: filter.span,
             source: parsed.l_source,
           },
-          "window_content",
+          "d.content", 
         );
         const rExpr = buildExpr(
           {
@@ -942,7 +914,7 @@
             span: filter.span,
             source: parsed.r_source,
           },
-          "window_content",
+          "d.content", 
         );
 
         if (!lExpr || !rExpr) {
@@ -973,7 +945,7 @@
     const sourceConstraints = hasSourceConstraint
       ? sourcePattern.map(
           (src, i) =>
-            `JSON_EXTRACT(window_content, '$[${i}].source') = '${src}'`,
+            `JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = '${src.replace(/'/g, "''")}'`,
         )
       : [];
     const whereClause = [...comparisons, ...sourceConstraints].join(" AND ");
@@ -987,23 +959,24 @@
         UNION ALL
         SELECT n + 1 FROM numbers 
         WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
-      ),
-      idx AS (
-        SELECT 0 as i
-        UNION ALL
-        SELECT i + 1 FROM idx WHERE i < ${windowSize - 1}
       )
       SELECT 
         d.rowid as original_rowid,
         d.content as original_content,
         n.n as window_start,
         json_array(${elements
-          .map((i) => `json_extract(d.content, '$[' || (n.n + ${i}) || ']')`)
+          .map((i) => 
+            `json_extract(json_set(
+              json_extract(d.content, '$[' || (n.n + ${i}) || ']'),
+              '$.id', d.id,
+              '$.segmentId', d.id || '_' || (n.n + ${i})
+            ), '$')`
+          )
           .join(", ")}) as window_content
       FROM data d
       JOIN numbers n 
         ON n.n + ${windowSize - 1} < json_array_length(d.content)
-      WHERE json_array_length(d.content) = ${windowSize}
+      WHERE json_array_length(d.content) >= ${windowSize}
         ${elements
           .map(
             (i) =>
@@ -1014,6 +987,7 @@
       ORDER BY original_rowid, window_start
     `;
     console.log("SQL:", sqlQuery);
+    interpretedQuery = sqlQuery;
   }
 
   function getTrendPattern(values) {
@@ -1482,6 +1456,7 @@
     );
     const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
     searchCount = fullData.length;
+    console.log("Full data", fullData);
     patternDataLoad(fullData);
   }
 
