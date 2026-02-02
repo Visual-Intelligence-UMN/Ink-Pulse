@@ -2,6 +2,7 @@
   // This component is deprecated, use BarChartY instead
   import { onMount } from "svelte";
   import * as d3 from "d3";
+  import sourceColorManager from "./sourceColorManager.js";
 
   export let sessionId;
   export let data;
@@ -46,7 +47,7 @@
       .attr("height", "100%")
       .attr(
         "viewBox",
-        `0 0 ${chartWidth + margin.left + margin.right} ${chartHeight + margin.top + margin.bottom}`,
+        `0 0 ${chartWidth + margin.left + margin.right} ${chartHeight + margin.top + margin.bottom}`
       )
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
@@ -87,15 +88,15 @@
       .attr("y", (d) =>
         yScale(d.startProgress) < yScale(d.endProgress)
           ? yScale(d.startProgress)
-          : yScale(d.endProgress),
+          : yScale(d.endProgress)
       )
       .attr("x", (d) => xScale(d.residual_vector_norm))
       .attr("width", (d) => xScale(0) - xScale(d.residual_vector_norm))
       .attr("height", (d) =>
-        Math.abs(yScale(d.startProgress) - yScale(d.endProgress)),
+        Math.abs(yScale(d.startProgress) - yScale(d.endProgress))
       )
-      .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
-      .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
+      .attr("fill", (d) => sourceColorManager.getColor(d.source))
+      .attr("stroke", (d) => sourceColorManager.getColor(d.source))
       .attr("stroke-width", 0.1)
       .attr("opacity", 0.2);
 
@@ -108,15 +109,15 @@
       .attr("y", (d) =>
         yScale(d.startProgress) < yScale(d.endProgress)
           ? yScale(d.startProgress)
-          : yScale(d.endProgress),
+          : yScale(d.endProgress)
       )
       .attr("x", (d) => xScale(d.residual_vector_norm))
       .attr("width", (d) => xScale(0) - xScale(d.residual_vector_norm))
       .attr("height", (d) =>
-        Math.abs(yScale(d.startProgress) - yScale(d.endProgress)),
+        Math.abs(yScale(d.startProgress) - yScale(d.endProgress))
       )
-      .attr("fill", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
-      .attr("stroke", (d) => (d.source === "user" ? "#66C2A5" : "#FC8D62"))
+      .attr("fill", (d) => sourceColorManager.getColor(d.source))
+      .attr("stroke", (d) => sourceColorManager.getColor(d.source))
       .attr("stroke-width", 0.1)
       .attr("opacity", 0.9);
   }

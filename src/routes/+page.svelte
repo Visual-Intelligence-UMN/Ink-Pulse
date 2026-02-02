@@ -38,6 +38,8 @@
   import { readSegmentResults } from "$lib/db/read";
   import { browser } from "$app/environment";
   import Interpreter from "../components/interpreter.svelte";
+  import sourceColorManager from "../components/sourceColorManager.js";
+  import ColorSettingsPanel from "../components/ColorSettingsPanel.svelte";
 
   let chartRefs = {};
   let filterButton;
@@ -45,6 +47,10 @@
   let selectionMode = false;
   let brushIsX = false;
   let selectedPatterns = {};
+
+  // Color settings panel
+  let showColorSettings = false;
+  let knownSources = [];
 
   // Chart axis selection
   let barChartXAxis = "progress";
@@ -3008,7 +3014,7 @@ WITH RECURSIVE
     data.actions.forEach((event, idx) => {
       const { name, event_time, eventSource, text = "", count = 0 } = event;
 
-      const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
+      const textColor = sourceColorManager.getColor(eventSource);
       const eventTime = new Date(event_time);
       if (!firstTime) firstTime = eventTime;
       const relativeTime = (eventTime.getTime() - firstTime.getTime()) / 60000;
@@ -3072,7 +3078,9 @@ WITH RECURSIVE
   const handleEvents = (data) => {
     const initText = data.init_text;
     let currentCharArray = initText.split("");
-    let currentColor = new Array(currentCharArray.length).fill("#FC8D62");
+    let currentColor = new Array(currentCharArray.length).fill(
+      sourceColorManager.getColor("api")
+    );
     let chartData = [];
     let paragraphColor = [];
     let firstTime = null;
@@ -3086,7 +3094,7 @@ WITH RECURSIVE
 
     let combinedText = [...initText].map((ch) => ({
       text: ch,
-      textColor: "#FC8D62",
+      textColor: sourceColorManager.getColor("api"),
     }));
     sortedEvents.forEach((event, idx) => {
       const {
@@ -3097,7 +3105,7 @@ WITH RECURSIVE
         count = 0,
         pos = 0,
       } = event;
-      const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
+      const textColor = sourceColorManager.getColor(eventSource);
       const eventTime = new Date(event_time);
 
       if (firstTime === null) {
@@ -4077,6 +4085,28 @@ WITH RECURSIVE
                   {/if}
                 </div>
               {/if}
+
+              <button
+                class="search-pattern-button"
+                on:click={() => {
+                  // 从 initData 提取所有唯一的来源
+                  const sources = new Set();
+                  $initData.forEach((session) => {
+                    if (session.similarityData) {
+                      session.similarityData.forEach((item) => {
+                        if (item.source) sources.add(item.source);
+                      });
+                    }
+                  });
+                  knownSources = Array.from(sources);
+                  sourceColorManager.registerSources(knownSources);
+                  showColorSettings = true;
+                }}
+                aria-label="Color settings"
+                title="Customize source colors"
+              >
+                🎨 Colors
+              </button>
             </div>
           </div>
 
@@ -5502,6 +5532,19 @@ WITH RECURSIVE
   pattern={patternToEdit}
   on:save={handleEditSave}
   on:cancel={handleEditCancel}
+/>
+
+<!-- Color Settings Panel -->
+<ColorSettingsPanel
+  bind:show={showColorSettings}
+  {knownSources}
+  on:save={() => {
+    // trigger all charts to re-render to reflect new colors
+    initData.update((data) => [...data]);
+  }}
+  on:close={() => {
+    showColorSettings = false;
+  }}
 />
 
 <style>
