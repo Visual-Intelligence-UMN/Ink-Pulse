@@ -335,23 +335,23 @@
       timeMax: yAxisField === "time" ? yMax : null,
     };
 
-    // dispatch("selectionChanged", {
-    //   range: {
-    //     sc: { min: scMin, max: scMax },
-    //     progress: { min: progressMin, max: progressMax },
-    //   },
-    //   dataRange: {
-    //     scRange: { min: scMin, max: scMax },
-    //     progressRange: { min: progressMin, max: progressMax },
-    //     timeRange: { min: tMin, max: tMax },
-    //     sc: { sc: scValues },
-    //   },
-    //   data: insidePoints,
-    //   wholeData: chartData,
-    //   sessionId: null,
-    //   sources: sources,
-    //   selectionSource: "lineChart_y",
-    // });
+    dispatch("selectionChanged", {
+      range: {
+        sc: { min: scMin, max: scMax },
+        progress: { min: yMin, max: yMax },
+      },
+      dataRange: {
+        scRange: { min: scMin, max: scMax },
+        progressRange: { min: yMin, max: yMax },
+        timeRange: { min: tMin, max: tMax },
+        sc: { sc: scValues },
+      },
+      data: insidePoints,
+      wholeData: chartData,
+      sessionId: null,
+      sources: sources,
+      selectionSource: "lineChart_y",
+    });
   }
 
   function brushedX(event) {
@@ -417,23 +417,23 @@
       timeMax: xAxisField === "time" ? xMax : timeMax,
     };
 
-    // dispatch("selectionChanged", {
-    //   range: {
-    //     sc: { min: scMin, max: scMax },
-    //     progress: { min: progressMin, max: progressMax },
-    //   },
-    //   dataRange: {
-    //     scRange: { min: scMin, max: scMax },
-    //     progressRange: { min: progressMin, max: progressMax },
-    //     timeRange: { min: timeMin, max: timeMax },
-    //     sc: { sc: scValues },
-    //   },
-    //   data: insidePoints,
-    //   wholeData: chartData,
-    //   sessionId: null,
-    //   sources: sources,
-    //   selectionSource: "lineChart_x",
-    // });
+    dispatch("selectionChanged", {
+      range: {
+        sc: { min: scMin, max: scMax },
+        progress: { min: progressMin, max: progressMax },
+      },
+      dataRange: {
+        scRange: { min: scMin, max: scMax },
+        progressRange: { min: progressMin, max: progressMax },
+        timeRange: { min: timeMin, max: timeMax },
+        sc: { sc: scValues },
+      },
+      data: insidePoints,
+      wholeData: chartData,
+      sessionId: null,
+      sources: sources,
+      selectionSource: "lineChart_x",
+    });
   }
 
   export function resetZoom() {

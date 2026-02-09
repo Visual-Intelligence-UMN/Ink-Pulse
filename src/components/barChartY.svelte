@@ -211,6 +211,8 @@
 
     highlightBars(filteredData);
 
+    if (sharedSelection.selectionSource != "barChart_y") return;
+
     dispatch("selectionChanged", {
       selection: {
         xMin: selectionMin,
