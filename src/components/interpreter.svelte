@@ -450,7 +450,6 @@
   }
 
   function handleKeyInputFocus() {
-    // 用户点击输入框时，切换到编辑模式，清空显示以便输入
     if (!isEditingKey && isApiKeyLoaded) {
       displayApiKey = "";
       isEditingKey = true;
@@ -459,21 +458,21 @@
 
   function handleKeyInputChange(event) {
     displayApiKey = event.target.value;
-    apiKey = event.target.value; // 同步实际值
+    apiKey = event.target.value;
   }
 
   function handleSetApiKey() {
     const trimmedKey = apiKey.trim();
 
     if (trimmedKey === "") {
-      // 清空 API Key
+      // clear API Key
       clearApiKey();
       displayApiKey = "";
       isApiKeyLoaded = false;
       showSavedMessage = false;
       toggleSettingsWindow();
     } else {
-      // 验证 API Key 格式（基本检查）
+      // verify API Key format
       if (!trimmedKey.startsWith("sk-")) {
         alert(
           '⚠️ Invalid API Key format. OpenAI API Keys usually start with "sk-"'
@@ -481,7 +480,7 @@
         return;
       }
 
-      // 保存 API Key 到 localStorage
+      // save API Key to localStorage
       apiKey = trimmedKey;
       saveApiKey(trimmedKey);
       displayApiKey = maskApiKey(trimmedKey);
