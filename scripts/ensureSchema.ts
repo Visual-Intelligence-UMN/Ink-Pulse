@@ -10,7 +10,8 @@ export function ensureSchema(dbFile: string, isComplex = false) {
         text_length INTEGER,
         init_time TEXT,
         end_time TEXT,
-        actions TEXT
+        actions TEXT,
+        bars TEXT
       );
     `);
   } else {

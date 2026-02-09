@@ -202,7 +202,7 @@
     if ($clickSession?.chartData?.length) {
       playbackIndex = findIndexFromTime(
         $clickSession.chartData,
-        $clickSession.currentTime || 0
+        $clickSession.currentTime || 0,
       );
     } else {
       playbackIndex = 0;
@@ -261,7 +261,7 @@
 
   const removepattern = (segmentId) => {
     patternDataList.update((patternList) =>
-      patternList.filter((pattern) => pattern.segmentId !== segmentId)
+      patternList.filter((pattern) => pattern.segmentId !== segmentId),
     );
     showResultCount.update((count) => count - 1);
   };
@@ -448,7 +448,7 @@
       request.onsuccess = () => {
         const files = request.result;
         const zipFile = files.find(
-          (f) => f.name.replace(/\.zip$/i, "") === name
+          (f) => f.name.replace(/\.zip$/i, "") === name,
         );
         resolve(zipFile?.blob || null);
       };
@@ -462,7 +462,7 @@
       if (!datasetInfo) return [];
       if (datasetInfo.source === "repo") {
         const response = await fetch(
-          `${base}/dataset/${selectedDataset}/session.csv`
+          `${base}/dataset/${selectedDataset}/session.csv`,
         );
         if (!response.ok) throw new Error("Failed to fetch CSV data");
         const text = await response.text();
@@ -489,7 +489,7 @@
   const fetchFeatureData = (data) => {
     return data.map((item) => {
       const filteredItem = Object.fromEntries(
-        Object.entries(item).filter(([key]) => key !== "prompt_code")
+        Object.entries(item).filter(([key]) => key !== "prompt_code"),
       );
       return filteredItem;
     });
@@ -629,7 +629,7 @@
       filteredByCategory = [];
 
       const originalFilteredData = tableData.filter((session) =>
-        $selectedTags.includes(session.prompt_code)
+        $selectedTags.includes(session.prompt_code),
       );
       const originalUpdatedData = originalFilteredData.map((row) => ({
         ...row,
@@ -641,19 +641,19 @@
 
       filteredByCategory = $initData.filter((sessionData) => {
         const sessionInfo = sessions.find(
-          (s) => s.session_id === sessionData.sessionId
+          (s) => s.session_id === sessionData.sessionId,
         );
         return sessionInfo && sessionInfo.prompt_code === category;
       });
 
       const categoryTableRows = tableData.filter(
-        (row) => row.prompt_code === category
+        (row) => row.prompt_code === category,
       );
       filterTableData.set(
         categoryTableRows.map((row) => ({
           ...row,
           selected: true,
-        }))
+        })),
       );
 
       categoryTableRows.forEach((row) => {
@@ -788,7 +788,7 @@
           const anchorIdx = positionOffset[position];
           if (anchorIdx == null) {
             console.warn(
-              `Span ${span} requires position, but position ${position} not found in positionOffset`
+              `Span ${span} requires position, but position ${position} not found in positionOffset`,
             );
             return null;
           }
@@ -803,7 +803,7 @@
       const anchorIdx = positionOffset[position];
       if (anchorIdx == null) {
         console.warn(
-          `Point query requires position, but position ${position} not found in positionOffset`
+          `Point query requires position, but position ${position} not found in positionOffset`,
         );
         return null;
       }
@@ -813,7 +813,7 @@
     function parseRelation(relationString) {
       if (!relationString) return null;
       const match = relationString.match(
-        /^(\w+)\(([\w_]+)\)\s*(>|<|=)\s*(\w+)\(([\w_]+)\)$/
+        /^(\w+)\(([\w_]+)\)\s*(>|<|=)\s*(\w+)\(([\w_]+)\)$/,
       );
       if (!match) return null;
 
@@ -911,7 +911,7 @@
             span: filter.span,
             source: parsed.l_source,
           },
-          "d.content"
+          "d.content",
         );
         const rExpr = buildExpr(
           {
@@ -920,7 +920,7 @@
             span: filter.span,
             source: parsed.r_source,
           },
-          "d.content"
+          "d.content",
         );
 
         if (!lExpr || !rExpr) {
@@ -945,13 +945,13 @@
       })
       .filter(Boolean);
     const hasSourceConstraint = explanations.some(
-      (exp) => exp.feature === "source"
+      (exp) => exp.feature === "source",
     );
     const sourcePattern = Object.values(selectedPatterns)[0].sources || [];
     const sourceConstraints = hasSourceConstraint
       ? sourcePattern.map(
           (src, i) =>
-            `JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = '${src.replace(/'/g, "''")}'`
+            `JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = '${src.replace(/'/g, "''")}'`,
         )
       : [];
     const whereClause = [...comparisons, ...sourceConstraints].join(" AND ");
@@ -977,17 +977,17 @@
               json_extract(d.content, '$[' || (n.n + ${i}) || ']'),
               '$.id', d.id,
               '$.segmentId', d.id || '_' || (n.n + ${i})
-            ), '$')`
+            ), '$')`,
           )
           .join(", ")}) as window_content
       FROM data d
       JOIN numbers n 
         ON n.n + ${windowSize - 1} < json_array_length(d.content)
-      WHERE json_array_length(d.content) >= ${windowSize}
+      WHERE json_array_length(d.content) = ${windowSize}
         ${elements
           .map(
             (i) =>
-              `AND json_extract(d.content, '$[' || (n.n + ${i}) || ']') IS NOT NULL`
+              `AND json_extract(d.content, '$[' || (n.n + ${i}) || ']') IS NOT NULL`,
           )
           .join(" ")}
         ${whereClause ? "AND (" + whereClause + ")" : ""}
@@ -1159,7 +1159,7 @@
         const relaxedMax = maxScore + relax;
         const allScores = window.map((item) => item.residual_vector_norm);
         const isScoreValid = allScores.every(
-          (score) => score >= relaxedMin && score <= relaxedMax
+          (score) => score >= relaxedMin && score <= relaxedMax,
         );
         if (!isScoreValid) continue;
       }
@@ -1188,13 +1188,13 @@
 
       if (checks.time[0]) {
         currentVector.t.push(
-          currentItem.endTime * 60 - currentItem.startTime * 60
+          currentItem.endTime * 60 - currentItem.startTime * 60,
         );
       }
 
       if (checks.progress[0]) {
         currentVector.p.push(
-          currentItem.endProgress - currentItem.startProgress
+          currentItem.endProgress - currentItem.startProgress,
         );
       }
 
@@ -1302,7 +1302,7 @@
         console.log("Is local browser?", isLocalBrowser);
         if (isLocalBrowser) {
           const dbRes = await fetch(
-            `${base}/api/getSegment?dataset=${selectedDataset}`
+            `${base}/api/getSegment?dataset=${selectedDataset}`,
           );
           if (dbRes.ok) {
             const json = await dbRes.json();
@@ -1322,7 +1322,7 @@
             locateFile: (file) => `${base}/sql-wasm/${file}`,
           });
           const res = await fetch(
-            `${base}/db/${selectedDataset}_segment_results.db`
+            `${base}/db/${selectedDataset}_segment_results.db`,
           );
           if (!res.ok) throw new Error("DB not found");
           const buf = await res.arrayBuffer();
@@ -1352,7 +1352,7 @@
           let data;
           if (datasetInfo.source === "repo") {
             const dataResponse = await fetch(
-              `${base}/dataset/${selectedDataset}/segment_results/${fileName}.json`
+              `${base}/dataset/${selectedDataset}/segment_results/${fileName}.json`,
             );
             data = await dataResponse.json();
           }
@@ -1362,7 +1362,7 @@
             const zip = await JSZip.loadAsync(zipBlob);
             const filePathRegex = new RegExp(
               `^${selectedDataset}/segment_results/${fileName}\\.json$`,
-              "i"
+              "i",
             );
             const files = zip.file(filePathRegex);
             if (!files || files.length === 0)
@@ -1381,7 +1381,7 @@
       for (const { sessionId, data } of segmentSources) {
         if (Array.isArray(data.chartData)) {
           data.chartData = data.chartData.map(
-            ({ currentText, ...rest }) => rest
+            ({ currentText, ...rest }) => rest,
           );
         }
         delete data.paragraphColor;
@@ -1395,7 +1395,7 @@
             ...item,
             id: sessionId,
             segmentId: `${sessionId}_${index}`,
-          }))
+          })),
         );
         for (const segment of taggedSegments) {
           const vector = buildVectorFromSegment(segment, checks);
@@ -1407,12 +1407,12 @@
       }
       const currentVector = buildVectorForCurrentSegment(
         currentResults,
-        checks
+        checks,
       );
       patternData = results;
       const finalScore = await calculateRankAuto(patternVectors, currentVector);
       const idToData = Object.fromEntries(
-        patternData.map((d) => [d[0].segmentId, d])
+        patternData.map((d) => [d[0].segmentId, d]),
       );
       const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
       searchCount = fullData.length;
@@ -1437,14 +1437,19 @@
     const wasmBinary = await wasmResponse.arrayBuffer();
     const SQL = await initSqlJs({ wasmBinary });
 
+    const isLineChart = selectionSrc.startsWith("lineChart");
+
     const dbResponse = await fetch(
-      `${base}/db/${selectedDataset}_segment_results.db`
+      isLineChart
+        ? `${base}/db/${selectedDataset}_json.db`
+        : `${base}/db/${selectedDataset}_segment_results.db`,
     );
+
     const dbBuffer = await dbResponse.arrayBuffer();
     const db = new SQL.Database(new Uint8Array(dbBuffer));
     const stepStats = db.exec(interpretedQuery)[0];
     const filteredWindows = stepStats.values.map((row) =>
-      JSON.parse(String(row[3]))
+      JSON.parse(String(row[3])),
     );
     patternData = filteredWindows;
 
@@ -1461,7 +1466,7 @@
 
     const finalScore = await calculateRankAuto(patternVectors, currentVector);
     const idToData = Object.fromEntries(
-      patternData.map((d) => [d[0].segmentId, d])
+      patternData.map((d) => [d[0].segmentId, d]),
     );
     const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
     searchCount = fullData.length;
@@ -1517,7 +1522,7 @@
     patternVectors,
     currentVector,
     threadCount = 4,
-    threshold = 100
+    threshold = 100,
   ) {
     if (patternVectors.length <= threshold) {
       return calculateRank(patternVectors, currentVector);
@@ -1547,7 +1552,7 @@
   async function calculateRankWorkers(
     patternVectors,
     currentVector,
-    threadCount = 4
+    threadCount = 4,
   ) {
     const chunkSize = Math.ceil(patternVectors.length / threadCount);
     let completed = 0;
@@ -1635,7 +1640,7 @@
       const startTime = toMinutes(
         startTimeSeconds,
         startTimeMinutes,
-        singleTime
+        singleTime,
       );
       const endTime = toMinutes(endTimeSeconds, endTimeMinutes, singleTime);
 
@@ -1648,11 +1653,11 @@
 
       const startProgress = toPercentage(
         Number(item.start_progress ?? item.startProgress ?? item.progressStart),
-        Number(item.percentage)
+        Number(item.percentage),
       );
       const endProgress = toPercentage(
         Number(item.end_progress ?? item.endProgress ?? item.progressEnd),
-        Number(item.percentage)
+        Number(item.percentage),
       );
 
       if (startProgress !== null) {
@@ -1766,7 +1771,7 @@
 
     console.timeEnd("Initial load time");
     console.log(
-      `Loaded ${loadedResultCount} of ${allSearchResults.length} results (showing first ${$showResultCount})`
+      `Loaded ${loadedResultCount} of ${allSearchResults.length} results (showing first ${$showResultCount})`,
     );
 
     isSearch = 2; // reset search state; 0: not searching, 1: searching, 2: search done
@@ -1792,7 +1797,7 @@
       const BATCH_SIZE = 10;
       for (let i = 0; i < ids.length; i += BATCH_SIZE) {
         fetchProgress = Math.round(
-          ((startIndex + i) / allSearchResults.length) * 100
+          ((startIndex + i) / allSearchResults.length) * 100,
         );
         const chunk = ids.slice(i, i + BATCH_SIZE);
         await Promise.allSettled(chunk.map((id) => fetchDataSummary(id)));
@@ -1819,7 +1824,7 @@
           }
           const highlightRanges = computeHighlightRangesFromSegments(group);
           const fallbackMode = resolveHighlightModeFromSource(
-            searchDetail?.selectionSource ?? null
+            searchDetail?.selectionSource ?? null,
           );
           const highlightMode = fallbackMode ?? highlightRanges.mode ?? null;
           const selectionContext = highlightRanges.selectionContext ?? {
@@ -1854,7 +1859,7 @@
       patternDataList.update((current) => [...current, ...newData]);
       loadedResultCount = endIndex;
       console.log(
-        `✅ Loaded ${newData.length} results (total loaded: ${loadedResultCount}/${allSearchResults.length})`
+        `✅ Loaded ${newData.length} results (total loaded: ${loadedResultCount}/${allSearchResults.length})`,
       );
     } catch (error) {
       console.error("Error loading more results:", error);
@@ -2055,14 +2060,14 @@
 
       const filteredSimilarity = similaritySeries.filter((segment) => {
         const startSeconds = Number(
-          segment?.start_time ?? segment?.startTime ?? 0
+          segment?.start_time ?? segment?.startTime ?? 0,
         );
         const endSeconds = Number(
           segment?.end_time ??
             segment?.endTime ??
             segment?.last_event_time ??
             segment?.start_time ??
-            startSeconds
+            startSeconds,
         );
         const startMinutes = startSeconds / 60;
         const endMinutes = endSeconds / 60;
@@ -2111,7 +2116,7 @@
         }
 
         effectiveSources = filteredSimilarity.map(
-          (segment) => segment?.source ?? "user"
+          (segment) => segment?.source ?? "user",
         );
 
         effectiveDataRange = {
@@ -2191,7 +2196,7 @@
     ) {
       const derivedRange = deriveTimeRangeFromProgress(
         effectiveRange.progress,
-        chartSeries
+        chartSeries,
       );
 
       if (
@@ -2339,7 +2344,7 @@
     filteredByCategory = [];
 
     const originalFilteredData = tableData.filter((session) =>
-      $selectedTags.includes(session.prompt_code)
+      $selectedTags.includes(session.prompt_code),
     );
     const originalUpdatedData = originalFilteredData.map((row) => ({
       ...row,
@@ -2351,7 +2356,7 @@
   async function fetchInitData(sessionId, isDelete) {
     if (isDelete) {
       initData.update((data) =>
-        data.filter((item) => item.sessionId !== sessionId)
+        data.filter((item) => item.sessionId !== sessionId),
       );
       return;
     }
@@ -2361,7 +2366,7 @@
     if (similarityData) {
       initData.update((sessions) => {
         const existingIndex = sessions.findIndex(
-          (s) => s.sessionId === sessionId
+          (s) => s.sessionId === sessionId,
         );
 
         if (existingIndex !== -1) {
@@ -2388,7 +2393,7 @@
       let text;
       if (datasetInfo.source === "repo") {
         const response = await fetch(
-          `${base}/dataset/${selectedDataset}/session.csv`
+          `${base}/dataset/${selectedDataset}/session.csv`,
         );
         if (!response.ok) throw new Error("Failed to fetch CSV data");
         text = await response.text();
@@ -2398,7 +2403,7 @@
         if (!zipBlob) throw new Error("Uploaded zip not found");
         const zip = await JSZip.loadAsync(zipBlob);
         const sessionFiles = zip.file(
-          new RegExp(`^${selectedDataset}/session\\.csv$`, "i")
+          new RegExp(`^${selectedDataset}/session\\.csv$`, "i"),
         );
         if (!sessionFiles || sessionFiles.length === 0)
           throw new Error("session.csv not found in zip");
@@ -2437,11 +2442,11 @@
         ]);
 
         $filterTableData = tableData.filter((session) =>
-          $selectedTags.includes(session.prompt_code)
+          $selectedTags.includes(session.prompt_code),
         );
 
         filterOptions = Array.from(
-          new Set(tableData.map((row) => row.prompt_code))
+          new Set(tableData.map((row) => row.prompt_code)),
         );
       }
     } catch (error) {
@@ -2455,7 +2460,7 @@
       const datasetInfo = datasets.find((d) => d.name === selectedDataset);
       if (datasetInfo.source === "repo") {
         const response = await fetch(
-          `${base}/dataset/${selectedDataset}/json/${sessionFile}.json`
+          `${base}/dataset/${selectedDataset}/json/${sessionFile}.json`,
         );
         if (!response.ok)
           throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -2467,7 +2472,7 @@
         const zip = await JSZip.loadAsync(zipBlob);
         const filePathRegex = new RegExp(
           `^${selectedDataset}/json/${sessionFile}\\.json$`,
-          "i"
+          "i",
         );
         const files = zip.file(filePathRegex);
         if (!files || files.length === 0)
@@ -2479,7 +2484,7 @@
 
       const time0 = new Date(data.actions[0].event_time);
       const time100 = new Date(
-        data.actions[data.actions.length - 1].event_time
+        data.actions[data.actions.length - 1].event_time,
       );
       const currentTime = (time100.getTime() - time0.getTime()) / (1000 * 60); // in minutes
       const similarityData = await fetchSimilarityData(sessionFile);
@@ -2525,7 +2530,7 @@
       let data;
       if (datasetInfo.source === "repo") {
         const response = await fetch(
-          `${base}/dataset/${selectedDataset}/json/${sessionFile}.json`
+          `${base}/dataset/${selectedDataset}/json/${sessionFile}.json`,
         );
         if (!response.ok)
           throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -2537,7 +2542,7 @@
         const zip = await JSZip.loadAsync(zipBlob);
         const filePathRegex = new RegExp(
           `^${selectedDataset}/json/${sessionFile}\\.json$`,
-          "i"
+          "i",
         );
         const files = zip.file(filePathRegex);
         if (!files || files.length === 0)
@@ -2590,7 +2595,7 @@
       let data;
       if (datasetInfo.source === "repo") {
         const response = await fetch(
-          `${base}/dataset/${selectedDataset}/segment_results/${sessionFile}.json`
+          `${base}/dataset/${selectedDataset}/segment_results/${sessionFile}.json`,
         );
         if (!response.ok)
           throw new Error(`Failed to fetch session data: ${response.status}`);
@@ -2602,7 +2607,7 @@
         const zip = await JSZip.loadAsync(zipBlob);
         const filePathRegex = new RegExp(
           `^${selectedDataset}/segment_results/${sessionFile}\\.json$`,
-          "i"
+          "i",
         );
         const files = zip.file(filePathRegex);
         if (!files || files.length === 0)
@@ -2715,7 +2720,7 @@
       selectedDataset = datasetParam;
     }
     CSVData = (await fetchCSVData()).filter(
-      (item) => item.session_id && item.session_id.trim() !== ""
+      (item) => item.session_id && item.session_id.trim() !== "",
     );
     featureData = await fetchFeatureData(CSVData);
 
@@ -2731,7 +2736,7 @@
       };
       searchPatternSet.update((current) => {
         const index = current.findIndex(
-          (p) => p.id === "pattern_0" && p.dataset === selectedDataset
+          (p) => p.id === "pattern_0" && p.dataset === selectedDataset,
         );
 
         if (index >= 0) {
@@ -2757,7 +2762,7 @@
       console.log("Is local browser?", isLocalBrowser);
       if (isLocalBrowser) {
         const segmentDB = await fetch(
-          `${base}/api/getSegment?dataset=${selectedDataset}`
+          `${base}/api/getSegment?dataset=${selectedDataset}`,
         );
         if (segmentDB.ok) {
           const json = await segmentDB.json();
@@ -2772,7 +2777,7 @@
         });
 
         const res = await fetch(
-          `${base}/db/${selectedDataset}_segment_results.db`
+          `${base}/db/${selectedDataset}_segment_results.db`,
         );
         if (!res.ok) throw new Error("DB not found");
         const buf = await res.arrayBuffer();
@@ -2801,7 +2806,7 @@
 
     if (useDB) {
       const scoreMap = new Map(
-        CSVData.map((row) => [row.session_id, row.judge_score])
+        CSVData.map((row) => [row.session_id, row.judge_score]),
       );
       const initArray = segmentData.map((item) => {
         const sessionId = item.id;
@@ -2845,7 +2850,7 @@
         const SQL = await initSqlJs({ wasmBinary });
 
         const dbResponse = await fetch(
-          `${base}/db/${selectedDataset}_segment_results.db`
+          `${base}/db/${selectedDataset}_segment_results.db`,
         );
         const dbBuffer = await dbResponse.arrayBuffer();
         const db = new SQL.Database(new Uint8Array(dbBuffer));
@@ -2910,13 +2915,13 @@ WITH RECURSIVE
 `)[0];
 
         const filteredWindows = stepStats.values.map((row) =>
-          JSON.parse(String(row[3]))
+          JSON.parse(String(row[3])),
         );
 
         console.log("Num:", filteredWindows.length);
         console.log(
           "Test:",
-          filteredWindows.sort(() => Math.random() - 0.5).slice(0, 5)
+          filteredWindows.sort(() => Math.random() - 0.5).slice(0, 5),
         );
       } catch (error) {
         console.error(error);
@@ -2950,7 +2955,7 @@ WITH RECURSIVE
     const minTranslateY = -chartHeight * (newK - 1);
     const clampedY = Math.max(
       minTranslateY,
-      Math.min(newTranslateY, maxTranslateY)
+      Math.min(newTranslateY, maxTranslateY),
     );
 
     zoomTransforms[sessionId] = d3.zoomIdentity
@@ -2970,10 +2975,10 @@ WITH RECURSIVE
     let textLength = wholeText.length;
 
     let newParagraph = [...wholeText.matchAll(/\n/g)].map(
-      (match) => match.index
+      (match) => match.index,
     );
     let paragraphPercentages = newParagraph.map(
-      (pos) => (pos / textLength) * 100
+      (pos) => (pos / textLength) * 100,
     );
     let mergeParagraph = [0];
     for (let i = 0; i < paragraphPercentages.length; i++) {
@@ -2991,7 +2996,7 @@ WITH RECURSIVE
         Math.abs(curr.percentage - percentage) <
         Math.abs(prev.percentage - percentage)
           ? curr
-          : prev
+          : prev,
       );
 
       return closest.time;
@@ -3079,7 +3084,7 @@ WITH RECURSIVE
     const initText = data.init_text;
     let currentCharArray = initText.split("");
     let currentColor = new Array(currentCharArray.length).fill(
-      sourceColorManager.getColor("api")
+      sourceColorManager.getColor("api"),
     );
     let chartData = [];
     let paragraphColor = [];
@@ -3344,7 +3349,7 @@ WITH RECURSIVE
       }));
       const similarityData = session.totalSimilarityData || [];
       const endIndex = similarityData.findIndex(
-        (item) => point.percentage < item.end_progress * 100
+        (item) => point.percentage < item.end_progress * 100,
       );
       const selectedData =
         endIndex === -1 ? similarityData : similarityData.slice(0, endIndex);
@@ -3382,7 +3387,7 @@ WITH RECURSIVE
     const next = data[startIndex + 1];
     const deltaMinutes = Math.max(
       (next.time || 0) - (current.time || 0),
-      (1 / 60) * 0.01
+      (1 / 60) * 0.01,
     ); // Minimum 10ms to avoid too fast playback
     const delay = deltaMinutes * TIME_PER_MIN_MS;
 
@@ -3431,7 +3436,7 @@ WITH RECURSIVE
     const maxTime = session.time100 || 0;
     const targetTime = Math.min(
       Math.max(Number(event.target.value) || 0, 0),
-      maxTime
+      maxTime,
     );
     const idx = findIndexFromTime(session.chartData, targetTime);
     playbackIndex = idx;
@@ -3495,7 +3500,7 @@ WITH RECURSIVE
   function handleEditSave(event) {
     const { pattern, newName } = event.detail;
     searchPatternSet.update((patterns) =>
-      patterns.map((p) => (p.id === pattern.id ? { ...p, name: newName } : p))
+      patterns.map((p) => (p.id === pattern.id ? { ...p, name: newName } : p)),
     );
     if (
       selectedPatternForDetail &&
@@ -3524,7 +3529,7 @@ WITH RECURSIVE
   function confirmDeletePattern() {
     if (patternToDelete) {
       searchPatternSet.update((patterns) =>
-        patterns.filter((p) => p.id !== patternToDelete.id)
+        patterns.filter((p) => p.id !== patternToDelete.id),
       );
       if (currentView === "pattern-detail") {
         handleBackFromDetail();
@@ -3555,7 +3560,7 @@ WITH RECURSIVE
     // Open GitHub README section about dataset import
     window.open(
       "https://github.com/Visual-Intelligence-UMN/Ink-Pulse/blob/main/README.md#how-to-import-your-own-dataset",
-      "_blank"
+      "_blank",
     );
   }
 
@@ -3587,12 +3592,12 @@ WITH RECURSIVE
   $: vtTotalRows = Math.max(...vtData.map((group) => group.length)); // total number of rows
   $: vtRowsInView = Math.max(
     1,
-    Math.ceil((vtViewportH - vtHeaderHeight) / vtRowHeight)
+    Math.ceil((vtViewportH - vtHeaderHeight) / vtRowHeight),
   );
   $: vtVisibleCnt = vtRowsInView + vtOverscan * 2; // rows to render including overscan
   $: vtStartIndex = Math.max(
     0,
-    Math.floor(vtScrollY / vtRowHeight) - vtOverscan
+    Math.floor(vtScrollY / vtRowHeight) - vtOverscan,
   );
   $: vtEndIndex = Math.min(vtTotalRows, vtStartIndex + vtVisibleCnt); // slice end index
   $: vtVisibleRows = vtData.map((col) => col.slice(vtStartIndex, vtEndIndex)); // actual rows rendered
@@ -3651,7 +3656,7 @@ WITH RECURSIVE
     searchResults = $initData
       .filter(
         (session) =>
-          session.sessionId && session.sessionId.toLowerCase().includes(query)
+          session.sessionId && session.sessionId.toLowerCase().includes(query),
       )
       .slice(0, 10); // Limit to 10 results
 
@@ -3708,13 +3713,13 @@ WITH RECURSIVE
       console.log("selectedDataset:", selectedDataset);
       console.log(
         "all patterns:",
-        $searchPatternSet.filter((p) => p.id !== "pattern_0")
+        $searchPatternSet.filter((p) => p.id !== "pattern_0"),
       );
       console.log(
         "filtered patterns:",
         $searchPatternSet.filter(
-          (p) => p.dataset === selectedDataset && p.id !== "pattern_0"
-        )
+          (p) => p.dataset === selectedDataset && p.id !== "pattern_0",
+        ),
       );
     }
   }
@@ -4165,12 +4170,12 @@ WITH RECURSIVE
                   <div class="pattern-details">
                     <div>
                       Semantic Change: {pattern.dataRange.scRange.min.toFixed(
-                        2
+                        2,
                       )} - {pattern.dataRange.scRange.max.toFixed(2)}
                     </div>
                     <div>
                       Progress Range: {pattern.dataRange.progressRange.min.toFixed(
-                        2
+                        2,
                       )}% - {pattern.dataRange.progressRange.max.toFixed(2)}%
                     </div>
                     <div>
@@ -4238,7 +4243,7 @@ WITH RECURSIVE
                               selectedTimeRange={pattern.selectedTimeRange ??
                                 deriveTimeRangeFromProgress(
                                   pattern.range?.progress,
-                                  pattern.wholeData
+                                  pattern.wholeData,
                                 ) ??
                                 null}
                               selectedProgressRange={pattern.range?.progress ??
@@ -4775,7 +4780,7 @@ WITH RECURSIVE
                       <span style="font-size: 12px; color: #666;">
                         Showing {Math.min(
                           $showResultCount,
-                          $patternDataList.length
+                          $patternDataList.length,
                         )} of {allSearchResults.length} results
                         {#if loadedResultCount < allSearchResults.length}
                           (Loaded {loadedResultCount})
@@ -4810,7 +4815,7 @@ WITH RECURSIVE
                                 readOnly={true}
                                 sharedSelection={generateBarchartSelection(
                                   sessionData,
-                                  barChartXAxis
+                                  barChartXAxis,
                                 )}
                                 on:selectionChanged={() => {}}
                                 on:selectionCleared={() => {}}
@@ -4834,7 +4839,7 @@ WITH RECURSIVE
                                 highlightMode={sessionData.highlightRanges
                                   ?.mode ??
                                   resolveHighlightModeFromSource(
-                                    searchDetail?.selectionSource ?? null
+                                    searchDetail?.selectionSource ?? null,
                                   )}
                                 selectionContext={sessionData.highlightRanges
                                   ?.selectionContext ?? null}
@@ -5011,7 +5016,7 @@ WITH RECURSIVE
                     <span class="category-icon-large">
                       {@html getCategoryIconBase(
                         selectedCategoryFilter,
-                        selectedDataset
+                        selectedDataset,
                       )}
                     </span>
                     {selectedCategoryFilter.toUpperCase()} Sessions
@@ -5262,7 +5267,7 @@ WITH RECURSIVE
                       <h3>
                         {#if sessions && sessions.find((s) => s.session_id === $clickSession.sessionId)}
                           {sessions.find(
-                            (s) => s.session_id === $clickSession.sessionId
+                            (s) => s.session_id === $clickSession.sessionId,
                           ).prompt_code} - {$clickSession.sessionId}
                         {:else}
                           Session: {$clickSession.sessionId}
@@ -5452,9 +5457,9 @@ WITH RECURSIVE
                               Math.max(
                                 ($clickSession?.currentTime || 0) /
                                   ($clickSession?.time100 || 1 || 1),
-                                0
+                                0,
                               ),
-                              1
+                              1,
                             ) * 100
                           ).toFixed(2)}%;`}
                           on:input={handleScrub}

@@ -163,7 +163,7 @@
       sharedSelection.xMax !== undefined &&
       sharedSelection.xField
     ) {
-      // X 方向选择
+      // X selection
       if (sharedSelection.xField === xAxisField) {
         const xVal = getXValue(d);
         const inRange =
@@ -211,6 +211,64 @@
     return 1;
   }
 
+  // function handleLine2Bar(points) {
+  //   if (!points || !points.length) return []; // only use progress and source convert points to bars
+  //   const bars: any[] = [];
+  //   let currentBar = [points[0]];
+  //   let lastSource = points[0].eventSource  || "user";
+  //   let lastSemantic = points[0].residual_vector_norm;
+  //   let lastTrend = 0;
+
+  //   for (let i = 1; i < points.length; i++) {
+  //     const p = points[i];
+  //     const source = p.eventSource  || "user";
+  //     const semantic = p.residual_vector_norm;
+  //     const progress = p.percentage;
+  //     const prevProgress = points[i - 1].percentage;
+  //     let trend = lastTrend;
+  //     if (progress > prevProgress) trend = 1;
+  //     else if (progress < prevProgress) trend = -1;
+  //     const sourceChanged = source !== lastSource;
+  //     const semanticChanged = semantic !== lastSemantic;
+  //     const trendChanged = lastTrend !== 0 && trend !== lastTrend;
+
+  //     if (sourceChanged || semanticChanged || trendChanged) {
+  //       bars.push(currentBar);
+  //       currentBar = [];
+  //     }
+
+  //     currentBar.push(p);
+  //     lastSource = source;
+  //     lastSemantic = semantic;
+  //     lastTrend = trend;
+  //   }
+
+  //   if (currentBar.length) bars.push(currentBar);
+
+  //   const processedBars = bars.map((bar, idx) => ({
+  //     id: idx + 1,
+  //     source: bar[0].eventSource,
+  //     startProgress: bar[0].percentage,
+  //     endProgress: bar[bar.length - 1].percentage, 
+  //     startTime: bar[0].time,
+  //     endTime: bar[bar.length - 1].time,
+  //     last_event_time: bar[bar.length - 1].time * 60,
+  //     residual_vector_norm: bar[bar.length - 1].residual_vector_norm || 0,
+  //     score: bar.reduce((sum, d) => sum + (d.score || 0), 0) / bar.length,
+  //     sentence: bar.reduce((sum, d) => sum + (d.sentence || 0), 0) / bar.length,
+  //     xStart: bar[0].percentage,
+  //     xEnd: bar[bar.length - 1].percentage,
+  //     xValue: (bar[0].percentage + bar[bar.length - 1].percentage) / 2,
+  //     yValue: bar[bar.length - 1].time,
+  //     points: bar,
+  //   }));
+
+
+  //   console.log("bars:", processedBars);
+
+  //   return processedBars;
+  // }
+
   function brushedY(event) {
     if (!event.selection) {
       sharedSelection = null;
@@ -254,6 +312,8 @@
       })
       .filter((d) => d !== null);
 
+      console.log("points", matchedPoints)
+
     const yMin = d3.min(insidePoints, (d) => getYValue(d));
     const yMax = d3.max(insidePoints, (d) => getYValue(d));
     const scValues = matchedPoints.map((d) => d.residual_vector_norm || 0);
@@ -269,7 +329,6 @@
       yField: yAxisField,
       xField: xAxisField,
       selectionSource: "lineChart_y",
-      // 向后兼容
       progressMin: yAxisField === "progress" ? yMin : null,
       progressMax: yAxisField === "progress" ? yMax : null,
       timeMin: yAxisField === "time" ? yMin : null,
