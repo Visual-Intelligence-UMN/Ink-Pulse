@@ -4,32 +4,26 @@
   import { base } from "$app/paths";
 
   let apiKey = "";
-  let displayApiKey = ""; // 用于显示的 API Key（可能被遮蔽）
+  let displayApiKey = "";
   let inputMessage = "";
   let openSetting = false;
   const dispatch = createEventDispatcher();
   let showSavedMessage = false;
   let isApiKeyLoaded = false;
-  let isEditingKey = false; // 是否正在编辑 API Key
+  let isEditingKey = false;
 
-  // ===== API Key 持久化存储 =====
   const STORAGE_KEY = "inkpulse_openai_api_key";
 
-  /**
-   * 简单加密函数（基于设备指纹）
-   * 注意：这不是强加密，只是防止明文暴露
-   */
+  // simple encryption function based on device fingerprint
   function encryptKey(key) {
     if (!key) return "";
     try {
-      // 使用浏览器特征作为密钥
       const secret = (
         navigator.userAgent +
         navigator.language +
         screen.width
       ).slice(0, 50);
 
-      // XOR 加密
       const encrypted = key
         .split("")
         .map((char, i) => {
@@ -38,15 +32,15 @@
         })
         .join("");
 
-      return btoa(encrypted); // Base64 编码
+      return btoa(encrypted); // Base64 encoding
     } catch (error) {
       console.warn("Encryption failed:", error);
-      return btoa(key); // 降级：只做 Base64
+      return btoa(key);
     }
   }
 
   /**
-   * 解密函数
+   * decryption function
    */
   function decryptKey(encrypted) {
     if (!encrypted) return "";
@@ -58,7 +52,6 @@
       ).slice(0, 50);
       const decoded = atob(encrypted);
 
-      // XOR 解密
       const decrypted = decoded
         .split("")
         .map((char, i) => {
@@ -71,7 +64,7 @@
     } catch (error) {
       console.warn("Decryption failed:", error);
       try {
-        return atob(encrypted); // 降级：只做 Base64 解码
+        return atob(encrypted);
       } catch {
         return "";
       }
@@ -79,7 +72,7 @@
   }
 
   /**
-   * 保存 API Key 到 localStorage
+   * save API Key to localStorage
    */
   function saveApiKey(key) {
     if (typeof window === "undefined") return;
@@ -98,7 +91,7 @@
   }
 
   /**
-   * 从 localStorage 加载 API Key
+   * from localStorage load API Key
    */
   function loadApiKey() {
     if (typeof window === "undefined") return "";
@@ -116,7 +109,7 @@
   }
 
   /**
-   * 清除 API Key
+   * clear API Key
    */
   function clearApiKey() {
     apiKey = "";
@@ -125,19 +118,19 @@
   }
 
   /**
-   * 遮蔽显示 API Key（用于输入框）
+   * cover API Key
    */
   function maskApiKey(key) {
     if (!key || key.length < 10) return key;
-    const visibleStart = 8; // 显示前8个字符
-    const visibleEnd = 4; // 显示后4个字符
+    const visibleStart = 8;
+    const visibleEnd = 4;
     const middle = "•".repeat(
       Math.min(20, key.length - visibleStart - visibleEnd)
     );
     return key.slice(0, visibleStart) + middle + key.slice(-visibleEnd);
   }
 
-  // 组件挂载时加载 API Key
+  // component mounted
   onMount(() => {
     const savedKey = loadApiKey();
     if (savedKey) {
@@ -146,7 +139,7 @@
       isApiKeyLoaded = true;
     }
   });
-  // ===== END: API Key 持久化存储 =====
+
   let result = {
     explanations: [],
     filters: [],
