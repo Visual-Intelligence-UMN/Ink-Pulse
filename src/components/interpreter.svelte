@@ -149,6 +149,8 @@
   const signal = convertPatternToSignal(pattern);
   let openRatioIndex = null;
   let ratioSelections = {};
+  let editingRatioIndex = null;
+  let ratioInputValue = "";
 
   let userInput = "";
   const SYSTEM_PROMPT = `
@@ -661,6 +663,40 @@
     sendParsedFilters();
   }
 
+  function startEditingRatio(expIndex, partId, currentValue) {
+    const key = getUniqueDropdownId(expIndex, partId);
+    editingRatioIndex = key;
+    // Extract number from "3x" -> "3"
+    const match = currentValue.match(/^(\d+(?:\.\d+)?)x?$/);
+    ratioInputValue = match ? match[1] : currentValue.replace("x", "");
+  }
+
+  function handleRatioInput(expIndex, partId, event) {
+    if (event.key === "Enter") {
+      confirmRatioInput(expIndex, partId);
+    } else if (event.key === "Escape") {
+      cancelRatioInput();
+    }
+  }
+
+  function confirmRatioInput(expIndex, partId) {
+    const inputNum = parseFloat(ratioInputValue);
+    if (isNaN(inputNum) || inputNum <= 0) {
+      alert("⚠️ Please enter a valid positive number");
+      return;
+    }
+
+    const newValue = `${ratioInputValue}x`;
+    selectRatioOption(expIndex, partId, newValue);
+    editingRatioIndex = null;
+    ratioInputValue = "";
+  }
+
+  function cancelRatioInput() {
+    editingRatioIndex = null;
+    ratioInputValue = "";
+  }
+
   function escapeRegex(str) {
     return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
@@ -767,40 +803,29 @@
             {#if part.type === "text"}
               {part.value}
             {:else if part.type === "ratio"}
-              {#if part.options.length > 1}
+              {#if part.options.length > 0}
                 <span class="ratio-wrapper">
-                  <button
-                    type="button"
-                    class="ratio-selected"
-                    aria-haspopup="listbox"
-                    aria-expanded={openRatioIndex ===
-                      getUniqueDropdownId(expIndex, part.id)}
-                    on:click={() =>
-                      (openRatioIndex =
-                        openRatioIndex ===
-                        getUniqueDropdownId(expIndex, part.id)
-                          ? null
-                          : getUniqueDropdownId(expIndex, part.id))}
-                  >
-                    {part.selected} ▾
-                  </button>
-
-                  {#if openRatioIndex === getUniqueDropdownId(expIndex, part.id)}
-                    <ul class="ratio-menu" role="listbox">
-                      {#each part.options as opt}
-                        <li
-                          role="option"
-                          aria-selected={opt === part.selected}
-                          class="ratio-item {opt === part.selected
-                            ? 'active'
-                            : ''}"
-                          on:click={() =>
-                            selectRatioOption(expIndex, part.id, opt)}
-                        >
-                          {opt}
-                        </li>
-                      {/each}
-                    </ul>
+                  {#if editingRatioIndex === getUniqueDropdownId(expIndex, part.id)}
+                    <input
+                      type="text"
+                      class="ratio-input"
+                      bind:value={ratioInputValue}
+                      on:keydown={(e) => handleRatioInput(expIndex, part.id, e)}
+                      on:blur={() => confirmRatioInput(expIndex, part.id)}
+                      placeholder="e.g., 2.5"
+                      autofocus
+                    />
+                    <span class="ratio-input-hint">x</span>
+                  {:else}
+                    <button
+                      type="button"
+                      class="ratio-selected"
+                      aria-haspopup="true"
+                      on:click={() =>
+                        startEditingRatio(expIndex, part.id, part.selected)}
+                    >
+                      {part.selected} ✎
+                    </button>
                   {/if}
                 </span>
               {:else}
@@ -1000,6 +1025,27 @@
 
   .ratio-selected:hover {
     background: #d0d0d0;
+  }
+
+  .ratio-input {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    line-height: 1.4;
+    width: 50px;
+    background: #fff;
+    color: #333;
+    border: 2px solid #137a7f;
+    outline: none;
+    text-align: center;
+    font-family: inherit;
+  }
+
+  .ratio-input-hint {
+    font-size: 12px;
+    color: #666;
+    margin-left: 2px;
   }
 
   .ratio-menu {
