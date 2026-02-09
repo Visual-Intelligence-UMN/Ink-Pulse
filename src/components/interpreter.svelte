@@ -1,24 +1,156 @@
 <script>
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
   import "../components/styles.css";
-  import { base } from '$app/paths';
-  
+  import { base } from "$app/paths";
+
   let apiKey = "";
+  let displayApiKey = "";
   let inputMessage = "";
   let openSetting = false;
   const dispatch = createEventDispatcher();
   let showSavedMessage = false;
+  let isApiKeyLoaded = false;
+  let isEditingKey = false;
+
+  const STORAGE_KEY = "inkpulse_openai_api_key";
+
+  // simple encryption function based on device fingerprint
+  function encryptKey(key) {
+    if (!key) return "";
+    try {
+      const secret = (
+        navigator.userAgent +
+        navigator.language +
+        screen.width
+      ).slice(0, 50);
+
+      const encrypted = key
+        .split("")
+        .map((char, i) => {
+          const keyChar = secret.charCodeAt(i % secret.length);
+          return String.fromCharCode(char.charCodeAt(0) ^ keyChar);
+        })
+        .join("");
+
+      return btoa(encrypted); // Base64 encoding
+    } catch (error) {
+      console.warn("Encryption failed:", error);
+      return btoa(key);
+    }
+  }
+
+  /**
+   * decryption function
+   */
+  function decryptKey(encrypted) {
+    if (!encrypted) return "";
+    try {
+      const secret = (
+        navigator.userAgent +
+        navigator.language +
+        screen.width
+      ).slice(0, 50);
+      const decoded = atob(encrypted);
+
+      const decrypted = decoded
+        .split("")
+        .map((char, i) => {
+          const keyChar = secret.charCodeAt(i % secret.length);
+          return String.fromCharCode(char.charCodeAt(0) ^ keyChar);
+        })
+        .join("");
+
+      return decrypted;
+    } catch (error) {
+      console.warn("Decryption failed:", error);
+      try {
+        return atob(encrypted);
+      } catch {
+        return "";
+      }
+    }
+  }
+
+  /**
+   * save API Key to localStorage
+   */
+  function saveApiKey(key) {
+    if (typeof window === "undefined") return;
+    try {
+      if (key && key.trim()) {
+        const encrypted = encryptKey(key.trim());
+        localStorage.setItem(STORAGE_KEY, encrypted);
+        console.log("✅ API Key saved successfully");
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+        console.log("🗑️ API Key removed");
+      }
+    } catch (error) {
+      console.error("Failed to save API Key:", error);
+    }
+  }
+
+  /**
+   * from localStorage load API Key
+   */
+  function loadApiKey() {
+    if (typeof window === "undefined") return "";
+    try {
+      const encrypted = localStorage.getItem(STORAGE_KEY);
+      if (encrypted) {
+        const decrypted = decryptKey(encrypted);
+        console.log("✅ API Key loaded from storage");
+        return decrypted;
+      }
+    } catch (error) {
+      console.error("Failed to load API Key:", error);
+    }
+    return "";
+  }
+
+  /**
+   * clear API Key
+   */
+  function clearApiKey() {
+    apiKey = "";
+    saveApiKey("");
+    showSavedMessage = false;
+  }
+
+  /**
+   * cover API Key
+   */
+  function maskApiKey(key) {
+    if (!key || key.length < 10) return key;
+    const visibleStart = 8;
+    const visibleEnd = 4;
+    const middle = "•".repeat(
+      Math.min(20, key.length - visibleStart - visibleEnd)
+    );
+    return key.slice(0, visibleStart) + middle + key.slice(-visibleEnd);
+  }
+
+  // component mounted
+  onMount(() => {
+    const savedKey = loadApiKey();
+    if (savedKey) {
+      apiKey = savedKey;
+      displayApiKey = maskApiKey(savedKey);
+      isApiKeyLoaded = true;
+    }
+  });
+
   let result = {
     explanations: [],
-    filters: []
+    filters: [],
   };
   export let pattern;
-  pattern = pattern.data
+  pattern = pattern.data;
   const signal = convertPatternToSignal(pattern);
   let openRatioIndex = null;
   let ratioSelections = {};
-  
-  let userInput = ''
+
+  let userInput = "";
   const SYSTEM_PROMPT = `
     You are an interpretation engine for Human–AI collaborative writing analysis.
 
@@ -197,34 +329,34 @@
 
   const featureStyleMap = {
     source: {
-      label: 'Source',
-      bg: '#e3f2fd',
-      color: '#1565c0'
+      label: "Source",
+      bg: "#e3f2fd",
+      color: "#1565c0",
     },
     progress: {
-      label: 'Progress',
-      bg: '#fff3e0',
-      color: '#ef6c00'
+      label: "Progress",
+      bg: "#fff3e0",
+      color: "#ef6c00",
     },
     semantic_change: {
-      label: 'Semantic',
-      bg: '#e8f5e9',
-      color: '#2e7d32'
+      label: "Semantic",
+      bg: "#e8f5e9",
+      color: "#2e7d32",
     },
     time: {
-      label: 'Time',
-      bg: '#f3e5f5',
-      color: '#6a1b9a'
-    }
+      label: "Time",
+      bg: "#f3e5f5",
+      color: "#6a1b9a",
+    },
   };
-  
+
   function round2(num) {
     return Math.round(num * 100) / 100;
   }
-  
+
   function convertPatternToSignal(pattern) {
     if (!pattern || pattern.length === 0) return null;
-    const sourceTrend = pattern.map(block => block.source);
+    const sourceTrend = pattern.map((block) => block.source);
     const progressDiff = [];
     const timeDiff = [];
     const semanticDiff = [];
@@ -232,52 +364,48 @@
       progressDiff.push(
         round2(pattern[i].endProgress - pattern[i].startProgress)
       );
-      timeDiff.push(
-        round2(pattern[i].endTime - pattern[i].startTime)
-      );
-      semanticDiff.push(
-        round2(pattern[i].residual_vector_norm)
-      );
+      timeDiff.push(round2(pattern[i].endTime - pattern[i].startTime));
+      semanticDiff.push(round2(pattern[i].residual_vector_norm));
     }
-    
+
     return {
       sourceTrend,
       progress: progressDiff,
       time: timeDiff,
-      semantic_change: semanticDiff
+      semantic_change: semanticDiff,
     };
   }
-  
+
   async function sendMessageToAPI(userInput) {
     const messages = [
       {
         role: "system",
-        content: SYSTEM_PROMPT
+        content: SYSTEM_PROMPT,
       },
       {
         role: "user",
         content: JSON.stringify({
           userObservation: userInput,
-          selectedPattern: signal
-        })
-      }
+          selectedPattern: signal,
+        }),
+      },
     ];
     const response = await fetch(`${base}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         apiKey,
-        messages
-      })
+        messages,
+      }),
     });
     const data = await response.json();
     if (!data.choices || data.choices.length === 0) {
-      throw new Error(data.error?.message || 'No choices returned from API');
+      throw new Error(data.error?.message || "No choices returned from API");
     }
-    
+
     return data.choices[0].message.content;
   }
-  
+
   async function handleSendMessage() {
     if (inputMessage.trim() === "") return;
     console.log("Sending message:", inputMessage);
@@ -286,61 +414,117 @@
       const parsed = JSON.parse(raw);
       result = {
         explanations: parsed.Explanations || [],
-        filters: parsed.FormattedFilter || []
+        filters: parsed.FormattedFilter || [],
       };
       ratioSelections = {};
       result.explanations.forEach((exp, expIndex) => {
         const parts = parseRatioText(exp.text);
-        parts.forEach(part => {
-          if (part.type === 'ratio') {
+        parts.forEach((part) => {
+          if (part.type === "ratio") {
             const key = getUniqueDropdownId(expIndex, part.id);
             ratioSelections[key] = part.selected;
           }
         });
       });
-      
+
       sendParsedFilters();
     } catch (err) {
       console.error("Send failed:", err);
       result = { explanations: err.message, filters: [] };
     }
   }
-  
+
   function toggleSettingsWindow() {
     openSetting = !openSetting;
-  }
-  
-  function handleSetApiKey() {
-    if (apiKey.trim() === "") {
-      showSavedMessage = false;
-      toggleSettingsWindow();
-      dispatch('setKey', apiKey);
-    } else {
-      showSavedMessage = true;
-      toggleSettingsWindow();
-      dispatch('setKey', apiKey);
+
+    if (openSetting) {
+      // 打开设置时，如果有保存的 Key，显示遮蔽版本
+      if (isApiKeyLoaded && apiKey) {
+        displayApiKey = maskApiKey(apiKey);
+        isEditingKey = false;
+      } else {
+        displayApiKey = "";
+        isEditingKey = true;
+      }
     }
   }
-  
+
+  function handleKeyInputFocus() {
+    if (!isEditingKey && isApiKeyLoaded) {
+      displayApiKey = "";
+      isEditingKey = true;
+    }
+  }
+
+  function handleKeyInputChange(event) {
+    displayApiKey = event.target.value;
+    apiKey = event.target.value;
+  }
+
+  function handleSetApiKey() {
+    const trimmedKey = apiKey.trim();
+
+    if (trimmedKey === "") {
+      // clear API Key
+      clearApiKey();
+      displayApiKey = "";
+      isApiKeyLoaded = false;
+      showSavedMessage = false;
+      toggleSettingsWindow();
+    } else {
+      // verify API Key format
+      if (!trimmedKey.startsWith("sk-")) {
+        alert(
+          '⚠️ Invalid API Key format. OpenAI API Keys usually start with "sk-"'
+        );
+        return;
+      }
+
+      // save API Key to localStorage
+      apiKey = trimmedKey;
+      saveApiKey(trimmedKey);
+      displayApiKey = maskApiKey(trimmedKey);
+      showSavedMessage = true;
+      toggleSettingsWindow();
+      isApiKeyLoaded = true;
+      isEditingKey = false;
+    }
+
+    dispatch("setKey", apiKey);
+  }
+
+  function handleClearApiKey() {
+    if (
+      confirm(
+        "⚠️ Are you sure you want to clear the saved API Key?\n\nYou will need to enter it again to use the Interpretation feature."
+      )
+    ) {
+      clearApiKey();
+      displayApiKey = "";
+      isApiKeyLoaded = false;
+      isEditingKey = true;
+    }
+  }
+
   function handleAnimationEnd() {
     showSavedMessage = false;
   }
-  
+
   let textareaEl;
   function autoResize() {
-    textareaEl.style.height = 'auto';
-    textareaEl.style.height = textareaEl.scrollHeight + 'px';
+    textareaEl.style.height = "auto";
+    textareaEl.style.height = textareaEl.scrollHeight + "px";
   }
-  
+
   function removeExplanation(index) {
     const parts = parseRatioText(result.explanations[index].text);
-    parts.forEach(part => {
-      if (part.type === 'ratio') {
+    parts.forEach((part) => {
+      if (part.type === "ratio") {
         const key = getUniqueDropdownId(index, part.id);
         delete ratioSelections[key];
       }
     });
-    
+
     result.explanations.splice(index, 1);
     if (result.filters && result.filters.length > index) {
       result.filters.splice(index, 1);
@@ -348,16 +532,16 @@
     result = { ...result };
     sendParsedFilters();
   }
-  
+
   function parseFilterObject(filter) {
     if (!filter) return null;
-    if (typeof filter === 'string') {
-      console.warn('Filter is a string:', filter);
+    if (typeof filter === "string") {
+      console.warn("Filter is a string:", filter);
       return null;
     }
     return filter;
   }
-  
+
   const ratioRegex = /\[([^\]]+)\]|\(([^)]+)\)/g;
   function parseRatioText(text) {
     const parts = [];
@@ -367,65 +551,65 @@
     for (const match of text.matchAll(ratioRegex)) {
       if (match.index > lastIndex) {
         parts.push({
-          type: 'text',
+          type: "text",
           value: text.slice(lastIndex, match.index),
-          id: nextId++
+          id: nextId++,
         });
       }
       if (match[1]) {
         currentRatio = {
-          type: 'ratio',
+          type: "ratio",
           selected: match[1],
           options: [match[1]],
-          id: nextId++
+          id: nextId++,
         };
         parts.push(currentRatio);
       } else if (match[2] && currentRatio) {
-        const opts = match[2].split(',').map(o => o.trim());
+        const opts = match[2].split(",").map((o) => o.trim());
         currentRatio.options.push(...opts);
       }
       lastIndex = match.index + match[0].length;
     }
     if (lastIndex < text.length) {
       parts.push({
-        type: 'text',
+        type: "text",
         value: text.slice(lastIndex),
-        id: nextId++
+        id: nextId++,
       });
     }
-    
+
     return parts;
   }
-  
+
   function parseAllFilters(filters) {
-    const parsed = filters.map(parseFilterObject).filter(f => f !== null);
+    const parsed = filters.map(parseFilterObject).filter((f) => f !== null);
     return parsed;
   }
-  
+
   function sendParsedFilters() {
     const parsedFilters = parseAllFilters(result.filters);
     const explanationsWithRatios = result.explanations.map((exp, expIndex) => {
       const parts = parseRatioText(exp.text);
-      let reconstructedText = '';
+      let reconstructedText = "";
       const ratioInfo = [];
-      parts.forEach(part => {
-        if (part.type === 'text') {
+      parts.forEach((part) => {
+        if (part.type === "text") {
           reconstructedText += part.value;
-        } else if (part.type === 'ratio') {
+        } else if (part.type === "ratio") {
           const key = getUniqueDropdownId(expIndex, part.id);
           const selectedValue = ratioSelections[key] || part.selected;
           reconstructedText += `(${selectedValue})`;
           ratioInfo.push({
             selected: selectedValue,
-            options: part.options
+            options: part.options,
           });
         }
       });
-      
+
       return {
         feature: exp.feature,
         text: reconstructedText,
-        ratios: ratioInfo.length > 0 ? ratioInfo : undefined
+        ratios: ratioInfo.length > 0 ? ratioInfo : undefined,
       };
     });
     const filtersWithRatio = parsedFilters.map((filter, i) => {
@@ -436,26 +620,35 @@
         const match = ratioStr.match(/(\d+(?:\.\d+)?)x/);
         ratio = match ? parseFloat(match[1]) : null;
       }
-      
+
       return {
         ...filter,
-        ratio: ratio
+        ratio: ratio,
       };
     });
-    
-    console.log("Sending - explanations:", explanationsWithRatios, "filters with ratio:", filtersWithRatio);
-    
-    dispatch('parsedFilters', { 
-      explanations: explanationsWithRatios, 
-      filters: filtersWithRatio
+
+    console.log(
+      "Sending - explanations:",
+      explanationsWithRatios,
+      "filters with ratio:",
+      filtersWithRatio
+    );
+
+    dispatch("parsedFilters", {
+      explanations: explanationsWithRatios,
+      filters: filtersWithRatio,
     });
   }
 
   function selectRatioOption(expIndex, partId, option) {
     const key = getUniqueDropdownId(expIndex, partId);
     ratioSelections[key] = option;
-    result.explanations[expIndex].text = result.explanations[expIndex].text.replace(
-      new RegExp(`\\[${escapeRegex(parseRatioText(result.explanations[expIndex].text).find(p => p.id === partId)?.selected || '')}\\]`),
+    result.explanations[expIndex].text = result.explanations[
+      expIndex
+    ].text.replace(
+      new RegExp(
+        `\\[${escapeRegex(parseRatioText(result.explanations[expIndex].text).find((p) => p.id === partId)?.selected || "")}\\]`
+      ),
       `[${option}]`
     );
     result = { ...result };
@@ -464,7 +657,7 @@
   }
 
   function escapeRegex(str) {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
   function getUniqueDropdownId(expIndex, partId) {
@@ -476,16 +669,60 @@
   <div class="header">
     <h3>Interpretation</h3>
     <div class="header-actions">
-      <button on:click={toggleSettingsWindow} class="settings-btn">⚙</button>
+      <button
+        on:click={toggleSettingsWindow}
+        class="settings-btn"
+        class:has-key={isApiKeyLoaded}
+        title={isApiKeyLoaded
+          ? "API Key is configured"
+          : "Click to set API Key"}
+      >
+        {#if isApiKeyLoaded}
+          <span class="key-indicator">✓</span>
+        {/if}
+        ⚙
+      </button>
     </div>
   </div>
   {#if openSetting}
     <div class="panel">
-      <h4>API Key</h4>
-      <input type="text" bind:value={apiKey} placeholder="Enter OpenAI API Key"
-         style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;" />
-      <button on:click={handleSetApiKey} style="width: 100%; padding: 0.5rem; background-color: #137a7f;
-         color: white; border: none; border-radius: 4px; cursor: pointer;">Save API Key</button>
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;"
+      >
+        <h4 style="margin: 0;">OpenAI API Key</h4>
+        {#if isApiKeyLoaded}
+          <span class="key-status-badge">✓ Saved</span>
+        {/if}
+      </div>
+
+      <input
+        type={isEditingKey ? "password" : "text"}
+        value={displayApiKey}
+        on:input={handleKeyInputChange}
+        on:focus={handleKeyInputFocus}
+        placeholder={isApiKeyLoaded
+          ? "••••••••••••••• (click to update)"
+          : "Enter OpenAI API Key (sk-proj-...)"}
+        class="api-key-input"
+      />
+
+      <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+        <button on:click={handleSetApiKey} class="save-key-btn">
+          {isApiKeyLoaded ? "Update API Key" : "Save API Key"}
+        </button>
+        {#if isApiKeyLoaded}
+          <button on:click={handleClearApiKey} class="clear-key-btn">
+            Clear
+          </button>
+        {/if}
+      </div>
+
+      <div class="key-info">
+        <small>
+          💡 Your API Key is encrypted and stored locally in your browser. It
+          will persist across sessions.
+        </small>
+      </div>
     </div>
   {/if}
   <div class="input-area">
@@ -496,7 +733,7 @@
       rows="1"
       on:input={autoResize}
       on:keydown={(e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === "Enter" && !e.shiftKey) {
           e.preventDefault();
           handleSendMessage();
         }
@@ -507,97 +744,138 @@
     <button on:click={handleSendMessage} class="send-btn">Check</button>
   </div>
   {#if result?.explanations}
-      <div class="explanation-container">
-        {#each result.explanations as exp, expIndex}
-          <span class="explanation-text">
-            {#if featureStyleMap[exp.feature]}
-              <span
-                class="feature-badge"
-                style="
+    <div class="explanation-container">
+      {#each result.explanations as exp, expIndex}
+        <span class="explanation-text">
+          {#if featureStyleMap[exp.feature]}
+            <span
+              class="feature-badge"
+              style="
                   background: {featureStyleMap[exp.feature].bg};
                   color: {featureStyleMap[exp.feature].color};
                 "
-              >
-                {featureStyleMap[exp.feature].label}
-              </span>
-            {/if}
-            {#each parseRatioText(exp.text) as part (part.id)}
-              {#if part.type === 'text'}
-                {part.value}
-              {:else if part.type === 'ratio'}
-                {#if part.options.length > 1}
-                  <span class="ratio-wrapper">
-                    <button
-                      type="button"
-                      class="ratio-selected"
-                      aria-haspopup="listbox"
-                      aria-expanded={openRatioIndex === getUniqueDropdownId(expIndex, part.id)}
-                      on:click={() => openRatioIndex = openRatioIndex === getUniqueDropdownId(expIndex, part.id) ? null : getUniqueDropdownId(expIndex, part.id)}
-                    >
-                      {part.selected} ▾
-                    </button>
-                    
-                    {#if openRatioIndex === getUniqueDropdownId(expIndex, part.id)}
-                      <ul class="ratio-menu" role="listbox">
-                        {#each part.options as opt}
-                          <li
-                            role="option"
-                            aria-selected={opt === part.selected}
-                            class="ratio-item {opt === part.selected ? 'active' : ''}"
-                            on:click={() => selectRatioOption(expIndex, part.id, opt)}
-                          >
-                            {opt}
-                          </li>
-                        {/each}
-                      </ul>
-                    {/if}
-                  </span>
-                {:else}
-                  {part.selected}
-                {/if}
-              {/if}
-            {/each}
-            <span class="close-button" on:click={() => removeExplanation(expIndex)}>
-              ×
+            >
+              {featureStyleMap[exp.feature].label}
             </span>
+          {/if}
+          {#each parseRatioText(exp.text) as part (part.id)}
+            {#if part.type === "text"}
+              {part.value}
+            {:else if part.type === "ratio"}
+              {#if part.options.length > 1}
+                <span class="ratio-wrapper">
+                  <button
+                    type="button"
+                    class="ratio-selected"
+                    aria-haspopup="listbox"
+                    aria-expanded={openRatioIndex ===
+                      getUniqueDropdownId(expIndex, part.id)}
+                    on:click={() =>
+                      (openRatioIndex =
+                        openRatioIndex ===
+                        getUniqueDropdownId(expIndex, part.id)
+                          ? null
+                          : getUniqueDropdownId(expIndex, part.id))}
+                  >
+                    {part.selected} ▾
+                  </button>
+
+                  {#if openRatioIndex === getUniqueDropdownId(expIndex, part.id)}
+                    <ul class="ratio-menu" role="listbox">
+                      {#each part.options as opt}
+                        <li
+                          role="option"
+                          aria-selected={opt === part.selected}
+                          class="ratio-item {opt === part.selected
+                            ? 'active'
+                            : ''}"
+                          on:click={() =>
+                            selectRatioOption(expIndex, part.id, opt)}
+                        >
+                          {opt}
+                        </li>
+                      {/each}
+                    </ul>
+                  {/if}
+                </span>
+              {:else}
+                {part.selected}
+              {/if}
+            {/if}
+          {/each}
+          <span
+            class="close-button"
+            on:click={() => removeExplanation(expIndex)}
+          >
+            ×
           </span>
-        {/each}
-      </div>
+        </span>
+      {/each}
+    </div>
   {/if}
   <ul class="filter-list">
     {#each result.filters as filter}
       <li>
         {filter.relation}
-        
-        {filter.span ? `(span: ${filter.span})` : ''}
-        {filter.l_position ? `(lhs: ${filter.l_position})` : ''}
-        {filter.r_position ? `(rhs: ${filter.r_position})` : ''}
+
+        {filter.span ? `(span: ${filter.span})` : ""}
+        {filter.l_position ? `(lhs: ${filter.l_position})` : ""}
+        {filter.r_position ? `(rhs: ${filter.r_position})` : ""}
       </li>
     {/each}
   </ul>
 </div>
 
 {#if showSavedMessage}
-    <div class="saved-message" on:animationend={handleAnimationEnd}>
-        API Key has been successfully set.
-    </div>
+  <div class="saved-message" on:animationend={handleAnimationEnd}>
+    API Key has been successfully set.
+  </div>
 {/if}
 
 <style>
   .settings-btn {
     background-color: transparent;
     border: none;
-    font-size: 20px;
+    font-size: 24px;
     color: #333;
     cursor: pointer;
-  }
-  
-  .settings-btn {
-    font-size: 24px;
     padding: 5px;
-    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    position: relative;
   }
-  
+
+  .settings-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .settings-btn.has-key {
+    color: #137a7f;
+    background-color: rgba(19, 122, 127, 0.1);
+  }
+
+  .settings-btn.has-key:hover {
+    background-color: rgba(19, 122, 127, 0.15);
+  }
+
+  .key-indicator {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    font-size: 10px;
+    color: white;
+    background-color: #28a745;
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
   .header {
     display: flex;
     justify-content: space-between;
@@ -606,7 +884,7 @@
     border-radius: 8px 8px 0 0;
     height: 10px;
   }
-  
+
   .chat-content {
     background-color: white;
     padding: 1rem;
@@ -614,12 +892,12 @@
     max-width: 400px;
     margin: auto;
   }
-  
+
   .input-area {
     display: flex;
     gap: 0.5rem;
   }
-  
+
   .input-area textarea {
     width: 100%;
     padding: 0.5rem;
@@ -629,7 +907,7 @@
     line-height: 1.4;
     box-sizing: border-box;
   }
-  
+
   input[type="text"] {
     width: 90%;
     padding: 0.5rem;
@@ -637,7 +915,7 @@
     border-radius: 4px;
     box-sizing: border-box;
   }
-  
+
   .send-btn {
     padding: 0.5rem 1rem;
     background-color: #137a7f;
@@ -647,42 +925,42 @@
     cursor: pointer;
     transition: background-color 0.3s ease;
   }
-  
+
   .send-btn:hover {
-    opacity: 0.9
+    opacity: 0.9;
   }
-  
+
   .panel {
     border-radius: 6px;
     margin-bottom: 0.5rem;
   }
-  
+
   .explanation-container {
     max-width: 400px;
     word-wrap: break-word;
     line-height: 1.5;
   }
-  
+
   .explanation-text {
     display: inline;
     margin-right: 5px;
   }
-  
+
   .explanation-text:has(.close-button:hover) {
     background-color: #f0f0f0;
   }
-  
+
   .close-button {
     cursor: pointer;
     display: inline;
     font-size: 0.8em;
     margin-left: 2px;
   }
-  
+
   .close-button:hover {
-    opacity: 0.9
+    opacity: 0.9;
   }
-  
+
   .feature-badge {
     font-size: 12px;
     font-weight: 600;
@@ -691,13 +969,13 @@
     line-height: 1.4;
     white-space: nowrap;
   }
-  
+
   .ratio-wrapper {
     position: relative;
     display: inline-block;
     margin: 0 4px;
   }
-  
+
   .ratio-selected {
     font-size: 12px;
     font-weight: 600;
@@ -705,18 +983,18 @@
     border-radius: 999px;
     line-height: 1.4;
     white-space: nowrap;
-    
+
     background: #e0e0e0;
     color: #333;
     border: none;
     cursor: pointer;
     transition: background-color 0.15s ease;
   }
-  
+
   .ratio-selected:hover {
     background: #d0d0d0;
   }
-  
+
   .ratio-menu {
     position: absolute;
     top: 100%;
@@ -730,7 +1008,7 @@
     border: 1px solid #e0e0e0;
     margin-top: 2px;
   }
-  
+
   .ratio-item {
     list-style: none;
     padding: 6px 12px;
@@ -738,28 +1016,96 @@
     cursor: pointer;
     color: #333;
   }
-  
+
   .ratio-item:hover {
     background: #f0f0f0;
   }
-  
+
   .ratio-item.active {
     color: #666;
     font-weight: 700;
     background: #f8f8f8;
   }
-  
+
   .filter-list {
     list-style: none;
     padding: 0;
     margin-top: 1rem;
   }
-  
+
   .filter-list li {
     padding: 0.5rem;
     margin: 0.25rem 0;
     background: #f5f5f5;
     border-radius: 4px;
     font-size: 0.9em;
+  }
+
+  /* API Key 相关样式 */
+  .api-key-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-family: monospace;
+    font-size: 13px;
+  }
+
+  .api-key-input:focus {
+    outline: none;
+    border-color: #137a7f;
+    box-shadow: 0 0 0 2px rgba(19, 122, 127, 0.1);
+  }
+
+  .save-key-btn {
+    flex: 1;
+    padding: 0.5rem;
+    background-color: #137a7f;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+
+  .save-key-btn:hover {
+    opacity: 0.9;
+  }
+
+  .clear-key-btn {
+    padding: 0.5rem 1rem;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+
+  .clear-key-btn:hover {
+    opacity: 0.9;
+  }
+
+  .key-status-badge {
+    background-color: #28a745;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .key-info {
+    margin-top: 0.75rem;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border-left: 3px solid #137a7f;
+  }
+
+  .key-info small {
+    color: #666;
+    line-height: 1.4;
   }
 </style>
