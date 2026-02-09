@@ -1,13 +1,145 @@
 <script>
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
   import "../components/styles.css";
   import { base } from "$app/paths";
 
   let apiKey = "";
+  let displayApiKey = "";
   let inputMessage = "";
   let openSetting = false;
   const dispatch = createEventDispatcher();
   let showSavedMessage = false;
+  let isApiKeyLoaded = false;
+  let isEditingKey = false;
+
+  const STORAGE_KEY = "inkpulse_openai_api_key";
+
+  // simple encryption function based on device fingerprint
+  function encryptKey(key) {
+    if (!key) return "";
+    try {
+      const secret = (
+        navigator.userAgent +
+        navigator.language +
+        screen.width
+      ).slice(0, 50);
+
+      const encrypted = key
+        .split("")
+        .map((char, i) => {
+          const keyChar = secret.charCodeAt(i % secret.length);
+          return String.fromCharCode(char.charCodeAt(0) ^ keyChar);
+        })
+        .join("");
+
+      return btoa(encrypted); // Base64 encoding
+    } catch (error) {
+      console.warn("Encryption failed:", error);
+      return btoa(key);
+    }
+  }
+
+  /**
+   * decryption function
+   */
+  function decryptKey(encrypted) {
+    if (!encrypted) return "";
+    try {
+      const secret = (
+        navigator.userAgent +
+        navigator.language +
+        screen.width
+      ).slice(0, 50);
+      const decoded = atob(encrypted);
+
+      const decrypted = decoded
+        .split("")
+        .map((char, i) => {
+          const keyChar = secret.charCodeAt(i % secret.length);
+          return String.fromCharCode(char.charCodeAt(0) ^ keyChar);
+        })
+        .join("");
+
+      return decrypted;
+    } catch (error) {
+      console.warn("Decryption failed:", error);
+      try {
+        return atob(encrypted);
+      } catch {
+        return "";
+      }
+    }
+  }
+
+  /**
+   * save API Key to localStorage
+   */
+  function saveApiKey(key) {
+    if (typeof window === "undefined") return;
+    try {
+      if (key && key.trim()) {
+        const encrypted = encryptKey(key.trim());
+        localStorage.setItem(STORAGE_KEY, encrypted);
+        console.log("API Key saved successfully");
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+        console.log("API Key removed");
+      }
+    } catch (error) {
+      console.error("Failed to save API Key:", error);
+    }
+  }
+
+  /**
+   * from localStorage load API Key
+   */
+  function loadApiKey() {
+    if (typeof window === "undefined") return "";
+    try {
+      const encrypted = localStorage.getItem(STORAGE_KEY);
+      if (encrypted) {
+        const decrypted = decryptKey(encrypted);
+        console.log("API Key loaded from storage");
+        return decrypted;
+      }
+    } catch (error) {
+      console.error("Failed to load API Key:", error);
+    }
+    return "";
+  }
+
+  /**
+   * clear API Key
+   */
+  function clearApiKey() {
+    apiKey = "";
+    saveApiKey("");
+    showSavedMessage = false;
+  }
+
+  /**
+   * cover API Key
+   */
+  function maskApiKey(key) {
+    if (!key || key.length < 10) return key;
+    const visibleStart = 8;
+    const visibleEnd = 4;
+    const middle = "•".repeat(
+      Math.min(20, key.length - visibleStart - visibleEnd)
+    );
+    return key.slice(0, visibleStart) + middle + key.slice(-visibleEnd);
+  }
+
+  // component mounted
+  onMount(() => {
+    const savedKey = loadApiKey();
+    if (savedKey) {
+      apiKey = savedKey;
+      displayApiKey = maskApiKey(savedKey);
+      isApiKeyLoaded = true;
+    }
+  });
+
   let result = {
     explanations: [],
     filters: [],
@@ -309,17 +441,73 @@
 
   function toggleSettingsWindow() {
     openSetting = !openSetting;
+
+    if (openSetting) {
+      // 打开设置时，如果有保存的 Key，显示遮蔽版本
+      if (isApiKeyLoaded && apiKey) {
+        displayApiKey = maskApiKey(apiKey);
+        isEditingKey = false;
+      } else {
+        displayApiKey = "";
+        isEditingKey = true;
+      }
+    }
+  }
+
+  function handleKeyInputFocus() {
+    if (!isEditingKey && isApiKeyLoaded) {
+      displayApiKey = "";
+      isEditingKey = true;
+    }
+  }
+
+  function handleKeyInputChange(event) {
+    displayApiKey = event.target.value;
+    apiKey = event.target.value;
   }
 
   function handleSetApiKey() {
-    if (apiKey.trim() === "") {
+    const trimmedKey = apiKey.trim();
+
+    if (trimmedKey === "") {
+      // clear API Key
+      clearApiKey();
+      displayApiKey = "";
+      isApiKeyLoaded = false;
       showSavedMessage = false;
       toggleSettingsWindow();
-      dispatch("setKey", apiKey);
     } else {
+      // verify API Key format
+      if (!trimmedKey.startsWith("sk-")) {
+        alert(
+          '⚠️ Invalid API Key format. OpenAI API Keys usually start with "sk-"'
+        );
+        return;
+      }
+
+      // save API Key to localStorage
+      apiKey = trimmedKey;
+      saveApiKey(trimmedKey);
+      displayApiKey = maskApiKey(trimmedKey);
       showSavedMessage = true;
       toggleSettingsWindow();
-      dispatch("setKey", apiKey);
+      isApiKeyLoaded = true;
+      isEditingKey = false;
+    }
+
+    dispatch("setKey", apiKey);
+  }
+
+  function handleClearApiKey() {
+    if (
+      confirm(
+        "⚠️ Are you sure you want to clear the saved API Key?\n\nYou will need to enter it again to use the Interpretation feature."
+      )
+    ) {
+      clearApiKey();
+      displayApiKey = "";
+      isApiKeyLoaded = false;
+      isEditingKey = true;
     }
   }
 
@@ -448,7 +636,7 @@
       "Sending - explanations:",
       explanationsWithRatios,
       "filters with ratio:",
-      filtersWithRatio,
+      filtersWithRatio
     );
 
     dispatch("parsedFilters", {
@@ -464,9 +652,9 @@
       expIndex
     ].text.replace(
       new RegExp(
-        `\\[${escapeRegex(parseRatioText(result.explanations[expIndex].text).find((p) => p.id === partId)?.selected || "")}\\]`,
+        `\\[${escapeRegex(parseRatioText(result.explanations[expIndex].text).find((p) => p.id === partId)?.selected || "")}\\]`
       ),
-      `[${option}]`,
+      `[${option}]`
     );
     result = { ...result };
     openRatioIndex = null;
@@ -486,24 +674,60 @@
   <div class="header">
     <h3>Interpretation</h3>
     <div class="header-actions">
-      <button on:click={toggleSettingsWindow} class="settings-btn">⚙</button>
+      <button
+        on:click={toggleSettingsWindow}
+        class="settings-btn"
+        class:has-key={isApiKeyLoaded}
+        title={isApiKeyLoaded
+          ? "API Key is configured"
+          : "Click to set API Key"}
+      >
+        {#if isApiKeyLoaded}
+          <span class="key-indicator">✓</span>
+        {/if}
+        ⚙
+      </button>
     </div>
   </div>
   {#if openSetting}
     <div class="panel">
-      <h4>API Key</h4>
-      <input
-        type="text"
-        bind:value={apiKey}
-        placeholder="Enter OpenAI API Key"
-        style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;"
-      />
-      <button
-        on:click={handleSetApiKey}
-        style="width: 100%; padding: 0.5rem; background-color: #137a7f;
-         color: white; border: none; border-radius: 4px; cursor: pointer;"
-        >Save API Key</button
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;"
       >
+        <h4 style="margin: 0;">OpenAI API Key</h4>
+        {#if isApiKeyLoaded}
+          <span class="key-status-badge">✓ Saved</span>
+        {/if}
+      </div>
+
+      <input
+        type={isEditingKey ? "password" : "text"}
+        value={displayApiKey}
+        on:input={handleKeyInputChange}
+        on:focus={handleKeyInputFocus}
+        placeholder={isApiKeyLoaded
+          ? "••••••••••••••• (click to update)"
+          : "Enter OpenAI API Key (sk-proj-...)"}
+        class="api-key-input"
+      />
+
+      <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+        <button on:click={handleSetApiKey} class="save-key-btn">
+          {isApiKeyLoaded ? "Update API Key" : "Save API Key"}
+        </button>
+        {#if isApiKeyLoaded}
+          <button on:click={handleClearApiKey} class="clear-key-btn">
+            Clear
+          </button>
+        {/if}
+      </div>
+
+      <div class="key-info">
+        <small>
+          💡 Your API Key is encrypted and stored locally in your browser. It
+          will persist across sessions.
+        </small>
+      </div>
     </div>
   {/if}
   <div class="input-area">
@@ -527,72 +751,70 @@
   {#if result?.explanations}
     <div class="explanation-container">
       {#each result.explanations as exp, expIndex}
-        <div class="explanation-text">
-          <span class="explanation-content">
-            {#if featureStyleMap[exp.feature]}
-              <span
-                class="feature-badge"
-                style="
+        <span class="explanation-text">
+          {#if featureStyleMap[exp.feature]}
+            <span
+              class="feature-badge"
+              style="
                   background: {featureStyleMap[exp.feature].bg};
                   color: {featureStyleMap[exp.feature].color};
                 "
-              >
-                {featureStyleMap[exp.feature].label}
-              </span>
-            {/if}
-            {#each parseRatioText(exp.text) as part (part.id)}
-              {#if part.type === "text"}
-                {part.value}
-              {:else if part.type === "ratio"}
-                {#if part.options.length > 1}
-                  <span class="ratio-wrapper">
-                    <button
-                      type="button"
-                      class="ratio-selected"
-                      aria-haspopup="listbox"
-                      aria-expanded={openRatioIndex ===
-                        getUniqueDropdownId(expIndex, part.id)}
-                      on:click={() =>
-                        (openRatioIndex =
-                          openRatioIndex ===
-                          getUniqueDropdownId(expIndex, part.id)
-                            ? null
-                            : getUniqueDropdownId(expIndex, part.id))}
-                    >
-                      {part.selected} ▾
-                    </button>
+            >
+              {featureStyleMap[exp.feature].label}
+            </span>
+          {/if}
+          {#each parseRatioText(exp.text) as part (part.id)}
+            {#if part.type === "text"}
+              {part.value}
+            {:else if part.type === "ratio"}
+              {#if part.options.length > 1}
+                <span class="ratio-wrapper">
+                  <button
+                    type="button"
+                    class="ratio-selected"
+                    aria-haspopup="listbox"
+                    aria-expanded={openRatioIndex ===
+                      getUniqueDropdownId(expIndex, part.id)}
+                    on:click={() =>
+                      (openRatioIndex =
+                        openRatioIndex ===
+                        getUniqueDropdownId(expIndex, part.id)
+                          ? null
+                          : getUniqueDropdownId(expIndex, part.id))}
+                  >
+                    {part.selected} ▾
+                  </button>
 
-                    {#if openRatioIndex === getUniqueDropdownId(expIndex, part.id)}
-                      <ul class="ratio-menu" role="listbox">
-                        {#each part.options as opt}
-                          <li
-                            role="option"
-                            aria-selected={opt === part.selected}
-                            class="ratio-item {opt === part.selected
-                              ? 'active'
-                              : ''}"
-                            on:click={() =>
-                              selectRatioOption(expIndex, part.id, opt)}
-                          >
-                            {opt}
-                          </li>
-                        {/each}
-                      </ul>
-                    {/if}
-                  </span>
-                {:else}
-                  {part.selected}
-                {/if}
+                  {#if openRatioIndex === getUniqueDropdownId(expIndex, part.id)}
+                    <ul class="ratio-menu" role="listbox">
+                      {#each part.options as opt}
+                        <li
+                          role="option"
+                          aria-selected={opt === part.selected}
+                          class="ratio-item {opt === part.selected
+                            ? 'active'
+                            : ''}"
+                          on:click={() =>
+                            selectRatioOption(expIndex, part.id, opt)}
+                        >
+                          {opt}
+                        </li>
+                      {/each}
+                    </ul>
+                  {/if}
+                </span>
+              {:else}
+                {part.selected}
               {/if}
-            {/each}
-          </span>
+            {/if}
+          {/each}
           <span
             class="close-button"
             on:click={() => removeExplanation(expIndex)}
           >
             ×
           </span>
-        </div>
+        </span>
       {/each}
     </div>
   {/if}
@@ -619,15 +841,44 @@
   .settings-btn {
     background-color: transparent;
     border: none;
-    font-size: 20px;
+    font-size: 24px;
     color: #333;
     cursor: pointer;
+    padding: 5px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    position: relative;
   }
 
-  .settings-btn {
-    font-size: 24px;
-    padding: 5px;
-    cursor: pointer;
+  .settings-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .settings-btn.has-key {
+    color: #137a7f;
+    background-color: rgba(19, 122, 127, 0.1);
+  }
+
+  .settings-btn.has-key:hover {
+    background-color: rgba(19, 122, 127, 0.15);
+  }
+
+  .key-indicator {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    font-size: 10px;
+    color: white;
+    background-color: #28a745;
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   }
 
   .header {
@@ -704,13 +955,6 @@
 
   .explanation-text:has(.close-button:hover) {
     background-color: #f0f0f0;
-  }
-
-  .explanation-content {
-    flex: 1;
-    white-space: normal;
-    word-break: break-word;
-    min-width: 0;
   }
 
   .close-button {
@@ -802,5 +1046,72 @@
     background: #f5f5f5;
     border-radius: 4px;
     font-size: 0.9em;
+  }
+  
+  .api-key-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-family: monospace;
+    font-size: 13px;
+  }
+
+  .api-key-input:focus {
+    outline: none;
+    border-color: #137a7f;
+    box-shadow: 0 0 0 2px rgba(19, 122, 127, 0.1);
+  }
+
+  .save-key-btn {
+    flex: 1;
+    padding: 0.5rem;
+    background-color: #137a7f;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+
+  .save-key-btn:hover {
+    opacity: 0.9;
+  }
+
+  .clear-key-btn {
+    padding: 0.5rem 1rem;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+
+  .clear-key-btn:hover {
+    opacity: 0.9;
+  }
+
+  .key-status-badge {
+    background-color: #28a745;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .key-info {
+    margin-top: 0.75rem;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border-left: 3px solid #137a7f;
+  }
+
+  .key-info small {
+    color: #666;
+    line-height: 1.4;
   }
 </style>
