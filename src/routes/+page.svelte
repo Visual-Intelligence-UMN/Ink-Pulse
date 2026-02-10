@@ -1443,46 +1443,73 @@
       console.warn("No query provided");
       return;
     }
-    const currentVector = buildVectorForCurrentSegment(currentResults, checks);
-    const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
-    const wasmBinary = await wasmResponse.arrayBuffer();
-    const SQL = await initSqlJs({ wasmBinary });
+    
+    try {
+      const currentVector = buildVectorForCurrentSegment(currentResults, checks);
+      const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
+      const wasmBinary = await wasmResponse.arrayBuffer();
+      const SQL = await initSqlJs({ wasmBinary });
 
-    const isLineChart = selectionSrc.startsWith("lineChart");
+      const isLineChart = selectionSrc.startsWith("lineChart");
 
-    const dbResponse = await fetch(
-      isLineChart
-        ? `${base}/db/${selectedDataset}_json.db`
-        : `${base}/db/${selectedDataset}_segment_results.db`,
-    );
+      const dbResponse = await fetch(
+        isLineChart
+          ? `${base}/db/${selectedDataset}_json.db`
+          : `${base}/db/${selectedDataset}_segment_results.db`,
+      );
 
-    const dbBuffer = await dbResponse.arrayBuffer();
-    const db = new SQL.Database(new Uint8Array(dbBuffer));
-    const stepStats = db.exec(interpretedQuery)[0];
-    const filteredWindows = stepStats.values.map((row) =>
-      JSON.parse(String(row[3])),
-    );
-    patternData = filteredWindows;
+      const dbBuffer = await dbResponse.arrayBuffer();
+      const db = new SQL.Database(new Uint8Array(dbBuffer));
+      const queryResults = db.exec(interpretedQuery);
+      
+      if (!queryResults || queryResults.length === 0) {
+        console.warn("Query returned no results");
+        patternData = [];
+        searchCount = 0;
+        patternDataLoad([]);
+        return;
+      }
+      
+      const stepStats = queryResults[0];
+      if (!stepStats || !stepStats.values) {
+        console.warn("Invalid query results structure");
+        patternData = [];
+        searchCount = 0;
+        patternDataLoad([]);
+        return;
+      }
+      
+      const filteredWindows = stepStats.values.map((row) =>
+        JSON.parse(String(row[3])),
+      );
+      patternData = filteredWindows;
 
-    //slicing for testing purposes
-    // patternData = patternData.slice(0, 100);
+      //slicing for testing purposes
+      // patternData = patternData.slice(0, 100);
 
-    patternVectors = [];
-    for (const segment of patternData) {
-      const vector = buildVectorFromSegment(segment, checks);
-      vector.id = segment[0]?.id ?? null;
-      vector.segmentId = segment[0]?.segmentId ?? null;
-      patternVectors.push(vector);
+      patternVectors = [];
+      for (const segment of patternData) {
+        const vector = buildVectorFromSegment(segment, checks);
+        vector.id = segment[0]?.id ?? null;
+        vector.segmentId = segment[0]?.segmentId ?? null;
+        patternVectors.push(vector);
+      }
+
+      const finalScore = await calculateRankAuto(patternVectors, currentVector);
+      const idToData = Object.fromEntries(
+        patternData.map((d) => [d[0].segmentId, d]),
+      );
+      const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
+      searchCount = fullData.length;
+      console.log("Full data", fullData);
+      patternDataLoad(fullData);
+    } catch (error) {
+      console.error("segmentQuery failed:", error);
+      patternData = [];
+      searchCount = 0;
+      patternDataLoad([]);
+      alert("Search query failed. Please check the console for details.");
     }
-
-    const finalScore = await calculateRankAuto(patternVectors, currentVector);
-    const idToData = Object.fromEntries(
-      patternData.map((d) => [d[0].segmentId, d]),
-    );
-    const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
-    searchCount = fullData.length;
-    console.log("Full data", fullData);
-    patternDataLoad(fullData);
   }
 
   function l2(arr1, arr2) {
@@ -1766,7 +1793,7 @@
     };
   }
 
-  async function patternDataLoad(results, initialLoadCount = 15) {
+  async function patternDataLoad(results, initialLoadCount = 30) {
     console.log(`Search complete: ${results.length} total results found`);
     console.time("Initial load time");
 
@@ -1893,7 +1920,7 @@
   }
 
   function handleSelectionChanged(event) {
-    showResultCount.set(5);
+    showResultCount.set(15);
 
     if (sharedSelection) {
       selectionSrc = sharedSelection.selectionSource;
