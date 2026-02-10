@@ -8,6 +8,7 @@
   // import OverallSemScoreChart from './overallSemScoreChart.svelte';
   import FeatureChart from './featureChart.svelte';
   import PatternChartPreview from './patternChartPreview.svelte';
+  import LineChartPreview from './lineChartPreview.svelte';
   
   export let pattern;
   export let sessions;
@@ -205,14 +206,27 @@
         Counts: {pattern.searchDetail.count}
       </div>
     </div>
-    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+    <div style="display: flex; gap: 10px; align-items: flex-start;">
+      <!-- Left: Bar Chart (Semantic Change) -->
       <div class="pattern-chart-preview small-preview">
         <PatternChartPreview
-        sessionId = {pattern.searchDetail.sessionId}
-        data={pattern.searchDetail.data}
-        wholeData={pattern.searchDetail.wholeData}
-        selectedRange={pattern.searchDetail.range}
-        bind:this={chartRefs[pattern.searchDetail.sessionId]}
+          sessionId={pattern.searchDetail.sessionId}
+          data={pattern.searchDetail.data}
+          wholeData={pattern.searchDetail.wholeData}
+          selectedRange={pattern.searchDetail.range}
+          bind:this={chartRefs[pattern.searchDetail.sessionId + '-barChart']}
+        />
+      </div>
+      <!-- Right: Line Chart (Writing Progress vs Time) -->
+      <div class="pattern-chart-preview small-preview">
+        <LineChartPreview
+          bind:this={chartRefs[pattern.searchDetail.sessionId]}
+          chartData={pattern.searchDetail.chartData || []}
+          selectedTimeRange={pattern.searchDetail.selectedTimeRange ?? null}
+          selectedProgressRange={pattern.searchDetail.range?.progress ?? null}
+          highlightWindows={pattern.searchDetail.highlightWindows ?? []}
+          highlightMode={pattern.searchDetail.highlightMode ?? null}
+          selectionContext={pattern.searchDetail.selectionContext ?? null}
         />
       </div>
       <div style="margin-top: 15px; margin-left:10px; width: 40%">
@@ -258,7 +272,7 @@
             <input
               type="checkbox"
               class="readonly"
-              checked={pattern.searchDetail.flag.isTimeCheckRequired}
+              checked={pattern.searchDetail.flag.isExactSearchTime}
               disabled
               hidden
             />
