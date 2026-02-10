@@ -1977,7 +1977,22 @@
     currentResults = data;
     lastSession = $clickSession;
 
-  selectedPatterns[sessionId] = {
+    const highlightWindows = []
+    const highlightMode = resolveHighlightModeFromSource(selectionSrc)
+
+    if (highlightMode === "progress" || highlightMode === "both") {
+      highlightWindows.push({
+        progress: { ...range.progress }
+      })
+    }
+
+    if (highlightMode === "time" || highlightMode === "both") {
+      highlightWindows.push({
+        time: { min: timeRange[0], max: timeRange[1] }
+      })
+    }
+
+    selectedPatterns[sessionId] = {
       range,
       dataRange,
       data,
@@ -1993,6 +2008,8 @@
         sharedSelection.timeMax !== undefined
           ? { min: sharedSelection.timeMin, max: sharedSelection.timeMax }
           : null,
+      highlightWindows,
+      highlightMode,
     };
   }
 
