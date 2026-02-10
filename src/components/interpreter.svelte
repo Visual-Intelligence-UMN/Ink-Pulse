@@ -972,10 +972,13 @@
   }
 
   .explanation-text {
-    display: flex;
-    align-items: flex-start;
-    gap: 6px;
+    display: block;
     width: 100%;
+    line-height: 1.6;
+    padding: 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    position: relative;
   }
 
   .explanation-text:has(.close-button:hover) {
@@ -984,22 +987,28 @@
 
   .close-button {
     cursor: pointer;
-    display: inline;
-    font-size: 0.8em;
-    margin-left: 2px;
+    display: inline-block;
+    font-size: 1.2em;
+    margin-left: 8px;
+    vertical-align: middle;
+    color: #999;
+    transition: color 0.2s ease;
   }
 
   .close-button:hover {
-    opacity: 0.9;
+    color: #dc3545;
   }
 
   .feature-badge {
+    display: inline-block;
     font-size: 12px;
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 999px;
     line-height: 1.4;
     white-space: nowrap;
+    vertical-align: middle;
+    margin-right: 6px;
   }
 
   .ratio-wrapper {
