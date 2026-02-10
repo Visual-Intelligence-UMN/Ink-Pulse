@@ -1011,35 +1011,37 @@
     return actual.every((v, i) => v === expectedTrend[i]);
   }
 
-  function deriveTimeRangeFromProgress(progressRange, data) {
-    if (!progressRange || !data || !data.length) {
-      return null;
-    }
+  // function deriveTimeRangeFromProgress(progressRange, data) {
+  //   // deprecated
 
-    const getClosestTime = (targetPercentage) => {
-      let closestPoint = data[0];
-      let smallestDelta = Infinity;
+  //   if (!progressRange || !data || !data.length) {
+  //     return null;
+  //   }
 
-      for (const point of data) {
-        const percentage = Number(point?.percentage ?? point?.progress ?? 0);
-        const delta = Math.abs(percentage - targetPercentage);
-        if (delta < smallestDelta) {
-          smallestDelta = delta;
-          closestPoint = point;
-        }
-      }
+  //   const getClosestTime = (targetPercentage) => {
+  //     let closestPoint = data[0];
+  //     let smallestDelta = Infinity;
 
-      return Number(closestPoint?.time ?? 0);
-    };
+  //     for (const point of data) {
+  //       const percentage = Number(point?.percentage ?? point?.progress ?? 0);
+  //       const delta = Math.abs(percentage - targetPercentage);
+  //       if (delta < smallestDelta) {
+  //         smallestDelta = delta;
+  //         closestPoint = point;
+  //       }
+  //     }
 
-    const start = getClosestTime(progressRange.min);
-    const end = getClosestTime(progressRange.max);
+  //     return Number(closestPoint?.time ?? 0);
+  //   };
 
-    return {
-      min: Math.min(start, end),
-      max: Math.max(start, end),
-    };
-  }
+  //   const start = getClosestTime(progressRange.min);
+  //   const end = getClosestTime(progressRange.max);
+
+  //   return {
+  //     min: Math.min(start, end),
+  //     max: Math.max(start, end),
+  //   };
+  // }
 
   function findSegments(data, checks, minCount) {
     const segments = [];
@@ -1882,6 +1884,8 @@
   }
 
   function handleSelectionChanged(event) {
+    console.log("Selection changed event received:", event);
+
     showResultCount.set(5);
 
     if (sharedSelection) {
@@ -1947,7 +1951,7 @@
     patternDataList.set([]);
     currentResults = {};
     const {
-      sessionId: rawSessionId,
+      sessionId,
       range,
       dataRange,
       data,
@@ -1955,365 +1959,41 @@
       sources,
     } = event.detail;
 
-    const resolvedSessionId =
-      rawSessionId ??
-      sharedSelection?.sessionId ??
-      $clickSession?.sessionId ??
-      lastSession?.sessionId;
-
-    if (!resolvedSessionId) {
-      return;
-    }
-
-    const sessionStore = get(storeSessionData);
-    const sessionSummaryStore = get(storeSessionSummaryData);
-    const sessionRecord =
-      sessionStore.get(resolvedSessionId) ??
-      sessionSummaryStore.get(resolvedSessionId) ??
-      {};
-
-    const similaritySeries = Array.isArray(sessionRecord.totalSimilarityData)
-      ? sessionRecord.totalSimilarityData
-      : Array.isArray(sessionRecord.similarityData)
-        ? sessionRecord.similarityData
-        : [];
-
-    const chartSeries =
-      Array.isArray(wholeData) && wholeData.length
-        ? wholeData
-        : Array.isArray(sessionRecord.chartData)
-          ? sessionRecord.chartData
-          : [];
-
-    const selectionSource =
-      sharedSelection?.selectionSource ??
-      selectionSrc ??
-      event.detail.selectionSource ??
-      null;
-
-    const baseRange = range
-      ? {
-          sc: {
-            min: range?.sc?.min ?? 0,
-            max: range?.sc?.max ?? 0,
-          },
-          progress: {
-            min: range?.progress?.min ?? 0,
-            max: range?.progress?.max ?? 0,
-          },
-        }
-      : {
-          sc: { min: 0, max: 0 },
-          progress: { min: 0, max: 0 },
-        };
-
-    let effectiveRange = baseRange;
-
-    const baseDataRange = dataRange
-      ? {
-          scRange: {
-            min: dataRange?.scRange?.min ?? 0,
-            max: dataRange?.scRange?.max ?? 0,
-          },
-          progressRange: {
-            min: dataRange?.progressRange?.min ?? 0,
-            max: dataRange?.progressRange?.max ?? 0,
-          },
-          timeRange: {
-            min: dataRange?.timeRange?.min ?? 0,
-            max: dataRange?.timeRange?.max ?? 0,
-          },
-          sc: { sc: [...(dataRange?.sc?.sc ?? [])] },
-        }
-      : {
-          scRange: { min: 0, max: 0 },
-          progressRange: { min: 0, max: 0 },
-          timeRange: { min: 0, max: 0 },
-          sc: { sc: [] },
-        };
-
-    let effectiveDataRange = baseDataRange;
-
-    let effectiveData =
-      data && data.length ? data.map((item) => ({ ...item })) : [];
-
-    let effectiveSources = sources && sources.length ? [...sources] : [];
-
-    let scValues = [...effectiveDataRange.sc.sc];
-
-    if (!effectiveData.length && similaritySeries.length) {
-      effectiveData = similaritySeries.map((item) => ({ ...item }));
-      scValues = effectiveData
-        .map((point) => Number(point?.residual_vector_norm ?? 0))
-        .filter((value) => Number.isFinite(value));
-    }
-
-    if (selectionSource === "lineChart_x" && similaritySeries.length) {
-      const timeMinRaw =
-        sharedSelection?.timeMin ?? effectiveDataRange.timeRange.min ?? 0;
-      const timeMaxRaw =
-        sharedSelection?.timeMax ??
-        effectiveDataRange.timeRange.max ??
-        timeMinRaw;
-      const timeMin = Math.min(timeMinRaw, timeMaxRaw);
-      const timeMax = Math.max(timeMinRaw, timeMaxRaw);
-
-      const filteredSimilarity = similaritySeries.filter((segment) => {
-        const startSeconds = Number(
-          segment?.start_time ?? segment?.startTime ?? 0,
-        );
-        const endSeconds = Number(
-          segment?.end_time ??
-            segment?.endTime ??
-            segment?.last_event_time ??
-            segment?.start_time ??
-            startSeconds,
-        );
-        const startMinutes = startSeconds / 60;
-        const endMinutes = endSeconds / 60;
-        const segStart = Math.min(startMinutes, endMinutes);
-        const segEnd = Math.max(startMinutes, endMinutes);
-        return segEnd >= timeMin && segStart <= timeMax;
-      });
-
-      if (filteredSimilarity.length) {
-        effectiveData = filteredSimilarity.map((segment) => ({ ...segment }));
-
-        scValues = filteredSimilarity
-          .map((segment) => Number(segment?.residual_vector_norm ?? 0))
-          .filter((value) => Number.isFinite(value));
-
-        if (scValues.length) {
-          effectiveRange = {
-            ...effectiveRange,
-            sc: {
-              min: Math.min(...scValues),
-              max: Math.max(...scValues),
-            },
-          };
-        } else {
-          effectiveRange = {
-            ...effectiveRange,
-            sc: { min: 0, max: 0 },
-          };
-        }
-
-        const progressValues = filteredSimilarity
-          .flatMap((segment) => [
-            Number(segment?.start_progress ?? 0) * 100,
-            Number(segment?.end_progress ?? 0) * 100,
-          ])
-          .filter((value) => Number.isFinite(value));
-
-        if (progressValues.length) {
-          effectiveRange = {
-            ...effectiveRange,
-            progress: {
-              min: Math.min(...progressValues),
-              max: Math.max(...progressValues),
-            },
-          };
-        }
-
-        effectiveSources = filteredSimilarity.map(
-          (segment) => segment?.source ?? "user",
-        );
-
-        effectiveDataRange = {
-          ...effectiveDataRange,
-          scRange: { ...effectiveRange.sc },
-          progressRange: { ...effectiveRange.progress },
-          timeRange: { min: timeMin, max: timeMax },
-          sc: { sc: scValues },
-        };
-      } else {
-        effectiveDataRange = {
-          ...effectiveDataRange,
-          timeRange: { min: timeMin, max: timeMax },
-        };
-      }
-    } else {
-      if (!scValues.length) {
-        scValues = effectiveData
-          .map((point) => Number(point?.residual_vector_norm ?? 0))
-          .filter((value) => Number.isFinite(value));
-      }
-      if (scValues.length) {
-        effectiveRange = {
-          ...effectiveRange,
-          sc: {
-            min: Math.min(...scValues),
-            max: Math.max(...scValues),
-          },
-        };
-        effectiveDataRange.scRange = { ...effectiveRange.sc };
-        effectiveDataRange.sc = { sc: scValues };
-      }
-    }
-
-    if (!effectiveSources.length) {
-      effectiveSources = effectiveData.map((point) => point?.source ?? "user");
-    }
 
     writingProgressRange = [
-      effectiveDataRange.progressRange.min ?? 0,
-      effectiveDataRange.progressRange.max ?? 0,
+      dataRange.progressRange.min,
+      dataRange.progressRange.max
     ];
 
     // Use time range in dataRange, no different bewteen Time and Progress mode
     timeRange = [
-      effectiveDataRange.timeRange.min ?? 0,
-      effectiveDataRange.timeRange.max ?? 0,
+      dataRange.timeRange.min,
+      dataRange.timeRange.max,
     ];
-    sourceRange = effectiveSources;
-    semanticRange = [
-      effectiveDataRange.scRange.min ?? 0,
-      effectiveDataRange.scRange.max ?? 0,
-    ];
-    semanticData = scValues;
+    sourceRange = sources;
+    semanticRange = [dataRange.scRange.min, dataRange.scRange.max];
+    semanticData = dataRange.sc.sc;
     semanticTrend = getTrendPattern(semanticData);
-    currentResults = effectiveData;
-    lastSession = $clickSession ?? sessionRecord;
+    currentResults = data;
+    lastSession = $clickSession;
 
-    let highlightTimeRange = null;
-    if (selectionSource === "lineChart_x") {
-      highlightTimeRange = { min: timeRange[0], max: timeRange[1] };
-    } else if (
-      sharedSelection &&
-      sharedSelection.timeMin !== undefined &&
-      sharedSelection.timeMax !== undefined
-    ) {
-      highlightTimeRange = {
-        min: Math.min(sharedSelection.timeMin, sharedSelection.timeMax),
-        max: Math.max(sharedSelection.timeMin, sharedSelection.timeMax),
-      };
-    } else if (
-      effectiveRange?.progress &&
-      Number.isFinite(effectiveRange.progress.min) &&
-      Number.isFinite(effectiveRange.progress.max) &&
-      Array.isArray(chartSeries) &&
-      chartSeries.length > 0
-    ) {
-      const derivedRange = deriveTimeRangeFromProgress(
-        effectiveRange.progress,
-        chartSeries,
-      );
+  selectedPatterns[sessionId] = {
+      range,
+      dataRange,
+      data,
+      wholeData,
+      sources,
+      scRange: `${range.sc.min.toFixed(1)} - ${range.sc.max.toFixed(1)}%`,
+      progressRange: `${range.progress.min.toFixed(1)} - ${range.progress.max.toFixed(1)}%`,
+      count: data.length,
 
-      if (
-        derivedRange &&
-        derivedRange.min !== undefined &&
-        derivedRange.max !== undefined
-      ) {
-        highlightTimeRange = derivedRange;
-      }
-    }
-
-    const selectionHighlightWindows = [];
-    const selectionHighlightMode =
-      resolveHighlightModeFromSource(selectionSource);
-    const highlightInfo = computeHighlightRangesFromSegments(effectiveData);
-    const highlightMode = selectionHighlightMode ?? highlightInfo.mode ?? null;
-
-    const selectionContext = {
-      selectionSource,
-      timeMin: null,
-      timeMax: null,
-      progressMin: Number.isFinite(effectiveRange.progress.min)
-        ? effectiveRange.progress.min
-        : null,
-      progressMax: Number.isFinite(effectiveRange.progress.max)
-        ? effectiveRange.progress.max
-        : null,
+      selectedTimeRange:
+        sharedSelection &&
+        sharedSelection.timeMin !== undefined &&
+        sharedSelection.timeMax !== undefined
+          ? { min: sharedSelection.timeMin, max: sharedSelection.timeMax }
+          : null,
     };
-
-    if (
-      (highlightMode === "progress" || highlightMode === "both") &&
-      Number.isFinite(effectiveRange.progress.min) &&
-      Number.isFinite(effectiveRange.progress.max)
-    ) {
-      selectionHighlightWindows.push({
-        progress: {
-          min: effectiveRange.progress.min,
-          max: effectiveRange.progress.max,
-        },
-      });
-    }
-
-    const resolvedSelectedTimeRangeCandidate =
-      highlightTimeRange ??
-      (highlightMode === "time" || highlightMode === "both"
-        ? {
-            min: timeRange[0],
-            max: timeRange[1],
-          }
-        : null);
-
-    if (
-      (highlightMode === "time" || highlightMode === "both") &&
-      resolvedSelectedTimeRangeCandidate &&
-      Number.isFinite(resolvedSelectedTimeRangeCandidate.min) &&
-      Number.isFinite(resolvedSelectedTimeRangeCandidate.max)
-    ) {
-      selectionContext.timeMin = resolvedSelectedTimeRangeCandidate.min;
-      selectionContext.timeMax = resolvedSelectedTimeRangeCandidate.max;
-      selectionHighlightWindows.push({
-        time: {
-          min: resolvedSelectedTimeRangeCandidate.min,
-          max: resolvedSelectedTimeRangeCandidate.max,
-        },
-      });
-    }
-
-    const resolvedSelectedTimeRange =
-      highlightTimeRange ?? highlightInfo.time ?? null;
-
-    const resolvedHighlightWindows =
-      selectionHighlightWindows.length > 0
-        ? selectionHighlightWindows
-        : (highlightInfo.windows ?? []);
-    const resolvedSelectionContext =
-      selectionContext.timeMin !== null ||
-      selectionContext.timeMax !== null ||
-      selectionContext.progressMin !== null ||
-      selectionContext.progressMax !== null
-        ? selectionContext
-        : (highlightInfo.selectionContext ?? {
-            selectionSource,
-            timeMin: highlightInfo.time?.min ?? null,
-            timeMax: highlightInfo.time?.max ?? null,
-            progressMin: highlightInfo.progress?.min ?? null,
-            progressMax: highlightInfo.progress?.max ?? null,
-          });
-
-    const updatedPattern = {
-      range: effectiveRange,
-      dataRange: effectiveDataRange,
-      data: effectiveData,
-      wholeData: chartSeries,
-      sources: effectiveSources,
-      scRange: `${effectiveRange.sc.min.toFixed(1)} - ${effectiveRange.sc.max.toFixed(1)}%`,
-      progressRange: `${effectiveRange.progress.min.toFixed(1)} - ${effectiveRange.progress.max.toFixed(1)}%`,
-      count: effectiveData.length,
-      // Save selected time range, used for highlight in time mode
-      selectedTimeRange: resolvedSelectedTimeRange,
-      highlightWindows: resolvedHighlightWindows,
-      highlightMode,
-      selectionSource,
-      selectionContext: resolvedSelectionContext,
-    };
-
-    selectedPatterns = {
-      ...selectedPatterns,
-      [resolvedSessionId]: updatedPattern,
-    };
-
-    // console.log("-------------------------------");
-    // console.log("Debug Selection Changed:");
-    // console.log("event selection dataRange_progressRange", event.detail.dataRange.progressRange);
-    // console.log("shared selection", sharedSelection);
-    // console.log("updated pattern progressRange", updatedPattern.progressRange);
-    // console.log("updated pattern dataRange_progressRange", updatedPattern.dataRange.progressRange);
-    // console.log("-------------------------------");
   }
 
   function handleSelectionCleared(event) {
@@ -4240,12 +3920,7 @@ WITH RECURSIVE
                             <LineChartPreview
                               bind:this={chartRefs[sessionId]}
                               chartData={$clickSession.chartData}
-                              selectedTimeRange={pattern.selectedTimeRange ??
-                                deriveTimeRangeFromProgress(
-                                  pattern.range?.progress,
-                                  pattern.wholeData,
-                                ) ??
-                                null}
+                              selectedTimeRange={pattern.selectedTimeRange ?? null}
                               selectedProgressRange={pattern.range?.progress ??
                                 null}
                               highlightWindows={pattern.highlightWindows ?? []}
