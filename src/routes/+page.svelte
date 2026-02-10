@@ -1253,14 +1253,25 @@
     const sessionData = selectedPatterns[sessionId];
     const count =
       sessionData.count || Math.max(1, sessionData.data?.length || 1);
+    
+    // Get chartData from clickSession or sessionData
+    const currentSession = get(clickSession);
+    const chartData = currentSession?.chartData || sessionData.wholeData || [];
+    
     searchDetail = {
       sessionId,
       data: sessionData.data,
       dataRange: sessionData.dataRange,
       count,
       wholeData: sessionData.wholeData,
+      chartData: chartData, // Save chartData for LineChartPreview
       range: sessionData.range,
       selectionSource: sessionData.selectionSource ?? null,
+      // Save highlight information for displaying in detail page
+      selectedTimeRange: sessionData.selectedTimeRange ?? null,
+      highlightWindows: sessionData.highlightWindows ?? [],
+      highlightMode: sessionData.highlightMode ?? null,
+      selectionContext: sessionData.selectionContext ?? null,
       flag: {
         isProgressChecked,
         isTimeChecked,
