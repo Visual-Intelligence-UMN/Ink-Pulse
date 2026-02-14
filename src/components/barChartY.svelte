@@ -6,8 +6,8 @@
   export let width = 300;
   export let height;
   export let yScale;
-  export let xAxisField = "progress";
-  export let yAxisField = "semantic_change";
+  export let xAxisField = "progress"; // default x axis field
+  export let yAxisField = "semantic_change"; // default y axis field
   export let selectionMode = false;
   export let readOnly = false;
   export let sharedSelection = null;
@@ -27,8 +27,8 @@
   let xScale;
   let newyScale;
 
-  // attribute config for the chart
-  export let attributeConfig = {
+  // 属性配置池
+  const attributeConfig = {
     progress: {
       label: "Writing length",
       getValue: (item) => ((item.start_progress + item.end_progress) / 2) * 100,
@@ -63,11 +63,10 @@
 
   import sourceColorManager from "./sourceColorManager.js";
 
-  import colors from "./colors.js";
-  const colorPalette = colors(
-    "7fc97fbeaed4fdc086ffff99386cb0f0027fbf5b17666666",
-  );
-  let colorIndex = 0;
+  // use color manager to get color
+  function getSourceColor(source) {
+    return sourceColorManager.getColor(source);
+  }
 
   onMount(() => {
     if (similarityData && container) {
@@ -80,7 +79,7 @@
     zoomTransform = d3.zoomIdentity;
   }
 
-  // listen to the axis field changes, re-render the chart
+  // listen to axis field changes and re-render
   $: if (xAxisField && yAxisField && similarityData && container) {
     renderChart();
   }
@@ -157,25 +156,26 @@
       bars.attr("opacity", (d) => (selectedIds.has(d.id) ? 0.9 : 0.1));
     }
 
-    // Use xMin/xMax/xField first
+    // 通用格式：优先使用 xMin/xMax/xField
     let selectionMin, selectionMax;
 
     if (sharedSelection.xField && sharedSelection.xField === xAxisField) {
+      // 新格式：字段匹配
       selectionMin = sharedSelection.xMin;
       selectionMax = sharedSelection.xMax;
     } else if (
       sharedSelection.progressMin !== null &&
       xAxisField === "progress"
     ) {
-      // progressMin/progressMax
+      // 向后兼容：progressMin/progressMax
       selectionMin = sharedSelection.progressMin;
       selectionMax = sharedSelection.progressMax;
     } else if (sharedSelection.timeMin !== null && xAxisField === "time") {
-      // timeMin/timeMax
+      // 向后兼容：timeMin/timeMax
       selectionMin = sharedSelection.timeMin;
       selectionMax = sharedSelection.timeMax;
     } else {
-      // No response
+      // 字段不匹配，不响应
       bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
       return;
     }
@@ -259,22 +259,8 @@
   function renderChart() {
     d3.select(container).selectAll("svg").remove();
 
-    // Safety check: ensure attributeConfig is not empty
-    if (!attributeConfig || Object.keys(attributeConfig).length === 0) {
-      console.warn("attributeConfig is empty, skipping render");
-      return;
-    }
-
     const xConfig = attributeConfig[xAxisField];
     const yConfig = attributeConfig[yAxisField];
-
-    // Safety check: ensure selected fields exist in config
-    if (!xConfig || !yConfig) {
-      console.warn(
-        `Field not found in config: x=${xAxisField}, y=${yAxisField}`,
-      );
-      return;
-    }
 
     // process the data, calculate all the attribute values
     processedData = similarityData.map((item, i) => {
@@ -323,7 +309,7 @@
     if (!xDomain) {
       // automatically calculate the domain (e.g. time)
       const xValues = processedData.flatMap((d) =>
-        xConfig.hasRange ? [d.xStart, d.xEnd] : [d.xValue],
+        xConfig.hasRange ? [d.xStart, d.xEnd] : [d.xValue]
       );
       xDomain = [Math.min(...xValues), Math.max(...xValues)];
     }
@@ -331,7 +317,7 @@
     let yDomain = yConfig.domain;
     if (!yDomain) {
       const yValues = processedData.flatMap((d) =>
-        yConfig.hasRange ? [d.yStart, d.yEnd] : [d.yValue],
+        yConfig.hasRange ? [d.yStart, d.yEnd] : [d.yValue]
       );
       yDomain = [Math.min(...yValues), Math.max(...yValues)];
     }
@@ -392,8 +378,8 @@
           // X axis is range: use the start point
           return Math.min(xScale(d.xStart), xScale(d.xEnd));
         } else {
-          // X axis is point value: extend from 0 to the value (horizontal bar)
-          return xScale(xDomain[0]);
+          // X axis is point value: center
+          return xScale(d.xValue) - fixedBarWidth / 2;
         }
       })
       .attr("y", (d) => {
@@ -401,7 +387,7 @@
           // Y axis is range: use the end point (larger Y coordinate)
           return Math.min(newyScale(d.yStart), newyScale(d.yEnd));
         } else {
-          // Y axis is point value: extend from 0 to the value (vertical bar)
+          // Y axis is point value: extend from the point downward
           return newyScale(d.yValue);
         }
       })
@@ -410,8 +396,8 @@
           // X axis is range: width = range span
           return Math.abs(xScale(d.xEnd) - xScale(d.xStart));
         } else {
-          // X axis is point value: extend from 0 to value (rotation effect)
-          return xScale(d.xValue) - xScale(xDomain[0]);
+          // X axis is point value: fixed width
+          return fixedBarWidth;
         }
       })
       .attr("height", (d) => {
@@ -419,7 +405,7 @@
           // Y axis is range: height = range span
           return Math.abs(newyScale(d.yStart) - newyScale(d.yEnd));
         } else {
-          // Y axis is point value: extend from value to 0 (rotation effect)
+          // Y axis is point value: extend from the point downward
           return newyScale(yDomain[0]) - newyScale(d.yValue);
         }
       })
