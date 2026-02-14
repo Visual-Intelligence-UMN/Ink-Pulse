@@ -11,7 +11,7 @@ export function ensureSchema(dbFile: string, isComplex = false) {
         init_time TEXT,
         end_time TEXT,
         actions TEXT,
-        bars TEXT
+        content TEXT
       );
     `);
   } else {

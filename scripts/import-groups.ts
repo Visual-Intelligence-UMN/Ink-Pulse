@@ -10,7 +10,7 @@ export const jsonTable = sqliteTable("data", {
   initTime: text("init_time"),
   endTime: text("end_time"),
   actions: text("actions"),
-  bars: text("bars"),
+  content: text("content"),
 });
 
 export const segmentTable = sqliteTable("data", {
@@ -22,7 +22,7 @@ function ensureSchema(dbFile: string, tableType: "json" | "segment") {
   const db = new Database(dbFile);
   if (tableType === "json") {
     const tableInfo = db.prepare(`PRAGMA table_info(data);`).all();
-    const hasBars = tableInfo.some((col) => col.name === "bars");
+    const hasBars = tableInfo.some((col) => col.name === "content");
     if (!tableInfo.length) {
       db.exec(`
         CREATE TABLE data (
@@ -32,7 +32,7 @@ function ensureSchema(dbFile: string, tableType: "json" | "segment") {
           init_time TEXT,
           end_time TEXT,
           actions TEXT,
-          bars TEXT
+          content TEXT
         );
       `);
     } else if (!hasBars) {
@@ -187,7 +187,7 @@ function importFolder(dbName: string, folder: string, table: any, isComplex = fa
 
       db.prepare(`
         INSERT OR REPLACE INTO data
-        (id, init_text, text_length, init_time, end_time, actions, bars)
+        (id, init_text, text_length, init_time, end_time, actions, content)
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `).run(
         sessionId,

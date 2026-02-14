@@ -41,6 +41,8 @@
   import sourceColorManager from "../components/sourceColorManager.js";
   import ColorSettingsPanel from "../components/ColorSettingsPanel.svelte";
 
+  let isTest = false;
+
   let chartRefs = {};
   let filterButton;
   let collapseButton;
@@ -757,7 +759,89 @@
     };
   }
 
+  function toggleTestMode() {
+    isTest = !isTest;
+  }
+
   async function handleInterpreterFilters(event) {
+    if (isTest) {
+      let { sql } = event.detail;
+      const sourceMatch = sql.match(/source\s*=\s*'(.*?)'/);
+      if (sourceMatch) {
+        const sources = sourceMatch[1].split(",");
+        const sourceConditions = sources
+          .map(
+            (src, idx) =>
+              `JSON_EXTRACT(d.content, '$[' || (n.n + ${idx}) || '].source') = '${src}'`,
+          )
+          .join(" AND ");
+        sql = sql.replace(/source\s*=\s*'(.*?)'/, sourceConditions);
+      }
+
+      const ctx = buildWindowContext(selectedPatterns);
+      if (!ctx) return console.warn("No valid selected pattern");
+      const { windowSize } = ctx;
+
+      const features = ["progress", "time", "semantic_change"];
+      features.forEach((f) => {
+        const match = sql.match(
+          new RegExp(
+            `${f}\\s+BETWEEN\\s+(\\d+(\\.\\d+)?)\\s+AND\\s+(\\d+(\\.\\d+)?)`,
+          ),
+        );
+        if (match) {
+          const minVal = parseFloat(match[1]);
+          const maxVal = parseFloat(match[3]);
+          const expr = Array.from(
+            { length: windowSize },
+            (_, i) =>
+              `CASE WHEN JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = 'user' THEN ${minVal} ELSE 0 END`,
+          ).join(" + ");
+          sql = sql.replace(
+            match[0],
+            `(${expr}) BETWEEN ${minVal} AND ${maxVal}`,
+          );
+        }
+      });
+
+      const elements = Array.from({ length: windowSize }, (_, i) => i);
+      const whereClause = sql
+        .replace(/^SELECT \* FROM sessions WHERE /i, "")
+        .replace(/;$/, "");
+
+      const windowSQL = `
+        WITH RECURSIVE 
+        numbers(n) AS (
+          SELECT 0
+          UNION ALL
+          SELECT n + 1 FROM numbers 
+          WHERE n < (SELECT MAX(json_array_length(content)) - ${windowSize} + 1 FROM data)
+        )
+        SELECT
+          d.rowid AS original_rowid,
+          d.content AS original_content,
+          n.n AS window_start,
+          json_array(${elements
+            .map(
+              (i) => `json_extract(json_set(
+                json_extract(d.content, '$[' || (n.n + ${i}) || ']'),
+                '$.id', d.id,
+                '$.segmentId', d.id || '_' || (n.n + ${i})
+              ), '$')`,
+            )
+            .join(", ")}) AS window_content
+        FROM data d
+        JOIN numbers n ON n.n + ${windowSize - 1} < json_array_length(d.content)
+        WHERE json_array_length(d.content) >= ${windowSize}
+          AND ${whereClause}
+        ORDER BY original_rowid, window_start
+        `;
+
+      interpretedQuery = windowSQL;
+      console.log("Processed Test SQL:", windowSQL);
+      return;
+    }
+
     const ctx = buildWindowContext(selectedPatterns);
     if (!ctx) return console.warn("No valid selected pattern");
     const { windowSize, positionOffset } = ctx;
@@ -983,7 +1067,7 @@
       FROM data d
       JOIN numbers n 
         ON n.n + ${windowSize - 1} < json_array_length(d.content)
-      WHERE json_array_length(d.content) = ${windowSize}
+      WHERE json_array_length(d.content) >= ${windowSize}
         ${elements
           .map(
             (i) =>
@@ -1253,11 +1337,11 @@
     const sessionData = selectedPatterns[sessionId];
     const count =
       sessionData.count || Math.max(1, sessionData.data?.length || 1);
-    
+
     // Get chartData from clickSession or sessionData
     const currentSession = get(clickSession);
     const chartData = currentSession?.chartData || sessionData.wholeData || [];
-    
+
     searchDetail = {
       sessionId,
       data: sessionData.data,
@@ -1443,9 +1527,12 @@
       console.warn("No query provided");
       return;
     }
-    
+
     try {
-      const currentVector = buildVectorForCurrentSegment(currentResults, checks);
+      const currentVector = buildVectorForCurrentSegment(
+        currentResults,
+        checks,
+      );
       const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
       const wasmBinary = await wasmResponse.arrayBuffer();
       const SQL = await initSqlJs({ wasmBinary });
@@ -1461,7 +1548,7 @@
       const dbBuffer = await dbResponse.arrayBuffer();
       const db = new SQL.Database(new Uint8Array(dbBuffer));
       const queryResults = db.exec(interpretedQuery);
-      
+
       if (!queryResults || queryResults.length === 0) {
         console.warn("Query returned no results");
         patternData = [];
@@ -1469,7 +1556,7 @@
         patternDataLoad([]);
         return;
       }
-      
+
       const stepStats = queryResults[0];
       if (!stepStats || !stepStats.values) {
         console.warn("Invalid query results structure");
@@ -1478,11 +1565,14 @@
         patternDataLoad([]);
         return;
       }
-      
+
       const filteredWindows = stepStats.values.map((row) =>
         JSON.parse(String(row[3])),
       );
       patternData = filteredWindows;
+      patternData = patternData.filter((arr) => {
+        return arr.length > 0 && arr[0].residual_vector_norm !== 0;
+      });
 
       //slicing for testing purposes
       // patternData = patternData.slice(0, 100);
@@ -4805,9 +4895,13 @@ WITH RECURSIVE
                     </div>
                   {/if}
                   <div class="chat-panel">
+                    <button on:click={toggleTestMode} class="search-pattern-button">
+                      {isTest ? "Switch to Normal Mode" : "Switch to Test Mode"}
+                    </button>
                     <Interpreter
                       {pattern}
                       on:parsedFilters={handleInterpreterFilters}
+                      {isTest}
                     />
                   </div>
                   {#if $patternDataList.length > 0 && isSearch == 2}
