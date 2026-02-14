@@ -65,8 +65,8 @@
   let brushX: any = null;
   export let brushIsX: boolean = false;
 
-  // attribute config for the chart
-  const attributeConfig: any = {
+  // attribute config for the chart (from parent or use default)
+  export let attributeConfig: any = {
     time: {
       label: "Time (min)",
       getValue: (item: any) => item.time,
@@ -536,8 +536,22 @@
   }
 
   function initChart() {
+    // Safety check: ensure attributeConfig is not empty
+    if (!attributeConfig || Object.keys(attributeConfig).length === 0) {
+      console.warn("⚠️ LineChart attributeConfig is empty, skipping init");
+      return;
+    }
+
     const xConfig = attributeConfig[xAxisField];
     const yConfig = attributeConfig[yAxisField];
+
+    // Safety check: ensure selected fields exist in config
+    if (!xConfig || !yConfig) {
+      console.warn(
+        `⚠️ LineChart field not found: x=${xAxisField}, y=${yAxisField}`,
+      );
+      return;
+    }
 
     // 动态计算 X 轴 domain
     let xDomain = xConfig.domain;

@@ -314,7 +314,7 @@ if (typeof window !== 'undefined' && typeof indexedDB !== 'undefined') {
 
 
 /*
-✅ Console Tool Usage:
+  Console Tool Usage:
 
   Export all patterns as separate files:
     import('/src/components/cache.js').then(mod => mod.exportDB())
