@@ -37,6 +37,11 @@
   import { getDB } from "$lib/dbLoader";
   import { readSegmentResults } from "$lib/db/read";
   import { browser } from "$app/environment";
+  import Interpreter from "../components/interpreter.svelte";
+  import sourceColorManager from "../components/sourceColorManager.js";
+  import ColorSettingsPanel from "../components/ColorSettingsPanel.svelte";
+
+  let isTest = false;
 
   let chartRefs = {};
   let filterButton;
@@ -44,6 +49,10 @@
   let selectionMode = false;
   let brushIsX = false;
   let selectedPatterns = {};
+
+  // Color settings panel
+  let showColorSettings = false;
+  let knownSources = [];
 
   // Chart axis selection
   let barChartXAxis = "progress";
@@ -236,6 +245,7 @@
   let lastSession = null;
   let datasets = [];
   let selectedDataset = "creative";
+  let interpretedQuery = null;
 
   // Reset playback state when session changes
   let lastPlaybackSessionId = null;
@@ -782,6 +792,345 @@
     selectedPatterns = newSelectedPatterns;
   }
 
+  function buildWindowContext(selectedPatterns) {
+    const patterns = Object.values(selectedPatterns);
+    if (patterns.length === 0) return null;
+    const pattern = patterns[0];
+    if (!pattern || typeof pattern.count !== "number") return null;
+    const WINDOW_SIZE = pattern.count;
+
+    return {
+      windowSize: WINDOW_SIZE,
+      positionOffset: {
+        first: 0,
+        last: WINDOW_SIZE - 1,
+        prev: WINDOW_SIZE - 2,
+      },
+    };
+  }
+
+  function toggleTestMode() {
+    isTest = !isTest;
+  }
+
+  async function handleInterpreterFilters(event) {
+    if (isTest) {
+      let { sql } = event.detail;
+      const sourceMatch = sql.match(/source\s*=\s*'(.*?)'/);
+      if (sourceMatch) {
+        const sources = sourceMatch[1].split(",");
+        const sourceConditions = sources
+          .map(
+            (src, idx) =>
+              `JSON_EXTRACT(d.content, '$[' || (n.n + ${idx}) || '].source') = '${src}'`,
+          )
+          .join(" AND ");
+        sql = sql.replace(/source\s*=\s*'(.*?)'/, sourceConditions);
+      }
+
+      const ctx = buildWindowContext(selectedPatterns);
+      if (!ctx) return console.warn("No valid selected pattern");
+      const { windowSize } = ctx;
+
+      const features = ["progress", "time", "semantic_change"];
+      features.forEach((f) => {
+        const match = sql.match(
+          new RegExp(
+            `${f}\\s+BETWEEN\\s+(\\d+(\\.\\d+)?)\\s+AND\\s+(\\d+(\\.\\d+)?)`,
+          ),
+        );
+        if (match) {
+          const minVal = parseFloat(match[1]);
+          const maxVal = parseFloat(match[3]);
+          const expr = Array.from(
+            { length: windowSize },
+            (_, i) =>
+              `CASE WHEN JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = 'user' THEN ${minVal} ELSE 0 END`,
+          ).join(" + ");
+          sql = sql.replace(
+            match[0],
+            `(${expr}) BETWEEN ${minVal} AND ${maxVal}`,
+          );
+        }
+      });
+
+      const elements = Array.from({ length: windowSize }, (_, i) => i);
+      const whereClause = sql
+        .replace(/^SELECT \* FROM sessions WHERE /i, "")
+        .replace(/;$/, "");
+
+      const windowSQL = `
+        WITH RECURSIVE 
+        numbers(n) AS (
+          SELECT 0
+          UNION ALL
+          SELECT n + 1 FROM numbers 
+          WHERE n < (SELECT MAX(json_array_length(content)) - ${windowSize} + 1 FROM data)
+        )
+        SELECT
+          d.rowid AS original_rowid,
+          d.content AS original_content,
+          n.n AS window_start,
+          json_array(${elements
+            .map(
+              (i) => `json_extract(json_set(
+                json_extract(d.content, '$[' || (n.n + ${i}) || ']'),
+                '$.id', d.id,
+                '$.segmentId', d.id || '_' || (n.n + ${i})
+              ), '$')`,
+            )
+            .join(", ")}) AS window_content
+        FROM data d
+        JOIN numbers n ON n.n + ${windowSize - 1} < json_array_length(d.content)
+        WHERE json_array_length(d.content) >= ${windowSize}
+          AND ${whereClause}
+        ORDER BY original_rowid, window_start
+        `;
+
+      interpretedQuery = windowSQL;
+      console.log("Processed Test SQL:", windowSQL);
+      return;
+    }
+
+    const ctx = buildWindowContext(selectedPatterns);
+    if (!ctx) return console.warn("No valid selected pattern");
+    const { windowSize, positionOffset } = ctx;
+
+    function resolveSpanRange(span, anchorIdx, windowSize) {
+      switch (span) {
+        case "prefix":
+          return { from: 0, to: anchorIdx };
+        case "suffix":
+          return { from: anchorIdx, to: windowSize - 1 };
+        case "full":
+          return { from: 0, to: windowSize - 1 };
+        default:
+          return null;
+      }
+    }
+
+    function buildExpr({ feature, position, span, source }, ref) {
+      const featureDef = featureMap[feature];
+      if (!featureDef) return null;
+      const sourceValue =
+        source === "Human" ? "user" : source === "AI" ? "api" : null;
+      if (span) {
+        let range;
+        if (span === "full") {
+          range = { from: 0, to: windowSize - 1 };
+        } else if (span === "prefix" || span === "suffix") {
+          const anchorIdx = positionOffset[position];
+          if (anchorIdx == null) {
+            console.warn(
+              `Span ${span} requires position, but position ${position} not found in positionOffset`,
+            );
+            return null;
+          }
+          range = resolveSpanRange(span, anchorIdx, windowSize);
+        } else {
+          console.warn(`Unknown span type: ${span}`);
+          return null;
+        }
+        if (!range) return null;
+        return featureDef.range(range.from, range.to, ref, sourceValue);
+      }
+      const anchorIdx = positionOffset[position];
+      if (anchorIdx == null) {
+        console.warn(
+          `Point query requires position, but position ${position} not found in positionOffset`,
+        );
+        return null;
+      }
+      return featureDef.point(anchorIdx, ref, sourceValue);
+    }
+
+    function parseRelation(relationString) {
+      if (!relationString) return null;
+      const match = relationString.match(
+        /^(\w+)\(([\w_]+)\)\s*(>|<|=)\s*(\w+)\(([\w_]+)\)$/,
+      );
+      if (!match) return null;
+
+      return {
+        l_source: match[1],
+        l_feature: match[2],
+        operator: match[3],
+        r_source: match[4],
+        r_feature: match[5],
+      };
+    }
+
+    // Helpers to support JavaScript unrolling and offset logic
+    const getProgressExpr = (idx, ref, source) => {
+      const baseExpr = `COALESCE(
+        CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].end_progress') AS REAL),0
+      ) - COALESCE(
+        CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].start_progress') AS REAL),0
+      )`;
+      if (source) {
+        return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+      }
+      return baseExpr;
+    };
+
+    const getTimeExpr = (idx, ref, source) => {
+      const baseExpr = `COALESCE(
+        CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].end_time') AS REAL),0
+      ) - COALESCE(
+        CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].start_time') AS REAL),0
+      )`;
+      if (source) {
+        return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+      }
+      return baseExpr;
+    };
+
+    const getSemanticExpr = (idx, ref, source) => {
+      const baseExpr = `COALESCE(
+        CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].residual_vector_norm') AS REAL),0
+      )`;
+      if (source) {
+        return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+      }
+      return baseExpr;
+    };
+
+    const featureMap = {
+      progress: {
+        point: (idx, ref, source) => getProgressExpr(idx, ref, source),
+        range: (from, to, ref, source) => {
+          const parts = [];
+          for (let i = from; i <= to; i++) {
+            parts.push(getProgressExpr(i, ref, source));
+          }
+          return `(${parts.join(" + ")})`;
+        },
+      },
+      time: {
+        point: (idx, ref, source) => getTimeExpr(idx, ref, source),
+        range: (from, to, ref, source) => {
+          const parts = [];
+          for (let i = from; i <= to; i++) {
+            parts.push(getTimeExpr(i, ref, source));
+          }
+          return `(${parts.join(" + ")})`;
+        },
+      },
+      semantic_change: {
+        point: (idx, ref, source) => getSemanticExpr(idx, ref, source),
+        range: (from, to, ref, source) => {
+          const parts = [];
+          for (let i = from; i <= to; i++) {
+            parts.push(getSemanticExpr(i, ref, source));
+          }
+          return `(${parts.join(" + ")})`;
+        },
+      },
+    };
+    const { explanations, filters } = event.detail;
+    // console.log("explanations", explanations, "filters", filters)
+    const comparisons = filters
+      .map((filter, i) => {
+        if (explanations[i]?.feature === "source") return null;
+        const parsed = parseRelation(filter.relation);
+        if (!parsed) {
+          console.warn("Could not parse relation:", filter.relation);
+          return null;
+        }
+
+        const lExpr = buildExpr(
+          {
+            feature: parsed.l_feature,
+            position: filter.l_position,
+            span: filter.span,
+            source: parsed.l_source,
+          },
+          "d.content",
+        );
+        const rExpr = buildExpr(
+          {
+            feature: parsed.r_feature,
+            position: filter.r_position,
+            span: filter.span,
+            source: parsed.r_source,
+          },
+          "d.content",
+        );
+
+        if (!lExpr || !rExpr) {
+          console.warn("Could not build expressions for:", parsed);
+          return null;
+        }
+        const ratio = filter.ratio;
+        let comparison;
+        if (ratio !== null && ratio !== undefined) {
+          if (parsed.operator === ">") {
+            comparison = `(${lExpr}) ${parsed.operator} ((${rExpr}) * ${ratio})`;
+          } else if (parsed.operator === "<") {
+            comparison = `((${lExpr}) * ${ratio}) ${parsed.operator} (${rExpr})`;
+          } else {
+            comparison = `(${lExpr}) ${parsed.operator} ((${rExpr}) * ${ratio})`;
+          }
+        } else {
+          comparison = `(${lExpr}) ${parsed.operator} (${rExpr})`;
+        }
+
+        return comparison;
+      })
+      .filter(Boolean);
+    const hasSourceConstraint = explanations.some(
+      (exp) => exp.feature === "source",
+    );
+    const sourcePattern = Object.values(selectedPatterns)[0].sources || [];
+    const sourceConstraints = hasSourceConstraint
+      ? sourcePattern.map(
+          (src, i) =>
+            `JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = '${src.replace(/'/g, "''")}'`,
+        )
+      : [];
+    const whereClause = [...comparisons, ...sourceConstraints].join(" AND ");
+    const elements = Array(windowSize)
+      .fill(0)
+      .map((_, i) => i);
+    const sqlQuery = `
+      WITH RECURSIVE 
+      numbers(n) AS (
+        SELECT 0
+        UNION ALL
+        SELECT n + 1 FROM numbers 
+        WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
+      )
+      SELECT 
+        d.rowid as original_rowid,
+        d.content as original_content,
+        n.n as window_start,
+        json_array(${elements
+          .map(
+            (i) =>
+              `json_extract(json_set(
+              json_extract(d.content, '$[' || (n.n + ${i}) || ']'),
+              '$.id', d.id,
+              '$.segmentId', d.id || '_' || (n.n + ${i})
+            ), '$')`,
+          )
+          .join(", ")}) as window_content
+      FROM data d
+      JOIN numbers n 
+        ON n.n + ${windowSize - 1} < json_array_length(d.content)
+      WHERE json_array_length(d.content) >= ${windowSize}
+        ${elements
+          .map(
+            (i) =>
+              `AND json_extract(d.content, '$[' || (n.n + ${i}) || ']') IS NOT NULL`,
+          )
+          .join(" ")}
+        ${whereClause ? "AND (" + whereClause + ")" : ""}
+      ORDER BY original_rowid, window_start
+    `;
+    console.log("SQL:", sqlQuery);
+    interpretedQuery = sqlQuery;
+  }
+
   function getTrendPattern(values) {
     const pattern = [];
     for (let i = 1; i < values.length; i++) {
@@ -1033,17 +1382,30 @@
 
   async function searchPattern(sessionId) {
     isSearch = 1; // 0: not searching, 1: searching, 2: search done
+    allSearchResults = []; // Reset search results
+    loadedResultCount = 0;
     const sessionData = selectedPatterns[sessionId];
     const count =
       sessionData.count || Math.max(1, sessionData.data?.length || 1);
+
+    // Get chartData from clickSession or sessionData
+    const currentSession = get(clickSession);
+    const chartData = currentSession?.chartData || sessionData.wholeData || [];
+
     searchDetail = {
       sessionId,
       data: sessionData.data,
       dataRange: sessionData.dataRange,
       count,
       wholeData: sessionData.wholeData,
+      chartData: chartData, // Save chartData for LineChartPreview
       range: sessionData.range,
       selectionSource: sessionData.selectionSource ?? null,
+      // Save highlight information for displaying in detail page
+      selectedTimeRange: sessionData.selectedTimeRange ?? null,
+      highlightWindows: sessionData.highlightWindows ?? [],
+      highlightMode: sessionData.highlightMode ?? null,
+      selectionContext: sessionData.selectionContext ?? null,
       flag: {
         isProgressChecked,
         isTimeChecked,
@@ -1066,6 +1428,12 @@
       semantic: [isValueRangeChecked, semanticRange],
       trend: [isValueTrendChecked, semanticTrend],
     };
+
+    if (interpretedQuery && interpretedQuery.trim() !== "") {
+      await segmentQuery(patternVectors, checks);
+      return;
+    }
+    console.log("Search with manual checks...");
 
     try {
       const datasetInfo = datasets.find((d) => d.name === selectedDataset);
@@ -1200,6 +1568,90 @@
     }
   }
 
+  async function segmentQuery(patternVectors, checks) {
+    // Temporarily use checkboxes to build vector, later will be replaced by interpreter output
+    // Function called when interpretedQuery is not empty
+    console.log("search with interpreted query...");
+
+    if (!interpretedQuery || interpretedQuery.trim() === "") {
+      console.warn("No query provided");
+      return;
+    }
+
+    try {
+      const currentVector = buildVectorForCurrentSegment(
+        currentResults,
+        checks,
+      );
+      const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
+      const wasmBinary = await wasmResponse.arrayBuffer();
+      const SQL = await initSqlJs({ wasmBinary });
+
+      const isLineChart = selectionSrc.startsWith("lineChart");
+
+      const dbResponse = await fetch(
+        isLineChart
+          ? `${base}/db/${selectedDataset}_json.db`
+          : `${base}/db/${selectedDataset}_segment_results.db`,
+      );
+
+      const dbBuffer = await dbResponse.arrayBuffer();
+      const db = new SQL.Database(new Uint8Array(dbBuffer));
+      const queryResults = db.exec(interpretedQuery);
+
+      if (!queryResults || queryResults.length === 0) {
+        console.warn("Query returned no results");
+        patternData = [];
+        searchCount = 0;
+        patternDataLoad([]);
+        return;
+      }
+
+      const stepStats = queryResults[0];
+      if (!stepStats || !stepStats.values) {
+        console.warn("Invalid query results structure");
+        patternData = [];
+        searchCount = 0;
+        patternDataLoad([]);
+        return;
+      }
+
+      const filteredWindows = stepStats.values.map((row) =>
+        JSON.parse(String(row[3])),
+      );
+      patternData = filteredWindows;
+      patternData = patternData.filter((arr) => {
+        return arr.length > 0 && arr[0].residual_vector_norm !== 0;
+      });
+
+      //slicing for testing purposes
+      // patternData = patternData.slice(0, 100);
+
+      patternVectors = [];
+      for (const segment of patternData) {
+        const vector = buildVectorFromSegment(segment, checks);
+        vector.id = segment[0]?.id ?? null;
+        vector.segmentId = segment[0]?.segmentId ?? null;
+        patternVectors.push(vector);
+      }
+
+      const finalScore = await calculateRankAuto(patternVectors, currentVector);
+      const idToData = Object.fromEntries(
+        patternData.map((d) => [d[0].segmentId, d]),
+      );
+      const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
+      searchCount = fullData.length;
+      console.log("Full data", fullData);
+      patternDataLoad(fullData);
+    } catch (error) {
+      console.error("segmentQuery failed:", error);
+      patternData = [];
+      searchCount = 0;
+      patternDataLoad([]);
+      alert("Search query failed. Please check the console for details.");
+    }
+  }
+
   function l2(arr1, arr2) {
     let sum = 0;
     for (let i = 0; i < arr1.length; i++) {
@@ -1315,6 +1767,9 @@
   }
 
   let fetchProgress = 0;
+  let allSearchResults = []; // Store all search results for lazy loading
+  let loadedResultCount = 0; // Track how many results have been loaded
+  let isLoadingMore = false; // Track if we're loading more results
 
   function computeHighlightRangesFromSegments(segments) {
     if (!Array.isArray(segments) || segments.length === 0) {
@@ -1478,22 +1933,56 @@
     };
   }
 
-  async function patternDataLoad(results) {
-    const ids = results.map((group) => group[0]?.id).filter(Boolean);
-    const BATCH_SIZE = 100;
-    for (let i = 0; i < ids.length; i += BATCH_SIZE) {
-      // console.log("processing", i, "out of", ids.length);
-      fetchProgress =
-        Math.round((i / ids.length) * 100) > 100
-          ? 100
-          : Math.round((i / ids.length) * 100);
-      const chunk = ids.slice(i, i + BATCH_SIZE);
-      await Promise.allSettled(chunk.map((id) => fetchDataSummary(id)));
+  async function patternDataLoad(results, initialLoadCount = 30) {
+    console.log(`Search complete: ${results.length} total results found`);
+    console.time("Initial load time");
+
+    // Store all results for lazy loading
+    allSearchResults = results;
+    loadedResultCount = 0;
+
+    // Clear existing data
+    patternDataList.set([]);
+
+    // Load initial batch
+    await loadMoreResultsInternal(initialLoadCount);
+
+    console.timeEnd("Initial load time");
+    console.log(
+      `Loaded ${loadedResultCount} of ${allSearchResults.length} results (showing first ${$showResultCount})`,
+    );
+
+    isSearch = 2; // reset search state; 0: not searching, 1: searching, 2: search done
+    fetchProgress = 0;
+  }
+
+  async function loadMoreResultsInternal(count = 10) {
+    const startIndex = loadedResultCount;
+    const endIndex = Math.min(startIndex + count, allSearchResults.length);
+
+    if (startIndex >= allSearchResults.length) {
+      return; // No more results to load
     }
 
-    const sessionDataMap = get(storeSessionSummaryData);
-    patternDataList.set(
-      results
+    console.log(`Loading results ${startIndex + 1}-${endIndex}...`);
+    isLoadingMore = true;
+
+    try {
+      const resultsToLoad = allSearchResults.slice(startIndex, endIndex);
+      const ids = resultsToLoad.map((group) => group[0]?.id).filter(Boolean);
+
+      // Load data in smaller batches for better UX
+      const BATCH_SIZE = 10;
+      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        fetchProgress = Math.round(
+          ((startIndex + i) / allSearchResults.length) * 100,
+        );
+        const chunk = ids.slice(i, i + BATCH_SIZE);
+        await Promise.allSettled(chunk.map((id) => fetchDataSummary(id)));
+      }
+
+      const sessionDataMap = get(storeSessionSummaryData);
+      const newData = resultsToLoad
         .map((group) => {
           const id = group[0]?.id;
           const sessionData = sessionDataMap.get(id);
@@ -1542,10 +2031,19 @@
             },
           };
         })
-        .filter(Boolean),
-    );
-    isSearch = 2; // reset search state; 0: not searching, 1: searching, 2: search done
-    fetchProgress = 0;
+        .filter(Boolean);
+
+      // Append new data to existing list
+      patternDataList.update((current) => [...current, ...newData]);
+      loadedResultCount = endIndex;
+      console.log(
+        `✅ Loaded ${newData.length} results (total loaded: ${loadedResultCount}/${allSearchResults.length})`,
+      );
+    } catch (error) {
+      console.error("Error loading more results:", error);
+    } finally {
+      isLoadingMore = false;
+    }
   }
 
   function closePatternSearch() {
@@ -1562,7 +2060,7 @@
   }
 
   function handleSelectionChanged(event) {
-    showResultCount.set(5);
+    showResultCount.set(15);
 
     if (sharedSelection) {
       selectionSrc = sharedSelection.selectionSource;
@@ -2918,6 +3416,93 @@
       }
       console.log("Use .json file to init data.");
     }
+
+    async function debugData() {
+      try {
+        const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
+        const wasmBinary = await wasmResponse.arrayBuffer();
+        const SQL = await initSqlJs({ wasmBinary });
+
+        const dbResponse = await fetch(
+          `${base}/db/${selectedDataset}_segment_results.db`,
+        );
+        const dbBuffer = await dbResponse.arrayBuffer();
+        const db = new SQL.Database(new Uint8Array(dbBuffer));
+
+        const stepStats = db.exec(`
+WITH RECURSIVE 
+      numbers(n) AS (
+        SELECT 0
+        UNION ALL
+        SELECT n + 1 FROM numbers 
+        WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
+      ),
+      idx AS (
+        SELECT 0 as i
+        UNION ALL
+        SELECT i + 1 FROM idx WHERE i < 1
+      )
+      SELECT 
+        d.rowid as original_rowid,
+        d.content as original_content,
+        n.n as window_start,
+        json_array(json_extract(d.content, '$[' || (n.n + 0) || ']'), json_extract(d.content, '$[' || (n.n + 1) || ']')) as window_content
+      FROM data d
+      JOIN numbers n 
+        ON n.n + 1 < json_array_length(d.content)
+      WHERE json_array_length(d.content) >= 2
+        AND json_extract(d.content, '$[' || (n.n + 0) || ']') IS NOT NULL AND json_extract(d.content, '$[' || (n.n + 1) || ']') IS NOT NULL
+        AND (((
+            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user' 
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
+                 ) - COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].start_progress') AS REAL),0
+                 ) ELSE 0 END)
+            FROM idx k
+            WHERE k.i BETWEEN 0 AND 1
+          )) > (((
+            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api' 
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
+                 ) - COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].start_progress') AS REAL),0
+                 ) ELSE 0 END)
+            FROM idx k
+            WHERE k.i BETWEEN 0 AND 1
+          )) * 2.5) AND ((
+            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api'
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].residual_vector_norm') AS REAL),0
+                 ) ELSE 0 END)
+            FROM idx k
+            WHERE k.i BETWEEN 0 AND 1
+          )) > (((
+            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user'
+                 THEN COALESCE(
+                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].residual_vector_norm') AS REAL),0
+                 ) ELSE 0 END)
+            FROM idx k
+            WHERE k.i BETWEEN 0 AND 1
+          )) * 1.5) AND JSON_EXTRACT(window_content, '$[0].source') = 'api' AND JSON_EXTRACT(window_content, '$[1].source') = 'user')
+      ORDER BY original_rowid, window_start
+`)[0];
+
+        const filteredWindows = stepStats.values.map((row) =>
+          JSON.parse(String(row[3])),
+        );
+
+        console.log("Num:", filteredWindows.length);
+        console.log(
+          "Test:",
+          filteredWindows.sort(() => Math.random() - 0.5).slice(0, 5),
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    await debugData();
   });
 
   function handleChartZoom(event) {
@@ -3008,7 +3593,7 @@
     data.actions.forEach((event, idx) => {
       const { name, event_time, eventSource, text = "", count = 0 } = event;
 
-      const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
+      const textColor = sourceColorManager.getColor(eventSource);
       const eventTime = new Date(event_time);
       if (!firstTime) firstTime = eventTime;
       const relativeTime = (eventTime.getTime() - firstTime.getTime()) / 60000;
@@ -3072,7 +3657,9 @@
   const handleEvents = (data) => {
     const initText = data.init_text;
     let currentCharArray = initText.split("");
-    let currentColor = new Array(currentCharArray.length).fill("#FC8D62");
+    let currentColor = new Array(currentCharArray.length).fill(
+      sourceColorManager.getColor("api"),
+    );
     let chartData = [];
     let paragraphColor = [];
     let firstTime = null;
@@ -3086,7 +3673,7 @@
 
     let combinedText = [...initText].map((ch) => ({
       text: ch,
-      textColor: "#FC8D62",
+      textColor: sourceColorManager.getColor("api"),
     }));
     sortedEvents.forEach((event, idx) => {
       const {
@@ -3097,7 +3684,7 @@
         count = 0,
         pos = 0,
       } = event;
-      const textColor = eventSource === "user" ? "#66C2A5" : "#FC8D62";
+      const textColor = sourceColorManager.getColor(eventSource);
       const eventTime = new Date(event_time);
 
       if (firstTime === null) {
@@ -4077,6 +4664,28 @@
                   {/if}
                 </div>
               {/if}
+
+              <button
+                class="search-pattern-button"
+                on:click={() => {
+                  // 从 initData 提取所有唯一的来源
+                  const sources = new Set();
+                  $initData.forEach((session) => {
+                    if (session.similarityData) {
+                      session.similarityData.forEach((item) => {
+                        if (item.source) sources.add(item.source);
+                      });
+                    }
+                  });
+                  knownSources = Array.from(sources);
+                  sourceColorManager.registerSources(knownSources);
+                  showColorSettings = true;
+                }}
+                aria-label="Color settings"
+                title="Customize source colors"
+              >
+                🎨 Colors
+              </button>
             </div>
           </div>
 
@@ -4731,8 +5340,31 @@
                       {/if}
                     </div>
                   {/if}
+                  <div class="chat-panel">
+                    <button on:click={toggleTestMode} class="search-pattern-button">
+                      {isTest ? "Switch to Normal Mode" : "Switch to Test Mode"}
+                    </button>
+                    <Interpreter
+                      {pattern}
+                      on:parsedFilters={handleInterpreterFilters}
+                      {isTest}
+                    />
+                  </div>
                   {#if $patternDataList.length > 0 && isSearch == 2}
-                    <div>Search Results</div>
+                    <div
+                      style="display: flex; justify-content: space-between; align-items: center;"
+                    >
+                      <span>Search Results</span>
+                      <span style="font-size: 12px; color: #666;">
+                        Showing {Math.min(
+                          $showResultCount,
+                          $patternDataList.length,
+                        )} of {allSearchResults.length} results
+                        {#if loadedResultCount < allSearchResults.length}
+                          (Loaded {loadedResultCount})
+                        {/if}
+                      </span>
+                    </div>
                     {#each $patternDataList as sessionData, index (sessionData.segmentId)}
                       {#if index < $showResultCount}
                         <div class="search-result-container">
@@ -4807,11 +5439,20 @@
                         </button>
                         <button
                           class="search-pattern-button"
-                          on:click={() => {
-                            $showResultCount += 5;
+                          on:click={async () => {
+                            const newShowCount = $showResultCount + 5;
+                            // If we need more data than what's loaded, load it first
+                            if (
+                              newShowCount > loadedResultCount &&
+                              loadedResultCount < allSearchResults.length
+                            ) {
+                              await loadMoreResultsInternal(10); // Load 10 more at a time
+                            }
+                            $showResultCount = newShowCount;
                           }}
+                          disabled={isLoadingMore}
                         >
-                          More Results
+                          {isLoadingMore ? "Loading..." : "More Results"}
                         </button>
                       </div>
                     {:else}
@@ -5472,6 +6113,19 @@
   pattern={patternToEdit}
   on:save={handleEditSave}
   on:cancel={handleEditCancel}
+/>
+
+<!-- Color Settings Panel -->
+<ColorSettingsPanel
+  bind:show={showColorSettings}
+  {knownSources}
+  on:save={() => {
+    // trigger all charts to re-render to reflect new colors
+    initData.update((data) => [...data]);
+  }}
+  on:close={() => {
+    showColorSettings = false;
+  }}
 />
 
 <style>

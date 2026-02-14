@@ -222,7 +222,8 @@
         Counts: {pattern.searchDetail.count}
       </div>
     </div>
-    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+    <div style="display: flex; gap: 10px; align-items: flex-start;">
+      <!-- Left: Bar Chart (Semantic Change) -->
       <div class="pattern-chart-preview small-preview">
         <PatternChartPreview
           sessionId={pattern.searchDetail.sessionId}
@@ -270,7 +271,7 @@
             <input
               type="checkbox"
               class="readonly"
-              checked={pattern.searchDetail.flag.isTimeCheckRequired}
+              checked={pattern.searchDetail.flag.isExactSearchTime}
               disabled
               hidden
             />

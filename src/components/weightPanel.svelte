@@ -7,11 +7,9 @@
 
   const dispatch = createEventDispatcher();
 
-  // 每个 slider 的独立变量
   let s = 0, t = 0, p = 0, tr = 0, sem = 0;
   let initialized = false;
 
-  // 初始化：只做一次
   $: if (!initialized && $weights) {
     s = $weights.s ?? 0;
     t = $weights.t ?? 0;

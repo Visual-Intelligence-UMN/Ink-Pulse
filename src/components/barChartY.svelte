@@ -41,7 +41,15 @@
       label: "Time (min)",
       getValue: (item) => (item.start_time + item.end_time) / 2 / 60,
       getStart: (item) => item.start_time / 60,
-      getEnd: (item) => item.end_time / 60,
+      getEnd: (item) => {
+        const startTime = item.start_time / 60;
+        const endTime = item.end_time / 60;
+        // if the source is api and the start time is the same as the end time, add a small time span (0.05 minutes = 3 seconds)
+        if (item.source === "api" && startTime === endTime) {
+          return endTime + 0.05;
+        }
+        return endTime;
+      },
       hasRange: true,
       domain: null,
     },
@@ -53,10 +61,7 @@
     },
   };
 
-  const colorMap = {
-    user: "#66C2A5",
-    api: "#FC8D62",
-  };
+  import sourceColorManager from "./sourceColorManager.js";
 
   import colors from "./colors.js";
   const colorPalette = colors(
@@ -152,26 +157,25 @@
       bars.attr("opacity", (d) => (selectedIds.has(d.id) ? 0.9 : 0.1));
     }
 
-    // 通用格式：优先使用 xMin/xMax/xField
+    // Use xMin/xMax/xField first
     let selectionMin, selectionMax;
 
     if (sharedSelection.xField && sharedSelection.xField === xAxisField) {
-      // 新格式：字段匹配
       selectionMin = sharedSelection.xMin;
       selectionMax = sharedSelection.xMax;
     } else if (
       sharedSelection.progressMin !== null &&
       xAxisField === "progress"
     ) {
-      // 向后兼容：progressMin/progressMax
+      // progressMin/progressMax
       selectionMin = sharedSelection.progressMin;
       selectionMax = sharedSelection.progressMax;
     } else if (sharedSelection.timeMin !== null && xAxisField === "time") {
-      // 向后兼容：timeMin/timeMax
+      // timeMin/timeMax
       selectionMin = sharedSelection.timeMin;
       selectionMax = sharedSelection.timeMax;
     } else {
-      // 字段不匹配，不响应
+      // No response
       bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
       return;
     }
@@ -257,7 +261,7 @@
 
     // Safety check: ensure attributeConfig is not empty
     if (!attributeConfig || Object.keys(attributeConfig).length === 0) {
-      console.warn("⚠️ attributeConfig is empty, skipping render");
+      console.warn("attributeConfig is empty, skipping render");
       return;
     }
 
@@ -267,7 +271,7 @@
     // Safety check: ensure selected fields exist in config
     if (!xConfig || !yConfig) {
       console.warn(
-        `⚠️ Field not found in config: x=${xAxisField}, y=${yAxisField}`,
+        `Field not found in config: x=${xAxisField}, y=${yAxisField}`,
       );
       return;
     }
@@ -419,28 +423,8 @@
           return newyScale(yDomain[0]) - newyScale(d.yValue);
         }
       })
-      .attr("fill", (d) => {
-        if (d.source === "user") {
-          return colorMap.user;
-        } else if (d.source === "api") {
-          return colorMap.api;
-        } else {
-          const color = colorPalette[colorIndex % colorPalette.length];
-          colorIndex++;
-          return color;
-        }
-      })
-      .attr("stroke", (d) => {
-        if (d.source === "user") {
-          return colorMap.user;
-        } else if (d.source === "api") {
-          return colorMap.api;
-        } else {
-          const color = colorPalette[colorIndex % colorPalette.length];
-          colorIndex++;
-          return color;
-        }
-      })
+      .attr("fill", (d) => getSourceColor(d.source))
+      .attr("stroke", (d) => getSourceColor(d.source))
       .attr("opacity", 0.5)
       .attr("stroke-width", 0.1)
       .attr("clip-path", `url(#clip_bar_${uniqueId})`);
