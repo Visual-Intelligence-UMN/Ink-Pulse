@@ -7,7 +7,7 @@ export const jsonTable = sqliteTable("data", {
   initTime: text("init_time"),
   endTime: text("end_time"),
   actions: text("actions"),
-  bars: text("bars"),
+  content: text("content"),
 });
 
 export const segmentTable = sqliteTable("data", {

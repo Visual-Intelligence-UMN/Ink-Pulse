@@ -12,6 +12,8 @@
   let isApiKeyLoaded = false;
   let isEditingKey = false;
 
+  export let isTest = false;
+
   const STORAGE_KEY = "inkpulse_openai_api_key";
 
   // simple encryption function based on device fingerprint
@@ -125,7 +127,7 @@
     const visibleStart = 8;
     const visibleEnd = 4;
     const middle = "•".repeat(
-      Math.min(20, key.length - visibleStart - visibleEnd)
+      Math.min(20, key.length - visibleStart - visibleEnd),
     );
     return key.slice(0, visibleStart) + middle + key.slice(-visibleEnd);
   }
@@ -149,8 +151,47 @@
   const signal = convertPatternToSignal(pattern);
   let openRatioIndex = null;
   let ratioSelections = {};
+  let editingRatioIndex = null;
+  let ratioInputValue = "";
 
   let userInput = "";
+
+  const SYSTEM_PROMPT_TEST = `
+  You are a SQL query generator for a collaborative writing analysis system.
+
+  Database table: sessions
+
+  Column definitions:
+
+  - source: VARCHAR
+    Stores an ordered sequence separated by commas.
+    Example values: 'api', 'user', 'api,user'
+    Order matters.
+    When filtering for multiple writers in order, use exact equality:
+    Example: source = 'api,user'
+
+  - progress: FLOAT
+    Use BETWEEN for numeric ranges.
+
+  - semantic_change: FLOAT
+    Use BETWEEN for numeric ranges.
+
+  - time: FLOAT
+    Use BETWEEN for numeric ranges.
+
+  Rules:
+
+  - Output RAW executable PostgreSQL SQL only.
+  - Do NOT wrap in Markdown.
+  - Do NOT include explanations.
+  - Only output a single SQL query.
+  - NEVER use @>
+  - NEVER use ARRAY syntax.
+  - Always ensure BETWEEN uses ascending order (smaller value first).
+  - If multiple source values are requested in order, join them using a comma inside a single string.
+  - Always ensure that the SQL window size exactly matches the length of the user-provided input data.
+  `;
+
   const SYSTEM_PROMPT = `
     You are an interpretation engine for Human–AI collaborative writing analysis.
 
@@ -239,37 +280,37 @@
             - "l_position": "first", "last", "prev"
             - "r_position": "first", "last", "prev"
 
-    Constraints:
-    - MANDATORY: The order and the number of the JSON objects in FormattedFilter MUST EXACTLY match the order and the number of Explanations
-    - If there are 3 explanations, there MUST be 3 filters
-    - If there are 5 explanations, there MUST be 5 filters
-    - Output RAW JSON ONLY
-    - Do NOT wrap the response in Markdown.
-    - If the selected part contains only a single segment:
-      - Do NOT force comparative language.
-      - Focus on describing which features are most salient within that segment.
-      - Explanations should describe features.
-      - Ratio-style markers should NOT be used.
+  Constraints:
+  - MANDATORY: The order and the number of the JSON objects in FormattedFilter MUST EXACTLY match the order and the number of Explanations
+  - If there are 3 explanations, there MUST be 3 filters
+  - If there are 5 explanations, there MUST be 5 filters
+  - Output RAW JSON ONLY
+  - Do NOT wrap the response in Markdown.
+  - If the selected part contains only a single segment:
+    - Do NOT force comparative language.
+    - Focus on describing which features are most salient within that segment.
+    - Explanations should describe features.
+    - Ratio-style markers should NOT be used.
 
-    OUTPUT FORMAT:
+  OUTPUT FORMAT:
 
-    {
-      "Explanations": [
-        {
-          "feature": "<feature_name>",
-          "text": "<user-friendly explanation>"
-        }
-      ],
-      "FormattedFilter": [
-        {
-          "feature": "<feature_name>",
-          "relation": "<searchable relation or null for source>",
-          "span": "<prefix/suffix/full or null>",
-          "l_position": "<first/last/prev or null>",
-          "r_position": "<first/last/prev or null>"
-        }
-      ]
-    }
+  {
+    "Explanations": [
+      {
+        "feature": "<feature_name>",
+        "text": "<user-friendly explanation>"
+      }
+    ],
+    "FormattedFilter": [
+      {
+        "feature": "<feature_name>",
+        "relation": "<searchable relation or null for source>",
+        "span": "<prefix/suffix/full or null>",
+        "l_position": "<first/last/prev or null>",
+        "r_position": "<first/last/prev or null>"
+      }
+    ]
+  }
 
     EXAMPLE 1 - With source feature:
     {
@@ -382,10 +423,11 @@
   }
 
   async function sendMessageToAPI(userInput) {
+    const systemPrompt = isTest ? SYSTEM_PROMPT_TEST : SYSTEM_PROMPT;
     const messages = [
       {
         role: "system",
-        content: SYSTEM_PROMPT,
+        content: systemPrompt,
       },
       {
         role: "user",
@@ -416,6 +458,14 @@
     console.log("Sending message:", inputMessage);
     try {
       const raw = await sendMessageToAPI(inputMessage);
+      console.log("raw", String(raw));
+
+      if (isTest) {
+        dispatch("parsedFilters", { sql: raw });
+        result = { explanations: [], filters: [] };
+        return;
+      }
+
       const parsed = JSON.parse(raw);
       result = {
         explanations: parsed.Explanations || [],
@@ -441,9 +491,7 @@
 
   function toggleSettingsWindow() {
     openSetting = !openSetting;
-
     if (openSetting) {
-      // 打开设置时，如果有保存的 Key，显示遮蔽版本
       if (isApiKeyLoaded && apiKey) {
         displayApiKey = maskApiKey(apiKey);
         isEditingKey = false;
@@ -480,7 +528,7 @@
       // verify API Key format
       if (!trimmedKey.startsWith("sk-")) {
         alert(
-          '⚠️ Invalid API Key format. OpenAI API Keys usually start with "sk-"'
+          'Invalid API Key format. OpenAI API Keys usually start with "sk-"',
         );
         return;
       }
@@ -501,7 +549,7 @@
   function handleClearApiKey() {
     if (
       confirm(
-        "⚠️ Are you sure you want to clear the saved API Key?\n\nYou will need to enter it again to use the Interpretation feature."
+        "Are you sure you want to clear the saved API Key?\n\nYou will need to enter it again to use the Interpretation feature.",
       )
     ) {
       clearApiKey();
@@ -636,13 +684,21 @@
       "Sending - explanations:",
       explanationsWithRatios,
       "filters with ratio:",
-      filtersWithRatio
+      filtersWithRatio,
     );
 
-    dispatch("parsedFilters", {
-      explanations: explanationsWithRatios,
-      filters: filtersWithRatio,
-    });
+    if (!isTest) {
+      dispatch("parsedFilters", {
+        explanations: explanationsWithRatios,
+        filters: filtersWithRatio,
+      });
+    }
+    if (isTest) {
+      dispatch("parsedFilters", {
+        explanations: explanationsWithRatios,
+        filters: filtersWithRatio,
+      });
+    }
   }
 
   function selectRatioOption(expIndex, partId, option) {
@@ -652,13 +708,47 @@
       expIndex
     ].text.replace(
       new RegExp(
-        `\\[${escapeRegex(parseRatioText(result.explanations[expIndex].text).find((p) => p.id === partId)?.selected || "")}\\]`
+        `\\[${escapeRegex(parseRatioText(result.explanations[expIndex].text).find((p) => p.id === partId)?.selected || "")}\\]`,
       ),
-      `[${option}]`
+      `[${option}]`,
     );
     result = { ...result };
     openRatioIndex = null;
     sendParsedFilters();
+  }
+
+  function startEditingRatio(expIndex, partId, currentValue) {
+    const key = getUniqueDropdownId(expIndex, partId);
+    editingRatioIndex = key;
+    // Extract number from "3x" -> "3"
+    const match = currentValue.match(/^(\d+(?:\.\d+)?)x?$/);
+    ratioInputValue = match ? match[1] : currentValue.replace("x", "");
+  }
+
+  function handleRatioInput(expIndex, partId, event) {
+    if (event.key === "Enter") {
+      confirmRatioInput(expIndex, partId);
+    } else if (event.key === "Escape") {
+      cancelRatioInput();
+    }
+  }
+
+  function confirmRatioInput(expIndex, partId) {
+    const inputNum = parseFloat(ratioInputValue);
+    if (isNaN(inputNum) || inputNum <= 0) {
+      alert("Please enter a valid positive number");
+      return;
+    }
+
+    const newValue = `${ratioInputValue}x`;
+    selectRatioOption(expIndex, partId, newValue);
+    editingRatioIndex = null;
+    ratioInputValue = "";
+  }
+
+  function cancelRatioInput() {
+    editingRatioIndex = null;
+    ratioInputValue = "";
   }
 
   function escapeRegex(str) {
@@ -767,40 +857,29 @@
             {#if part.type === "text"}
               {part.value}
             {:else if part.type === "ratio"}
-              {#if part.options.length > 1}
+              {#if part.options.length > 0}
                 <span class="ratio-wrapper">
-                  <button
-                    type="button"
-                    class="ratio-selected"
-                    aria-haspopup="listbox"
-                    aria-expanded={openRatioIndex ===
-                      getUniqueDropdownId(expIndex, part.id)}
-                    on:click={() =>
-                      (openRatioIndex =
-                        openRatioIndex ===
-                        getUniqueDropdownId(expIndex, part.id)
-                          ? null
-                          : getUniqueDropdownId(expIndex, part.id))}
-                  >
-                    {part.selected} ▾
-                  </button>
-
-                  {#if openRatioIndex === getUniqueDropdownId(expIndex, part.id)}
-                    <ul class="ratio-menu" role="listbox">
-                      {#each part.options as opt}
-                        <li
-                          role="option"
-                          aria-selected={opt === part.selected}
-                          class="ratio-item {opt === part.selected
-                            ? 'active'
-                            : ''}"
-                          on:click={() =>
-                            selectRatioOption(expIndex, part.id, opt)}
-                        >
-                          {opt}
-                        </li>
-                      {/each}
-                    </ul>
+                  {#if editingRatioIndex === getUniqueDropdownId(expIndex, part.id)}
+                    <input
+                      type="text"
+                      class="ratio-input"
+                      bind:value={ratioInputValue}
+                      on:keydown={(e) => handleRatioInput(expIndex, part.id, e)}
+                      on:blur={() => confirmRatioInput(expIndex, part.id)}
+                      placeholder="e.g., 2.5"
+                      autofocus
+                    />
+                    <span class="ratio-input-hint">x</span>
+                  {:else}
+                    <button
+                      type="button"
+                      class="ratio-selected"
+                      aria-haspopup="true"
+                      on:click={() =>
+                        startEditingRatio(expIndex, part.id, part.selected)}
+                    >
+                      {part.selected} ✎
+                    </button>
                   {/if}
                 </span>
               {:else}
@@ -1002,6 +1081,27 @@
     background: #d0d0d0;
   }
 
+  .ratio-input {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    line-height: 1.4;
+    width: 50px;
+    background: #fff;
+    color: #333;
+    border: 2px solid #137a7f;
+    outline: none;
+    text-align: center;
+    font-family: inherit;
+  }
+
+  .ratio-input-hint {
+    font-size: 12px;
+    color: #666;
+    margin-left: 2px;
+  }
+
   .ratio-menu {
     position: absolute;
     top: 100%;
@@ -1047,7 +1147,7 @@
     border-radius: 4px;
     font-size: 0.9em;
   }
-  
+
   .api-key-input {
     width: 100%;
     padding: 0.5rem;

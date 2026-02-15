@@ -41,6 +41,8 @@
   import sourceColorManager from "../components/sourceColorManager.js";
   import ColorSettingsPanel from "../components/ColorSettingsPanel.svelte";
 
+  let isTest = false;
+
   let chartRefs = {};
   let filterButton;
   let collapseButton;
@@ -59,6 +61,56 @@
   // LineChart axis selection
   let lineChartXAxis = "time";
   let lineChartYAxis = "progress";
+
+  // Dynamic attribute configuration (for auto-adaptation)
+  let barChartAttributeConfig = {
+    progress: {
+      label: "Writing length",
+      getValue: (item) => ((item.start_progress + item.end_progress) / 2) * 100,
+      getStart: (item) => item.start_progress * 100,
+      getEnd: (item) => item.end_progress * 100,
+      hasRange: true,
+      domain: [0, 100],
+    },
+    time: {
+      label: "Time (min)",
+      getValue: (item) => (item.start_time + item.end_time) / 2 / 60,
+      getStart: (item) => item.start_time / 60,
+      getEnd: (item) => item.end_time / 60,
+      hasRange: true,
+      domain: null,
+    },
+    semantic_change: {
+      label: "Semantic Change",
+      getValue: (item) => item.residual_vector_norm,
+      hasRange: false,
+      domain: [0, 1],
+    },
+  };
+
+  let availableBarChartFields = [
+    { key: "progress", label: "Progress" },
+    { key: "time", label: "Time" },
+    { key: "semantic_change", label: "Semantic Change" },
+  ];
+
+  let lineChartAttributeConfig = {
+    time: {
+      label: "Time (min)",
+      getValue: (item) => item.time,
+      domain: null,
+    },
+    progress: {
+      label: "Writing Length",
+      getValue: (item) => item.percentage,
+      domain: [0, 100],
+    },
+  };
+
+  let availableLineChartFields = [
+    { key: "time", label: "Time" },
+    { key: "progress", label: "Progress" },
+  ];
   let showPatternSearch = false;
   let exactSourceButton;
   let exactTrendButton;
@@ -757,7 +809,89 @@
     };
   }
 
+  function toggleTestMode() {
+    isTest = !isTest;
+  }
+
   async function handleInterpreterFilters(event) {
+    if (isTest) {
+      let { sql } = event.detail;
+      const sourceMatch = sql.match(/source\s*=\s*'(.*?)'/);
+      if (sourceMatch) {
+        const sources = sourceMatch[1].split(",");
+        const sourceConditions = sources
+          .map(
+            (src, idx) =>
+              `JSON_EXTRACT(d.content, '$[' || (n.n + ${idx}) || '].source') = '${src}'`,
+          )
+          .join(" AND ");
+        sql = sql.replace(/source\s*=\s*'(.*?)'/, sourceConditions);
+      }
+
+      const ctx = buildWindowContext(selectedPatterns);
+      if (!ctx) return console.warn("No valid selected pattern");
+      const { windowSize } = ctx;
+
+      const features = ["progress", "time", "semantic_change"];
+      features.forEach((f) => {
+        const match = sql.match(
+          new RegExp(
+            `${f}\\s+BETWEEN\\s+(\\d+(\\.\\d+)?)\\s+AND\\s+(\\d+(\\.\\d+)?)`,
+          ),
+        );
+        if (match) {
+          const minVal = parseFloat(match[1]);
+          const maxVal = parseFloat(match[3]);
+          const expr = Array.from(
+            { length: windowSize },
+            (_, i) =>
+              `CASE WHEN JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = 'user' THEN ${minVal} ELSE 0 END`,
+          ).join(" + ");
+          sql = sql.replace(
+            match[0],
+            `(${expr}) BETWEEN ${minVal} AND ${maxVal}`,
+          );
+        }
+      });
+
+      const elements = Array.from({ length: windowSize }, (_, i) => i);
+      const whereClause = sql
+        .replace(/^SELECT \* FROM sessions WHERE /i, "")
+        .replace(/;$/, "");
+
+      const windowSQL = `
+        WITH RECURSIVE 
+        numbers(n) AS (
+          SELECT 0
+          UNION ALL
+          SELECT n + 1 FROM numbers 
+          WHERE n < (SELECT MAX(json_array_length(content)) - ${windowSize} + 1 FROM data)
+        )
+        SELECT
+          d.rowid AS original_rowid,
+          d.content AS original_content,
+          n.n AS window_start,
+          json_array(${elements
+            .map(
+              (i) => `json_extract(json_set(
+                json_extract(d.content, '$[' || (n.n + ${i}) || ']'),
+                '$.id', d.id,
+                '$.segmentId', d.id || '_' || (n.n + ${i})
+              ), '$')`,
+            )
+            .join(", ")}) AS window_content
+        FROM data d
+        JOIN numbers n ON n.n + ${windowSize - 1} < json_array_length(d.content)
+        WHERE json_array_length(d.content) >= ${windowSize}
+          AND ${whereClause}
+        ORDER BY original_rowid, window_start
+        `;
+
+      interpretedQuery = windowSQL;
+      console.log("Processed Test SQL:", windowSQL);
+      return;
+    }
+
     const ctx = buildWindowContext(selectedPatterns);
     if (!ctx) return console.warn("No valid selected pattern");
     const { windowSize, positionOffset } = ctx;
@@ -983,7 +1117,7 @@
       FROM data d
       JOIN numbers n 
         ON n.n + ${windowSize - 1} < json_array_length(d.content)
-      WHERE json_array_length(d.content) = ${windowSize}
+      WHERE json_array_length(d.content) >= ${windowSize}
         ${elements
           .map(
             (i) =>
@@ -1255,14 +1389,25 @@
     const sessionData = selectedPatterns[sessionId];
     const count =
       sessionData.count || Math.max(1, sessionData.data?.length || 1);
+
+    // Get chartData from clickSession or sessionData
+    const currentSession = get(clickSession);
+    const chartData = currentSession?.chartData || sessionData.wholeData || [];
+
     searchDetail = {
       sessionId,
       data: sessionData.data,
       dataRange: sessionData.dataRange,
       count,
       wholeData: sessionData.wholeData,
+      chartData: chartData, // Save chartData for LineChartPreview
       range: sessionData.range,
       selectionSource: sessionData.selectionSource ?? null,
+      // Save highlight information for displaying in detail page
+      selectedTimeRange: sessionData.selectedTimeRange ?? null,
+      highlightWindows: sessionData.highlightWindows ?? [],
+      highlightMode: sessionData.highlightMode ?? null,
+      selectionContext: sessionData.selectionContext ?? null,
       flag: {
         isProgressChecked,
         isTimeChecked,
@@ -1434,46 +1579,79 @@
       console.warn("No query provided");
       return;
     }
-    const currentVector = buildVectorForCurrentSegment(currentResults, checks);
-    const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
-    const wasmBinary = await wasmResponse.arrayBuffer();
-    const SQL = await initSqlJs({ wasmBinary });
 
-    const isLineChart = selectionSrc.startsWith("lineChart");
+    try {
+      const currentVector = buildVectorForCurrentSegment(
+        currentResults,
+        checks,
+      );
+      const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
+      const wasmBinary = await wasmResponse.arrayBuffer();
+      const SQL = await initSqlJs({ wasmBinary });
 
-    const dbResponse = await fetch(
-      isLineChart
-        ? `${base}/db/${selectedDataset}_json.db`
-        : `${base}/db/${selectedDataset}_segment_results.db`,
-    );
+      const isLineChart = selectionSrc.startsWith("lineChart");
 
-    const dbBuffer = await dbResponse.arrayBuffer();
-    const db = new SQL.Database(new Uint8Array(dbBuffer));
-    const stepStats = db.exec(interpretedQuery)[0];
-    const filteredWindows = stepStats.values.map((row) =>
-      JSON.parse(String(row[3])),
-    );
-    patternData = filteredWindows;
+      const dbResponse = await fetch(
+        isLineChart
+          ? `${base}/db/${selectedDataset}_json.db`
+          : `${base}/db/${selectedDataset}_segment_results.db`,
+      );
 
-    //slicing for testing purposes
-    // patternData = patternData.slice(0, 100);
+      const dbBuffer = await dbResponse.arrayBuffer();
+      const db = new SQL.Database(new Uint8Array(dbBuffer));
+      const queryResults = db.exec(interpretedQuery);
 
-    patternVectors = [];
-    for (const segment of patternData) {
-      const vector = buildVectorFromSegment(segment, checks);
-      vector.id = segment[0]?.id ?? null;
-      vector.segmentId = segment[0]?.segmentId ?? null;
-      patternVectors.push(vector);
+      if (!queryResults || queryResults.length === 0) {
+        console.warn("Query returned no results");
+        patternData = [];
+        searchCount = 0;
+        patternDataLoad([]);
+        return;
+      }
+
+      const stepStats = queryResults[0];
+      if (!stepStats || !stepStats.values) {
+        console.warn("Invalid query results structure");
+        patternData = [];
+        searchCount = 0;
+        patternDataLoad([]);
+        return;
+      }
+
+      const filteredWindows = stepStats.values.map((row) =>
+        JSON.parse(String(row[3])),
+      );
+      patternData = filteredWindows;
+      patternData = patternData.filter((arr) => {
+        return arr.length > 0 && arr[0].residual_vector_norm !== 0;
+      });
+
+      //slicing for testing purposes
+      // patternData = patternData.slice(0, 100);
+
+      patternVectors = [];
+      for (const segment of patternData) {
+        const vector = buildVectorFromSegment(segment, checks);
+        vector.id = segment[0]?.id ?? null;
+        vector.segmentId = segment[0]?.segmentId ?? null;
+        patternVectors.push(vector);
+      }
+
+      const finalScore = await calculateRankAuto(patternVectors, currentVector);
+      const idToData = Object.fromEntries(
+        patternData.map((d) => [d[0].segmentId, d]),
+      );
+      const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
+      searchCount = fullData.length;
+      console.log("Full data", fullData);
+      patternDataLoad(fullData);
+    } catch (error) {
+      console.error("segmentQuery failed:", error);
+      patternData = [];
+      searchCount = 0;
+      patternDataLoad([]);
+      alert("Search query failed. Please check the console for details.");
     }
-
-    const finalScore = await calculateRankAuto(patternVectors, currentVector);
-    const idToData = Object.fromEntries(
-      patternData.map((d) => [d[0].segmentId, d]),
-    );
-    const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
-    searchCount = fullData.length;
-    console.log("Full data", fullData);
-    patternDataLoad(fullData);
   }
 
   function l2(arr1, arr2) {
@@ -1757,7 +1935,7 @@
     };
   }
 
-  async function patternDataLoad(results, initialLoadCount = 15) {
+  async function patternDataLoad(results, initialLoadCount = 30) {
     console.log(`Search complete: ${results.length} total results found`);
     console.time("Initial load time");
 
@@ -1884,9 +2062,7 @@
   }
 
   function handleSelectionChanged(event) {
-    console.log("Selection changed event received:", event);
-
-    showResultCount.set(5);
+    showResultCount.set(15);
 
     if (sharedSelection) {
       selectionSrc = sharedSelection.selectionSource;
@@ -1950,26 +2126,16 @@
     patternData = [];
     patternDataList.set([]);
     currentResults = {};
-    const {
-      sessionId,
-      range,
-      dataRange,
-      data,
-      wholeData,
-      sources,
-    } = event.detail;
-
+    const { sessionId, range, dataRange, data, wholeData, sources } =
+      event.detail;
 
     writingProgressRange = [
       dataRange.progressRange.min,
-      dataRange.progressRange.max
+      dataRange.progressRange.max,
     ];
 
     // Use time range in dataRange, no different bewteen Time and Progress mode
-    timeRange = [
-      dataRange.timeRange.min,
-      dataRange.timeRange.max,
-    ];
+    timeRange = [dataRange.timeRange.min, dataRange.timeRange.max];
     sourceRange = sources;
     semanticRange = [dataRange.scRange.min, dataRange.scRange.max];
     semanticData = dataRange.sc.sc;
@@ -1977,19 +2143,19 @@
     currentResults = data;
     lastSession = $clickSession;
 
-    const highlightWindows = []
-    const highlightMode = resolveHighlightModeFromSource(selectionSrc)
+    const highlightWindows = [];
+    const highlightMode = resolveHighlightModeFromSource(selectionSrc);
 
     if (highlightMode === "progress" || highlightMode === "both") {
       highlightWindows.push({
-        progress: { ...range.progress }
-      })
+        progress: { ...range.progress },
+      });
     }
 
     if (highlightMode === "time" || highlightMode === "both") {
       highlightWindows.push({
-        time: { min: timeRange[0], max: timeRange[1] }
-      })
+        time: { min: timeRange[0], max: timeRange[1] },
+      });
     }
 
     selectedPatterns[sessionId] = {
@@ -2374,6 +2540,349 @@
   let isLoadOverallData = false;
   let CSVData = [];
   let featureData = [];
+
+  // Helper: Format field name to readable label
+  function formatLabel(key) {
+    // residual_vector_norm → Residual Vector Norm
+    // semantic_change_v2 → Semantic Change V2
+    return key
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
+
+  // Build attribute configuration from detected fields
+  function buildAttributeConfigs(detectedFields) {
+    if (!detectedFields) return null;
+
+    console.log("🔨 Building attribute configs from detected fields");
+    const config = {};
+
+    // Add range fields
+    for (const field of detectedFields.rangeFields) {
+      const { key } = field;
+
+      // Special handling for known fields
+      if (key === "progress") {
+        config[key] = {
+          label: "Writing length",
+          getValue: (item) =>
+            ((item.start_progress + item.end_progress) / 2) * 100,
+          getStart: (item) => item.start_progress * 100,
+          getEnd: (item) => item.end_progress * 100,
+          hasRange: true,
+          domain: [0, 100],
+        };
+      } else if (key === "time") {
+        config[key] = {
+          label: "Time (min)",
+          getValue: (item) => (item.start_time + item.end_time) / 2 / 60,
+          getStart: (item) => item.start_time / 60,
+          getEnd: (item) => item.end_time / 60,
+          hasRange: true,
+          domain: null, // auto-calculate
+        };
+      } else {
+        // Generic range field
+        config[key] = {
+          label: field.label,
+          getValue: (item) => (item[`start_${key}`] + item[`end_${key}`]) / 2,
+          getStart: (item) => item[`start_${key}`],
+          getEnd: (item) => item[`end_${key}`],
+          hasRange: true,
+          domain: null, // auto-calculate
+        };
+      }
+
+      console.log(`    Added range field config: ${key}`);
+    }
+
+    // Add point value fields
+    for (const field of detectedFields.pointFields) {
+      const { key } = field;
+
+      // Special handling for semantic fields
+      if (key === "residual_vector_norm") {
+        config.semantic_change = {
+          label: "Semantic Change",
+          getValue: (item) => item.residual_vector_norm,
+          hasRange: false,
+          domain: [0, 1],
+        };
+        console.log(
+          `    Added point field config: semantic_change (from ${key})`,
+        );
+      } else {
+        // Generic point field
+        config[key] = {
+          label: field.label,
+          getValue: (item) => item[key],
+          hasRange: false,
+          domain: null, // auto-calculate
+        };
+        console.log(`    Added point field config: ${key}`);
+      }
+    }
+
+    console.log("  Config built successfully:", config);
+    return config;
+  }
+
+  // Detect available fields from chartData (fine-grained data)
+  function detectLineChartFields(chartDataSample) {
+    console.log("🔍 Detecting LineChart fields from chartData");
+
+    if (!chartDataSample || chartDataSample.length === 0) {
+      console.warn("No chartData sample available");
+      return null;
+    }
+
+    const sample = chartDataSample[0];
+    console.log("  LineChart sample:", sample);
+
+    const fields = {
+      numericFields: [],
+    };
+
+    // Fields to exclude from LineChart (not useful for visualization)
+    const excludedFields = ["index", "opacity"];
+
+    // Iterate all keys in sample
+    for (const key in sample) {
+      const value = sample[key];
+
+      // Check if numeric
+      if (typeof value !== "number") {
+        console.log(
+          `     Skipping non-numeric field: ${key} (${typeof value})`,
+        );
+        continue;
+      }
+
+      // Skip excluded fields
+      if (excludedFields.includes(key)) {
+        console.log(`     Skipping excluded field: ${key}`);
+        continue;
+      }
+
+      fields.numericFields.push({
+        key,
+        label: formatLabel(key),
+      });
+      console.log(`    Numeric field detected: ${key}`);
+    }
+
+    console.log("  LineChart detection complete:", fields);
+    return fields;
+  }
+
+  // Build LineChart attribute configuration
+  function buildLineChartConfigs(detectedFields) {
+    if (!detectedFields) return null;
+
+    console.log("🔨 Building LineChart attribute configs");
+    const config = {};
+
+    for (const field of detectedFields.numericFields) {
+      const { key } = field;
+
+      // Special handling for known fields
+      if (key === "time") {
+        config[key] = {
+          label: "Time (min)",
+          getValue: (item) => item.time,
+          domain: null, // auto-calculate
+        };
+      } else if (key === "percentage") {
+        config.progress = {
+          // map percentage to progress
+          label: "Writing Length",
+          getValue: (item) => item.percentage,
+          domain: [0, 100],
+        };
+      } else {
+        // Generic numeric field
+        config[key] = {
+          label: field.label,
+          getValue: (item) => item[key],
+          domain: null, // auto-calculate
+        };
+      }
+
+      console.log(`    Added LineChart field config: ${key}`);
+    }
+
+    console.log("  LineChart config built:", config);
+    return config;
+  }
+
+  // Detect available fields from segment_results data
+  async function detectAvailableFields(datasetName) {
+    try {
+      console.log("🔍 Detecting fields for dataset:", datasetName);
+
+      // 1. Get first session's segment_results data
+      if (!CSVData || CSVData.length === 0) {
+        console.warn("No CSV data available for field detection");
+        return null;
+      }
+
+      const firstSessionId = CSVData[0]?.session_id;
+      if (!firstSessionId) {
+        console.warn("No valid session ID found");
+        return null;
+      }
+
+      console.log("📂 Sampling from session:", firstSessionId);
+
+      const segmentData = await fetchSimilarityData(firstSessionId);
+      if (!segmentData || !segmentData.length) {
+        console.warn("No segment data available");
+        return null;
+      }
+
+      // 2. Analyze first segment's fields
+      const sample = segmentData[0];
+      console.log("  Sample data:", sample);
+
+      const fields = {
+        rangeFields: [],
+        pointFields: [],
+        metaFields: [],
+      };
+
+      const processedRangeKeys = new Set();
+
+      // 3. Iterate all keys
+      for (const key in sample) {
+        const value = sample[key];
+
+        // Skip non-numeric fields
+        if (typeof value !== "number") {
+          console.log(
+            `     Skipping non-numeric field: ${key} (${typeof value})`,
+          );
+          continue;
+        }
+
+        // Identify range fields (start_/end_)
+        if (key.startsWith("start_") || key.startsWith("end_")) {
+          const baseKey = key.replace(/^(start_|end_)/, "");
+
+          if (processedRangeKeys.has(baseKey)) continue;
+
+          // Check if both start_ and end_ exist
+          if (
+            sample[`start_${baseKey}`] !== undefined &&
+            sample[`end_${baseKey}`] !== undefined
+          ) {
+            processedRangeKeys.add(baseKey);
+            fields.rangeFields.push({
+              key: baseKey,
+              label: formatLabel(baseKey),
+              hasRange: true,
+            });
+            console.log(`    Range field detected: ${baseKey}`);
+          }
+          continue;
+        }
+
+        // Meta fields (usually not for visualization)
+        if (["sentence", "score", "last_event_time"].includes(key)) {
+          fields.metaFields.push({ key, label: formatLabel(key) });
+          console.log(`  ℹ️  Meta field: ${key}`);
+          continue;
+        }
+
+        // Point value fields
+        fields.pointFields.push({
+          key,
+          label: formatLabel(key),
+          hasRange: false,
+        });
+        console.log(`    Point field detected: ${key}`);
+      }
+
+      console.log("  Detection complete:", fields);
+      return fields;
+    } catch (error) {
+      console.error("  Field detection failed:", error);
+      return null;
+    }
+  }
+
+  // Debug function to log current configuration
+  function logCurrentConfiguration() {
+    console.log("=== InkPulse Configuration Debug ===");
+    console.log("Current Dataset:", selectedDataset);
+    console.log("BarChart Axes:", {
+      x: barChartXAxis,
+      y: barChartYAxis,
+    });
+    console.log("LineChart Axes:", {
+      x: lineChartXAxis,
+      y: lineChartYAxis,
+    });
+    console.log("BarChart Attribute Config:", barChartAttributeConfig);
+    console.log("Available BarChart Fields:", availableBarChartFields);
+    console.log("LineChart Attribute Config:", lineChartAttributeConfig);
+    console.log("Available LineChart Fields:", availableLineChartFields);
+    console.log(
+      "Number of config fields:",
+      Object.keys(barChartAttributeConfig).length,
+    );
+    console.log("====================================");
+  }
+
+  // Auto-log when configuration changes
+  $: if (barChartAttributeConfig && selectedDataset) {
+    // Triggered whenever barChartAttributeConfig or selectedDataset changes
+    if (Object.keys(barChartAttributeConfig).length > 0) {
+      console.log("  Configuration updated for dataset:", selectedDataset);
+    }
+  }
+
+  // Detect LineChart fields when first session data is available
+  let lineChartFieldsDetected = false;
+  let lastDetectedDataset = null;
+
+  // Reset detection flag when dataset changes
+  $: if (selectedDataset !== lastDetectedDataset) {
+    lineChartFieldsDetected = false;
+    lastDetectedDataset = selectedDataset;
+  }
+
+  $: if (
+    $clickSession?.chartData &&
+    !lineChartFieldsDetected &&
+    $clickSession.chartData.length > 0
+  ) {
+    console.log("🔍 Detecting LineChart fields from first session data");
+    const detectedLineFields = detectLineChartFields($clickSession.chartData);
+
+    if (detectedLineFields) {
+      const newLineConfig = buildLineChartConfigs(detectedLineFields);
+      if (newLineConfig && Object.keys(newLineConfig).length > 0) {
+        lineChartAttributeConfig = {
+          ...lineChartAttributeConfig,
+          ...newLineConfig,
+        };
+
+        availableLineChartFields = Object.keys(newLineConfig).map((key) => ({
+          key,
+          label: newLineConfig[key].label,
+        }));
+
+        console.log(
+          "✨ LineChart config updated with",
+          Object.keys(newLineConfig).length,
+          "fields",
+        );
+        lineChartFieldsDetected = true; // Only detect once
+      }
+    }
+  }
+
   onMount(async () => {
     document.title = "Ink-Pulse";
     await openDB();
@@ -2420,6 +2929,59 @@
       (item) => item.session_id && item.session_id.trim() !== "",
     );
     featureData = await fetchFeatureData(CSVData);
+
+    // Stage 1: Detect available fields
+    const detectedFields = await detectAvailableFields(selectedDataset);
+    console.log("📋 Detected fields result:", detectedFields);
+
+    // Stage 2: Build attribute configurations
+    if (detectedFields) {
+      const newConfig = buildAttributeConfigs(detectedFields);
+      if (newConfig && Object.keys(newConfig).length > 0) {
+        // Merge with existing config to preserve type
+        barChartAttributeConfig = { ...barChartAttributeConfig, ...newConfig };
+
+        // Update available fields list for dropdowns
+        availableBarChartFields = Object.keys(newConfig).map((key) => ({
+          key,
+          label: newConfig[key].label,
+        }));
+
+        // Set default axis selections
+        // X axis: first range field (prefer progress > time)
+        const rangeFields = detectedFields.rangeFields.map((f) => f.key);
+        const defaultXAxis = rangeFields.includes("progress")
+          ? "progress"
+          : rangeFields[0] || "progress";
+
+        // Y axis: first point field (prefer semantic_change)
+        const pointFields = detectedFields.pointFields.map((f) =>
+          f.key === "residual_vector_norm" ? "semantic_change" : f.key,
+        );
+        const defaultYAxis = pointFields.includes("semantic_change")
+          ? "semantic_change"
+          : pointFields[0] || "semantic_change";
+
+        barChartXAxis = defaultXAxis;
+        barChartYAxis = defaultYAxis;
+
+        console.log(
+          "✨ BarChart config updated with",
+          Object.keys(newConfig).length,
+          "fields",
+        );
+        console.log("📌 Default axes set to:", {
+          x: defaultXAxis,
+          y: defaultYAxis,
+        });
+      }
+    }
+
+    // Debug: Log initial configuration
+    logCurrentConfiguration();
+
+    // Stage 3: Detect LineChart fields (when first session data is available)
+    // We'll do this via reactive statement after data loads
 
     if (isLoadOverallData == false) {
       const prefix = selectedDataset.slice(0, 2);
@@ -3937,7 +4499,8 @@ WITH RECURSIVE
                             <LineChartPreview
                               bind:this={chartRefs[sessionId]}
                               chartData={$clickSession.chartData}
-                              selectedTimeRange={pattern.selectedTimeRange ?? null}
+                              selectedTimeRange={pattern.selectedTimeRange ??
+                                null}
                               selectedProgressRange={pattern.range?.progress ??
                                 null}
                               highlightWindows={pattern.highlightWindows ?? []}
@@ -4459,9 +5022,16 @@ WITH RECURSIVE
                     </div>
                   {/if}
                   <div class="chat-panel">
+                    <button
+                      on:click={toggleTestMode}
+                      class="search-pattern-button"
+                    >
+                      {isTest ? "Switch to Normal Mode" : "Switch to Test Mode"}
+                    </button>
                     <Interpreter
                       {pattern}
                       on:parsedFilters={handleInterpreterFilters}
+                      {isTest}
                     />
                   </div>
                   {#if $patternDataList.length > 0 && isSearch == 2}
@@ -5001,18 +5571,17 @@ WITH RECURSIVE
                         <label>
                           <span class="control-label">BlockEvent X:</span>
                           <select bind:value={barChartXAxis}>
-                            <option value="progress">Progress</option>
-                            <option value="time">Time</option>
-                            <option value="semantic_change"
-                              >Semantic Change</option
-                            >
+                            {#each availableBarChartFields as field}
+                              <option value={field.key}>{field.label}</option>
+                            {/each}
                           </select>
                         </label>
                         <label>
                           <span class="control-label">Event X:</span>
                           <select bind:value={lineChartXAxis}>
-                            <option value="time">Time</option>
-                            <option value="progress">Progress</option>
+                            {#each availableLineChartFields as field}
+                              <option value={field.key}>{field.label}</option>
+                            {/each}
                           </select>
                         </label>
                       </div>
@@ -5020,18 +5589,17 @@ WITH RECURSIVE
                         <label>
                           <span class="control-label">BlockEvent Y:</span>
                           <select bind:value={barChartYAxis}>
-                            <option value="progress">Progress</option>
-                            <option value="time">Time</option>
-                            <option value="semantic_change"
-                              >Semantic Change</option
-                            >
+                            {#each availableBarChartFields as field}
+                              <option value={field.key}>{field.label}</option>
+                            {/each}
                           </select>
                         </label>
                         <label>
                           <span class="control-label">Event Y:</span>
                           <select bind:value={lineChartYAxis}>
-                            <option value="progress">Progress</option>
-                            <option value="time">Time</option>
+                            {#each availableLineChartFields as field}
+                              <option value={field.key}>{field.label}</option>
+                            {/each}
                           </select>
                         </label>
                       </div>
@@ -5041,17 +5609,17 @@ WITH RECURSIVE
                       <!-- Left: BarChart (Semantic Similarity) -->
                       <div class="chart-section">
                         <h4 class="chart-title">
-                          {barChartYAxis === "semantic_change"
-                            ? "Semantic Change"
-                            : barChartYAxis === "progress"
-                              ? "Progress"
-                              : "Time"}
+                          {(barChartAttributeConfig[barChartXAxis]?.label ||
+                            barChartXAxis) +
+                            " vs " +
+                            (barChartAttributeConfig[barChartYAxis]?.label ||
+                              barChartYAxis)}
                         </h4>
                         <div
                           class="chart-wrapper-independent"
                           on:wheel={handleChartZoom}
                         >
-                          {#if $clickSession.similarityData}
+                          {#if $clickSession.similarityData && Object.keys(barChartAttributeConfig).length > 0}
                             <BarChartY
                               sessionId={$clickSession.sessionId}
                               similarityData={$clickSession.similarityData}
@@ -5059,6 +5627,7 @@ WITH RECURSIVE
                               {height}
                               xAxisField={barChartXAxis}
                               yAxisField={barChartYAxis}
+                              attributeConfig={barChartAttributeConfig}
                               bind:zoomTransform={
                                 zoomTransforms[$clickSession.sessionId]
                               }
@@ -5079,9 +5648,11 @@ WITH RECURSIVE
                       <!-- Right: LineChart (Writing Progress) -->
                       <div class="chart-section">
                         <h4 class="chart-title">
-                          {lineChartYAxis === "progress"
-                            ? "Writing Progress"
-                            : "Time"}
+                          {(lineChartAttributeConfig[lineChartXAxis]?.label ||
+                            lineChartXAxis) +
+                            " vs " +
+                            (lineChartAttributeConfig[lineChartYAxis]?.label ||
+                              lineChartYAxis)}
                         </h4>
                         <div
                           class="chart-wrapper-independent"
@@ -5098,6 +5669,7 @@ WITH RECURSIVE
                             {height}
                             xAxisField={lineChartXAxis}
                             yAxisField={lineChartYAxis}
+                            attributeConfig={lineChartAttributeConfig}
                             bind:zoomTransform={
                               zoomTransforms[$clickSession.sessionId]
                             }
