@@ -10,6 +10,7 @@
   export let similarityData: any[] = [];
   export let xAxisField = "time"; // 新增：X轴字段
   export let yAxisField = "progress"; // 新增：Y轴字段
+  export let sessionId: string | null = null;
 
   type ChartEvents = {
     pointSelected: {
@@ -88,6 +89,25 @@
       brushGroup.call(brushY);
     }
   }
+
+  $: allBars = handleLine2Bar(
+    chartData
+      .map((d) => {
+        const matchedSim = similarityData.find(
+          (s) =>
+            s.start_progress * 100 <= d.percentage &&
+            s.end_progress * 100 >= d.percentage,
+        );
+
+        if (!matchedSim) return null;
+
+        return {
+          ...d,
+          residual_vector_norm: matchedSim.residual_vector_norm,
+        };
+      })
+      .filter((d) => d !== null),
+  );
 
   onMount(() => {
     brushY = d3
@@ -211,63 +231,63 @@
     return 1;
   }
 
-  // function handleLine2Bar(points) {
-  //   if (!points || !points.length) return []; // only use progress and source convert points to bars
-  //   const bars: any[] = [];
-  //   let currentBar = [points[0]];
-  //   let lastSource = points[0].eventSource  || "user";
-  //   let lastSemantic = points[0].residual_vector_norm;
-  //   let lastTrend = 0;
+  function handleLine2Bar(points) {
+    if (!points || !points.length) return []; // only use progress and source convert points to bars
+    const bars: any[] = [];
+    let currentBar = [points[0]];
+    let lastSource = points[0].eventSource  || "user";
+    let lastSemantic = points[0].residual_vector_norm;
+    let lastTrend = 0;
 
-  //   for (let i = 1; i < points.length; i++) {
-  //     const p = points[i];
-  //     const source = p.eventSource  || "user";
-  //     const semantic = p.residual_vector_norm;
-  //     const progress = p.percentage;
-  //     const prevProgress = points[i - 1].percentage;
-  //     let trend = lastTrend;
-  //     if (progress > prevProgress) trend = 1;
-  //     else if (progress < prevProgress) trend = -1;
-  //     const sourceChanged = source !== lastSource;
-  //     const semanticChanged = semantic !== lastSemantic;
-  //     const trendChanged = lastTrend !== 0 && trend !== lastTrend;
+    for (let i = 1; i < points.length; i++) {
+      const p = points[i];
+      const source = p.eventSource  || "user";
+      const semantic = p.residual_vector_norm;
+      const progress = p.percentage;
+      const prevProgress = points[i - 1].percentage;
+      let trend = lastTrend;
+      if (progress > prevProgress) trend = 1;
+      else if (progress < prevProgress) trend = -1;
+      const sourceChanged = source !== lastSource;
+      const semanticChanged = semantic !== lastSemantic;
+      const trendChanged = lastTrend !== 0 && trend !== lastTrend;
 
-  //     if (sourceChanged || semanticChanged || trendChanged) {
-  //       bars.push(currentBar);
-  //       currentBar = [];
-  //     }
+      if (sourceChanged || semanticChanged || trendChanged) {
+        bars.push(currentBar);
+        currentBar = [];
+      }
 
-  //     currentBar.push(p);
-  //     lastSource = source;
-  //     lastSemantic = semantic;
-  //     lastTrend = trend;
-  //   }
+      currentBar.push(p);
+      lastSource = source;
+      lastSemantic = semantic;
+      lastTrend = trend;
+    }
 
-  //   if (currentBar.length) bars.push(currentBar);
+    if (currentBar.length) bars.push(currentBar);
 
-  //   const processedBars = bars.map((bar, idx) => ({
-  //     id: idx + 1,
-  //     source: bar[0].eventSource,
-  //     startProgress: bar[0].percentage,
-  //     endProgress: bar[bar.length - 1].percentage, 
-  //     startTime: bar[0].time,
-  //     endTime: bar[bar.length - 1].time,
-  //     last_event_time: bar[bar.length - 1].time * 60,
-  //     residual_vector_norm: bar[bar.length - 1].residual_vector_norm || 0,
-  //     score: bar.reduce((sum, d) => sum + (d.score || 0), 0) / bar.length,
-  //     sentence: bar.reduce((sum, d) => sum + (d.sentence || 0), 0) / bar.length,
-  //     xStart: bar[0].percentage,
-  //     xEnd: bar[bar.length - 1].percentage,
-  //     xValue: (bar[0].percentage + bar[bar.length - 1].percentage) / 2,
-  //     yValue: bar[bar.length - 1].time,
-  //     points: bar,
-  //   }));
+    const processedBars = bars.map((bar, idx) => ({
+      id: idx + 1,
+      source: bar[0].eventSource,
+      startProgress: bar[0].percentage,
+      endProgress: bar[bar.length - 1].percentage, 
+      startTime: bar[0].time,
+      endTime: bar[bar.length - 1].time,
+      last_event_time: bar[bar.length - 1].time * 60,
+      residual_vector_norm: bar[bar.length - 1].residual_vector_norm || 0,
+      score: bar.reduce((sum, d) => sum + (d.score || 0), 0) / bar.length,
+      sentence: bar.reduce((sum, d) => sum + (d.sentence || 0), 0) / bar.length,
+      xStart: bar[0].percentage,
+      xEnd: bar[bar.length - 1].percentage,
+      xValue: (bar[0].percentage + bar[bar.length - 1].percentage) / 2,
+      yValue: bar[bar.length - 1].time,
+      points: bar,
+    }));
 
 
-  //   console.log("bars:", processedBars);
+    // console.log("bars:", processedBars);
 
-  //   return processedBars;
-  // }
+    return processedBars;
+  }
 
   function brushedY(event) {
     if (!event.selection) {
@@ -312,14 +332,15 @@
       })
       .filter((d) => d !== null);
 
-      console.log("points", matchedPoints)
+      // console.log("points", matchedPoints)
+      // console.log("converted points", handleLine2Bar(matchedPoints))
 
     const yMin = d3.min(insidePoints, (d) => getYValue(d));
     const yMax = d3.max(insidePoints, (d) => getYValue(d));
     const scValues = matchedPoints.map((d) => d.residual_vector_norm || 0);
     const scMin = d3.min(scValues) || 0;
     const scMax = d3.max(scValues) || 1;
-    const sources = insidePoints.map((d) => d.source || "user");
+    // const sources = insidePoints.map((d) => d.source || "user");
     const tMin = d3.min(insidePoints, (d) => d.time);
     const tMax = d3.max(insidePoints, (d) => d.time);
 
@@ -335,6 +356,27 @@
       timeMax: yAxisField === "time" ? yMax : null,
     };
 
+    const selectedBars = handleLine2Bar(matchedPoints);
+    const barSources = selectedBars.map((d) => d.source);
+
+    // dispatch("selectionChanged", {
+    //   range: {
+    //     sc: { min: scMin, max: scMax },
+    //     progress: { min: yMin, max: yMax },
+    //   },
+    //   dataRange: {
+    //     scRange: { min: scMin, max: scMax },
+    //     progressRange: { min: yMin, max: yMax },
+    //     timeRange: { min: tMin, max: tMax },
+    //     sc: { sc: scValues },
+    //   },
+    //   data: insidePoints,
+    //   wholeData: chartData,
+    //   sessionId: null,
+    //   sources: sources,
+    //   selectionSource: "lineChart_y",
+    // });
+
     dispatch("selectionChanged", {
       range: {
         sc: { min: scMin, max: scMax },
@@ -346,10 +388,10 @@
         timeRange: { min: tMin, max: tMax },
         sc: { sc: scValues },
       },
-      data: insidePoints,
-      wholeData: chartData,
-      sessionId: null,
-      sources: sources,
+      data: selectedBars,
+      wholeData: allBars,
+      sessionId: sessionId,
+      sources: barSources,
       selectionSource: "lineChart_y",
     });
   }
@@ -400,7 +442,7 @@
 
     const progressMin = d3.min(insidePoints, (d) => d.percentage);
     const progressMax = d3.max(insidePoints, (d) => d.percentage);
-    const sources = insidePoints.map((d) => d.source || "user");
+    // const sources = insidePoints.map((d) => d.source || "user");
     const timeMin = d3.min(insidePoints, (d) => d.time);
     const timeMax = d3.max(insidePoints, (d) => d.time);
 
@@ -417,6 +459,27 @@
       timeMax: xAxisField === "time" ? xMax : timeMax,
     };
 
+    const selectedBars = handleLine2Bar(matchedPoints);
+    const barSources = selectedBars.map((d) => d.source);
+
+    // dispatch("selectionChanged", {
+    //   range: {
+    //     sc: { min: scMin, max: scMax },
+    //     progress: { min: progressMin, max: progressMax },
+    //   },
+    //   dataRange: {
+    //     scRange: { min: scMin, max: scMax },
+    //     progressRange: { min: progressMin, max: progressMax },
+    //     timeRange: { min: timeMin, max: timeMax },
+    //     sc: { sc: scValues },
+    //   },
+    //   data: insidePoints,
+    //   wholeData: chartData,
+    //   sessionId: null,
+    //   sources: sources,
+    //   selectionSource: "lineChart_x",
+    // });
+
     dispatch("selectionChanged", {
       range: {
         sc: { min: scMin, max: scMax },
@@ -428,10 +491,10 @@
         timeRange: { min: timeMin, max: timeMax },
         sc: { sc: scValues },
       },
-      data: insidePoints,
-      wholeData: chartData,
-      sessionId: null,
-      sources: sources,
+      data: selectedBars,
+      wholeData: allBars,
+      sessionId: sessionId,
+      sources: barSources,
       selectionSource: "lineChart_x",
     });
   }
