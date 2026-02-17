@@ -274,7 +274,7 @@
         source: item.source,
         startTime: item.start_time / 60,
         endTime: item.end_time / 60,
-        // 计算当前选择的 X/Y 值
+        // calculate selected X/Y values
         xValue: xConfig.getValue(item),
         yValue: yConfig.getValue(item),
       };

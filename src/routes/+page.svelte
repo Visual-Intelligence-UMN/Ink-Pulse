@@ -2039,7 +2039,7 @@
       patternDataList.update((current) => [...current, ...newData]);
       loadedResultCount = endIndex;
       console.log(
-        `✅ Loaded ${newData.length} results (total loaded: ${loadedResultCount}/${allSearchResults.length})`,
+        `Loaded ${newData.length} results (total loaded: ${loadedResultCount}/${allSearchResults.length})`,
       );
     } catch (error) {
       console.error("Error loading more results:", error);
@@ -2555,7 +2555,7 @@
   function buildAttributeConfigs(detectedFields) {
     if (!detectedFields) return null;
 
-    console.log("🔨 Building attribute configs from detected fields");
+    console.log("Building attribute configs from detected fields");
     const config = {};
 
     // Add range fields
@@ -2630,7 +2630,7 @@
 
   // Detect available fields from chartData (fine-grained data)
   function detectLineChartFields(chartDataSample) {
-    console.log("🔍 Detecting LineChart fields from chartData");
+    console.log("Detecting LineChart fields from chartData");
 
     if (!chartDataSample || chartDataSample.length === 0) {
       console.warn("No chartData sample available");
@@ -2654,7 +2654,7 @@
       // Check if numeric
       if (typeof value !== "number") {
         console.log(
-          `     Skipping non-numeric field: ${key} (${typeof value})`,
+          `Skipping non-numeric field: ${key} (${typeof value})`,
         );
         continue;
       }
@@ -2680,7 +2680,7 @@
   function buildLineChartConfigs(detectedFields) {
     if (!detectedFields) return null;
 
-    console.log("🔨 Building LineChart attribute configs");
+    console.log("Building LineChart attribute configs");
     const config = {};
 
     for (const field of detectedFields.numericFields) {
@@ -2709,10 +2709,10 @@
         };
       }
 
-      console.log(`    Added LineChart field config: ${key}`);
+      console.log(`Added LineChart field config: ${key}`);
     }
 
-    console.log("  LineChart config built:", config);
+    console.log("LineChart config built:", config);
     return config;
   }
 
@@ -2733,7 +2733,7 @@
         return null;
       }
 
-      console.log("📂 Sampling from session:", firstSessionId);
+      console.log("Sampling from session:", firstSessionId);
 
       const segmentData = await fetchSimilarityData(firstSessionId);
       if (!segmentData || !segmentData.length) {
@@ -2790,7 +2790,7 @@
         // Meta fields (usually not for visualization)
         if (["sentence", "score", "last_event_time"].includes(key)) {
           fields.metaFields.push({ key, label: formatLabel(key) });
-          console.log(`  ℹ️  Meta field: ${key}`);
+          console.log(`Meta field: ${key}`);
           continue;
         }
 
@@ -2932,7 +2932,7 @@
 
     // Stage 1: Detect available fields
     const detectedFields = await detectAvailableFields(selectedDataset);
-    console.log("📋 Detected fields result:", detectedFields);
+    console.log("Detected fields result:", detectedFields);
 
     // Stage 2: Build attribute configurations
     if (detectedFields) {
@@ -2966,11 +2966,11 @@
         barChartYAxis = defaultYAxis;
 
         console.log(
-          "✨ BarChart config updated with",
+          "BarChart config updated with",
           Object.keys(newConfig).length,
           "fields",
         );
-        console.log("📌 Default axes set to:", {
+        console.log("Default axes set to:", {
           x: defaultXAxis,
           y: defaultYAxis,
         });
@@ -3102,92 +3102,89 @@
       console.log("Use .json file to init data.");
     }
 
-    async function debugData() {
-      try {
-        const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
-        const wasmBinary = await wasmResponse.arrayBuffer();
-        const SQL = await initSqlJs({ wasmBinary });
+    // async function debugData() {
+    //   try {
+    //     const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
+    //     const wasmBinary = await wasmResponse.arrayBuffer();
+    //     const SQL = await initSqlJs({ wasmBinary });
+    //     const dbResponse = await fetch(
+    //       `${base}/db/${selectedDataset}_segment_results.db`,
+    //     );
+    //     const dbBuffer = await dbResponse.arrayBuffer();
+    //     const db = new SQL.Database(new Uint8Array(dbBuffer));
+    //     const stepStats = db.exec(`
+    //       WITH RECURSIVE 
+    //             numbers(n) AS (
+    //               SELECT 0
+    //               UNION ALL
+    //               SELECT n + 1 FROM numbers 
+    //               WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
+    //             ),
+    //             idx AS (
+    //               SELECT 0 as i
+    //               UNION ALL
+    //               SELECT i + 1 FROM idx WHERE i < 1
+    //             )
+    //             SELECT 
+    //               d.rowid as original_rowid,
+    //               d.content as original_content,
+    //               n.n as window_start,
+    //               json_array(json_extract(d.content, '$[' || (n.n + 0) || ']'), json_extract(d.content, '$[' || (n.n + 1) || ']')) as window_content
+    //             FROM data d
+    //             JOIN numbers n 
+    //               ON n.n + 1 < json_array_length(d.content)
+    //             WHERE json_array_length(d.content) >= 2
+    //               AND json_extract(d.content, '$[' || (n.n + 0) || ']') IS NOT NULL AND json_extract(d.content, '$[' || (n.n + 1) || ']') IS NOT NULL
+    //               AND (((
+    //                   SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user' 
+    //                       THEN COALESCE(
+    //                         CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
+    //                       ) - COALESCE(
+    //                         CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].start_progress') AS REAL),0
+    //                       ) ELSE 0 END)
+    //                   FROM idx k
+    //                   WHERE k.i BETWEEN 0 AND 1
+    //                 )) > (((
+    //                   SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api' 
+    //                       THEN COALESCE(
+    //                         CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
+    //                       ) - COALESCE(
+    //                         CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].start_progress') AS REAL),0
+    //                       ) ELSE 0 END)
+    //                   FROM idx k
+    //                   WHERE k.i BETWEEN 0 AND 1
+    //                 )) * 2.5) AND ((
+    //                   SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api'
+    //                       THEN COALESCE(
+    //                         CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].residual_vector_norm') AS REAL),0
+    //                       ) ELSE 0 END)
+    //                   FROM idx k
+    //                   WHERE k.i BETWEEN 0 AND 1
+    //                 )) > (((
+    //                   SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user'
+    //                       THEN COALESCE(
+    //                         CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].residual_vector_norm') AS REAL),0
+    //                       ) ELSE 0 END)
+    //                   FROM idx k
+    //                   WHERE k.i BETWEEN 0 AND 1
+    //                 )) * 1.5) AND JSON_EXTRACT(window_content, '$[0].source') = 'api' AND JSON_EXTRACT(window_content, '$[1].source') = 'user')
+    //             ORDER BY original_rowid, window_start
+    //       `)[0];
 
-        const dbResponse = await fetch(
-          `${base}/db/${selectedDataset}_segment_results.db`,
-        );
-        const dbBuffer = await dbResponse.arrayBuffer();
-        const db = new SQL.Database(new Uint8Array(dbBuffer));
+    //     const filteredWindows = stepStats.values.map((row) =>
+    //       JSON.parse(String(row[3])),
+    //     );
 
-        const stepStats = db.exec(`
-WITH RECURSIVE 
-      numbers(n) AS (
-        SELECT 0
-        UNION ALL
-        SELECT n + 1 FROM numbers 
-        WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
-      ),
-      idx AS (
-        SELECT 0 as i
-        UNION ALL
-        SELECT i + 1 FROM idx WHERE i < 1
-      )
-      SELECT 
-        d.rowid as original_rowid,
-        d.content as original_content,
-        n.n as window_start,
-        json_array(json_extract(d.content, '$[' || (n.n + 0) || ']'), json_extract(d.content, '$[' || (n.n + 1) || ']')) as window_content
-      FROM data d
-      JOIN numbers n 
-        ON n.n + 1 < json_array_length(d.content)
-      WHERE json_array_length(d.content) >= 2
-        AND json_extract(d.content, '$[' || (n.n + 0) || ']') IS NOT NULL AND json_extract(d.content, '$[' || (n.n + 1) || ']') IS NOT NULL
-        AND (((
-            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user' 
-                 THEN COALESCE(
-                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
-                 ) - COALESCE(
-                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].start_progress') AS REAL),0
-                 ) ELSE 0 END)
-            FROM idx k
-            WHERE k.i BETWEEN 0 AND 1
-          )) > (((
-            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api' 
-                 THEN COALESCE(
-                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
-                 ) - COALESCE(
-                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].start_progress') AS REAL),0
-                 ) ELSE 0 END)
-            FROM idx k
-            WHERE k.i BETWEEN 0 AND 1
-          )) * 2.5) AND ((
-            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api'
-                 THEN COALESCE(
-                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].residual_vector_norm') AS REAL),0
-                 ) ELSE 0 END)
-            FROM idx k
-            WHERE k.i BETWEEN 0 AND 1
-          )) > (((
-            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user'
-                 THEN COALESCE(
-                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].residual_vector_norm') AS REAL),0
-                 ) ELSE 0 END)
-            FROM idx k
-            WHERE k.i BETWEEN 0 AND 1
-          )) * 1.5) AND JSON_EXTRACT(window_content, '$[0].source') = 'api' AND JSON_EXTRACT(window_content, '$[1].source') = 'user')
-      ORDER BY original_rowid, window_start
-`)[0];
-
-        const filteredWindows = stepStats.values.map((row) =>
-          JSON.parse(String(row[3])),
-        );
-
-        console.log("Num:", filteredWindows.length);
-        console.log(
-          "Test:",
-          filteredWindows.sort(() => Math.random() - 0.5).slice(0, 5),
-        );
-      } catch (error) {
-        console.error(error);
-      }
-    }
-
-    await debugData();
+    //     console.log("Num:", filteredWindows.length);
+    //     console.log(
+    //       "Test:",
+    //       filteredWindows.sort(() => Math.random() - 0.5).slice(0, 5),
+    //     );
+    //   } catch (error) {
+    //     console.error(error);
+    //   }
+    // }
+    // await debugData();
   });
 
   function handleChartZoom(event) {
@@ -3378,35 +3375,29 @@ WITH RECURSIVE
       }
 
       const relativeTime = (eventTime.getTime() - firstTime.getTime()) / 60000;
-
       if (name === "text-insert") {
         const insertChars = [...text];
         const insertPos = Math.min(pos, currentCharArray.length);
-
-        // For API (AI-generated) text, add the entire chunk at once
         if (eventSource === "api") {
-          // Add all characters to the arrays
           insertChars.forEach((ch, i) => {
             currentCharArray.splice(insertPos + i, 0, ch);
             currentColor.splice(insertPos + i, 0, textColor);
             combinedText.splice(insertPos + i, 0, { text: ch, textColor });
+            const percentage =
+              (currentCharArray.length / totalTextLength) * 100;
+            chartData.push({
+              time: relativeTime,
+              percentage,
+              eventSource,
+              color: textColor,
+              currentText: currentCharArray.join(""),
+              currentColor: [...currentColor],
+              opacity: 1,
+              isSuggestionOpen: false,
+              isSuggestionAccept: false,
+              index: indexOfAct++,
+            });
           });
-
-          // Create only ONE chartData entry for the entire AI chunk
-          const percentage = (currentCharArray.length / totalTextLength) * 100;
-          chartData.push({
-            time: relativeTime,
-            percentage,
-            eventSource,
-            color: textColor,
-            currentText: currentCharArray.join(""),
-            currentColor: [...currentColor],
-            opacity: 1,
-            isSuggestionOpen: name === "suggestion-open",
-            isSuggestionAccept: false,
-            index: indexOfAct++,
-          });
-
           totalInsertions += insertChars.length;
         } else {
           // For user input, add character by character (original behavior)

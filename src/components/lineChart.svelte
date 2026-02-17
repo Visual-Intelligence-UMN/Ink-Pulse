@@ -8,8 +8,8 @@
   export let sharedSelection;
   export let xScaleLineChartFactor: number;
   export let similarityData: any[] = [];
-  export let xAxisField = "time"; // 新增：X轴字段
-  export let yAxisField = "progress"; // 新增：Y轴字段
+  export let xAxisField = "time"; // Add：new X axis feature
+  export let yAxisField = "progress"; // Add：new Y axis feature
   export let sessionId: string | null = null;
 
   type ChartEvents = {
@@ -611,12 +611,12 @@
     // Safety check: ensure selected fields exist in config
     if (!xConfig || !yConfig) {
       console.warn(
-        `⚠️ LineChart field not found: x=${xAxisField}, y=${yAxisField}`,
+        `LineChart field not found: x=${xAxisField}, y=${yAxisField}`,
       );
       return;
     }
 
-    // 动态计算 X 轴 domain
+    // dynamicly calculate X axis's domain
     let xDomain = xConfig.domain;
     if (!xDomain) {
       const xValues = chartData.map((d) => xConfig.getValue(d));
@@ -625,7 +625,7 @@
       xDomain = [minX, maxX];
     }
 
-    // 动态计算 Y 轴 domain
+    // dynamicly calculate Y axis's domain
     let yDomain = yConfig.domain;
     if (!yDomain) {
       const yValues = chartData.map((d) => yConfig.getValue(d));
@@ -683,7 +683,7 @@
     return yScale ? yScale(val) : 0;
   }
 
-  // 动态获取点的 X/Y 值
+  // dynamicly get point's X/Y value
   function getXValue(d: any) {
     return attributeConfig[xAxisField]?.getValue(d) ?? 0;
   }
