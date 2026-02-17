@@ -1145,35 +1145,37 @@
     return actual.every((v, i) => v === expectedTrend[i]);
   }
 
-  function deriveTimeRangeFromProgress(progressRange, data) {
-    if (!progressRange || !data || !data.length) {
-      return null;
-    }
+  // function deriveTimeRangeFromProgress(progressRange, data) {
+  //   // deprecated
 
-    const getClosestTime = (targetPercentage) => {
-      let closestPoint = data[0];
-      let smallestDelta = Infinity;
+  //   if (!progressRange || !data || !data.length) {
+  //     return null;
+  //   }
 
-      for (const point of data) {
-        const percentage = Number(point?.percentage ?? point?.progress ?? 0);
-        const delta = Math.abs(percentage - targetPercentage);
-        if (delta < smallestDelta) {
-          smallestDelta = delta;
-          closestPoint = point;
-        }
-      }
+  //   const getClosestTime = (targetPercentage) => {
+  //     let closestPoint = data[0];
+  //     let smallestDelta = Infinity;
 
-      return Number(closestPoint?.time ?? 0);
-    };
+  //     for (const point of data) {
+  //       const percentage = Number(point?.percentage ?? point?.progress ?? 0);
+  //       const delta = Math.abs(percentage - targetPercentage);
+  //       if (delta < smallestDelta) {
+  //         smallestDelta = delta;
+  //         closestPoint = point;
+  //       }
+  //     }
 
-    const start = getClosestTime(progressRange.min);
-    const end = getClosestTime(progressRange.max);
+  //     return Number(closestPoint?.time ?? 0);
+  //   };
 
-    return {
-      min: Math.min(start, end),
-      max: Math.max(start, end),
-    };
-  }
+  //   const start = getClosestTime(progressRange.min);
+  //   const end = getClosestTime(progressRange.max);
+
+  //   return {
+  //     min: Math.min(start, end),
+  //     max: Math.max(start, end),
+  //   };
+  // }
 
   function findSegments(data, checks, minCount) {
     const segments = [];
@@ -2037,7 +2039,7 @@
       patternDataList.update((current) => [...current, ...newData]);
       loadedResultCount = endIndex;
       console.log(
-        `✅ Loaded ${newData.length} results (total loaded: ${loadedResultCount}/${allSearchResults.length})`,
+        `Loaded ${newData.length} results (total loaded: ${loadedResultCount}/${allSearchResults.length})`,
       );
     } catch (error) {
       console.error("Error loading more results:", error);
@@ -2124,374 +2126,57 @@
     patternData = [];
     patternDataList.set([]);
     currentResults = {};
-    const {
-      sessionId: rawSessionId,
+    const { sessionId, range, dataRange, data, wholeData, sources } =
+      event.detail;
+
+    writingProgressRange = [
+      dataRange.progressRange.min,
+      dataRange.progressRange.max,
+    ];
+
+    // Use time range in dataRange, no different bewteen Time and Progress mode
+    timeRange = [dataRange.timeRange.min, dataRange.timeRange.max];
+    sourceRange = sources;
+    semanticRange = [dataRange.scRange.min, dataRange.scRange.max];
+    semanticData = dataRange.sc.sc;
+    semanticTrend = getTrendPattern(semanticData);
+    currentResults = data;
+    lastSession = $clickSession;
+
+    const highlightWindows = [];
+    const highlightMode = resolveHighlightModeFromSource(selectionSrc);
+
+    if (highlightMode === "progress" || highlightMode === "both") {
+      highlightWindows.push({
+        progress: { ...range.progress },
+      });
+    }
+
+    if (highlightMode === "time" || highlightMode === "both") {
+      highlightWindows.push({
+        time: { min: timeRange[0], max: timeRange[1] },
+      });
+    }
+
+    selectedPatterns[sessionId] = {
       range,
       dataRange,
       data,
       wholeData,
       sources,
-    } = event.detail;
+      scRange: `${range.sc.min.toFixed(1)} - ${range.sc.max.toFixed(1)}%`,
+      progressRange: `${range.progress.min.toFixed(1)} - ${range.progress.max.toFixed(1)}%`,
+      count: data.length,
 
-    const resolvedSessionId =
-      rawSessionId ??
-      sharedSelection?.sessionId ??
-      $clickSession?.sessionId ??
-      lastSession?.sessionId;
-
-    if (!resolvedSessionId) {
-      return;
-    }
-
-    const sessionStore = get(storeSessionData);
-    const sessionSummaryStore = get(storeSessionSummaryData);
-    const sessionRecord =
-      sessionStore.get(resolvedSessionId) ??
-      sessionSummaryStore.get(resolvedSessionId) ??
-      {};
-
-    const similaritySeries = Array.isArray(sessionRecord.totalSimilarityData)
-      ? sessionRecord.totalSimilarityData
-      : Array.isArray(sessionRecord.similarityData)
-        ? sessionRecord.similarityData
-        : [];
-
-    const chartSeries =
-      Array.isArray(wholeData) && wholeData.length
-        ? wholeData
-        : Array.isArray(sessionRecord.chartData)
-          ? sessionRecord.chartData
-          : [];
-
-    const selectionSource =
-      sharedSelection?.selectionSource ??
-      selectionSrc ??
-      event.detail.selectionSource ??
-      null;
-
-    const baseRange = range
-      ? {
-          sc: {
-            min: range?.sc?.min ?? 0,
-            max: range?.sc?.max ?? 0,
-          },
-          progress: {
-            min: range?.progress?.min ?? 0,
-            max: range?.progress?.max ?? 0,
-          },
-        }
-      : {
-          sc: { min: 0, max: 0 },
-          progress: { min: 0, max: 0 },
-        };
-
-    let effectiveRange = baseRange;
-
-    const baseDataRange = dataRange
-      ? {
-          scRange: {
-            min: dataRange?.scRange?.min ?? 0,
-            max: dataRange?.scRange?.max ?? 0,
-          },
-          progressRange: {
-            min: dataRange?.progressRange?.min ?? 0,
-            max: dataRange?.progressRange?.max ?? 0,
-          },
-          timeRange: {
-            min: dataRange?.timeRange?.min ?? 0,
-            max: dataRange?.timeRange?.max ?? 0,
-          },
-          sc: { sc: [...(dataRange?.sc?.sc ?? [])] },
-        }
-      : {
-          scRange: { min: 0, max: 0 },
-          progressRange: { min: 0, max: 0 },
-          timeRange: { min: 0, max: 0 },
-          sc: { sc: [] },
-        };
-
-    let effectiveDataRange = baseDataRange;
-
-    let effectiveData =
-      data && data.length ? data.map((item) => ({ ...item })) : [];
-
-    let effectiveSources = sources && sources.length ? [...sources] : [];
-
-    let scValues = [...effectiveDataRange.sc.sc];
-
-    if (!effectiveData.length && similaritySeries.length) {
-      effectiveData = similaritySeries.map((item) => ({ ...item }));
-      scValues = effectiveData
-        .map((point) => Number(point?.residual_vector_norm ?? 0))
-        .filter((value) => Number.isFinite(value));
-    }
-
-    if (selectionSource === "lineChart_x" && similaritySeries.length) {
-      const timeMinRaw =
-        sharedSelection?.timeMin ?? effectiveDataRange.timeRange.min ?? 0;
-      const timeMaxRaw =
-        sharedSelection?.timeMax ??
-        effectiveDataRange.timeRange.max ??
-        timeMinRaw;
-      const timeMin = Math.min(timeMinRaw, timeMaxRaw);
-      const timeMax = Math.max(timeMinRaw, timeMaxRaw);
-
-      const filteredSimilarity = similaritySeries.filter((segment) => {
-        const startSeconds = Number(
-          segment?.start_time ?? segment?.startTime ?? 0,
-        );
-        const endSeconds = Number(
-          segment?.end_time ??
-            segment?.endTime ??
-            segment?.last_event_time ??
-            segment?.start_time ??
-            startSeconds,
-        );
-        const startMinutes = startSeconds / 60;
-        const endMinutes = endSeconds / 60;
-        const segStart = Math.min(startMinutes, endMinutes);
-        const segEnd = Math.max(startMinutes, endMinutes);
-        return segEnd >= timeMin && segStart <= timeMax;
-      });
-
-      if (filteredSimilarity.length) {
-        effectiveData = filteredSimilarity.map((segment) => ({ ...segment }));
-
-        scValues = filteredSimilarity
-          .map((segment) => Number(segment?.residual_vector_norm ?? 0))
-          .filter((value) => Number.isFinite(value));
-
-        if (scValues.length) {
-          effectiveRange = {
-            ...effectiveRange,
-            sc: {
-              min: Math.min(...scValues),
-              max: Math.max(...scValues),
-            },
-          };
-        } else {
-          effectiveRange = {
-            ...effectiveRange,
-            sc: { min: 0, max: 0 },
-          };
-        }
-
-        const progressValues = filteredSimilarity
-          .flatMap((segment) => [
-            Number(segment?.start_progress ?? 0) * 100,
-            Number(segment?.end_progress ?? 0) * 100,
-          ])
-          .filter((value) => Number.isFinite(value));
-
-        if (progressValues.length) {
-          effectiveRange = {
-            ...effectiveRange,
-            progress: {
-              min: Math.min(...progressValues),
-              max: Math.max(...progressValues),
-            },
-          };
-        }
-
-        effectiveSources = filteredSimilarity.map(
-          (segment) => segment?.source ?? "user",
-        );
-
-        effectiveDataRange = {
-          ...effectiveDataRange,
-          scRange: { ...effectiveRange.sc },
-          progressRange: { ...effectiveRange.progress },
-          timeRange: { min: timeMin, max: timeMax },
-          sc: { sc: scValues },
-        };
-      } else {
-        effectiveDataRange = {
-          ...effectiveDataRange,
-          timeRange: { min: timeMin, max: timeMax },
-        };
-      }
-    } else {
-      if (!scValues.length) {
-        scValues = effectiveData
-          .map((point) => Number(point?.residual_vector_norm ?? 0))
-          .filter((value) => Number.isFinite(value));
-      }
-      if (scValues.length) {
-        effectiveRange = {
-          ...effectiveRange,
-          sc: {
-            min: Math.min(...scValues),
-            max: Math.max(...scValues),
-          },
-        };
-        effectiveDataRange.scRange = { ...effectiveRange.sc };
-        effectiveDataRange.sc = { sc: scValues };
-      }
-    }
-
-    if (!effectiveSources.length) {
-      effectiveSources = effectiveData.map((point) => point?.source ?? "user");
-    }
-
-    writingProgressRange = [
-      effectiveDataRange.progressRange.min ?? 0,
-      effectiveDataRange.progressRange.max ?? 0,
-    ];
-
-    // Use time range in dataRange, no different bewteen Time and Progress mode
-    timeRange = [
-      effectiveDataRange.timeRange.min ?? 0,
-      effectiveDataRange.timeRange.max ?? 0,
-    ];
-    sourceRange = effectiveSources;
-    semanticRange = [
-      effectiveDataRange.scRange.min ?? 0,
-      effectiveDataRange.scRange.max ?? 0,
-    ];
-    semanticData = scValues;
-    semanticTrend = getTrendPattern(semanticData);
-    currentResults = effectiveData;
-    lastSession = $clickSession ?? sessionRecord;
-
-    let highlightTimeRange = null;
-    if (selectionSource === "lineChart_x") {
-      highlightTimeRange = { min: timeRange[0], max: timeRange[1] };
-    } else if (
-      sharedSelection &&
-      sharedSelection.timeMin !== undefined &&
-      sharedSelection.timeMax !== undefined
-    ) {
-      highlightTimeRange = {
-        min: Math.min(sharedSelection.timeMin, sharedSelection.timeMax),
-        max: Math.max(sharedSelection.timeMin, sharedSelection.timeMax),
-      };
-    } else if (
-      effectiveRange?.progress &&
-      Number.isFinite(effectiveRange.progress.min) &&
-      Number.isFinite(effectiveRange.progress.max) &&
-      Array.isArray(chartSeries) &&
-      chartSeries.length > 0
-    ) {
-      const derivedRange = deriveTimeRangeFromProgress(
-        effectiveRange.progress,
-        chartSeries,
-      );
-
-      if (
-        derivedRange &&
-        derivedRange.min !== undefined &&
-        derivedRange.max !== undefined
-      ) {
-        highlightTimeRange = derivedRange;
-      }
-    }
-
-    const selectionHighlightWindows = [];
-    const selectionHighlightMode =
-      resolveHighlightModeFromSource(selectionSource);
-    const highlightInfo = computeHighlightRangesFromSegments(effectiveData);
-    const highlightMode = selectionHighlightMode ?? highlightInfo.mode ?? null;
-
-    const selectionContext = {
-      selectionSource,
-      timeMin: null,
-      timeMax: null,
-      progressMin: Number.isFinite(effectiveRange.progress.min)
-        ? effectiveRange.progress.min
-        : null,
-      progressMax: Number.isFinite(effectiveRange.progress.max)
-        ? effectiveRange.progress.max
-        : null,
-    };
-
-    if (
-      (highlightMode === "progress" || highlightMode === "both") &&
-      Number.isFinite(effectiveRange.progress.min) &&
-      Number.isFinite(effectiveRange.progress.max)
-    ) {
-      selectionHighlightWindows.push({
-        progress: {
-          min: effectiveRange.progress.min,
-          max: effectiveRange.progress.max,
-        },
-      });
-    }
-
-    const resolvedSelectedTimeRangeCandidate =
-      highlightTimeRange ??
-      (highlightMode === "time" || highlightMode === "both"
-        ? {
-            min: timeRange[0],
-            max: timeRange[1],
-          }
-        : null);
-
-    if (
-      (highlightMode === "time" || highlightMode === "both") &&
-      resolvedSelectedTimeRangeCandidate &&
-      Number.isFinite(resolvedSelectedTimeRangeCandidate.min) &&
-      Number.isFinite(resolvedSelectedTimeRangeCandidate.max)
-    ) {
-      selectionContext.timeMin = resolvedSelectedTimeRangeCandidate.min;
-      selectionContext.timeMax = resolvedSelectedTimeRangeCandidate.max;
-      selectionHighlightWindows.push({
-        time: {
-          min: resolvedSelectedTimeRangeCandidate.min,
-          max: resolvedSelectedTimeRangeCandidate.max,
-        },
-      });
-    }
-
-    const resolvedSelectedTimeRange =
-      highlightTimeRange ?? highlightInfo.time ?? null;
-
-    const resolvedHighlightWindows =
-      selectionHighlightWindows.length > 0
-        ? selectionHighlightWindows
-        : (highlightInfo.windows ?? []);
-    const resolvedSelectionContext =
-      selectionContext.timeMin !== null ||
-      selectionContext.timeMax !== null ||
-      selectionContext.progressMin !== null ||
-      selectionContext.progressMax !== null
-        ? selectionContext
-        : (highlightInfo.selectionContext ?? {
-            selectionSource,
-            timeMin: highlightInfo.time?.min ?? null,
-            timeMax: highlightInfo.time?.max ?? null,
-            progressMin: highlightInfo.progress?.min ?? null,
-            progressMax: highlightInfo.progress?.max ?? null,
-          });
-
-    const updatedPattern = {
-      range: effectiveRange,
-      dataRange: effectiveDataRange,
-      data: effectiveData,
-      wholeData: chartSeries,
-      sources: effectiveSources,
-      scRange: `${effectiveRange.sc.min.toFixed(1)} - ${effectiveRange.sc.max.toFixed(1)}%`,
-      progressRange: `${effectiveRange.progress.min.toFixed(1)} - ${effectiveRange.progress.max.toFixed(1)}%`,
-      count: effectiveData.length,
-      // Save selected time range, used for highlight in time mode
-      selectedTimeRange: resolvedSelectedTimeRange,
-      highlightWindows: resolvedHighlightWindows,
+      selectedTimeRange:
+        sharedSelection &&
+        sharedSelection.timeMin !== undefined &&
+        sharedSelection.timeMax !== undefined
+          ? { min: sharedSelection.timeMin, max: sharedSelection.timeMax }
+          : null,
+      highlightWindows,
       highlightMode,
-      selectionSource,
-      selectionContext: resolvedSelectionContext,
     };
-
-    selectedPatterns = {
-      ...selectedPatterns,
-      [resolvedSessionId]: updatedPattern,
-    };
-
-    // console.log("-------------------------------");
-    // console.log("Debug Selection Changed:");
-    // console.log("event selection dataRange_progressRange", event.detail.dataRange.progressRange);
-    // console.log("shared selection", sharedSelection);
-    // console.log("updated pattern progressRange", updatedPattern.progressRange);
-    // console.log("updated pattern dataRange_progressRange", updatedPattern.dataRange.progressRange);
-    // console.log("-------------------------------");
   }
 
   function handleSelectionCleared(event) {
@@ -2870,7 +2555,7 @@
   function buildAttributeConfigs(detectedFields) {
     if (!detectedFields) return null;
 
-    console.log("🔨 Building attribute configs from detected fields");
+    console.log("Building attribute configs from detected fields");
     const config = {};
 
     // Add range fields
@@ -2945,7 +2630,7 @@
 
   // Detect available fields from chartData (fine-grained data)
   function detectLineChartFields(chartDataSample) {
-    console.log("🔍 Detecting LineChart fields from chartData");
+    console.log("Detecting LineChart fields from chartData");
 
     if (!chartDataSample || chartDataSample.length === 0) {
       console.warn("No chartData sample available");
@@ -2969,7 +2654,7 @@
       // Check if numeric
       if (typeof value !== "number") {
         console.log(
-          `     Skipping non-numeric field: ${key} (${typeof value})`,
+          `Skipping non-numeric field: ${key} (${typeof value})`,
         );
         continue;
       }
@@ -2995,7 +2680,7 @@
   function buildLineChartConfigs(detectedFields) {
     if (!detectedFields) return null;
 
-    console.log("🔨 Building LineChart attribute configs");
+    console.log("Building LineChart attribute configs");
     const config = {};
 
     for (const field of detectedFields.numericFields) {
@@ -3024,10 +2709,10 @@
         };
       }
 
-      console.log(`    Added LineChart field config: ${key}`);
+      console.log(`Added LineChart field config: ${key}`);
     }
 
-    console.log("  LineChart config built:", config);
+    console.log("LineChart config built:", config);
     return config;
   }
 
@@ -3048,7 +2733,7 @@
         return null;
       }
 
-      console.log("📂 Sampling from session:", firstSessionId);
+      console.log("Sampling from session:", firstSessionId);
 
       const segmentData = await fetchSimilarityData(firstSessionId);
       if (!segmentData || !segmentData.length) {
@@ -3105,7 +2790,7 @@
         // Meta fields (usually not for visualization)
         if (["sentence", "score", "last_event_time"].includes(key)) {
           fields.metaFields.push({ key, label: formatLabel(key) });
-          console.log(`  ℹ️  Meta field: ${key}`);
+          console.log(`Meta field: ${key}`);
           continue;
         }
 
@@ -3247,7 +2932,7 @@
 
     // Stage 1: Detect available fields
     const detectedFields = await detectAvailableFields(selectedDataset);
-    console.log("📋 Detected fields result:", detectedFields);
+    console.log("Detected fields result:", detectedFields);
 
     // Stage 2: Build attribute configurations
     if (detectedFields) {
@@ -3281,11 +2966,11 @@
         barChartYAxis = defaultYAxis;
 
         console.log(
-          "✨ BarChart config updated with",
+          "BarChart config updated with",
           Object.keys(newConfig).length,
           "fields",
         );
-        console.log("📌 Default axes set to:", {
+        console.log("Default axes set to:", {
           x: defaultXAxis,
           y: defaultYAxis,
         });
@@ -3417,92 +3102,89 @@
       console.log("Use .json file to init data.");
     }
 
-    async function debugData() {
-      try {
-        const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
-        const wasmBinary = await wasmResponse.arrayBuffer();
-        const SQL = await initSqlJs({ wasmBinary });
+    // async function debugData() {
+    //   try {
+    //     const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
+    //     const wasmBinary = await wasmResponse.arrayBuffer();
+    //     const SQL = await initSqlJs({ wasmBinary });
+    //     const dbResponse = await fetch(
+    //       `${base}/db/${selectedDataset}_segment_results.db`,
+    //     );
+    //     const dbBuffer = await dbResponse.arrayBuffer();
+    //     const db = new SQL.Database(new Uint8Array(dbBuffer));
+    //     const stepStats = db.exec(`
+    //       WITH RECURSIVE 
+    //             numbers(n) AS (
+    //               SELECT 0
+    //               UNION ALL
+    //               SELECT n + 1 FROM numbers 
+    //               WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
+    //             ),
+    //             idx AS (
+    //               SELECT 0 as i
+    //               UNION ALL
+    //               SELECT i + 1 FROM idx WHERE i < 1
+    //             )
+    //             SELECT 
+    //               d.rowid as original_rowid,
+    //               d.content as original_content,
+    //               n.n as window_start,
+    //               json_array(json_extract(d.content, '$[' || (n.n + 0) || ']'), json_extract(d.content, '$[' || (n.n + 1) || ']')) as window_content
+    //             FROM data d
+    //             JOIN numbers n 
+    //               ON n.n + 1 < json_array_length(d.content)
+    //             WHERE json_array_length(d.content) >= 2
+    //               AND json_extract(d.content, '$[' || (n.n + 0) || ']') IS NOT NULL AND json_extract(d.content, '$[' || (n.n + 1) || ']') IS NOT NULL
+    //               AND (((
+    //                   SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user' 
+    //                       THEN COALESCE(
+    //                         CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
+    //                       ) - COALESCE(
+    //                         CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].start_progress') AS REAL),0
+    //                       ) ELSE 0 END)
+    //                   FROM idx k
+    //                   WHERE k.i BETWEEN 0 AND 1
+    //                 )) > (((
+    //                   SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api' 
+    //                       THEN COALESCE(
+    //                         CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
+    //                       ) - COALESCE(
+    //                         CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].start_progress') AS REAL),0
+    //                       ) ELSE 0 END)
+    //                   FROM idx k
+    //                   WHERE k.i BETWEEN 0 AND 1
+    //                 )) * 2.5) AND ((
+    //                   SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api'
+    //                       THEN COALESCE(
+    //                         CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].residual_vector_norm') AS REAL),0
+    //                       ) ELSE 0 END)
+    //                   FROM idx k
+    //                   WHERE k.i BETWEEN 0 AND 1
+    //                 )) > (((
+    //                   SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user'
+    //                       THEN COALESCE(
+    //                         CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].residual_vector_norm') AS REAL),0
+    //                       ) ELSE 0 END)
+    //                   FROM idx k
+    //                   WHERE k.i BETWEEN 0 AND 1
+    //                 )) * 1.5) AND JSON_EXTRACT(window_content, '$[0].source') = 'api' AND JSON_EXTRACT(window_content, '$[1].source') = 'user')
+    //             ORDER BY original_rowid, window_start
+    //       `)[0];
 
-        const dbResponse = await fetch(
-          `${base}/db/${selectedDataset}_segment_results.db`,
-        );
-        const dbBuffer = await dbResponse.arrayBuffer();
-        const db = new SQL.Database(new Uint8Array(dbBuffer));
+    //     const filteredWindows = stepStats.values.map((row) =>
+    //       JSON.parse(String(row[3])),
+    //     );
 
-        const stepStats = db.exec(`
-WITH RECURSIVE 
-      numbers(n) AS (
-        SELECT 0
-        UNION ALL
-        SELECT n + 1 FROM numbers 
-        WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
-      ),
-      idx AS (
-        SELECT 0 as i
-        UNION ALL
-        SELECT i + 1 FROM idx WHERE i < 1
-      )
-      SELECT 
-        d.rowid as original_rowid,
-        d.content as original_content,
-        n.n as window_start,
-        json_array(json_extract(d.content, '$[' || (n.n + 0) || ']'), json_extract(d.content, '$[' || (n.n + 1) || ']')) as window_content
-      FROM data d
-      JOIN numbers n 
-        ON n.n + 1 < json_array_length(d.content)
-      WHERE json_array_length(d.content) >= 2
-        AND json_extract(d.content, '$[' || (n.n + 0) || ']') IS NOT NULL AND json_extract(d.content, '$[' || (n.n + 1) || ']') IS NOT NULL
-        AND (((
-            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user' 
-                 THEN COALESCE(
-                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
-                 ) - COALESCE(
-                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].start_progress') AS REAL),0
-                 ) ELSE 0 END)
-            FROM idx k
-            WHERE k.i BETWEEN 0 AND 1
-          )) > (((
-            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api' 
-                 THEN COALESCE(
-                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
-                 ) - COALESCE(
-                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].start_progress') AS REAL),0
-                 ) ELSE 0 END)
-            FROM idx k
-            WHERE k.i BETWEEN 0 AND 1
-          )) * 2.5) AND ((
-            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api'
-                 THEN COALESCE(
-                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].residual_vector_norm') AS REAL),0
-                 ) ELSE 0 END)
-            FROM idx k
-            WHERE k.i BETWEEN 0 AND 1
-          )) > (((
-            SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user'
-                 THEN COALESCE(
-                   CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].residual_vector_norm') AS REAL),0
-                 ) ELSE 0 END)
-            FROM idx k
-            WHERE k.i BETWEEN 0 AND 1
-          )) * 1.5) AND JSON_EXTRACT(window_content, '$[0].source') = 'api' AND JSON_EXTRACT(window_content, '$[1].source') = 'user')
-      ORDER BY original_rowid, window_start
-`)[0];
-
-        const filteredWindows = stepStats.values.map((row) =>
-          JSON.parse(String(row[3])),
-        );
-
-        console.log("Num:", filteredWindows.length);
-        console.log(
-          "Test:",
-          filteredWindows.sort(() => Math.random() - 0.5).slice(0, 5),
-        );
-      } catch (error) {
-        console.error(error);
-      }
-    }
-
-    await debugData();
+    //     console.log("Num:", filteredWindows.length);
+    //     console.log(
+    //       "Test:",
+    //       filteredWindows.sort(() => Math.random() - 0.5).slice(0, 5),
+    //     );
+    //   } catch (error) {
+    //     console.error(error);
+    //   }
+    // }
+    // await debugData();
   });
 
   function handleChartZoom(event) {
@@ -3693,35 +3375,29 @@ WITH RECURSIVE
       }
 
       const relativeTime = (eventTime.getTime() - firstTime.getTime()) / 60000;
-
       if (name === "text-insert") {
         const insertChars = [...text];
         const insertPos = Math.min(pos, currentCharArray.length);
-
-        // For API (AI-generated) text, add the entire chunk at once
         if (eventSource === "api") {
-          // Add all characters to the arrays
           insertChars.forEach((ch, i) => {
             currentCharArray.splice(insertPos + i, 0, ch);
             currentColor.splice(insertPos + i, 0, textColor);
             combinedText.splice(insertPos + i, 0, { text: ch, textColor });
+            const percentage =
+              (currentCharArray.length / totalTextLength) * 100;
+            chartData.push({
+              time: relativeTime,
+              percentage,
+              eventSource,
+              color: textColor,
+              currentText: currentCharArray.join(""),
+              currentColor: [...currentColor],
+              opacity: 1,
+              isSuggestionOpen: false,
+              isSuggestionAccept: false,
+              index: indexOfAct++,
+            });
           });
-
-          // Create only ONE chartData entry for the entire AI chunk
-          const percentage = (currentCharArray.length / totalTextLength) * 100;
-          chartData.push({
-            time: relativeTime,
-            percentage,
-            eventSource,
-            color: textColor,
-            currentText: currentCharArray.join(""),
-            currentColor: [...currentColor],
-            opacity: 1,
-            isSuggestionOpen: name === "suggestion-open",
-            isSuggestionAccept: false,
-            index: indexOfAct++,
-          });
-
           totalInsertions += insertChars.length;
         } else {
           // For user input, add character by character (original behavior)
@@ -4815,10 +4491,6 @@ WITH RECURSIVE
                               bind:this={chartRefs[sessionId]}
                               chartData={$clickSession.chartData}
                               selectedTimeRange={pattern.selectedTimeRange ??
-                                deriveTimeRangeFromProgress(
-                                  pattern.range?.progress,
-                                  pattern.wholeData,
-                                ) ??
                                 null}
                               selectedProgressRange={pattern.range?.progress ??
                                 null}
@@ -5341,7 +5013,10 @@ WITH RECURSIVE
                     </div>
                   {/if}
                   <div class="chat-panel">
-                    <button on:click={toggleTestMode} class="search-pattern-button">
+                    <button
+                      on:click={toggleTestMode}
+                      class="search-pattern-button"
+                    >
                       {isTest ? "Switch to Normal Mode" : "Switch to Test Mode"}
                     </button>
                     <Interpreter
@@ -5925,9 +5600,11 @@ WITH RECURSIVE
                       <!-- Left: BarChart (Semantic Similarity) -->
                       <div class="chart-section">
                         <h4 class="chart-title">
-                          {(barChartAttributeConfig[barChartXAxis]?.label || barChartXAxis) + 
-                            " vs " + 
-                            (barChartAttributeConfig[barChartYAxis]?.label || barChartYAxis)}
+                          {(barChartAttributeConfig[barChartXAxis]?.label ||
+                            barChartXAxis) +
+                            " vs " +
+                            (barChartAttributeConfig[barChartYAxis]?.label ||
+                              barChartYAxis)}
                         </h4>
                         <div
                           class="chart-wrapper-independent"
@@ -5962,9 +5639,11 @@ WITH RECURSIVE
                       <!-- Right: LineChart (Writing Progress) -->
                       <div class="chart-section">
                         <h4 class="chart-title">
-                          {(lineChartAttributeConfig[lineChartXAxis]?.label || lineChartXAxis) + 
-                            " vs " + 
-                            (lineChartAttributeConfig[lineChartYAxis]?.label || lineChartYAxis)}
+                          {(lineChartAttributeConfig[lineChartXAxis]?.label ||
+                            lineChartXAxis) +
+                            " vs " +
+                            (lineChartAttributeConfig[lineChartYAxis]?.label ||
+                              lineChartYAxis)}
                         </h4>
                         <div
                           class="chart-wrapper-independent"
