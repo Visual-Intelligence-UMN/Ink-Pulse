@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher, afterUpdate, onMount } from "svelte";
   import * as d3 from "d3";
+  import { point } from "drizzle-orm/pg-core";
 
   export let chartData: any[] = [];
   export let paragraphColor: any[] = [];
@@ -11,6 +12,7 @@
   export let xAxisField = "time"; // Add：new X axis feature
   export let yAxisField = "progress"; // Add：new Y axis feature
   export let sessionId: string | null = null;
+  const TREND_THRESHOLD = 5;
 
   type ChartEvents = {
     pointSelected: {
@@ -90,24 +92,9 @@
     }
   }
 
-  $: allBars = handleLine2Bar(
-    chartData
-      .map((d) => {
-        const matchedSim = similarityData.find(
-          (s) =>
-            s.start_progress * 100 <= d.percentage &&
-            s.end_progress * 100 >= d.percentage,
-        );
-
-        if (!matchedSim) return null;
-
-        return {
-          ...d,
-          residual_vector_norm: matchedSim.residual_vector_norm,
-        };
-      })
-      .filter((d) => d !== null),
-  );
+  let insidePoints = [];
+  $: allBlocks = matchPointsWithSimilarity(insidePoints, similarityData);
+  $: allBars = handleLine2Bar(allBlocks);
 
   onMount(() => {
     brushY = d3
@@ -231,62 +218,94 @@
     return 1;
   }
 
-  function handleLine2Bar(points) {
-    if (!points || !points.length) return []; // only use progress and source convert points to bars
-    const bars: any[] = [];
-    let currentBar = [points[0]];
-    let lastSource = points[0].eventSource  || "user";
-    let lastSemantic = points[0].residual_vector_norm;
-    let lastTrend = 0;
+  function matchPointsWithSimilarity(points: any[], similarityData: any[]) {
+    if (!similarityData || !similarityData.length) return [];
+    return similarityData
+      .map((segment) => {
+        const ptsInSegment = points
+          .filter(
+            (p) =>
+              p.percentage >= segment.start_progress &&
+              p.percentage <= segment.end_progress,
+          )
+          .map((p) => ({
+            ...p,
+            residual_vector_norm: segment.residual_vector_norm ?? 0,
+          }));
+        return ptsInSegment;
+      })
+      .filter((arr) => arr.length > 0);
+  }
 
-    for (let i = 1; i < points.length; i++) {
-      const p = points[i];
-      const source = p.eventSource  || "user";
-      const semantic = p.residual_vector_norm;
-      const progress = p.percentage;
-      const prevProgress = points[i - 1].percentage;
-      let trend = lastTrend;
-      if (progress > prevProgress) trend = 1;
-      else if (progress < prevProgress) trend = -1;
-      const sourceChanged = source !== lastSource;
-      const semanticChanged = semantic !== lastSemantic;
-      const trendChanged = lastTrend !== 0 && trend !== lastTrend;
-
-      if (sourceChanged || semanticChanged || trendChanged) {
-        bars.push(currentBar);
-        currentBar = [];
+  function handleLine2Bar(blocks: any[][]) {
+    if (!blocks || !blocks.length) return [];
+    const result: any[] = [];
+    for (const block of blocks) {
+      if (!block.length) continue;
+      let currentBar: any[] = [block[0]];
+      let stableTrend = 0;
+      let candidateTrend = 0;
+      let candidateCount = 0;
+      for (let i = 1; i < block.length; i++) {
+        const p = block[i];
+        const prev = block[i - 1];
+        const progress = p.percentage ?? 0;
+        const prevProgress = prev.percentage ?? 0;
+        let trend = 0;
+        if (progress > prevProgress) trend = 1;
+        else if (progress < prevProgress) trend = -1;
+        let trendChanged = false;
+        if (stableTrend === 0) {
+          stableTrend = trend;
+        } else if (trend === stableTrend || trend === 0) {
+          candidateTrend = 0;
+          candidateCount = 0;
+        } else {
+          if (trend === candidateTrend) {
+            candidateCount++;
+          } else {
+            candidateTrend = trend;
+            candidateCount = 1;
+          }
+          if (candidateCount >= TREND_THRESHOLD) {
+            trendChanged = true;
+            stableTrend = candidateTrend;
+            candidateTrend = 0;
+            candidateCount = 0;
+          }
+        }
+        if (trendChanged) {
+          result.push({
+            source: currentBar[0].eventSource,
+            start_progress: currentBar[0].percentage ?? 0,
+            end_progress: currentBar[currentBar.length - 1].percentage ?? 0,
+            start_time: currentBar[0].time ?? 0,
+            end_time: currentBar[currentBar.length - 1].time ?? 0,
+            last_event_time: currentBar[currentBar.length - 1].time ?? 0,
+            residual_vector_norm:
+              currentBar[currentBar.length - 1].residual_vector_norm ?? 0,
+          });
+          currentBar = [];
+        }
+        currentBar.push(p);
       }
-
-      currentBar.push(p);
-      lastSource = source;
-      lastSemantic = semantic;
-      lastTrend = trend;
+      if (currentBar.length) {
+        result.push({
+          source: currentBar[0].eventSource,
+          start_progress: currentBar[0].percentage ?? 0,
+          end_progress: currentBar[currentBar.length - 1].percentage ?? 0,
+          start_time: currentBar[0].time ?? 0,
+          end_time: currentBar[currentBar.length - 1].time ?? 0,
+          last_event_time: currentBar[currentBar.length - 1].time ?? 0,
+          residual_vector_norm:
+            currentBar[currentBar.length - 1].residual_vector_norm ?? 0,
+        });
+      }
     }
 
-    if (currentBar.length) bars.push(currentBar);
+    console.log("num: ", result.length)
 
-    const processedBars = bars.map((bar, idx) => ({
-      id: idx + 1,
-      source: bar[0].eventSource,
-      startProgress: bar[0].percentage,
-      endProgress: bar[bar.length - 1].percentage, 
-      startTime: bar[0].time,
-      endTime: bar[bar.length - 1].time,
-      last_event_time: bar[bar.length - 1].time * 60,
-      residual_vector_norm: bar[bar.length - 1].residual_vector_norm || 0,
-      score: bar.reduce((sum, d) => sum + (d.score || 0), 0) / bar.length,
-      sentence: bar.reduce((sum, d) => sum + (d.sentence || 0), 0) / bar.length,
-      xStart: bar[0].percentage,
-      xEnd: bar[bar.length - 1].percentage,
-      xValue: (bar[0].percentage + bar[bar.length - 1].percentage) / 2,
-      yValue: bar[bar.length - 1].time,
-      points: bar,
-    }));
-
-
-    // console.log("bars:", processedBars);
-
-    return processedBars;
+    return result;
   }
 
   function brushedY(event) {
@@ -303,7 +322,7 @@
     const x0 = 0;
     const x1 = chartWidth;
 
-    const insidePoints = chartData.filter((d) => {
+    insidePoints = chartData.filter((d) => {
       const px = zx(getXValue(d));
       const py = zy(getYValue(d));
       return px >= x0 && px <= x1 && py >= y0 && py <= y1;
@@ -332,8 +351,8 @@
       })
       .filter((d) => d !== null);
 
-      // console.log("points", matchedPoints)
-      // console.log("converted points", handleLine2Bar(matchedPoints))
+    // console.log("points", matchedPoints)
+    // console.log("converted points", handleLine2Bar(matchedPoints))
 
     const yMin = d3.min(insidePoints, (d) => getYValue(d));
     const yMax = d3.max(insidePoints, (d) => getYValue(d));
@@ -356,7 +375,8 @@
       timeMax: yAxisField === "time" ? yMax : null,
     };
 
-    const selectedBars = handleLine2Bar(matchedPoints);
+    const blocks = matchPointsWithSimilarity(insidePoints, similarityData);
+    const selectedBars = handleLine2Bar(blocks);
     const barSources = selectedBars.map((d) => d.source);
 
     // dispatch("selectionChanged", {
@@ -408,7 +428,7 @@
 
     const xMin = zx.invert(x0);
     const xMax = zx.invert(x1);
-    const insidePoints = chartData.filter((d) => {
+    insidePoints = chartData.filter((d) => {
       const xVal = getXValue(d);
       return xVal >= xMin && xVal <= xMax;
     });
@@ -452,14 +472,14 @@
       xField: xAxisField,
       yField: yAxisField,
       selectionSource: "lineChart_x",
-      // 向后兼容
       progressMin: xAxisField === "progress" ? xMin : progressMin,
       progressMax: xAxisField === "progress" ? xMax : progressMax,
       timeMin: xAxisField === "time" ? xMin : timeMin,
       timeMax: xAxisField === "time" ? xMax : timeMax,
     };
 
-    const selectedBars = handleLine2Bar(matchedPoints);
+    const blocks = matchPointsWithSimilarity(insidePoints, similarityData);
+    const selectedBars = handleLine2Bar(blocks);
     const barSources = selectedBars.map((d) => d.source);
 
     // dispatch("selectionChanged", {
@@ -506,7 +526,6 @@
       .call(zoom.transform, d3.zoomIdentity);
   }
 
-  // 监听轴字段变化，重新初始化图表
   $: if (xAxisField && yAxisField && chartData.length) {
     initChart();
   }
