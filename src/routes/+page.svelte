@@ -3250,6 +3250,43 @@
     zoomTransforms = { ...zoomTransforms };
   }
 
+  // Bar chart pan (drag) state
+  let barDragState = null;
+
+  function handleBarChartMouseDown(event) {
+    if (selectionMode) return;
+    if (!$clickSession || !$clickSession.sessionId) return;
+    barDragState = {
+      startX: event.clientX,
+      initialTransform: zoomTransforms[$clickSession.sessionId] || d3.zoomIdentity,
+    };
+    event.preventDefault();
+  }
+
+  function handleBarChartMouseMove(event) {
+    if (!barDragState) return;
+    if (!$clickSession || !$clickSession.sessionId) return;
+
+    const sessionId = $clickSession.sessionId;
+    const dx = event.clientX - barDragState.startX;
+    const t = barDragState.initialTransform;
+
+    // barChartY default width=300, margin.left=50, margin.right=10 → chartWidth=240
+    const barChartAreaWidth = 240;
+    const minX = -barChartAreaWidth * (t.k - 1);
+    const newX = Math.max(minX, Math.min(0, t.x + dx));
+
+    zoomTransforms[sessionId] = d3.zoomIdentity
+      .translate(newX, t.y)
+      .scale(t.k);
+
+    zoomTransforms = { ...zoomTransforms };
+  }
+
+  function handleBarChartMouseUp() {
+    barDragState = null;
+  }
+
   function generateColorGrey(index) {
     const colors = ["rgba(220, 220, 220, 0.5)", "rgba(240, 240, 240, 0.3)"];
     return colors[index % colors.length];
@@ -5630,7 +5667,14 @@
                         </h4>
                         <div
                           class="chart-wrapper-independent"
+                          role="application"
+                          aria-label="Bar chart with pan and zoom"
                           on:wheel={handleChartZoom}
+                          on:mousedown={handleBarChartMouseDown}
+                          on:mousemove={handleBarChartMouseMove}
+                          on:mouseup={handleBarChartMouseUp}
+                          on:mouseleave={handleBarChartMouseUp}
+                          style="cursor: {barDragState ? 'grabbing' : (selectionMode ? 'default' : 'grab')}"
                         >
                           {#if $clickSession.similarityData && Object.keys(barChartAttributeConfig).length > 0}
                             <BarChartY
