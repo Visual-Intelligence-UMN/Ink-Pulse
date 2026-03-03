@@ -3,7 +3,7 @@ import { json } from '@sveltejs/kit';
 const ALLOWED_ORIGINS = new Set([
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-  'https://visual-intelligence-umn.github.io/Ink-Pulse/'
+  'https://visual-intelligence-umn.github.io'
 ]);
 
 function cors(origin) {
