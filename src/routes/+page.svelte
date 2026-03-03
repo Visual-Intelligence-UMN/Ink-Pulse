@@ -815,7 +815,6 @@
 
   async function handleInterpreterFilters(event) {
   if (isTest) {
-    // --- 你原来的 isTest 分支不动 ---
     let { sql } = event.detail;
     const sourceMatch = sql.match(/source\s*=\s*'(.*?)'/);
     if (sourceMatch) {
@@ -890,17 +889,12 @@
     return;
   }
 
-  // -------------------------
-  // NON-TEST BRANCH (UPDATED)
-  // -------------------------
   const ctx = buildWindowContext(selectedPatterns);
   if (!ctx) return console.warn("No valid selected pattern");
   const { windowSize } = ctx;
-
   const { explanations, filters } = event.detail;
-
-  // window source pattern (authoritative from selection)
   const windowSourcePattern = Object.values(selectedPatterns)[0]?.sources || []; // e.g. ["api","api","user","user"]
+  console.log("source", windowSourcePattern)
 
   function parseRelation(relationString) {
     if (!relationString) return null;
@@ -918,7 +912,6 @@
     };
   }
 
-  // --- feature extractors ---
   const getProgressExpr = (absIdx, ref, source) => {
     const baseExpr = `COALESCE(
       CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].end_progress') AS REAL),0
@@ -1006,8 +999,6 @@
     if (span === "full") return getFullIndices(sourceValue, pattern);
     return null;
   }
-
-  // Find a left index i such that i-1 exists and sources match (right -> left adjacency)
   function findPrevPairIndex(leftSourceValue, rightSourceValue, pattern, prefer = "first") {
     const candidates = [];
     for (let i = 1; i < pattern.length; i++) {
@@ -1040,8 +1031,6 @@
       const rSourceValue = mapSourceLabelToValue(parsed.r_source);
       const operator = parsed.operator;
       const ratio = filter.ratio;
-
-      // A) block compare inside span (prefix/suffix/full) using first/last
       if (filter.span && filter.l_position && filter.r_position) {
         const idxs = getSpanIndices(filter.span, lSourceValue, windowSourcePattern);
         if (!idxs || idxs.length === 0) return null;
@@ -1062,8 +1051,6 @@
 
         return applyRatio(operator, lExpr, rExpr, ratio);
       }
-
-      // B) default prev comparison (pairwise)
       if (!filter.span && filter.r_position === "prev") {
         const leftIdx = findPrevPairIndex(lSourceValue, rSourceValue, windowSourcePattern, "first");
         if (leftIdx == null) return null;
@@ -1075,8 +1062,6 @@
 
         return applyRatio(operator, lExpr, rExpr, ratio);
       }
-
-      // C) all previous (span="full" && r_position="prev")
       if (filter.span === "full" && filter.r_position === "prev") {
         const leftIdx = findPrevPairIndex(lSourceValue, rSourceValue, windowSourcePattern, "first");
         if (leftIdx == null) return null;
@@ -1106,8 +1091,6 @@
       return null;
     })
     .filter(Boolean);
-
-  // source constraint if user included a "source" explanation
   const hasSourceConstraint = explanations.some((exp) => exp.feature === "source");
   const sourceConstraints = hasSourceConstraint
     ? windowSourcePattern.map(
@@ -3248,6 +3231,42 @@
       .scale(newK);
 
     zoomTransforms = { ...zoomTransforms };
+  }
+  // Bar chart pan (drag) state
+  let barDragState = null;
+
+  function handleBarChartMouseDown(event) {
+    if (selectionMode) return;
+    if (!$clickSession || !$clickSession.sessionId) return;
+    barDragState = {
+      startX: event.clientX,
+      initialTransform: zoomTransforms[$clickSession.sessionId] || d3.zoomIdentity,
+    };
+    event.preventDefault();
+  }
+
+  function handleBarChartMouseMove(event) {
+    if (!barDragState) return;
+    if (!$clickSession || !$clickSession.sessionId) return;
+
+    const sessionId = $clickSession.sessionId;
+    const dx = event.clientX - barDragState.startX;
+    const t = barDragState.initialTransform;
+
+    // barChartY default width=300, margin.left=50, margin.right=10 → chartWidth=240
+    const barChartAreaWidth = 240;
+    const minX = -barChartAreaWidth * (t.k - 1);
+    const newX = Math.max(minX, Math.min(0, t.x + dx));
+
+    zoomTransforms[sessionId] = d3.zoomIdentity
+      .translate(newX, t.y)
+      .scale(t.k);
+
+    zoomTransforms = { ...zoomTransforms };
+  }
+
+  function handleBarChartMouseUp() {
+    barDragState = null;
   }
 
   function generateColorGrey(index) {
@@ -5630,7 +5649,14 @@
                         </h4>
                         <div
                           class="chart-wrapper-independent"
+                          role="application"
+                          aria-label="Bar chart with pan and zoom"
                           on:wheel={handleChartZoom}
+                          on:mousedown={handleBarChartMouseDown}
+                          on:mousemove={handleBarChartMouseMove}
+                          on:mouseup={handleBarChartMouseUp}
+                          on:mouseleave={handleBarChartMouseUp}
+                          style="cursor: {barDragState ? 'grabbing' : (selectionMode ? 'default' : 'grab')}"
                         >
                           {#if $clickSession.similarityData && Object.keys(barChartAttributeConfig).length > 0}
                             <BarChartY
@@ -5672,6 +5698,7 @@
                           on:wheel={handleChartZoom}
                         >
                           <LineChart
+                            sessionId={$clickSession.sessionId}
                             bind:this={chartRefs[$clickSession.sessionId]}
                             chartData={$clickSession.chartData}
                             similarityData={$clickSession.similarityData}
