@@ -11,8 +11,9 @@
   export let similarityData: any[] = [];
   export let xAxisField = "time"; // Add：new X axis feature
   export let yAxisField = "progress"; // Add：new Y axis feature
-  export let sessionId: string | null = null;
+  export let sessionId;
   const TREND_THRESHOLD = 5;
+  console.log("id", sessionId)
 
   type ChartEvents = {
     pointSelected: {
