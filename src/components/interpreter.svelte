@@ -203,25 +203,36 @@
     Your responsibility IS to:
     - Identify which system-defined features are important
     - Explain those features in clear, user-friendly language
-    - Express relationships between features in a way that can later be translated into database queries
+    - Express relationships between features in a way that can later be translated into database queries.
 
     INPUT ASSUMPTIONS
 
     - The provided pattern is authoritative and already computed.
     - Do NOT invent numeric thresholds.
     - Treat all comparisons as RELATIVE (e.g., Human > AI).
+    - You MUST NOT introduce new operators beyond >, <, =.
+    - NEVER assume SUM or aggregation unless explicitly stated by the user.
 
     SYSTEM FEATURES
 
     You may ONLY reason about the following features:
 
     - source: who is writing: human or AI, and in what order
-
     - progress: relative amount of writing contributed by each source
-
     - semantic_change: relative novelty of content
-
     - time: ordering of writing segments
+
+    IMPORTANT — MULTIPLE PATTERNS FOR THE SAME FEATURE
+
+    If multiple distinct patterns exist for the same feature (for example,
+    different patterns for Human and AI), you MUST:
+
+    - Create separate explanations
+    - Create separate filters
+    - Ensure one explanation corresponds to exactly one filter
+
+    The same feature MAY appear multiple times,
+    as long as each instance represents a distinct pattern.
 
     EXPRESSION OF MAGNITUDE
 
@@ -234,12 +245,139 @@
     - [3x] (2x, 4x)
 
     Rules:
-    - Exactly ONE option must be wrapped in square brackets [] (default)
+    - Exactly ONE option must be wrapped in square brackets []
     - All other options must be wrapped in parentheses ()
+    - Ratio markers are ONLY used for comparative magnitude (>, <)
+    - Ratio markers MUST NOT be used for block-position comparisons
+    - Ratio markers MUST NOT be used when describing a single segment
 
     Examples:
     - "The human contributes [1.5x] (2x, 3x) more writing than the AI."
     - "The AI introduces a [3x] (2x, 2.5x) stronger semantic shift."
+
+    UNIFIED COMPARISON RULE
+
+    All feature patterns MUST be expressed using:
+
+    - >
+    - <
+    - =
+
+    You MUST NOT use:
+    - increasing
+    - decreasing
+    - stable
+    - any other trend words in the relation field
+
+    DEFAULT COMPARISON BEHAVIOR (CRITICAL)
+
+    Unless the user explicitly specifies otherwise:
+
+    Human(progress) > AI(progress)
+
+    means:
+
+    The Human segment is compared to the immediately PREVIOUS AI segment.
+
+    This is a direct segment-to-segment comparison.
+
+    It is NOT:
+    - a sum
+    - an average
+    - a total aggregation
+    - a comparison across the entire window
+
+    Use "prev" to represent this behavior.
+
+    Example:
+
+    {
+      "feature": "progress",
+      "relation": "Human(progress) > AI(progress)",
+      "span": null,
+      "l_position": null,
+      "r_position": "prev"
+    }
+
+    ALL-PREVIOUS COMPARISON
+
+    If the user explicitly says:
+
+    - "greater than all previous"
+    - "stronger than every earlier"
+    - "larger than all earlier AI segments"
+
+    Then:
+
+    The current segment must be compared against ALL previous segments
+    of the specified source.
+
+    In this case:
+
+    - relation still uses >
+    - l_position = null
+    - r_position = "prev"
+    - span = "full"
+
+    This signals that multiple previous comparisons must be generated.
+
+    TRENDS AS BLOCK COMPARISONS (WITHIN-SOURCE ONLY)
+
+    A trend is only defined within the SAME source:
+    - AI(...) compared to AI(...)
+    - Human(...) compared to Human(...)
+
+    For any within-source trend filter, you MUST ALWAYS compare:
+
+    - l_position = "last"
+    - r_position = "first"
+
+    This is mandatory. Never output first-vs-last ordering in the opposite direction.
+
+    Trend direction is expressed ONLY by the operator:
+
+    - Increasing trend: last > first
+    - Decreasing trend: last < first
+
+    "stable" is not allowed. If first equals last, do NOT output a trend filter.
+
+    Example (AI semantic change increases in its prefix block):
+
+    {
+      "feature": "semantic_change",
+      "relation": "AI(semantic_change) > AI(semantic_change)",
+      "span": "prefix",
+      "l_position": "last",
+      "r_position": "first"
+    }
+
+    Example (Human semantic change decreases in its suffix block):
+
+    {
+      "feature": "semantic_change",
+      "relation": "Human(semantic_change) < Human(semantic_change)",
+      "span": "suffix",
+      "l_position": "last",
+      "r_position": "first"
+    }
+
+    SOURCE-SPECIFIC SPAN RULES
+
+    For comparisons tied to a specific source:
+
+    - "prefix" refers to the initial continuous block of that source
+    - "suffix" refers to the final continuous block of that source
+    - "full" refers to all segments of that source within the selected region
+
+    For cross-source comparisons:
+
+    - span MUST be null unless explicitly describing full-region comparison
+    - l_position and r_position should be null for simple prev comparison
+
+    IMPORTANT:
+
+    Cross-source comparison defaults to PREVIOUS segment comparison,
+    NOT aggregation.
 
     OUTPUT A — Feature-Based Explanations
 
@@ -247,7 +385,12 @@
 
     Rules:
     - Each explanation MUST correspond to EXACTLY ONE feature
+    - Each explanation MUST correspond to EXACTLY ONE filter
+    - The number and order of explanations MUST exactly match the filters
     - Use non-technical, user-facing language
+    - You MAY describe patterns using natural language such as
+      "gradually increases"
+      but the relation field MUST strictly use >, <, =.
 
     Each explanation should describe:
     - What happened
@@ -257,121 +400,58 @@
 
     For each explanation in OUTPUT A, produce ONE corresponding searchable relation.
 
-    Rules:
-    - CRITICAL: There MUST be exactly one filter for each explanation - the arrays must be the same length
-    - Each relation MUST map one-to-one to an explanation at the same index
+    CRITICAL CONSTRAINTS:
+
+    - The number of filters MUST equal the number of explanations
+    - The order MUST match exactly
+    - Each filter expresses exactly one pattern
     - Use relative comparisons only (>, <, =)
-    - Use Human(...) and AI(...), e.g., Human(progress) > AI(progress), for source-specific aggregation
-    - Use trends/directions (increasing, decreasing, stable) to represent multi-block patterns
+    - Use Human(...) and AI(...) for source-specific comparison
+    - Do NOT use increasing/decreasing in the relation field
+    - Do NOT combine multiple comparisons in one filter
+    - Do NOT assume SUM or aggregation
 
     How to handle the "source" feature:
-    - When explaining source patterns (e.g., "Human writes first, then AI responds"), you MUST still create a corresponding filter
-    - For source filters, set relation to null or "source_pattern"
-    - The source pattern itself will be handled separately by the source constraint logic
 
-    Position information:
-    - For trends (increasing, decreasing, stable):
-        - Indicate which part of the selected sequence the trend applies to using "span":
-            - "prefix": continuous blocks of the same source at the start
-            - "suffix": continuous blocks of the same source at the end
-            - "full": entire selected sequence
-    - For comparisons (>, <, =):
-        - Indicate which blocks are compared using:
-            - "l_position": "first", "last", "prev"
-            - "r_position": "first", "last", "prev"
+    - When explaining source patterns (e.g., "Human writes first, then AI responds"),
+      you MUST still create a corresponding filter
+    - For source filters:
+      - set relation to null
+      - span to null
+      - l_position to null
+      - r_position to null
 
-  Constraints:
-  - MANDATORY: The order and the number of the JSON objects in FormattedFilter MUST EXACTLY match the order and the number of Explanations
-  - If there are 3 explanations, there MUST be 3 filters
-  - If there are 5 explanations, there MUST be 5 filters
-  - Output RAW JSON ONLY
-  - Do NOT wrap the response in Markdown.
-  - If the selected part contains only a single segment:
+    If the selected part contains only a single segment:
+
     - Do NOT force comparative language.
-    - Focus on describing which features are most salient within that segment.
-    - Explanations should describe features.
-    - Ratio-style markers should NOT be used.
+    - Do NOT use ratio-style markers.
+    - Do NOT use block-position comparisons.
+    - Focus on describing which features are most salient.
+    - Each explanation must still correspond to one filter.
 
-  OUTPUT FORMAT:
+    OUTPUT FORMAT:
 
-  {
-    "Explanations": [
-      {
-        "feature": "<feature_name>",
-        "text": "<user-friendly explanation>"
-      }
-    ],
-    "FormattedFilter": [
-      {
-        "feature": "<feature_name>",
-        "relation": "<searchable relation or null for source>",
-        "span": "<prefix/suffix/full or null>",
-        "l_position": "<first/last/prev or null>",
-        "r_position": "<first/last/prev or null>"
-      }
-    ]
-  }
-
-    EXAMPLE 1 - With source feature:
     {
       "Explanations": [
         {
-          "feature": "source",
-          "text": "The human writes first, followed by the AI."
-        },
-        {
-          "feature": "progress",
-          "text": "The human contributes [2x] (3x, 4x) more writing than the AI."
+          "feature": "<feature_name>",
+          "text": "<user-friendly explanation>"
         }
       ],
       "FormattedFilter": [
         {
-          "feature": "source",
-          "relation": null,
-          "span": null,
-          "l_position": null,
-          "r_position": null
-        },
-        {
-          "feature": "progress",
-          "relation": "Human(progress) > AI(progress)",
-          "span": "full",
-          "l_position": null,
-          "r_position": null
+          "feature": "<feature_name>",
+          "relation": "<searchable relation or null for source>",
+          "span": "<prefix/suffix/full or null>",
+          "l_position": "<first/last or null>",
+          "r_position": "<first/last/prev or null>"
         }
       ]
     }
 
-    EXAMPLE 2 - Without source feature:
-    {
-      "Explanations": [
-        {
-          "feature": "progress",
-          "text": "The human contributes [2x] (3x, 4x) more writing than the AI."
-        },
-        {
-          "feature": "time",
-          "text": "The AI takes [1.5x] (2x, 2.5x) longer to write."
-        }
-      ],
-      "FormattedFilter": [
-        {
-          "feature": "progress",
-          "relation": "Human(progress) > AI(progress)",
-          "span": "full",
-          "l_position": null,
-          "r_position": null
-        },
-        {
-          "feature": "time",
-          "relation": "AI(time) > Human(time)",
-          "span": "full",
-          "l_position": null,
-          "r_position": null
-        }
-      ]
-    }
-  `;
+    OUTPUT RAW JSON ONLY.
+    Do NOT wrap the response in Markdown.
+`;
 
   const featureStyleMap = {
     source: {
@@ -437,7 +517,8 @@
         }),
       },
     ];
-    const response = await fetch(`${base}/api/chat`, {
+    const API_BASE = "https://ink-pulse-one.vercel.app";
+    const response = await fetch(`${API_BASE}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
