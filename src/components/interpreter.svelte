@@ -853,45 +853,47 @@
               {featureStyleMap[exp.feature].label}
             </span>
           {/if}
-          {#each parseRatioText(exp.text) as part (part.id)}
-            {#if part.type === "text"}
-              {part.value}
-            {:else if part.type === "ratio"}
-              {#if part.options.length > 0}
-                <span class="ratio-wrapper">
-                  {#if editingRatioIndex === getUniqueDropdownId(expIndex, part.id)}
-                    <input
-                      type="text"
-                      class="ratio-input"
-                      bind:value={ratioInputValue}
-                      on:keydown={(e) => handleRatioInput(expIndex, part.id, e)}
-                      on:blur={() => confirmRatioInput(expIndex, part.id)}
-                      placeholder="e.g., 2.5"
-                      autofocus
-                    />
-                    <span class="ratio-input-hint">x</span>
-                  {:else}
-                    <button
-                      type="button"
-                      class="ratio-selected"
-                      aria-haspopup="true"
-                      on:click={() =>
-                        startEditingRatio(expIndex, part.id, part.selected)}
-                    >
-                      {part.selected} ✎
-                    </button>
-                  {/if}
-                </span>
-              {:else}
-                {part.selected}
+          <span class="explanation-body">
+            {#each parseRatioText(exp.text) as part (part.id)}
+              {#if part.type === "text"}
+                {part.value}
+              {:else if part.type === "ratio"}
+                {#if part.options.length > 0}
+                  <span class="ratio-wrapper">
+                    {#if editingRatioIndex === getUniqueDropdownId(expIndex, part.id)}
+                      <input
+                        type="text"
+                        class="ratio-input"
+                        bind:value={ratioInputValue}
+                        on:keydown={(e) => handleRatioInput(expIndex, part.id, e)}
+                        on:blur={() => confirmRatioInput(expIndex, part.id)}
+                        placeholder="e.g., 2.5"
+                        autofocus
+                      />
+                      <span class="ratio-input-hint">x</span>
+                    {:else}
+                      <button
+                        type="button"
+                        class="ratio-selected"
+                        aria-haspopup="true"
+                        on:click={() =>
+                          startEditingRatio(expIndex, part.id, part.selected)}
+                      >
+                        {part.selected} ✎
+                      </button>
+                    {/if}
+                  </span>
+                {:else}
+                  {part.selected}
+                {/if}
               {/if}
-            {/if}
-          {/each}
-          <span
-            class="close-button"
-            on:click={() => removeExplanation(expIndex)}
-          >
-            ×
+            {/each}
+            <span
+              class="close-button"
+              on:click={() => removeExplanation(expIndex)}
+            >
+              ×
+            </span>
           </span>
         </span>
       {/each}
@@ -1027,9 +1029,14 @@
 
   .explanation-text {
     display: flex;
-    align-items: flex-start;
+    align-items: baseline;
     gap: 6px;
     width: 100%;
+  }
+
+  .explanation-body {
+    flex: 1;
+    line-height: 1.6;
   }
 
   .explanation-text:has(.close-button:hover) {
