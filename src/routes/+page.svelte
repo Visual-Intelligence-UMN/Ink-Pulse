@@ -30,7 +30,7 @@
     loadPattern,
   } from "../components/cache.js";
   import RankWorker from "../workers/rankWorker.js?worker";
-  import WeightPanel from "../components/weightPanel.svelte";
+  // import WeightPanel from "../components/weightPanel.svelte";
   import Papa from "papaparse";
   import JSZip from "jszip";
   import initSqlJs from "sql.js";
@@ -411,14 +411,14 @@
     isSave = false;
   }
 
-  function handleWeightsClose() {
-    isWeights = false;
-  }
+  // function handleWeightsClose() {
+  //   isWeights = false;
+  // }
 
-  function handleWeightsSave(event) {
-    weights.set(event.detail.weights);
-    isWeights = false;
-  }
+  // function handleWeightsSave(event) {
+  //   weights.set(event.detail.weights);
+  //   isWeights = false;
+  // }
 
   function getPromptCode(sessionId) {
     const found = sessions.find((s) => s.session_id === sessionId);
@@ -814,322 +814,351 @@
   }
 
   async function handleInterpreterFilters(event) {
-    if (isTest) {
-      let { sql } = event.detail;
-      const sourceMatch = sql.match(/source\s*=\s*'(.*?)'/);
-      if (sourceMatch) {
-        const sources = sourceMatch[1].split(",");
-        const sourceConditions = sources
-          .map(
-            (src, idx) =>
-              `JSON_EXTRACT(d.content, '$[' || (n.n + ${idx}) || '].source') = '${src}'`,
-          )
-          .join(" AND ");
-        sql = sql.replace(/source\s*=\s*'(.*?)'/, sourceConditions);
-      }
-
-      const ctx = buildWindowContext(selectedPatterns);
-      if (!ctx) return console.warn("No valid selected pattern");
-      const { windowSize } = ctx;
-
-      const features = ["progress", "time", "semantic_change"];
-      features.forEach((f) => {
-        const match = sql.match(
-          new RegExp(
-            `${f}\\s+BETWEEN\\s+(\\d+(\\.\\d+)?)\\s+AND\\s+(\\d+(\\.\\d+)?)`,
-          ),
-        );
-        if (match) {
-          const minVal = parseFloat(match[1]);
-          const maxVal = parseFloat(match[3]);
-          const expr = Array.from(
-            { length: windowSize },
-            (_, i) =>
-              `CASE WHEN JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = 'user' THEN ${minVal} ELSE 0 END`,
-          ).join(" + ");
-          sql = sql.replace(
-            match[0],
-            `(${expr}) BETWEEN ${minVal} AND ${maxVal}`,
-          );
-        }
-      });
-
-      const elements = Array.from({ length: windowSize }, (_, i) => i);
-      const whereClause = sql
-        .replace(/^SELECT \* FROM sessions WHERE /i, "")
-        .replace(/;$/, "");
-
-      const windowSQL = `
-        WITH RECURSIVE 
-        numbers(n) AS (
-          SELECT 0
-          UNION ALL
-          SELECT n + 1 FROM numbers 
-          WHERE n < (SELECT MAX(json_array_length(content)) - ${windowSize} + 1 FROM data)
+  if (isTest) {
+    // --- 你原来的 isTest 分支不动 ---
+    let { sql } = event.detail;
+    const sourceMatch = sql.match(/source\s*=\s*'(.*?)'/);
+    if (sourceMatch) {
+      const sources = sourceMatch[1].split(",");
+      const sourceConditions = sources
+        .map(
+          (src, idx) =>
+            `JSON_EXTRACT(d.content, '$[' || (n.n + ${idx}) || '].source') = '${src}'`,
         )
-        SELECT
-          d.rowid AS original_rowid,
-          d.content AS original_content,
-          n.n AS window_start,
-          json_array(${elements
-            .map(
-              (i) => `json_extract(json_set(
-                json_extract(d.content, '$[' || (n.n + ${i}) || ']'),
-                '$.id', d.id,
-                '$.segmentId', d.id || '_' || (n.n + ${i})
-              ), '$')`,
-            )
-            .join(", ")}) AS window_content
-        FROM data d
-        JOIN numbers n ON n.n + ${windowSize - 1} < json_array_length(d.content)
-        WHERE json_array_length(d.content) >= ${windowSize}
-          AND ${whereClause}
-        ORDER BY original_rowid, window_start
-        `;
-
-      interpretedQuery = windowSQL;
-      console.log("Processed Test SQL:", windowSQL);
-      return;
+        .join(" AND ");
+      sql = sql.replace(/source\s*=\s*'(.*?)'/, sourceConditions);
     }
 
     const ctx = buildWindowContext(selectedPatterns);
     if (!ctx) return console.warn("No valid selected pattern");
-    const { windowSize, positionOffset } = ctx;
+    const { windowSize } = ctx;
 
-    function resolveSpanRange(span, anchorIdx, windowSize) {
-      switch (span) {
-        case "prefix":
-          return { from: 0, to: anchorIdx };
-        case "suffix":
-          return { from: anchorIdx, to: windowSize - 1 };
-        case "full":
-          return { from: 0, to: windowSize - 1 };
-        default:
-          return null;
-      }
-    }
-
-    function buildExpr({ feature, position, span, source }, ref) {
-      const featureDef = featureMap[feature];
-      if (!featureDef) return null;
-      const sourceValue =
-        source === "Human" ? "user" : source === "AI" ? "api" : null;
-      if (span) {
-        let range;
-        if (span === "full") {
-          range = { from: 0, to: windowSize - 1 };
-        } else if (span === "prefix" || span === "suffix") {
-          const anchorIdx = positionOffset[position];
-          if (anchorIdx == null) {
-            console.warn(
-              `Span ${span} requires position, but position ${position} not found in positionOffset`,
-            );
-            return null;
-          }
-          range = resolveSpanRange(span, anchorIdx, windowSize);
-        } else {
-          console.warn(`Unknown span type: ${span}`);
-          return null;
-        }
-        if (!range) return null;
-        return featureDef.range(range.from, range.to, ref, sourceValue);
-      }
-      const anchorIdx = positionOffset[position];
-      if (anchorIdx == null) {
-        console.warn(
-          `Point query requires position, but position ${position} not found in positionOffset`,
-        );
-        return null;
-      }
-      return featureDef.point(anchorIdx, ref, sourceValue);
-    }
-
-    function parseRelation(relationString) {
-      if (!relationString) return null;
-      const match = relationString.match(
-        /^(\w+)\(([\w_]+)\)\s*(>|<|=)\s*(\w+)\(([\w_]+)\)$/,
+    const features = ["progress", "time", "semantic_change"];
+    features.forEach((f) => {
+      const match = sql.match(
+        new RegExp(
+          `${f}\\s+BETWEEN\\s+(\\d+(\\.\\d+)?)\\s+AND\\s+(\\d+(\\.\\d+)?)`,
+        ),
       );
-      if (!match) return null;
-
-      return {
-        l_source: match[1],
-        l_feature: match[2],
-        operator: match[3],
-        r_source: match[4],
-        r_feature: match[5],
-      };
-    }
-
-    // Helpers to support JavaScript unrolling and offset logic
-    const getProgressExpr = (idx, ref, source) => {
-      const baseExpr = `COALESCE(
-        CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].end_progress') AS REAL),0
-      ) - COALESCE(
-        CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].start_progress') AS REAL),0
-      )`;
-      if (source) {
-        return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+      if (match) {
+        const minVal = parseFloat(match[1]);
+        const maxVal = parseFloat(match[3]);
+        const expr = Array.from(
+          { length: windowSize },
+          (_, i) =>
+            `CASE WHEN JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = 'user' THEN ${minVal} ELSE 0 END`,
+        ).join(" + ");
+        sql = sql.replace(match[0], `(${expr}) BETWEEN ${minVal} AND ${maxVal}`);
       }
-      return baseExpr;
-    };
+    });
 
-    const getTimeExpr = (idx, ref, source) => {
-      const baseExpr = `COALESCE(
-        CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].end_time') AS REAL),0
-      ) - COALESCE(
-        CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].start_time') AS REAL),0
-      )`;
-      if (source) {
-        return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
-      }
-      return baseExpr;
-    };
+    const elements = Array.from({ length: windowSize }, (_, i) => i);
+    const whereClause = sql
+      .replace(/^SELECT \* FROM sessions WHERE /i, "")
+      .replace(/;$/, "");
 
-    const getSemanticExpr = (idx, ref, source) => {
-      const baseExpr = `COALESCE(
-        CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].residual_vector_norm') AS REAL),0
-      )`;
-      if (source) {
-        return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${idx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
-      }
-      return baseExpr;
-    };
-
-    const featureMap = {
-      progress: {
-        point: (idx, ref, source) => getProgressExpr(idx, ref, source),
-        range: (from, to, ref, source) => {
-          const parts = [];
-          for (let i = from; i <= to; i++) {
-            parts.push(getProgressExpr(i, ref, source));
-          }
-          return `(${parts.join(" + ")})`;
-        },
-      },
-      time: {
-        point: (idx, ref, source) => getTimeExpr(idx, ref, source),
-        range: (from, to, ref, source) => {
-          const parts = [];
-          for (let i = from; i <= to; i++) {
-            parts.push(getTimeExpr(i, ref, source));
-          }
-          return `(${parts.join(" + ")})`;
-        },
-      },
-      semantic_change: {
-        point: (idx, ref, source) => getSemanticExpr(idx, ref, source),
-        range: (from, to, ref, source) => {
-          const parts = [];
-          for (let i = from; i <= to; i++) {
-            parts.push(getSemanticExpr(i, ref, source));
-          }
-          return `(${parts.join(" + ")})`;
-        },
-      },
-    };
-    const { explanations, filters } = event.detail;
-    // console.log("explanations", explanations, "filters", filters)
-    const comparisons = filters
-      .map((filter, i) => {
-        if (explanations[i]?.feature === "source") return null;
-        const parsed = parseRelation(filter.relation);
-        if (!parsed) {
-          console.warn("Could not parse relation:", filter.relation);
-          return null;
-        }
-
-        const lExpr = buildExpr(
-          {
-            feature: parsed.l_feature,
-            position: filter.l_position,
-            span: filter.span,
-            source: parsed.l_source,
-          },
-          "d.content",
-        );
-        const rExpr = buildExpr(
-          {
-            feature: parsed.r_feature,
-            position: filter.r_position,
-            span: filter.span,
-            source: parsed.r_source,
-          },
-          "d.content",
-        );
-
-        if (!lExpr || !rExpr) {
-          console.warn("Could not build expressions for:", parsed);
-          return null;
-        }
-        const ratio = filter.ratio;
-        let comparison;
-        if (ratio !== null && ratio !== undefined) {
-          if (parsed.operator === ">") {
-            comparison = `(${lExpr}) ${parsed.operator} ((${rExpr}) * ${ratio})`;
-          } else if (parsed.operator === "<") {
-            comparison = `((${lExpr}) * ${ratio}) ${parsed.operator} (${rExpr})`;
-          } else {
-            comparison = `(${lExpr}) ${parsed.operator} ((${rExpr}) * ${ratio})`;
-          }
-        } else {
-          comparison = `(${lExpr}) ${parsed.operator} (${rExpr})`;
-        }
-
-        return comparison;
-      })
-      .filter(Boolean);
-    const hasSourceConstraint = explanations.some(
-      (exp) => exp.feature === "source",
-    );
-    const sourcePattern = Object.values(selectedPatterns)[0].sources || [];
-    const sourceConstraints = hasSourceConstraint
-      ? sourcePattern.map(
-          (src, i) =>
-            `JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = '${src.replace(/'/g, "''")}'`,
-        )
-      : [];
-    const whereClause = [...comparisons, ...sourceConstraints].join(" AND ");
-    const elements = Array(windowSize)
-      .fill(0)
-      .map((_, i) => i);
-    const sqlQuery = `
+    const windowSQL = `
       WITH RECURSIVE 
       numbers(n) AS (
         SELECT 0
         UNION ALL
         SELECT n + 1 FROM numbers 
-        WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
+        WHERE n < (SELECT MAX(json_array_length(content)) - ${windowSize} + 1 FROM data)
       )
-      SELECT 
-        d.rowid as original_rowid,
-        d.content as original_content,
-        n.n as window_start,
+      SELECT
+        d.rowid AS original_rowid,
+        d.content AS original_content,
+        n.n AS window_start,
         json_array(${elements
           .map(
-            (i) =>
-              `json_extract(json_set(
+            (i) => `json_extract(json_set(
               json_extract(d.content, '$[' || (n.n + ${i}) || ']'),
               '$.id', d.id,
               '$.segmentId', d.id || '_' || (n.n + ${i})
             ), '$')`,
           )
-          .join(", ")}) as window_content
+          .join(", ")}) AS window_content
       FROM data d
-      JOIN numbers n 
-        ON n.n + ${windowSize - 1} < json_array_length(d.content)
+      JOIN numbers n ON n.n + ${windowSize - 1} < json_array_length(d.content)
       WHERE json_array_length(d.content) >= ${windowSize}
-        ${elements
-          .map(
-            (i) =>
-              `AND json_extract(d.content, '$[' || (n.n + ${i}) || ']') IS NOT NULL`,
-          )
-          .join(" ")}
-        ${whereClause ? "AND (" + whereClause + ")" : ""}
+        AND ${whereClause}
       ORDER BY original_rowid, window_start
     `;
-    console.log("SQL:", sqlQuery);
-    interpretedQuery = sqlQuery;
+
+    interpretedQuery = windowSQL;
+    console.log("Processed Test SQL:", windowSQL);
+    return;
   }
+
+  // -------------------------
+  // NON-TEST BRANCH (UPDATED)
+  // -------------------------
+  const ctx = buildWindowContext(selectedPatterns);
+  if (!ctx) return console.warn("No valid selected pattern");
+  const { windowSize } = ctx;
+
+  const { explanations, filters } = event.detail;
+
+  // window source pattern (authoritative from selection)
+  const windowSourcePattern = Object.values(selectedPatterns)[0]?.sources || []; // e.g. ["api","api","user","user"]
+
+  function parseRelation(relationString) {
+    if (!relationString) return null;
+    const match = relationString.match(
+      /^(\w+)\(([\w_]+)\)\s*(>|<|=)\s*(\w+)\(([\w_]+)\)$/,
+    );
+    if (!match) return null;
+
+    return {
+      l_source: match[1],
+      l_feature: match[2],
+      operator: match[3],
+      r_source: match[4],
+      r_feature: match[5],
+    };
+  }
+
+  // --- feature extractors ---
+  const getProgressExpr = (absIdx, ref, source) => {
+    const baseExpr = `COALESCE(
+      CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].end_progress') AS REAL),0
+    ) - COALESCE(
+      CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].start_progress') AS REAL),0
+    )`;
+    if (source) {
+      return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+    }
+    return baseExpr;
+  };
+
+  const getTimeExpr = (absIdx, ref, source) => {
+    const baseExpr = `COALESCE(
+      CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].end_time') AS REAL),0
+    ) - COALESCE(
+      CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].start_time') AS REAL),0
+    )`;
+    if (source) {
+      return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+    }
+    return baseExpr;
+  };
+
+  const getSemanticExpr = (absIdx, ref, source) => {
+    const baseExpr = `COALESCE(
+      CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].residual_vector_norm') AS REAL),0
+    )`;
+    if (source) {
+      return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+    }
+    return baseExpr;
+  };
+
+  const featureMap = {
+    progress: { point: (absIdx, ref, source) => getProgressExpr(absIdx, ref, source) },
+    time: { point: (absIdx, ref, source) => getTimeExpr(absIdx, ref, source) },
+    semantic_change: { point: (absIdx, ref, source) => getSemanticExpr(absIdx, ref, source) },
+  };
+
+  function mapSourceLabelToValue(label) {
+    if (label === "Human") return "user";
+    if (label === "AI") return "api";
+    return null;
+  }
+
+  function buildPointExpr(feature, absIdx, sourceValue) {
+    const featureDef = featureMap[feature];
+    if (!featureDef) return null;
+    if (absIdx < 0 || absIdx >= windowSize) return null;
+    return featureDef.point(absIdx, "d.content", sourceValue);
+  }
+
+  function getPrefixBlockIndices(sourceValue, pattern) {
+    const idxs = [];
+    for (let i = 0; i < pattern.length; i++) {
+      if (pattern[i] === sourceValue) idxs.push(i);
+      else break;
+    }
+    return idxs;
+  }
+
+  function getSuffixBlockIndices(sourceValue, pattern) {
+    const idxs = [];
+    for (let i = pattern.length - 1; i >= 0; i--) {
+      if (pattern[i] === sourceValue) idxs.push(i);
+      else break;
+    }
+    idxs.reverse();
+    return idxs;
+  }
+
+  function getFullIndices(sourceValue, pattern) {
+    const idxs = [];
+    for (let i = 0; i < pattern.length; i++) {
+      if (pattern[i] === sourceValue) idxs.push(i);
+    }
+    return idxs;
+  }
+
+  function getSpanIndices(span, sourceValue, pattern) {
+    if (!span) return null;
+    if (span === "prefix") return getPrefixBlockIndices(sourceValue, pattern);
+    if (span === "suffix") return getSuffixBlockIndices(sourceValue, pattern);
+    if (span === "full") return getFullIndices(sourceValue, pattern);
+    return null;
+  }
+
+  // Find a left index i such that i-1 exists and sources match (right -> left adjacency)
+  function findPrevPairIndex(leftSourceValue, rightSourceValue, pattern, prefer = "first") {
+    const candidates = [];
+    for (let i = 1; i < pattern.length; i++) {
+      if (pattern[i] === leftSourceValue && pattern[i - 1] === rightSourceValue) {
+        candidates.push(i);
+      }
+    }
+    if (candidates.length === 0) return null;
+    return prefer === "last" ? candidates[candidates.length - 1] : candidates[0];
+  }
+
+  function applyRatio(operator, lExpr, rExpr, ratio) {
+    if (ratio == null) return `(${lExpr}) ${operator} (${rExpr})`;
+    if (operator === ">") return `(${lExpr}) > ((${rExpr}) * ${ratio})`;
+    if (operator === "<") return `((${lExpr}) * ${ratio}) < (${rExpr})`;
+    return `(${lExpr}) ${operator} ((${rExpr}) * ${ratio})`;
+  }
+
+  const comparisons = filters
+    .map((filter, i) => {
+      if (explanations[i]?.feature === "source") return null;
+
+      const parsed = parseRelation(filter.relation);
+      if (!parsed) {
+        console.warn("Could not parse relation:", filter.relation);
+        return null;
+      }
+
+      const lSourceValue = mapSourceLabelToValue(parsed.l_source);
+      const rSourceValue = mapSourceLabelToValue(parsed.r_source);
+      const operator = parsed.operator;
+      const ratio = filter.ratio;
+
+      // A) block compare inside span (prefix/suffix/full) using first/last
+      if (filter.span && filter.l_position && filter.r_position) {
+        const idxs = getSpanIndices(filter.span, lSourceValue, windowSourcePattern);
+        if (!idxs || idxs.length === 0) return null;
+
+        const lIdx = filter.l_position === "first" ? idxs[0]
+                   : filter.l_position === "last" ? idxs[idxs.length - 1]
+                   : null;
+
+        const rIdx = filter.r_position === "first" ? idxs[0]
+                   : filter.r_position === "last" ? idxs[idxs.length - 1]
+                   : null;
+
+        if (lIdx == null || rIdx == null) return null;
+
+        const lExpr = buildPointExpr(parsed.l_feature, lIdx, lSourceValue);
+        const rExpr = buildPointExpr(parsed.r_feature, rIdx, rSourceValue);
+        if (!lExpr || !rExpr) return null;
+
+        return applyRatio(operator, lExpr, rExpr, ratio);
+      }
+
+      // B) default prev comparison (pairwise)
+      if (!filter.span && filter.r_position === "prev") {
+        const leftIdx = findPrevPairIndex(lSourceValue, rSourceValue, windowSourcePattern, "first");
+        if (leftIdx == null) return null;
+        const rightIdx = leftIdx - 1;
+
+        const lExpr = buildPointExpr(parsed.l_feature, leftIdx, lSourceValue);
+        const rExpr = buildPointExpr(parsed.r_feature, rightIdx, rSourceValue);
+        if (!lExpr || !rExpr) return null;
+
+        return applyRatio(operator, lExpr, rExpr, ratio);
+      }
+
+      // C) all previous (span="full" && r_position="prev")
+      if (filter.span === "full" && filter.r_position === "prev") {
+        const leftIdx = findPrevPairIndex(lSourceValue, rSourceValue, windowSourcePattern, "first");
+        if (leftIdx == null) return null;
+
+        const lExpr = buildPointExpr(parsed.l_feature, leftIdx, lSourceValue);
+        if (!lExpr) return null;
+
+        const earlierRightIdxs = [];
+        for (let j = 0; j < leftIdx; j++) {
+          if (windowSourcePattern[j] === rSourceValue) earlierRightIdxs.push(j);
+        }
+        if (earlierRightIdxs.length === 0) return null;
+
+        const conds = earlierRightIdxs
+          .map((j) => {
+            const rExpr = buildPointExpr(parsed.r_feature, j, rSourceValue);
+            if (!rExpr) return null;
+            return applyRatio(operator, lExpr, rExpr, ratio);
+          })
+          .filter(Boolean);
+
+        if (conds.length === 0) return null;
+        return "(" + conds.join(" AND ") + ")";
+      }
+
+      console.warn("Unrecognized filter structure:", filter);
+      return null;
+    })
+    .filter(Boolean);
+
+  // source constraint if user included a "source" explanation
+  const hasSourceConstraint = explanations.some((exp) => exp.feature === "source");
+  const sourceConstraints = hasSourceConstraint
+    ? windowSourcePattern.map(
+        (src, i) =>
+          `JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = '${src.replace(/'/g, "''")}'`,
+      )
+    : [];
+
+  const whereClause = [...comparisons, ...sourceConstraints].join(" AND ");
+
+  const elements = Array(windowSize).fill(0).map((_, i) => i);
+
+  const sqlQuery = `
+    WITH RECURSIVE 
+    numbers(n) AS (
+      SELECT 0
+      UNION ALL
+      SELECT n + 1 FROM numbers 
+      WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
+    )
+    SELECT 
+      d.rowid as original_rowid,
+      d.content as original_content,
+      n.n as window_start,
+      json_array(${elements
+        .map(
+          (i) =>
+            `json_extract(json_set(
+              json_extract(d.content, '$[' || (n.n + ${i}) || ']'),
+              '$.id', d.id,
+              '$.segmentId', d.id || '_' || (n.n + ${i})
+            ), '$')`,
+        )
+        .join(", ")}) as window_content
+    FROM data d
+    JOIN numbers n 
+      ON n.n + ${windowSize - 1} < json_array_length(d.content)
+    WHERE json_array_length(d.content) >= ${windowSize}
+      ${elements
+        .map(
+          (i) =>
+            `AND json_extract(d.content, '$[' || (n.n + ${i}) || ']') IS NOT NULL`,
+        )
+        .join(" ")}
+      ${whereClause ? "AND (" + whereClause + ")" : ""}
+    ORDER BY original_rowid, window_start
+  `;
+
+  console.log("SQL:", sqlQuery);
+  interpretedQuery = sqlQuery;
+}
 
   function getTrendPattern(values) {
     const pattern = [];
@@ -1663,40 +1692,40 @@
     return sum;
   }
 
-  let isWeights = false;
-  function setWeight() {
-    isWeights = !isWeights;
-  }
+  // let isWeights = false;
+  // function setWeight() {
+  //   isWeights = !isWeights;
+  // }
   let weights = writable({
-    s: 1.5, // user 1, api 0
-    t: 0.2, // 1s
-    p: 1, // 1% -> 0.01
-    tr: 2.5, // up 1, down -1
-    sem: 2, // 1% -> 0.01
+    s: 1,
+    t: 1,
+    p: 1,
+    tr: 1,
+    sem: 1,
   });
-  let initialWeights = get(weights);
+  // let initialWeights = get(weights);
 
-  $: if (xScaleBarChartFactor || xScaleLineChartFactor) {
-    initialWeights.p = Math.round((yScaleFactor + Number.EPSILON) * 100) / 100;
-    initialWeights.sem =
-      Math.round((xScaleBarChartFactor + Number.EPSILON) * 100) / 100;
-    initialWeights.t =
-      Math.round((xScaleLineChartFactor + Number.EPSILON) * 1e2) / 1e2;
-  }
+  // $: if (xScaleBarChartFactor || xScaleLineChartFactor) {
+  //   initialWeights.p = Math.round((yScaleFactor + Number.EPSILON) * 100) / 100;
+  //   initialWeights.sem =
+  //     Math.round((xScaleBarChartFactor + Number.EPSILON) * 100) / 100;
+  //   initialWeights.t =
+  //     Math.round((xScaleLineChartFactor + Number.EPSILON) * 1e2) / 1e2;
+  // }
 
-  $: if (zoomTransforms && $clickSession?.sessionId && initialWeights) {
-    const scale = zoomTransforms[$clickSession.sessionId]?.k ?? 1;
+  // $: if (zoomTransforms && $clickSession?.sessionId && initialWeights) {
+  //   const scale = zoomTransforms[$clickSession.sessionId]?.k ?? 1;
 
-    weights.update((w) => {
-      const updated = {
-        ...w,
-        t: Math.round((initialWeights.t * scale + Number.EPSILON) * 1e2) / 1e2,
-        p: Math.round((initialWeights.p * scale + Number.EPSILON) * 100) / 100,
-        sem: initialWeights.sem,
-      };
-      return updated;
-    });
-  }
+  //   weights.update((w) => {
+  //     const updated = {
+  //       ...w,
+  //       t: Math.round((initialWeights.t * scale + Number.EPSILON) * 1e2) / 1e2,
+  //       p: Math.round((initialWeights.p * scale + Number.EPSILON) * 100) / 100,
+  //       sem: initialWeights.sem,
+  //     };
+  //     return updated;
+  //   });
+  // }
 
   export async function calculateRankAuto(
     patternVectors,
@@ -5202,13 +5231,6 @@
     {/if}
     {#if showSavedMessage}
       <div class="saved-message">Saved successfully</div>
-    {/if}
-    {#if isWeights}
-      <WeightPanel
-        {weights}
-        on:save={handleWeightsSave}
-        on:close={handleWeightsClose}
-      />
     {/if}
     <div
       class="container"
