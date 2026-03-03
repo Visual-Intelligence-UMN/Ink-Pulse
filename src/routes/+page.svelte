@@ -4429,13 +4429,13 @@
                   <div class="pattern-header">
                     <h5>Session: {sessionId.slice(0, 4)}</h5>
                     <div class="pattern-buttons">
-                      <button
+                      <!-- <button
                         class="weight-button"
                         on:click={setWeight}
                         title="Adjust Weight"
                       >
                         🔧
-                      </button>
+                      </button> -->
                       <button
                         class="search-pattern-button"
                         on:click={() => searchPattern(sessionId)}>Search</button
