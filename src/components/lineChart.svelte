@@ -225,8 +225,8 @@
         const ptsInSegment = points
           .filter(
             (p) =>
-              p.percentage >= segment.start_progress &&
-              p.percentage <= segment.end_progress,
+              p.percentage >= segment.start_progress * 100 &&
+              p.percentage <= segment.end_progress * 100,
           )
           .map((p) => ({
             ...p,
