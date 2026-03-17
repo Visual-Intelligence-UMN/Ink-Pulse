@@ -165,6 +165,8 @@ def check(data, correct):
     #     print("no")
 
 def calculate_progress(data):
+    if not data:
+        return data
     total_length = len(data[-1]['text'])
     current_progress = 0
     for entry in data:

@@ -3560,6 +3560,7 @@
       totalInsertions--;
     }
 
+    totalProcessedCharacters = currentCharArray.length;
     totalSuggestions = chartData.filter((d) => d.isSuggestionOpen).length;
 
     let i = 0; // code about making $text$ grey
@@ -3664,9 +3665,9 @@
         opacity: p.index > point.index ? 0.01 : 1,
       }));
       const similarityData = session.totalSimilarityData || [];
-      const endIndex = similarityData.findIndex(
-        (item) => point.percentage < item.end_progress * 100,
-      );
+      const endIndex = selectedDataset === "halie_metaphor"
+        ? similarityData.findIndex((item) => point.time < item.end_time / 60)
+        : similarityData.findIndex((item) => point.percentage < item.end_progress * 100);
       const selectedData =
         endIndex === -1 ? similarityData : similarityData.slice(0, endIndex);
 
@@ -5592,26 +5593,43 @@
                     >
                       <h3>Session Summary</h3>
                       <div class="summary-container">
-                        <div class="totalText">
-                          {$clickSession.summaryData
-                            ? `Total Text: ${$clickSession.summaryData.totalProcessedCharacters} characters`
-                            : ""}
-                        </div>
-                        <div class="totalInsertions">
-                          {$clickSession.summaryData
-                            ? `Insertions: ${$clickSession.summaryData.totalInsertions}`
-                            : ""}
-                        </div>
-                        <div class="totalDeletions">
-                          {$clickSession.summaryData
-                            ? `Deletions: ${$clickSession.summaryData.totalDeletions}`
-                            : ""}
-                        </div>
-                        <div class="totalSuggestions">
-                          {$clickSession.summaryData
-                            ? `Suggestions: ${$clickSession.summaryData.totalSuggestions}`
-                            : ""}
-                        </div>
+                        {#if selectedDataset === "halie_metaphor" && $clickSession.totalSimilarityData?.length > 0}
+                          <div class="totalText">
+                            Metaphors: {$clickSession.totalSimilarityData.length}
+                          </div>
+                          <div class="totalInsertions">
+                            Avg Acceptance: {Math.round($clickSession.totalSimilarityData.reduce((s, d) => s + (d.acceptance >= 0 ? d.acceptance : 0), 0) / $clickSession.totalSimilarityData.filter(d => d.acceptance >= 0).length)}%
+                          </div>
+                          <div class="totalDeletions">
+                            Total Queries: {$clickSession.totalSimilarityData.reduce((s, d) => s + (d.num_queries || 0), 0)}
+                          </div>
+                          <div class="totalSuggestions">
+                            {$clickSession.summaryData
+                              ? `Suggestions: ${$clickSession.summaryData.totalSuggestions}`
+                              : ""}
+                          </div>
+                        {:else}
+                          <div class="totalText">
+                            {$clickSession.summaryData
+                              ? `Total Text: ${$clickSession.summaryData.totalProcessedCharacters} characters`
+                              : ""}
+                          </div>
+                          <div class="totalInsertions">
+                            {$clickSession.summaryData
+                              ? `Insertions: ${$clickSession.summaryData.totalInsertions}`
+                              : ""}
+                          </div>
+                          <div class="totalDeletions">
+                            {$clickSession.summaryData
+                              ? `Deletions: ${$clickSession.summaryData.totalDeletions}`
+                              : ""}
+                          </div>
+                          <div class="totalSuggestions">
+                            {$clickSession.summaryData
+                              ? `Suggestions: ${$clickSession.summaryData.totalSuggestions}`
+                              : ""}
+                          </div>
+                        {/if}
                       </div>
                     </div>
 
@@ -5816,7 +5834,35 @@
                       <div class="scale" id="scale"></div>
                     </div>
                     <div class="text-container">
-                      {#if $clickSession.textElements && $clickSession.textElements.length > 0}
+                      {#if selectedDataset === "halie_metaphor" && $clickSession.totalSimilarityData?.length > 0}
+                        <div class="metaphor-cards">
+                          {#each $clickSession.totalSimilarityData as seg, idx}
+                            <div class="metaphor-card" style="border-left: 4px solid {seg.source === 'api' ? '#FC8D62' : '#66C2A5'};">
+                              <div class="metaphor-header">
+                                <span class="metaphor-num">#{idx + 1}</span>
+                                <span class="metaphor-model">{seg.model || ""}</span>
+                                {#if seg.acceptance >= 0}
+                                  <span class="metaphor-acceptance" style="background: {seg.acceptance >= 80 ? '#FC8D62' : seg.acceptance >= 50 ? '#FFD92F' : '#66C2A5'};">
+                                    {seg.acceptance}% accepted
+                                  </span>
+                                {/if}
+                              </div>
+                              <div class="metaphor-sentence">{seg.final_sentence || "(empty)"}</div>
+                              {#if seg.model_completion}
+                                <div class="metaphor-completion">
+                                  <span class="completion-label">AI suggestion:</span> {seg.model_completion}
+                                </div>
+                              {/if}
+                              <div class="metaphor-meta">
+                                <span>Queries: {seg.num_queries ?? "?"}</span>
+                                {#if seg.residual_vector_norm > 0}
+                                  <span>Semantic Δ: {seg.residual_vector_norm.toFixed(2)}</span>
+                                {/if}
+                              </div>
+                            </div>
+                          {/each}
+                        </div>
+                      {:else if $clickSession.textElements && $clickSession.textElements.length > 0}
                         {#each $clickSession.textElements as element, _}
                           <span
                             class="text-span"
@@ -5941,6 +5987,74 @@
 
   .text-span {
     display: inline;
+  }
+
+  .metaphor-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 8px 4px;
+  }
+
+  .metaphor-card {
+    background: #fafafa;
+    border-radius: 6px;
+    padding: 10px 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  .metaphor-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 0.8rem;
+  }
+
+  .metaphor-num {
+    font-weight: 700;
+    color: #333;
+  }
+
+  .metaphor-model {
+    color: #888;
+    font-style: italic;
+  }
+
+  .metaphor-acceptance {
+    margin-left: auto;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .metaphor-sentence {
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: #222;
+    margin-bottom: 4px;
+  }
+
+  .metaphor-completion {
+    font-size: 0.82rem;
+    color: #777;
+    margin-bottom: 4px;
+    font-style: italic;
+  }
+
+  .completion-label {
+    font-weight: 600;
+    color: #FC8D62;
+    font-style: normal;
+  }
+
+  .metaphor-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 0.75rem;
+    color: #999;
   }
 
   .progress-container {
