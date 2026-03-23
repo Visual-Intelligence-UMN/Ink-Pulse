@@ -5713,7 +5713,7 @@
                             bind:zoomTransform={
                               zoomTransforms[$clickSession.sessionId]
                             }
-                            {selectionMode}
+                            selectionMode={false}
                             bind:sharedSelection
                             on:selectionChanged={handleSelectionChanged}
                             on:selectionCleared={handleSelectionCleared}
@@ -5723,7 +5723,7 @@
                         </div>
 
                         <!-- Brush toggle: Progress/Time -->
-                        {#if selectionMode}
+                        <!-- {#if selectionMode}
                           <div class="brush-toggle-container">
                             <span class="label" class:active={!brushIsX}
                               >Progress</span
@@ -5739,7 +5739,7 @@
                               >Time</span
                             >
                           </div>
-                        {/if}
+                        {/if} -->
                       </div>
                     </div>
                   </div>

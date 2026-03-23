@@ -13,7 +13,7 @@
   export let yAxisField = "progress"; // Add：new Y axis feature
   export let sessionId;
   const TREND_THRESHOLD = 5;
-  console.log("id", sessionId)
+  console.log("id", sessionId);
 
   type ChartEvents = {
     pointSelected: {
@@ -129,36 +129,52 @@
     brushGroup.call(brushX);
   });
 
-  $: {
-    if (brushGroup && brushX && brushY) {
-      if (!selectionMode) {
-        brushGroup.call(brushX.move, null);
-        brushGroup.call(brushY.move, null);
-        brushGroup.select(".overlay").style("pointer-events", "none");
+  // $: {
+  //   if (brushGroup && brushX && brushY) {
+  //     if (!selectionMode) {
+  //       brushGroup.call(brushX.move, null);
+  //       brushGroup.call(brushY.move, null);
+  //       brushGroup.select(".overlay").style("pointer-events", "none");
+  //     } else {
+  //       brushGroup.select(".overlay").style("pointer-events", "all");
+  //       if (
+  //         sharedSelection &&
+  //         sharedSelection.selectionSource != "lineChart_y" &&
+  //         sharedSelection.selectionSource != "lineChart_x"
+  //       ) {
+  //         brushGroup.select(".selection").style("display", "none");
+  //       } else {
+  //         brushGroup.select(".selection").style("display", null);
+  //       }
+  //     }
+  //   }
+  // }
+
+  $: if (brushGroup && brushX && brushY) {
+    if (!selectionMode) {
+      brushGroup.call(brushX.move, null);
+      brushGroup.call(brushY.move, null);
+      brushGroup.select(".overlay").style("pointer-events", "none");
+    } else {
+      brushGroup.select(".overlay").style("pointer-events", "all");
+
+      if (brushIsX) {
+        brushGroup.call(brushX);
       } else {
-        brushGroup.select(".overlay").style("pointer-events", "all");
-        if (
-          sharedSelection &&
-          sharedSelection.selectionSource != "lineChart_y" &&
-          sharedSelection.selectionSource != "lineChart_x"
-        ) {
-          brushGroup.select(".selection").style("display", "none");
-        } else {
-          brushGroup.select(".selection").style("display", null);
-        }
+        brushGroup.call(brushY);
       }
     }
   }
 
-  $: if (brushGroup && zoomTransform) {
-    brushGroup.select(".selection").style("display", "none");
-  }
+  // $: if (brushGroup && zoomTransform) {
+  //   brushGroup.select(".selection").style("display", "none");
+  // }
 
   function getCircleOpacity(d) {
-    if (!selectionMode) {
-      // original logic
-      return selectedPoint === d || hoveredPoint === d ? 1 : d.opacity;
-    }
+    // if (!selectionMode) {
+    //   // original logic
+    //   return selectedPoint === d || hoveredPoint === d ? 1 : d.opacity;
+    // }
 
     if (!sharedSelection) {
       // selectionMode active but no brush yet
@@ -304,7 +320,7 @@
       }
     }
 
-    console.log("num: ", result.length)
+    console.log("num: ", result.length);
 
     return result;
   }
