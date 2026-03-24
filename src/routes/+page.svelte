@@ -227,6 +227,7 @@
 
   // Playback control variables
   let isPlaying = false;
+  let playbackActive = false;
   let playbackIndex = 0;
   let playbackTimer = null;
   let playbackSpeed = 1; // Default 1x speed (real-time)
@@ -814,50 +815,53 @@
   }
 
   async function handleInterpreterFilters(event) {
-  if (isTest) {
-    // --- 你原来的 isTest 分支不动 ---
-    let { sql } = event.detail;
-    const sourceMatch = sql.match(/source\s*=\s*'(.*?)'/);
-    if (sourceMatch) {
-      const sources = sourceMatch[1].split(",");
-      const sourceConditions = sources
-        .map(
-          (src, idx) =>
-            `JSON_EXTRACT(d.content, '$[' || (n.n + ${idx}) || '].source') = '${src}'`,
-        )
-        .join(" AND ");
-      sql = sql.replace(/source\s*=\s*'(.*?)'/, sourceConditions);
-    }
-
-    const ctx = buildWindowContext(selectedPatterns);
-    if (!ctx) return console.warn("No valid selected pattern");
-    const { windowSize } = ctx;
-
-    const features = ["progress", "time", "semantic_change"];
-    features.forEach((f) => {
-      const match = sql.match(
-        new RegExp(
-          `${f}\\s+BETWEEN\\s+(\\d+(\\.\\d+)?)\\s+AND\\s+(\\d+(\\.\\d+)?)`,
-        ),
-      );
-      if (match) {
-        const minVal = parseFloat(match[1]);
-        const maxVal = parseFloat(match[3]);
-        const expr = Array.from(
-          { length: windowSize },
-          (_, i) =>
-            `CASE WHEN JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = 'user' THEN ${minVal} ELSE 0 END`,
-        ).join(" + ");
-        sql = sql.replace(match[0], `(${expr}) BETWEEN ${minVal} AND ${maxVal}`);
+    if (isTest) {
+      // --- 你原来的 isTest 分支不动 ---
+      let { sql } = event.detail;
+      const sourceMatch = sql.match(/source\s*=\s*'(.*?)'/);
+      if (sourceMatch) {
+        const sources = sourceMatch[1].split(",");
+        const sourceConditions = sources
+          .map(
+            (src, idx) =>
+              `JSON_EXTRACT(d.content, '$[' || (n.n + ${idx}) || '].source') = '${src}'`,
+          )
+          .join(" AND ");
+        sql = sql.replace(/source\s*=\s*'(.*?)'/, sourceConditions);
       }
-    });
 
-    const elements = Array.from({ length: windowSize }, (_, i) => i);
-    const whereClause = sql
-      .replace(/^SELECT \* FROM sessions WHERE /i, "")
-      .replace(/;$/, "");
+      const ctx = buildWindowContext(selectedPatterns);
+      if (!ctx) return console.warn("No valid selected pattern");
+      const { windowSize } = ctx;
 
-    const windowSQL = `
+      const features = ["progress", "time", "semantic_change"];
+      features.forEach((f) => {
+        const match = sql.match(
+          new RegExp(
+            `${f}\\s+BETWEEN\\s+(\\d+(\\.\\d+)?)\\s+AND\\s+(\\d+(\\.\\d+)?)`,
+          ),
+        );
+        if (match) {
+          const minVal = parseFloat(match[1]);
+          const maxVal = parseFloat(match[3]);
+          const expr = Array.from(
+            { length: windowSize },
+            (_, i) =>
+              `CASE WHEN JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = 'user' THEN ${minVal} ELSE 0 END`,
+          ).join(" + ");
+          sql = sql.replace(
+            match[0],
+            `(${expr}) BETWEEN ${minVal} AND ${maxVal}`,
+          );
+        }
+      });
+
+      const elements = Array.from({ length: windowSize }, (_, i) => i);
+      const whereClause = sql
+        .replace(/^SELECT \* FROM sessions WHERE /i, "")
+        .replace(/;$/, "");
+
+      const windowSQL = `
       WITH RECURSIVE 
       numbers(n) AS (
         SELECT 0
@@ -885,242 +889,288 @@
       ORDER BY original_rowid, window_start
     `;
 
-    interpretedQuery = windowSQL;
-    console.log("Processed Test SQL:", windowSQL);
-    return;
-  }
+      interpretedQuery = windowSQL;
+      console.log("Processed Test SQL:", windowSQL);
+      return;
+    }
 
-  // -------------------------
-  // NON-TEST BRANCH (UPDATED)
-  // -------------------------
-  const ctx = buildWindowContext(selectedPatterns);
-  if (!ctx) return console.warn("No valid selected pattern");
-  const { windowSize } = ctx;
+    // -------------------------
+    // NON-TEST BRANCH (UPDATED)
+    // -------------------------
+    const ctx = buildWindowContext(selectedPatterns);
+    if (!ctx) return console.warn("No valid selected pattern");
+    const { windowSize } = ctx;
 
-  const { explanations, filters } = event.detail;
+    const { explanations, filters } = event.detail;
 
-  // window source pattern (authoritative from selection)
-  const windowSourcePattern = Object.values(selectedPatterns)[0]?.sources || []; // e.g. ["api","api","user","user"]
+    // window source pattern (authoritative from selection)
+    const windowSourcePattern =
+      Object.values(selectedPatterns)[0]?.sources || []; // e.g. ["api","api","user","user"]
 
-  function parseRelation(relationString) {
-    if (!relationString) return null;
-    const match = relationString.match(
-      /^(\w+)\(([\w_]+)\)\s*(>|<|=)\s*(\w+)\(([\w_]+)\)$/,
-    );
-    if (!match) return null;
+    function parseRelation(relationString) {
+      if (!relationString) return null;
+      const match = relationString.match(
+        /^(\w+)\(([\w_]+)\)\s*(>|<|=)\s*(\w+)\(([\w_]+)\)$/,
+      );
+      if (!match) return null;
 
-    return {
-      l_source: match[1],
-      l_feature: match[2],
-      operator: match[3],
-      r_source: match[4],
-      r_feature: match[5],
-    };
-  }
+      return {
+        l_source: match[1],
+        l_feature: match[2],
+        operator: match[3],
+        r_source: match[4],
+        r_feature: match[5],
+      };
+    }
 
-  // --- feature extractors ---
-  const getProgressExpr = (absIdx, ref, source) => {
-    const baseExpr = `COALESCE(
+    // --- feature extractors ---
+    const getProgressExpr = (absIdx, ref, source) => {
+      const baseExpr = `COALESCE(
       CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].end_progress') AS REAL),0
     ) - COALESCE(
       CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].start_progress') AS REAL),0
     )`;
-    if (source) {
-      return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
-    }
-    return baseExpr;
-  };
+      if (source) {
+        return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+      }
+      return baseExpr;
+    };
 
-  const getTimeExpr = (absIdx, ref, source) => {
-    const baseExpr = `COALESCE(
+    const getTimeExpr = (absIdx, ref, source) => {
+      const baseExpr = `COALESCE(
       CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].end_time') AS REAL),0
     ) - COALESCE(
       CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].start_time') AS REAL),0
     )`;
-    if (source) {
-      return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
-    }
-    return baseExpr;
-  };
+      if (source) {
+        return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+      }
+      return baseExpr;
+    };
 
-  const getSemanticExpr = (absIdx, ref, source) => {
-    const baseExpr = `COALESCE(
+    const getSemanticExpr = (absIdx, ref, source) => {
+      const baseExpr = `COALESCE(
       CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].residual_vector_norm') AS REAL),0
     )`;
-    if (source) {
-      return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
-    }
-    return baseExpr;
-  };
-
-  const featureMap = {
-    progress: { point: (absIdx, ref, source) => getProgressExpr(absIdx, ref, source) },
-    time: { point: (absIdx, ref, source) => getTimeExpr(absIdx, ref, source) },
-    semantic_change: { point: (absIdx, ref, source) => getSemanticExpr(absIdx, ref, source) },
-  };
-
-  function mapSourceLabelToValue(label) {
-    if (label === "Human") return "user";
-    if (label === "AI") return "api";
-    return null;
-  }
-
-  function buildPointExpr(feature, absIdx, sourceValue) {
-    const featureDef = featureMap[feature];
-    if (!featureDef) return null;
-    if (absIdx < 0 || absIdx >= windowSize) return null;
-    return featureDef.point(absIdx, "d.content", sourceValue);
-  }
-
-  function getPrefixBlockIndices(sourceValue, pattern) {
-    const idxs = [];
-    for (let i = 0; i < pattern.length; i++) {
-      if (pattern[i] === sourceValue) idxs.push(i);
-      else break;
-    }
-    return idxs;
-  }
-
-  function getSuffixBlockIndices(sourceValue, pattern) {
-    const idxs = [];
-    for (let i = pattern.length - 1; i >= 0; i--) {
-      if (pattern[i] === sourceValue) idxs.push(i);
-      else break;
-    }
-    idxs.reverse();
-    return idxs;
-  }
-
-  function getFullIndices(sourceValue, pattern) {
-    const idxs = [];
-    for (let i = 0; i < pattern.length; i++) {
-      if (pattern[i] === sourceValue) idxs.push(i);
-    }
-    return idxs;
-  }
-
-  function getSpanIndices(span, sourceValue, pattern) {
-    if (!span) return null;
-    if (span === "prefix") return getPrefixBlockIndices(sourceValue, pattern);
-    if (span === "suffix") return getSuffixBlockIndices(sourceValue, pattern);
-    if (span === "full") return getFullIndices(sourceValue, pattern);
-    return null;
-  }
-
-  // Find a left index i such that i-1 exists and sources match (right -> left adjacency)
-  function findPrevPairIndex(leftSourceValue, rightSourceValue, pattern, prefer = "first") {
-    const candidates = [];
-    for (let i = 1; i < pattern.length; i++) {
-      if (pattern[i] === leftSourceValue && pattern[i - 1] === rightSourceValue) {
-        candidates.push(i);
+      if (source) {
+        return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
       }
-    }
-    if (candidates.length === 0) return null;
-    return prefer === "last" ? candidates[candidates.length - 1] : candidates[0];
-  }
+      return baseExpr;
+    };
 
-  function applyRatio(operator, lExpr, rExpr, ratio) {
-    if (ratio == null) return `(${lExpr}) ${operator} (${rExpr})`;
-    if (operator === ">") return `(${lExpr}) > ((${rExpr}) * ${ratio})`;
-    if (operator === "<") return `((${lExpr}) * ${ratio}) < (${rExpr})`;
-    return `(${lExpr}) ${operator} ((${rExpr}) * ${ratio})`;
-  }
+    const featureMap = {
+      progress: {
+        point: (absIdx, ref, source) => getProgressExpr(absIdx, ref, source),
+      },
+      time: {
+        point: (absIdx, ref, source) => getTimeExpr(absIdx, ref, source),
+      },
+      semantic_change: {
+        point: (absIdx, ref, source) => getSemanticExpr(absIdx, ref, source),
+      },
+    };
 
-  const comparisons = filters
-    .map((filter, i) => {
-      if (explanations[i]?.feature === "source") return null;
-
-      const parsed = parseRelation(filter.relation);
-      if (!parsed) {
-        console.warn("Could not parse relation:", filter.relation);
-        return null;
-      }
-
-      const lSourceValue = mapSourceLabelToValue(parsed.l_source);
-      const rSourceValue = mapSourceLabelToValue(parsed.r_source);
-      const operator = parsed.operator;
-      const ratio = filter.ratio;
-
-      // A) block compare inside span (prefix/suffix/full) using first/last
-      if (filter.span && filter.l_position && filter.r_position) {
-        const idxs = getSpanIndices(filter.span, lSourceValue, windowSourcePattern);
-        if (!idxs || idxs.length === 0) return null;
-
-        const lIdx = filter.l_position === "first" ? idxs[0]
-                   : filter.l_position === "last" ? idxs[idxs.length - 1]
-                   : null;
-
-        const rIdx = filter.r_position === "first" ? idxs[0]
-                   : filter.r_position === "last" ? idxs[idxs.length - 1]
-                   : null;
-
-        if (lIdx == null || rIdx == null) return null;
-
-        const lExpr = buildPointExpr(parsed.l_feature, lIdx, lSourceValue);
-        const rExpr = buildPointExpr(parsed.r_feature, rIdx, rSourceValue);
-        if (!lExpr || !rExpr) return null;
-
-        return applyRatio(operator, lExpr, rExpr, ratio);
-      }
-
-      // B) default prev comparison (pairwise)
-      if (!filter.span && filter.r_position === "prev") {
-        const leftIdx = findPrevPairIndex(lSourceValue, rSourceValue, windowSourcePattern, "first");
-        if (leftIdx == null) return null;
-        const rightIdx = leftIdx - 1;
-
-        const lExpr = buildPointExpr(parsed.l_feature, leftIdx, lSourceValue);
-        const rExpr = buildPointExpr(parsed.r_feature, rightIdx, rSourceValue);
-        if (!lExpr || !rExpr) return null;
-
-        return applyRatio(operator, lExpr, rExpr, ratio);
-      }
-
-      // C) all previous (span="full" && r_position="prev")
-      if (filter.span === "full" && filter.r_position === "prev") {
-        const leftIdx = findPrevPairIndex(lSourceValue, rSourceValue, windowSourcePattern, "first");
-        if (leftIdx == null) return null;
-
-        const lExpr = buildPointExpr(parsed.l_feature, leftIdx, lSourceValue);
-        if (!lExpr) return null;
-
-        const earlierRightIdxs = [];
-        for (let j = 0; j < leftIdx; j++) {
-          if (windowSourcePattern[j] === rSourceValue) earlierRightIdxs.push(j);
-        }
-        if (earlierRightIdxs.length === 0) return null;
-
-        const conds = earlierRightIdxs
-          .map((j) => {
-            const rExpr = buildPointExpr(parsed.r_feature, j, rSourceValue);
-            if (!rExpr) return null;
-            return applyRatio(operator, lExpr, rExpr, ratio);
-          })
-          .filter(Boolean);
-
-        if (conds.length === 0) return null;
-        return "(" + conds.join(" AND ") + ")";
-      }
-
-      console.warn("Unrecognized filter structure:", filter);
+    function mapSourceLabelToValue(label) {
+      if (label === "Human") return "user";
+      if (label === "AI") return "api";
       return null;
-    })
-    .filter(Boolean);
+    }
 
-  // source constraint if user included a "source" explanation
-  const hasSourceConstraint = explanations.some((exp) => exp.feature === "source");
-  const sourceConstraints = hasSourceConstraint
-    ? windowSourcePattern.map(
-        (src, i) =>
-          `JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = '${src.replace(/'/g, "''")}'`,
-      )
-    : [];
+    function buildPointExpr(feature, absIdx, sourceValue) {
+      const featureDef = featureMap[feature];
+      if (!featureDef) return null;
+      if (absIdx < 0 || absIdx >= windowSize) return null;
+      return featureDef.point(absIdx, "d.content", sourceValue);
+    }
 
-  const whereClause = [...comparisons, ...sourceConstraints].join(" AND ");
+    function getPrefixBlockIndices(sourceValue, pattern) {
+      const idxs = [];
+      for (let i = 0; i < pattern.length; i++) {
+        if (pattern[i] === sourceValue) idxs.push(i);
+        else break;
+      }
+      return idxs;
+    }
 
-  const elements = Array(windowSize).fill(0).map((_, i) => i);
+    function getSuffixBlockIndices(sourceValue, pattern) {
+      const idxs = [];
+      for (let i = pattern.length - 1; i >= 0; i--) {
+        if (pattern[i] === sourceValue) idxs.push(i);
+        else break;
+      }
+      idxs.reverse();
+      return idxs;
+    }
 
-  const sqlQuery = `
+    function getFullIndices(sourceValue, pattern) {
+      const idxs = [];
+      for (let i = 0; i < pattern.length; i++) {
+        if (pattern[i] === sourceValue) idxs.push(i);
+      }
+      return idxs;
+    }
+
+    function getSpanIndices(span, sourceValue, pattern) {
+      if (!span) return null;
+      if (span === "prefix") return getPrefixBlockIndices(sourceValue, pattern);
+      if (span === "suffix") return getSuffixBlockIndices(sourceValue, pattern);
+      if (span === "full") return getFullIndices(sourceValue, pattern);
+      return null;
+    }
+
+    // Find a left index i such that i-1 exists and sources match (right -> left adjacency)
+    function findPrevPairIndex(
+      leftSourceValue,
+      rightSourceValue,
+      pattern,
+      prefer = "first",
+    ) {
+      const candidates = [];
+      for (let i = 1; i < pattern.length; i++) {
+        if (
+          pattern[i] === leftSourceValue &&
+          pattern[i - 1] === rightSourceValue
+        ) {
+          candidates.push(i);
+        }
+      }
+      if (candidates.length === 0) return null;
+      return prefer === "last"
+        ? candidates[candidates.length - 1]
+        : candidates[0];
+    }
+
+    function applyRatio(operator, lExpr, rExpr, ratio) {
+      if (ratio == null) return `(${lExpr}) ${operator} (${rExpr})`;
+      if (operator === ">") return `(${lExpr}) > ((${rExpr}) * ${ratio})`;
+      if (operator === "<") return `((${lExpr}) * ${ratio}) < (${rExpr})`;
+      return `(${lExpr}) ${operator} ((${rExpr}) * ${ratio})`;
+    }
+
+    const comparisons = filters
+      .map((filter, i) => {
+        if (explanations[i]?.feature === "source") return null;
+
+        const parsed = parseRelation(filter.relation);
+        if (!parsed) {
+          console.warn("Could not parse relation:", filter.relation);
+          return null;
+        }
+
+        const lSourceValue = mapSourceLabelToValue(parsed.l_source);
+        const rSourceValue = mapSourceLabelToValue(parsed.r_source);
+        const operator = parsed.operator;
+        const ratio = filter.ratio;
+
+        // A) block compare inside span (prefix/suffix/full) using first/last
+        if (filter.span && filter.l_position && filter.r_position) {
+          const idxs = getSpanIndices(
+            filter.span,
+            lSourceValue,
+            windowSourcePattern,
+          );
+          if (!idxs || idxs.length === 0) return null;
+
+          const lIdx =
+            filter.l_position === "first"
+              ? idxs[0]
+              : filter.l_position === "last"
+                ? idxs[idxs.length - 1]
+                : null;
+
+          const rIdx =
+            filter.r_position === "first"
+              ? idxs[0]
+              : filter.r_position === "last"
+                ? idxs[idxs.length - 1]
+                : null;
+
+          if (lIdx == null || rIdx == null) return null;
+
+          const lExpr = buildPointExpr(parsed.l_feature, lIdx, lSourceValue);
+          const rExpr = buildPointExpr(parsed.r_feature, rIdx, rSourceValue);
+          if (!lExpr || !rExpr) return null;
+
+          return applyRatio(operator, lExpr, rExpr, ratio);
+        }
+
+        // B) default prev comparison (pairwise)
+        if (!filter.span && filter.r_position === "prev") {
+          const leftIdx = findPrevPairIndex(
+            lSourceValue,
+            rSourceValue,
+            windowSourcePattern,
+            "first",
+          );
+          if (leftIdx == null) return null;
+          const rightIdx = leftIdx - 1;
+
+          const lExpr = buildPointExpr(parsed.l_feature, leftIdx, lSourceValue);
+          const rExpr = buildPointExpr(
+            parsed.r_feature,
+            rightIdx,
+            rSourceValue,
+          );
+          if (!lExpr || !rExpr) return null;
+
+          return applyRatio(operator, lExpr, rExpr, ratio);
+        }
+
+        // C) all previous (span="full" && r_position="prev")
+        if (filter.span === "full" && filter.r_position === "prev") {
+          const leftIdx = findPrevPairIndex(
+            lSourceValue,
+            rSourceValue,
+            windowSourcePattern,
+            "first",
+          );
+          if (leftIdx == null) return null;
+
+          const lExpr = buildPointExpr(parsed.l_feature, leftIdx, lSourceValue);
+          if (!lExpr) return null;
+
+          const earlierRightIdxs = [];
+          for (let j = 0; j < leftIdx; j++) {
+            if (windowSourcePattern[j] === rSourceValue)
+              earlierRightIdxs.push(j);
+          }
+          if (earlierRightIdxs.length === 0) return null;
+
+          const conds = earlierRightIdxs
+            .map((j) => {
+              const rExpr = buildPointExpr(parsed.r_feature, j, rSourceValue);
+              if (!rExpr) return null;
+              return applyRatio(operator, lExpr, rExpr, ratio);
+            })
+            .filter(Boolean);
+
+          if (conds.length === 0) return null;
+          return "(" + conds.join(" AND ") + ")";
+        }
+
+        console.warn("Unrecognized filter structure:", filter);
+        return null;
+      })
+      .filter(Boolean);
+
+    // source constraint if user included a "source" explanation
+    const hasSourceConstraint = explanations.some(
+      (exp) => exp.feature === "source",
+    );
+    const sourceConstraints = hasSourceConstraint
+      ? windowSourcePattern.map(
+          (src, i) =>
+            `JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = '${src.replace(/'/g, "''")}'`,
+        )
+      : [];
+
+    const whereClause = [...comparisons, ...sourceConstraints].join(" AND ");
+
+    const elements = Array(windowSize)
+      .fill(0)
+      .map((_, i) => i);
+
+    const sqlQuery = `
     WITH RECURSIVE 
     numbers(n) AS (
       SELECT 0
@@ -1156,9 +1206,9 @@
     ORDER BY original_rowid, window_start
   `;
 
-  console.log("SQL:", sqlQuery);
-  interpretedQuery = sqlQuery;
-}
+    console.log("SQL:", sqlQuery);
+    interpretedQuery = sqlQuery;
+  }
 
   function getTrendPattern(values) {
     const pattern = [];
@@ -2380,7 +2430,10 @@
       );
       const currentTime = (time100.getTime() - time0.getTime()) / (1000 * 60); // in minutes
       const similarityData = await fetchSimilarityData(sessionFile);
-      const { chartData, textElements } = handleEventsSummary(data, similarityData);
+      const { chartData, textElements } = handleEventsSummary(
+        data,
+        similarityData,
+      );
       let updatedSession = {
         sessionId: sessionFile,
         time0,
@@ -2683,9 +2736,7 @@
 
       // Check if numeric
       if (typeof value !== "number") {
-        console.log(
-          `Skipping non-numeric field: ${key} (${typeof value})`,
-        );
+        console.log(`Skipping non-numeric field: ${key} (${typeof value})`);
         continue;
       }
 
@@ -3143,11 +3194,11 @@
     //     const dbBuffer = await dbResponse.arrayBuffer();
     //     const db = new SQL.Database(new Uint8Array(dbBuffer));
     //     const stepStats = db.exec(`
-    //       WITH RECURSIVE 
+    //       WITH RECURSIVE
     //             numbers(n) AS (
     //               SELECT 0
     //               UNION ALL
-    //               SELECT n + 1 FROM numbers 
+    //               SELECT n + 1 FROM numbers
     //               WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
     //             ),
     //             idx AS (
@@ -3155,18 +3206,18 @@
     //               UNION ALL
     //               SELECT i + 1 FROM idx WHERE i < 1
     //             )
-    //             SELECT 
+    //             SELECT
     //               d.rowid as original_rowid,
     //               d.content as original_content,
     //               n.n as window_start,
     //               json_array(json_extract(d.content, '$[' || (n.n + 0) || ']'), json_extract(d.content, '$[' || (n.n + 1) || ']')) as window_content
     //             FROM data d
-    //             JOIN numbers n 
+    //             JOIN numbers n
     //               ON n.n + 1 < json_array_length(d.content)
     //             WHERE json_array_length(d.content) >= 2
     //               AND json_extract(d.content, '$[' || (n.n + 0) || ']') IS NOT NULL AND json_extract(d.content, '$[' || (n.n + 1) || ']') IS NOT NULL
     //               AND (((
-    //                   SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user' 
+    //                   SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user'
     //                       THEN COALESCE(
     //                         CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
     //                       ) - COALESCE(
@@ -3175,7 +3226,7 @@
     //                   FROM idx k
     //                   WHERE k.i BETWEEN 0 AND 1
     //                 )) > (((
-    //                   SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api' 
+    //                   SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api'
     //                       THEN COALESCE(
     //                         CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
     //                       ) - COALESCE(
@@ -3259,7 +3310,8 @@
     if (!$clickSession || !$clickSession.sessionId) return;
     barDragState = {
       startX: event.clientX,
-      initialTransform: zoomTransforms[$clickSession.sessionId] || d3.zoomIdentity,
+      initialTransform:
+        zoomTransforms[$clickSession.sessionId] || d3.zoomIdentity,
     };
     event.preventDefault();
   }
@@ -3277,9 +3329,7 @@
     const minX = -barChartAreaWidth * (t.k - 1);
     const newX = Math.max(minX, Math.min(0, t.x + dx));
 
-    zoomTransforms[sessionId] = d3.zoomIdentity
-      .translate(newX, t.y)
-      .scale(t.k);
+    zoomTransforms[sessionId] = d3.zoomIdentity.translate(newX, t.y).scale(t.k);
 
     zoomTransforms = { ...zoomTransforms };
   }
@@ -3344,7 +3394,14 @@
     );
 
     data.actions.forEach((event, idx) => {
-      const { name, event_time, eventSource, text = "", count = 0, pos = 0 } = event;
+      const {
+        name,
+        event_time,
+        eventSource,
+        text = "",
+        count = 0,
+        pos = 0,
+      } = event;
 
       const textColor = sourceColorManager.getColor(eventSource);
       const eventTime = new Date(event_time);
@@ -3670,6 +3727,69 @@
     return idx === -1 ? data.length - 1 : idx;
   }
 
+  function getSentenceColorSpans(seg, chartData) {
+    const fullSentence = seg.final_sentence || "";
+    if (!fullSentence) return null;
+
+    const humanColor = sourceColorManager.getColor("user");
+    const aiColor = sourceColorManager.getColor("api");
+    const startTimeMin = seg.start_time / 60;
+    const endTimeMin = seg.end_time / 60;
+
+    // Split into individual lines (multi-sentence segments have \n separators)
+    const lines = fullSentence.split("\n");
+    const allSpans = [];
+
+    for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+      const line = lines[lineIdx];
+      const suffix = lineIdx < lines.length - 1 ? "\n" : "";
+
+      if (!line) {
+        if (suffix) allSpans.push({ text: suffix, color: humanColor });
+        continue;
+      }
+
+      // Try event stream: find the last chartData frame in [start_time, end_time]
+      // where this individual line appears in currentText
+      let bestEntry = null;
+      if (chartData && chartData.length > 0) {
+        for (const d of chartData) {
+          if (d.time < startTimeMin - 1e-6) continue;
+          if (d.time > endTimeMin + 1e-6) break;
+          if (d.currentText?.includes(line)) bestEntry = d;
+        }
+      }
+
+      if (bestEntry) {
+        const charIdx = bestEntry.currentText.indexOf(line);
+        const colors = bestEntry.currentColor.slice(charIdx, charIdx + line.length);
+        let i = 0;
+        while (i < line.length) {
+          const color = colors[i];
+          let j = i;
+          while (j < line.length && colors[j] === color) j++;
+          allSpans.push({ text: line.slice(i, j), color });
+          i = j;
+        }
+      } else {
+        // Fallback: use model_completion suffix (only reliable for last line)
+        const completion = seg.model_completion || "";
+        if (lineIdx === lines.length - 1 && completion.length >= 3 && line.endsWith(completion)) {
+          const humanPart = line.slice(0, line.length - completion.length);
+          if (humanPart) allSpans.push({ text: humanPart, color: humanColor });
+          allSpans.push({ text: completion, color: aiColor });
+        } else {
+          const fallbackColor = seg.source === "api" ? aiColor : humanColor;
+          allSpans.push({ text: line, color: fallbackColor });
+        }
+      }
+
+      if (suffix) allSpans.push({ text: suffix, color: humanColor });
+    }
+
+    return allSpans.length > 0 ? allSpans : null;
+  }
+
   function applyPlaybackFrame(sessionId, index) {
     clickSession.update((session) => {
       if (!session || session.sessionId !== sessionId) return session;
@@ -3687,9 +3807,12 @@
         opacity: p.index > point.index ? 0.01 : 1,
       }));
       const similarityData = session.totalSimilarityData || [];
-      const endIndex = selectedDataset === "halie_metaphor"
-        ? similarityData.findIndex((item) => point.time < item.end_time / 60)
-        : similarityData.findIndex((item) => point.percentage < item.end_progress * 100);
+      const endIndex =
+        selectedDataset === "halie_metaphor"
+          ? similarityData.findIndex((item) => point.time < item.end_time / 60)
+          : similarityData.findIndex(
+              (item) => point.percentage < item.end_progress * 100,
+            );
       const selectedData =
         endIndex === -1 ? similarityData : similarityData.slice(0, endIndex);
 
@@ -3715,6 +3838,7 @@
     // If at or past the last frame, stop playing
     if (!isPlaying || !data.length || startIndex >= data.length - 1) {
       isPlaying = false;
+      playbackActive = false;
       // Make sure we're at the last frame
       if (data.length > 0 && startIndex < data.length) {
         applyPlaybackFrame(sessionId, data.length - 1);
@@ -3764,8 +3888,10 @@
       ? 0
       : findIndexFromTime(session.chartData, currentTime);
     playbackIndex = start;
+    if (isAtEnd) playbackActive = false;
     applyPlaybackFrame(session.sessionId, start);
     isPlaying = true;
+    playbackActive = true;
     schedulePlayback(session.sessionId, start);
   }
 
@@ -5617,13 +5743,26 @@
                       <div class="summary-container">
                         {#if selectedDataset === "halie_metaphor" && $clickSession.totalSimilarityData?.length > 0}
                           <div class="totalText">
-                            Metaphors: {$clickSession.totalSimilarityData.length}
+                            Metaphors: {$clickSession.totalSimilarityData
+                              .length}
                           </div>
                           <div class="totalInsertions">
-                            Avg Acceptance: {Math.round($clickSession.totalSimilarityData.reduce((s, d) => s + (d.acceptance >= 0 ? d.acceptance : 0), 0) / $clickSession.totalSimilarityData.filter(d => d.acceptance >= 0).length)}%
+                            Avg Acceptance: {Math.round(
+                              $clickSession.totalSimilarityData.reduce(
+                                (s, d) =>
+                                  s + (d.acceptance >= 0 ? d.acceptance : 0),
+                                0,
+                              ) /
+                                $clickSession.totalSimilarityData.filter(
+                                  (d) => d.acceptance >= 0,
+                                ).length,
+                            )}%
                           </div>
                           <div class="totalDeletions">
-                            Total Queries: {$clickSession.totalSimilarityData.reduce((s, d) => s + (d.num_queries || 0), 0)}
+                            Total Queries: {$clickSession.totalSimilarityData.reduce(
+                              (s, d) => s + (d.num_queries || 0),
+                              0,
+                            )}
                           </div>
                           <div class="totalSuggestions">
                             {$clickSession.summaryData
@@ -5632,20 +5771,31 @@
                           </div>
                         {:else if selectedDataset === "halie_summarization" && $clickSession.totalSimilarityData?.length > 0}
                           <div class="totalText">
-                            Documents: {$clickSession.totalSimilarityData.length}
+                            Documents: {$clickSession.totalSimilarityData
+                              .length}
                           </div>
                           <div class="totalInsertions">
-                            Avg Edit Dist: {Math.round($clickSession.totalSimilarityData.reduce((s, d) => s + (d.edit_distance || 0), 0) / $clickSession.totalSimilarityData.length)}
+                            Avg Edit Dist: {Math.round(
+                              $clickSession.totalSimilarityData.reduce(
+                                (s, d) => s + (d.edit_distance || 0),
+                                0,
+                              ) / $clickSession.totalSimilarityData.length,
+                            )}
                           </div>
                           <div class="totalDeletions">
-                            Quality ↑: {$clickSession.totalSimilarityData.filter(d =>
-                              (d.edited_consistency === 'True' && d.original_consistency !== 'True') ||
-                              (d.edited_coherency === 'True' && d.original_coherency !== 'True') ||
-                              (d.edited_relevance === 'True' && d.original_relevance !== 'True')
+                            Quality ↑: {$clickSession.totalSimilarityData.filter(
+                              (d) =>
+                                (d.edited_consistency === "True" &&
+                                  d.original_consistency !== "True") ||
+                                (d.edited_coherency === "True" &&
+                                  d.original_coherency !== "True") ||
+                                (d.edited_relevance === "True" &&
+                                  d.original_relevance !== "True"),
                             ).length} docs
                           </div>
                           <div class="totalSuggestions">
-                            Model: {$clickSession.totalSimilarityData[0]?.model || ""}
+                            Model: {$clickSession.totalSimilarityData[0]
+                              ?.model || ""}
                           </div>
                         {:else}
                           <div class="totalText">
@@ -5731,7 +5881,11 @@
                           on:mousemove={handleBarChartMouseMove}
                           on:mouseup={handleBarChartMouseUp}
                           on:mouseleave={handleBarChartMouseUp}
-                          style="cursor: {barDragState ? 'grabbing' : (selectionMode ? 'default' : 'grab')}"
+                          style="cursor: {barDragState
+                            ? 'grabbing'
+                            : selectionMode
+                              ? 'default'
+                              : 'grab'}"
                         >
                           {#if $clickSession.similarityData && Object.keys(barChartAttributeConfig).length > 0}
                             <BarChartY
@@ -5878,47 +6032,89 @@
                           {#each $clickSession.totalSimilarityData as seg, idx}
                             {@const editDist = seg.edit_distance ?? 0}
                             {@const unchanged = editDist === 0}
-                            <div class="summary-doc-card" style="border-left: 4px solid {unchanged ? '#ccc' : '#66C2A5'};">
+                            <div
+                              class="summary-doc-card"
+                              style="border-left: 4px solid {unchanged
+                                ? '#ccc'
+                                : '#66C2A5'};"
+                            >
                               <div class="summary-doc-header">
-                                <span class="summary-doc-num">Doc #{idx + 1}</span>
-                                <span class="summary-doc-model">{seg.model || ""}</span>
-                                <span class="summary-doc-dist" style="background: {unchanged ? '#e0e0e0' : editDist > 20 ? '#66C2A5' : '#FFD92F'}; color: {unchanged ? '#666' : '#fff'};">
-                                  {unchanged ? "unchanged" : `Δ${editDist} edits`}
+                                <span class="summary-doc-num"
+                                  >Doc #{idx + 1}</span
+                                >
+                                <span class="summary-doc-model"
+                                  >{seg.model || ""}</span
+                                >
+                                <span
+                                  class="summary-doc-dist"
+                                  style="background: {unchanged
+                                    ? '#e0e0e0'
+                                    : editDist > 20
+                                      ? '#66C2A5'
+                                      : '#FFD92F'}; color: {unchanged
+                                    ? '#666'
+                                    : '#fff'};"
+                                >
+                                  {unchanged
+                                    ? "unchanged"
+                                    : `Δ${editDist} edits`}
                                 </span>
                               </div>
                               {#if seg.document_text}
                                 <div class="summary-document-text">
-                                  <span class="summary-role-label doc-label">Article:</span>
+                                  <span class="summary-role-label doc-label"
+                                    >Article:</span
+                                  >
                                   {seg.document_text}
                                 </div>
                               {/if}
                               <div class="summary-original-text">
-                                <span class="summary-role-label">AI summary:</span>
+                                <span class="summary-role-label"
+                                  >AI summary:</span
+                                >
                                 {seg.original_summary || ""}
                               </div>
                               {#if !unchanged}
                                 <div class="summary-edited-text">
-                                  <span class="summary-role-label" style="color:#66C2A5;">Edited:</span>
+                                  <span
+                                    class="summary-role-label"
+                                    style="color:#66C2A5;">Edited:</span
+                                  >
                                   {seg.edited_summary || seg.sentence || ""}
                                 </div>
                               {/if}
                               <div class="summary-quality-row">
                                 {#each ["consistency", "coherency", "relevance"] as metric}
-                                  {@const orig = seg[`original_${metric}`] === 'True'}
-                                  {@const edit = seg[`edited_${metric}`] === 'True'}
-                                  <span class="quality-chip {edit && !orig ? 'chip-improved' : !edit && orig ? 'chip-degraded' : edit ? 'chip-ok' : 'chip-bad'}">
-                                    {metric.slice(0,3).toUpperCase()} {orig ? '✓' : '✗'}→{edit ? '✓' : '✗'}
+                                  {@const orig =
+                                    seg[`original_${metric}`] === "True"}
+                                  {@const edit =
+                                    seg[`edited_${metric}`] === "True"}
+                                  <span
+                                    class="quality-chip {edit && !orig
+                                      ? 'chip-improved'
+                                      : !edit && orig
+                                        ? 'chip-degraded'
+                                        : edit
+                                          ? 'chip-ok'
+                                          : 'chip-bad'}"
+                                  >
+                                    {metric.slice(0, 3).toUpperCase()}
+                                    {orig ? "✓" : "✗"}→{edit ? "✓" : "✗"}
                                   </span>
                                 {/each}
                                 {#if seg.residual_vector_norm > 0}
-                                  <span class="summary-sem-change">Sem Δ {seg.residual_vector_norm.toFixed(2)}</span>
+                                  <span class="summary-sem-change"
+                                    >Sem Δ {seg.residual_vector_norm.toFixed(
+                                      2,
+                                    )}</span
+                                  >
                                 {/if}
                               </div>
                             </div>
                           {/each}
                         </div>
                       {:else}
-                        {#if $clickSession.textElements && $clickSession.textElements.length > 0 && (selectedDataset !== "halie_metaphor" || isPlaying)}
+                        {#if (selectedDataset !== "halie_metaphor" || playbackActive) && $clickSession.textElements && $clickSession.textElements.length > 0}
                           <div class="text-display">
                             {#each $clickSession.textElements as element, _}
                               <span
@@ -5930,29 +6126,61 @@
                             {/each}
                           </div>
                         {/if}
-                        {#if selectedDataset === "halie_metaphor" && !isPlaying && $clickSession.similarityData?.length > 0}
+                        {#if selectedDataset === "halie_metaphor" && !playbackActive && $clickSession.similarityData?.length > 0}
                           <div class="metaphor-cards">
                             {#each $clickSession.similarityData as seg, idx}
-                              <div class="metaphor-card" style="border-left: 4px solid {seg.source === 'api' ? '#FC8D62' : '#66C2A5'};">
+                              <div
+                                class="metaphor-card"
+                                style="border-left: 4px solid {seg.source ===
+                                'api'
+                                  ? '#FC8D62'
+                                  : '#66C2A5'};"
+                              >
                                 <div class="metaphor-header">
                                   <span class="metaphor-num">#{idx + 1}</span>
-                                  <span class="metaphor-model">{seg.model || ""}</span>
+                                  <span class="metaphor-model"
+                                    >{seg.model || ""}</span
+                                  >
                                   {#if seg.acceptance >= 0}
-                                    <span class="metaphor-acceptance" style="background: {seg.acceptance >= 80 ? '#FC8D62' : seg.acceptance >= 50 ? '#FFD92F' : '#66C2A5'};">
+                                    <span
+                                      class="metaphor-acceptance"
+                                      style="background: {seg.acceptance >= 80
+                                        ? '#FC8D62'
+                                        : seg.acceptance >= 50
+                                          ? '#FFD92F'
+                                          : '#66C2A5'};"
+                                    >
                                       {seg.acceptance}% accepted
                                     </span>
                                   {/if}
                                 </div>
-                                <div class="metaphor-sentence">{seg.final_sentence || "(empty)"}</div>
+                                <div class="metaphor-sentence">
+                                  {#each [getSentenceColorSpans(seg, $clickSession?.chartData)] as colorSpans}
+                                    {#if colorSpans}
+                                      {#each colorSpans as span}
+                                        <span style="color: {span.color}">{span.text}</span>
+                                      {/each}
+                                    {:else}
+                                      <span style="color: {seg.source === 'api' ? '#FC8D62' : '#66C2A5'}">{seg.final_sentence || "(empty)"}</span>
+                                    {/if}
+                                  {/each}
+                                </div>
                                 {#if seg.model_completion}
                                   <div class="metaphor-completion">
-                                    <span class="completion-label">AI suggestion:</span> {seg.model_completion}
+                                    <span class="completion-label"
+                                      >AI suggestion:</span
+                                    >
+                                    {seg.model_completion}
                                   </div>
                                 {/if}
                                 <div class="metaphor-meta">
                                   <span>Queries: {seg.num_queries ?? "?"}</span>
                                   {#if seg.residual_vector_norm > 0}
-                                    <span>Semantic Δ: {seg.residual_vector_norm.toFixed(2)}</span>
+                                    <span
+                                      >Semantic Δ: {seg.residual_vector_norm.toFixed(
+                                        2,
+                                      )}</span
+                                    >
                                   {/if}
                                 </div>
                               </div>
@@ -6077,6 +6305,13 @@
     display: inline;
   }
 
+  .frozen-segment {
+    margin-bottom: 0.6em;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
   .metaphor-cards {
     display: flex;
     flex-direction: column;
@@ -6134,7 +6369,7 @@
 
   .completion-label {
     font-weight: 600;
-    color: #FC8D62;
+    color: #fc8d62;
     font-style: normal;
   }
 
@@ -6237,10 +6472,22 @@
     letter-spacing: 0.02em;
   }
 
-  .chip-improved { background: #66C2A5; color: #fff; }
-  .chip-degraded { background: #FC8D62; color: #fff; }
-  .chip-ok       { background: #d4f0e8; color: #2a8a6a; }
-  .chip-bad      { background: #f0e0d8; color: #a05030; }
+  .chip-improved {
+    background: #66c2a5;
+    color: #fff;
+  }
+  .chip-degraded {
+    background: #fc8d62;
+    color: #fff;
+  }
+  .chip-ok {
+    background: #d4f0e8;
+    color: #2a8a6a;
+  }
+  .chip-bad {
+    background: #f0e0d8;
+    color: #a05030;
+  }
 
   .summary-sem-change {
     font-size: 0.72rem;
