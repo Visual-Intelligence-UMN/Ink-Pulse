@@ -305,8 +305,8 @@
     ctx.strokeRect(PADDING_LEFT, 0, CHART_WIDTH - PADDING_LEFT, topContainerHeight);
 
     // Draw std dev bars
-    const overallMeanX = drawStdErrorBar(ctx, overallArr, globalMin, globalMax, '#666', topContainerHeight - 5);
-    const highlightMeanX = drawStdErrorBar(ctx, highlightArr, globalMin, globalMax, '#000', topContainerHeight - 25);
+    const overallMeanX = drawStdErrorBar(ctx, overallArr, globalMin, globalMax, '#666', topContainerHeight - 5, title[1]);
+const highlightMeanX = drawStdErrorBar(ctx, highlightArr, globalMin, globalMax, '#000', topContainerHeight - 25, title[0]);
 
     // Draw p-value
     if (pValue !== null) {
@@ -360,7 +360,7 @@
   /**
    * Helper to draw the mean and standard deviation bar.
    */
-  function drawStdErrorBar(ctx: CanvasRenderingContext2D, values: number[], totalMin: number, totalMax: number, color: string, y: number) {
+  function drawStdErrorBar(ctx: CanvasRenderingContext2D, values: number[], totalMin: number, totalMax: number, color: string, y: number, label) {
     if (!ctx || !values || values.length < 2) return 0;
 
     const mean = jStat.mean(values);
@@ -401,7 +401,7 @@
     let textMargin = 45;
     let textX = Math.max(PADDING_LEFT + textMargin, Math.min(CHART_WIDTH - PADDING_RIGHT - textMargin, meanX));
     ctx.fillText(
-      truncateText(`avg(${title[0]})=${Math.floor(mean * 100) / 100}`),
+      truncateText(`avg(${label})=${Math.floor(mean * 100) / 100}`),
       textX,
       y - errorBarHeight * 2.5
     );

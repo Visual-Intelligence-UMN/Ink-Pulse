@@ -4551,7 +4551,7 @@
                         </div>
                       </div>
 
-                      <div
+                      <!-- <div
                         style="
                           display: grid;
                           grid-template-columns: 1fr 1fr;
@@ -4705,7 +4705,7 @@
                             </div>
                           </div>
                         </div>
-                      </div>
+                      </div> -->
                     </div>
                   {:else}
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -4745,7 +4745,7 @@
                             selectionContext={pattern.selectionContext ?? null}
                           />
                         </div>
-                        <div
+                        <!-- <div
                           style="
                             display: grid;
                             grid-template-columns: 1fr 1fr;
@@ -4901,7 +4901,7 @@
                               </div>
                             </div>
                           </div>
-                        </div>
+                        </div> -->
                       {:else}
                         <!-- Progress/Bar modes: Show PatternChartPreview -->
                         <!-- Barchart for horizontal selection preview -->
@@ -4925,7 +4925,7 @@
                             bind:xScaleBarChartFactor
                           />
                         </div>
-                        <div style="margin-top: 10px; width: 50%">
+                        <!-- <div style="margin-top: 10px; width: 50%">
                           <div
                             class:dimmed={!isProgressChecked}
                             style="font-size: 13px;"
@@ -5005,11 +5005,11 @@
                                 bind:checked={isExactSearchSource}
                                 disabled={!isSourceChecked}
                               />
-                              <!-- <span class="slider">
+                              <span class="slider">
                                 <span class="switch-text">
                                   {isExactSearchSource ? "Exact" : "Proximity"}
                                 </span>
-                              </span> -->
+                              </span>
                             </label>
                           </div>
                           <div style="font-size: 13px;">
@@ -5047,26 +5047,26 @@
                                     disabled={!isSemanticChecked ||
                                       !isValueTrendChecked}
                                   />
-                                  <!-- <span class="slider">
+                                  <span class="slider">
                                     <span class="switch-text">
                                       {isExactSearchTrend ? "Exact" : "Proximity"}
                                     </span>
-                                  </span> -->
+                                  </span>
                                 </label>
                               </div>
                             </div>
                           </div>
-                        </div>
+                        </div> -->
                       {/if}
                     </div>
                   {/if}
                   <div class="chat-panel">
-                    <button
+                    <!-- <button
                       on:click={toggleTestMode}
                       class="search-pattern-button"
                     >
                       {isTest ? "Switch to Normal Mode" : "Switch to Test Mode"}
-                    </button>
+                    </button> -->
                     <Interpreter
                       {pattern}
                       on:parsedFilters={handleInterpreterFilters}
