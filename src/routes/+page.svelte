@@ -2380,13 +2380,14 @@
       );
       const currentTime = (time100.getTime() - time0.getTime()) / (1000 * 60); // in minutes
       const similarityData = await fetchSimilarityData(sessionFile);
-      const chartData = handleEventsSummary(data, similarityData);
+      const { chartData, textElements } = handleEventsSummary(data, similarityData);
       let updatedSession = {
         sessionId: sessionFile,
         time0,
         time100: currentTime,
         currentTime,
         chartData,
+        textElements,
         similarityData: similarityData || undefined,
         totalSimilarityData: similarityData || undefined,
       };
@@ -3337,9 +3338,13 @@
     let index = 0;
     const totalTextLength = data.text;
     let currentCharCount = data.init_text.length;
+    let currentCharArray = data.init_text.split("");
+    let currentColorArray = new Array(currentCharArray.length).fill(
+      sourceColorManager.getColor("api"),
+    );
 
     data.actions.forEach((event, idx) => {
-      const { name, event_time, eventSource, text = "", count = 0 } = event;
+      const { name, event_time, eventSource, text = "", count = 0, pos = 0 } = event;
 
       const textColor = sourceColorManager.getColor(eventSource);
       const eventTime = new Date(event_time);
@@ -3349,7 +3354,10 @@
       let percentage;
       if (name === "text-insert") {
         const insertChars = [...text];
-        insertChars.forEach(() => {
+        const insertPos = Math.min(pos, currentCharArray.length);
+        insertChars.forEach((ch, i) => {
+          currentCharArray.splice(insertPos + i, 0, ch);
+          currentColorArray.splice(insertPos + i, 0, textColor);
           currentCharCount++;
           percentage = (currentCharCount / totalTextLength) * 100;
           chartData.push({
@@ -3357,6 +3365,8 @@
             percentage,
             eventSource,
             color: textColor,
+            currentText: currentCharArray.join(""),
+            currentColor: [...currentColorArray],
             isSuggestionOpen: false,
             isSuggestionAccept: false,
             index: index++,
@@ -3364,6 +3374,8 @@
         });
       } else if (name === "text-delete") {
         const deleteCount = text.length || count;
+        currentCharArray.splice(pos, deleteCount);
+        currentColorArray.splice(pos, deleteCount);
         currentCharCount -= deleteCount;
         percentage = (currentCharCount / totalTextLength) * 100;
         chartData.push({
@@ -3371,6 +3383,8 @@
           percentage,
           eventSource,
           color: textColor,
+          currentText: currentCharArray.join(""),
+          currentColor: [...currentColorArray],
           isSuggestionOpen: false,
           isSuggestionAccept: false,
           index: index++,
@@ -3393,13 +3407,21 @@
           percentage,
           eventSource,
           color: textColor,
+          currentText: currentCharArray.join(""),
+          currentColor: [...currentColorArray],
           isSuggestionOpen: name === "suggestion-open",
           isSuggestionAccept,
           index: index++,
         });
       }
     });
-    return chartData;
+
+    const textElements = currentCharArray.map((ch, i) => ({
+      text: ch,
+      textColor: currentColorArray[i],
+    }));
+
+    return { chartData, textElements };
   };
 
   const handleEvents = (data) => {
@@ -5851,35 +5873,7 @@
                       <div class="scale" id="scale"></div>
                     </div>
                     <div class="text-container">
-                      {#if selectedDataset === "halie_metaphor" && $clickSession.totalSimilarityData?.length > 0}
-                        <div class="metaphor-cards">
-                          {#each $clickSession.totalSimilarityData as seg, idx}
-                            <div class="metaphor-card" style="border-left: 4px solid {seg.source === 'api' ? '#FC8D62' : '#66C2A5'};">
-                              <div class="metaphor-header">
-                                <span class="metaphor-num">#{idx + 1}</span>
-                                <span class="metaphor-model">{seg.model || ""}</span>
-                                {#if seg.acceptance >= 0}
-                                  <span class="metaphor-acceptance" style="background: {seg.acceptance >= 80 ? '#FC8D62' : seg.acceptance >= 50 ? '#FFD92F' : '#66C2A5'};">
-                                    {seg.acceptance}% accepted
-                                  </span>
-                                {/if}
-                              </div>
-                              <div class="metaphor-sentence">{seg.final_sentence || "(empty)"}</div>
-                              {#if seg.model_completion}
-                                <div class="metaphor-completion">
-                                  <span class="completion-label">AI suggestion:</span> {seg.model_completion}
-                                </div>
-                              {/if}
-                              <div class="metaphor-meta">
-                                <span>Queries: {seg.num_queries ?? "?"}</span>
-                                {#if seg.residual_vector_norm > 0}
-                                  <span>Semantic Δ: {seg.residual_vector_norm.toFixed(2)}</span>
-                                {/if}
-                              </div>
-                            </div>
-                          {/each}
-                        </div>
-                      {:else if selectedDataset === "halie_summarization" && $clickSession.totalSimilarityData?.length > 0}
+                      {#if selectedDataset === "halie_summarization" && $clickSession.totalSimilarityData?.length > 0}
                         <div class="summary-doc-cards">
                           {#each $clickSession.totalSimilarityData as seg, idx}
                             {@const editDist = seg.edit_distance ?? 0}
@@ -5923,15 +5917,48 @@
                             </div>
                           {/each}
                         </div>
-                      {:else if $clickSession.textElements && $clickSession.textElements.length > 0}
-                        {#each $clickSession.textElements as element, _}
-                          <span
-                            class="text-span"
-                            style="color: {element.textColor}"
-                          >
-                            {element.text}
-                          </span>
-                        {/each}
+                      {:else}
+                        {#if $clickSession.textElements && $clickSession.textElements.length > 0 && (selectedDataset !== "halie_metaphor" || isPlaying)}
+                          <div class="text-display">
+                            {#each $clickSession.textElements as element, _}
+                              <span
+                                class="text-span"
+                                style="color: {element.textColor}"
+                              >
+                                {element.text}
+                              </span>
+                            {/each}
+                          </div>
+                        {/if}
+                        {#if selectedDataset === "halie_metaphor" && $clickSession.similarityData?.length > 0}
+                          <div class="metaphor-cards">
+                            {#each $clickSession.similarityData as seg, idx}
+                              <div class="metaphor-card" style="border-left: 4px solid {seg.source === 'api' ? '#FC8D62' : '#66C2A5'};">
+                                <div class="metaphor-header">
+                                  <span class="metaphor-num">#{idx + 1}</span>
+                                  <span class="metaphor-model">{seg.model || ""}</span>
+                                  {#if seg.acceptance >= 0}
+                                    <span class="metaphor-acceptance" style="background: {seg.acceptance >= 80 ? '#FC8D62' : seg.acceptance >= 50 ? '#FFD92F' : '#66C2A5'};">
+                                      {seg.acceptance}% accepted
+                                    </span>
+                                  {/if}
+                                </div>
+                                <div class="metaphor-sentence">{seg.final_sentence || "(empty)"}</div>
+                                {#if seg.model_completion}
+                                  <div class="metaphor-completion">
+                                    <span class="completion-label">AI suggestion:</span> {seg.model_completion}
+                                  </div>
+                                {/if}
+                                <div class="metaphor-meta">
+                                  <span>Queries: {seg.num_queries ?? "?"}</span>
+                                  {#if seg.residual_vector_norm > 0}
+                                    <span>Semantic Δ: {seg.residual_vector_norm.toFixed(2)}</span>
+                                  {/if}
+                                </div>
+                              </div>
+                            {/each}
+                          </div>
+                        {/if}
                       {/if}
                     </div>
                   </div>
