@@ -5608,6 +5608,23 @@
                               ? `Suggestions: ${$clickSession.summaryData.totalSuggestions}`
                               : ""}
                           </div>
+                        {:else if selectedDataset === "halie_summarization" && $clickSession.totalSimilarityData?.length > 0}
+                          <div class="totalText">
+                            Documents: {$clickSession.totalSimilarityData.length}
+                          </div>
+                          <div class="totalInsertions">
+                            Avg Edit Dist: {Math.round($clickSession.totalSimilarityData.reduce((s, d) => s + (d.edit_distance || 0), 0) / $clickSession.totalSimilarityData.length)}
+                          </div>
+                          <div class="totalDeletions">
+                            Quality ↑: {$clickSession.totalSimilarityData.filter(d =>
+                              (d.edited_consistency === 'True' && d.original_consistency !== 'True') ||
+                              (d.edited_coherency === 'True' && d.original_coherency !== 'True') ||
+                              (d.edited_relevance === 'True' && d.original_relevance !== 'True')
+                            ).length} docs
+                          </div>
+                          <div class="totalSuggestions">
+                            Model: {$clickSession.totalSimilarityData[0]?.model || ""}
+                          </div>
                         {:else}
                           <div class="totalText">
                             {$clickSession.summaryData
@@ -5862,6 +5879,50 @@
                             </div>
                           {/each}
                         </div>
+                      {:else if selectedDataset === "halie_summarization" && $clickSession.totalSimilarityData?.length > 0}
+                        <div class="summary-doc-cards">
+                          {#each $clickSession.totalSimilarityData as seg, idx}
+                            {@const editDist = seg.edit_distance ?? 0}
+                            {@const unchanged = editDist === 0}
+                            <div class="summary-doc-card" style="border-left: 4px solid {unchanged ? '#ccc' : '#66C2A5'};">
+                              <div class="summary-doc-header">
+                                <span class="summary-doc-num">Doc #{idx + 1}</span>
+                                <span class="summary-doc-model">{seg.model || ""}</span>
+                                <span class="summary-doc-dist" style="background: {unchanged ? '#e0e0e0' : editDist > 20 ? '#66C2A5' : '#FFD92F'}; color: {unchanged ? '#666' : '#fff'};">
+                                  {unchanged ? "unchanged" : `Δ${editDist} edits`}
+                                </span>
+                              </div>
+                              {#if seg.document_text}
+                                <div class="summary-document-text">
+                                  <span class="summary-role-label doc-label">Article:</span>
+                                  {seg.document_text}
+                                </div>
+                              {/if}
+                              <div class="summary-original-text">
+                                <span class="summary-role-label">AI summary:</span>
+                                {seg.original_summary || ""}
+                              </div>
+                              {#if !unchanged}
+                                <div class="summary-edited-text">
+                                  <span class="summary-role-label" style="color:#66C2A5;">Edited:</span>
+                                  {seg.edited_summary || seg.sentence || ""}
+                                </div>
+                              {/if}
+                              <div class="summary-quality-row">
+                                {#each ["consistency", "coherency", "relevance"] as metric}
+                                  {@const orig = seg[`original_${metric}`] === 'True'}
+                                  {@const edit = seg[`edited_${metric}`] === 'True'}
+                                  <span class="quality-chip {edit && !orig ? 'chip-improved' : !edit && orig ? 'chip-degraded' : edit ? 'chip-ok' : 'chip-bad'}">
+                                    {metric.slice(0,3).toUpperCase()} {orig ? '✓' : '✗'}→{edit ? '✓' : '✗'}
+                                  </span>
+                                {/each}
+                                {#if seg.residual_vector_norm > 0}
+                                  <span class="summary-sem-change">Sem Δ {seg.residual_vector_norm.toFixed(2)}</span>
+                                {/if}
+                              </div>
+                            </div>
+                          {/each}
+                        </div>
                       {:else if $clickSession.textElements && $clickSession.textElements.length > 0}
                         {#each $clickSession.textElements as element, _}
                           <span
@@ -6055,6 +6116,109 @@
     gap: 12px;
     font-size: 0.75rem;
     color: #999;
+  }
+
+  /* ── Document Cards (halie_summarization) ── */
+  .summary-doc-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 8px 4px;
+  }
+
+  .summary-doc-card {
+    background: #fafafa;
+    border-radius: 6px;
+    padding: 10px 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  .summary-doc-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 0.8rem;
+  }
+
+  .summary-doc-num {
+    font-weight: 700;
+    color: #333;
+  }
+
+  .summary-doc-model {
+    color: #888;
+    font-style: italic;
+  }
+
+  .summary-doc-dist {
+    margin-left: auto;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .summary-document-text {
+    font-size: 0.78rem;
+    color: #bbb;
+    margin-bottom: 6px;
+    line-height: 1.5;
+    padding: 6px 8px;
+    background: #f5f5f5;
+    border-radius: 4px;
+  }
+
+  .doc-label {
+    color: #bbb !important;
+  }
+
+  .summary-original-text {
+    font-size: 0.82rem;
+    color: #999;
+    margin-bottom: 4px;
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  .summary-edited-text {
+    font-size: 0.92rem;
+    color: #222;
+    margin-bottom: 6px;
+    line-height: 1.5;
+  }
+
+  .summary-role-label {
+    font-weight: 600;
+    font-style: normal;
+    margin-right: 4px;
+    color: #aaa;
+  }
+
+  .summary-quality-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .quality-chip {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 8px;
+    letter-spacing: 0.02em;
+  }
+
+  .chip-improved { background: #66C2A5; color: #fff; }
+  .chip-degraded { background: #FC8D62; color: #fff; }
+  .chip-ok       { background: #d4f0e8; color: #2a8a6a; }
+  .chip-bad      { background: #f0e0d8; color: #a05030; }
+
+  .summary-sem-change {
+    font-size: 0.72rem;
+    color: #aaa;
+    margin-left: auto;
   }
 
   .progress-container {
