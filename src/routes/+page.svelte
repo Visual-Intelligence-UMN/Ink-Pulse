@@ -5930,7 +5930,7 @@
                             {/each}
                           </div>
                         {/if}
-                        {#if selectedDataset === "halie_metaphor" && $clickSession.similarityData?.length > 0}
+                        {#if selectedDataset === "halie_metaphor" && !isPlaying && $clickSession.similarityData?.length > 0}
                           <div class="metaphor-cards">
                             {#each $clickSession.similarityData as seg, idx}
                               <div class="metaphor-card" style="border-left: 4px solid {seg.source === 'api' ? '#FC8D62' : '#66C2A5'};">
