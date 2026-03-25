@@ -14,6 +14,7 @@
   export let chartRefs = {};
   export let searchPatternSet;
   export let selectedDataset;
+  export let userInputStore;
 
   const init = searchPatternSet.find(
     (p) => p.id === "pattern_0" && p.dataset === pattern.dataset,
@@ -233,7 +234,28 @@
           bind:this={chartRefs[pattern.searchDetail.sessionId]}
         />
       </div>
-      <div style="margin-top: 15px; margin-left:10px; width: 40%">
+      <div
+        class="pattern-chart-preview small-preview"
+        style="
+          border: none;
+          background: transparent;
+          box-shadow: none;
+          padding: 0;
+        "
+      >
+        <div
+          style="
+            font-size: 13px;
+            color: #5f6368;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            white-space: normal;
+          "
+        >
+          {$userInputStore}
+        </div>
+      </div>
+      <!-- <div style="margin-top: 15px; margin-left:10px; width: 40%">
         <div
           style="display: flex; align-items: center; font-size: 13px; color: #5f6368;"
         >
@@ -318,7 +340,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 
