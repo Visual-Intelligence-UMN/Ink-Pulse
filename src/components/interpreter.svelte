@@ -200,7 +200,7 @@
     2. A structured pattern extracted from the selected region of a chart
 
     Your responsibility is NOT to compute numeric values or perform database search.
-    Your responsibility IS to:
+    Your responsibility is to:
     - Identify which system-defined features are important
     - Explain those features in clear, user-friendly language
     - Express relationships between features in a way that can later be translated into database queries.
@@ -772,12 +772,14 @@
       dispatch("parsedFilters", {
         explanations: explanationsWithRatios,
         filters: filtersWithRatio,
+        userInput: inputMessage,
       });
     }
     if (isTest) {
       dispatch("parsedFilters", {
         explanations: explanationsWithRatios,
         filters: filtersWithRatio,
+        userInput: inputMessage,
       });
     }
   }

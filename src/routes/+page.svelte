@@ -813,50 +813,54 @@
     isTest = !isTest;
   }
 
+  export const userInputStore = writable("");
   async function handleInterpreterFilters(event) {
-  if (isTest) {
-    let { sql } = event.detail;
-    const sourceMatch = sql.match(/source\s*=\s*'(.*?)'/);
-    if (sourceMatch) {
-      const sources = sourceMatch[1].split(",");
-      const sourceConditions = sources
-        .map(
-          (src, idx) =>
-            `JSON_EXTRACT(d.content, '$[' || (n.n + ${idx}) || '].source') = '${src}'`,
-        )
-        .join(" AND ");
-      sql = sql.replace(/source\s*=\s*'(.*?)'/, sourceConditions);
-    }
-
-    const ctx = buildWindowContext(selectedPatterns);
-    if (!ctx) return console.warn("No valid selected pattern");
-    const { windowSize } = ctx;
-
-    const features = ["progress", "time", "semantic_change"];
-    features.forEach((f) => {
-      const match = sql.match(
-        new RegExp(
-          `${f}\\s+BETWEEN\\s+(\\d+(\\.\\d+)?)\\s+AND\\s+(\\d+(\\.\\d+)?)`,
-        ),
-      );
-      if (match) {
-        const minVal = parseFloat(match[1]);
-        const maxVal = parseFloat(match[3]);
-        const expr = Array.from(
-          { length: windowSize },
-          (_, i) =>
-            `CASE WHEN JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = 'user' THEN ${minVal} ELSE 0 END`,
-        ).join(" + ");
-        sql = sql.replace(match[0], `(${expr}) BETWEEN ${minVal} AND ${maxVal}`);
+    if (isTest) {
+      let { sql } = event.detail;
+      const sourceMatch = sql.match(/source\s*=\s*'(.*?)'/);
+      if (sourceMatch) {
+        const sources = sourceMatch[1].split(",");
+        const sourceConditions = sources
+          .map(
+            (src, idx) =>
+              `JSON_EXTRACT(d.content, '$[' || (n.n + ${idx}) || '].source') = '${src}'`,
+          )
+          .join(" AND ");
+        sql = sql.replace(/source\s*=\s*'(.*?)'/, sourceConditions);
       }
-    });
 
-    const elements = Array.from({ length: windowSize }, (_, i) => i);
-    const whereClause = sql
-      .replace(/^SELECT \* FROM sessions WHERE /i, "")
-      .replace(/;$/, "");
+      const ctx = buildWindowContext(selectedPatterns);
+      if (!ctx) return console.warn("No valid selected pattern");
+      const { windowSize } = ctx;
 
-    const windowSQL = `
+      const features = ["progress", "time", "semantic_change"];
+      features.forEach((f) => {
+        const match = sql.match(
+          new RegExp(
+            `${f}\\s+BETWEEN\\s+(\\d+(\\.\\d+)?)\\s+AND\\s+(\\d+(\\.\\d+)?)`,
+          ),
+        );
+        if (match) {
+          const minVal = parseFloat(match[1]);
+          const maxVal = parseFloat(match[3]);
+          const expr = Array.from(
+            { length: windowSize },
+            (_, i) =>
+              `CASE WHEN JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = 'user' THEN ${minVal} ELSE 0 END`,
+          ).join(" + ");
+          sql = sql.replace(
+            match[0],
+            `(${expr}) BETWEEN ${minVal} AND ${maxVal}`,
+          );
+        }
+      });
+
+      const elements = Array.from({ length: windowSize }, (_, i) => i);
+      const whereClause = sql
+        .replace(/^SELECT \* FROM sessions WHERE /i, "")
+        .replace(/;$/, "");
+
+      const windowSQL = `
       WITH RECURSIVE 
       numbers(n) AS (
         SELECT 0
@@ -884,226 +888,273 @@
       ORDER BY original_rowid, window_start
     `;
 
-    interpretedQuery = windowSQL;
-    console.log("Processed Test SQL:", windowSQL);
-    return;
-  }
+      interpretedQuery = windowSQL;
+      console.log("Processed Test SQL:", windowSQL);
+      return;
+    }
 
-  const ctx = buildWindowContext(selectedPatterns);
-  if (!ctx) return console.warn("No valid selected pattern");
-  const { windowSize } = ctx;
-  const { explanations, filters } = event.detail;
-  const windowSourcePattern = Object.values(selectedPatterns)[0]?.sources || []; // e.g. ["api","api","user","user"]
-  console.log("source", windowSourcePattern)
+    const ctx = buildWindowContext(selectedPatterns);
+    if (!ctx) return console.warn("No valid selected pattern");
+    const { windowSize } = ctx;
+    const { explanations, filters, userInput } = event.detail;
+    userInputStore.set(userInput);
+    const windowSourcePattern =
+      Object.values(selectedPatterns)[0]?.sources || []; // e.g. ["api","api","user","user"]
+    console.log("source", windowSourcePattern);
 
-  function parseRelation(relationString) {
-    if (!relationString) return null;
-    const match = relationString.match(
-      /^(\w+)\(([\w_]+)\)\s*(>|<|=)\s*(\w+)\(([\w_]+)\)$/,
-    );
-    if (!match) return null;
+    function parseRelation(relationString) {
+      if (!relationString) return null;
+      const match = relationString.match(
+        /^(\w+)\(([\w_]+)\)\s*(>|<|=)\s*(\w+)\(([\w_]+)\)$/,
+      );
+      if (!match) return null;
 
-    return {
-      l_source: match[1],
-      l_feature: match[2],
-      operator: match[3],
-      r_source: match[4],
-      r_feature: match[5],
-    };
-  }
+      return {
+        l_source: match[1],
+        l_feature: match[2],
+        operator: match[3],
+        r_source: match[4],
+        r_feature: match[5],
+      };
+    }
 
-  const getProgressExpr = (absIdx, ref, source) => {
-    const baseExpr = `COALESCE(
+    const getProgressExpr = (absIdx, ref, source) => {
+      const baseExpr = `COALESCE(
       CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].end_progress') AS REAL),0
     ) - COALESCE(
       CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].start_progress') AS REAL),0
     )`;
-    if (source) {
-      return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
-    }
-    return baseExpr;
-  };
+      if (source) {
+        return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+      }
+      return baseExpr;
+    };
 
-  const getTimeExpr = (absIdx, ref, source) => {
-    const baseExpr = `COALESCE(
+    const getTimeExpr = (absIdx, ref, source) => {
+      const baseExpr = `COALESCE(
       CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].end_time') AS REAL),0
     ) - COALESCE(
       CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].start_time') AS REAL),0
     )`;
-    if (source) {
-      return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
-    }
-    return baseExpr;
-  };
+      if (source) {
+        return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
+      }
+      return baseExpr;
+    };
 
-  const getSemanticExpr = (absIdx, ref, source) => {
-    const baseExpr = `COALESCE(
+    const getSemanticExpr = (absIdx, ref, source) => {
+      const baseExpr = `COALESCE(
       CAST(JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].residual_vector_norm') AS REAL),0
     )`;
-    if (source) {
-      return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
-    }
-    return baseExpr;
-  };
-
-  const featureMap = {
-    progress: { point: (absIdx, ref, source) => getProgressExpr(absIdx, ref, source) },
-    time: { point: (absIdx, ref, source) => getTimeExpr(absIdx, ref, source) },
-    semantic_change: { point: (absIdx, ref, source) => getSemanticExpr(absIdx, ref, source) },
-  };
-
-  function mapSourceLabelToValue(label) {
-    if (label === "Human") return "user";
-    if (label === "AI") return "api";
-    return null;
-  }
-
-  function buildPointExpr(feature, absIdx, sourceValue) {
-    const featureDef = featureMap[feature];
-    if (!featureDef) return null;
-    if (absIdx < 0 || absIdx >= windowSize) return null;
-    return featureDef.point(absIdx, "d.content", sourceValue);
-  }
-
-  function getPrefixBlockIndices(sourceValue, pattern) {
-    const idxs = [];
-    for (let i = 0; i < pattern.length; i++) {
-      if (pattern[i] === sourceValue) idxs.push(i);
-      else break;
-    }
-    return idxs;
-  }
-
-  function getSuffixBlockIndices(sourceValue, pattern) {
-    const idxs = [];
-    for (let i = pattern.length - 1; i >= 0; i--) {
-      if (pattern[i] === sourceValue) idxs.push(i);
-      else break;
-    }
-    idxs.reverse();
-    return idxs;
-  }
-
-  function getFullIndices(sourceValue, pattern) {
-    const idxs = [];
-    for (let i = 0; i < pattern.length; i++) {
-      if (pattern[i] === sourceValue) idxs.push(i);
-    }
-    return idxs;
-  }
-
-  function getSpanIndices(span, sourceValue, pattern) {
-    if (!span) return null;
-    if (span === "prefix") return getPrefixBlockIndices(sourceValue, pattern);
-    if (span === "suffix") return getSuffixBlockIndices(sourceValue, pattern);
-    if (span === "full") return getFullIndices(sourceValue, pattern);
-    return null;
-  }
-  function findPrevPairIndex(leftSourceValue, rightSourceValue, pattern, prefer = "first") {
-    const candidates = [];
-    for (let i = 1; i < pattern.length; i++) {
-      if (pattern[i] === leftSourceValue && pattern[i - 1] === rightSourceValue) {
-        candidates.push(i);
+      if (source) {
+        return `CASE WHEN JSON_EXTRACT(${ref}, '$[' || (n.n + ${absIdx}) || '].source') = '${source}' THEN ${baseExpr} ELSE 0 END`;
       }
-    }
-    if (candidates.length === 0) return null;
-    return prefer === "last" ? candidates[candidates.length - 1] : candidates[0];
-  }
+      return baseExpr;
+    };
 
-  function applyRatio(operator, lExpr, rExpr, ratio) {
-    if (ratio == null) return `(${lExpr}) ${operator} (${rExpr})`;
-    if (operator === ">") return `(${lExpr}) > ((${rExpr}) * ${ratio})`;
-    if (operator === "<") return `((${lExpr}) * ${ratio}) < (${rExpr})`;
-    return `(${lExpr}) ${operator} ((${rExpr}) * ${ratio})`;
-  }
+    const featureMap = {
+      progress: {
+        point: (absIdx, ref, source) => getProgressExpr(absIdx, ref, source),
+      },
+      time: {
+        point: (absIdx, ref, source) => getTimeExpr(absIdx, ref, source),
+      },
+      semantic_change: {
+        point: (absIdx, ref, source) => getSemanticExpr(absIdx, ref, source),
+      },
+    };
 
-  const comparisons = filters
-    .map((filter, i) => {
-      if (explanations[i]?.feature === "source") return null;
-
-      const parsed = parseRelation(filter.relation);
-      if (!parsed) {
-        console.warn("Could not parse relation:", filter.relation);
-        return null;
-      }
-
-      const lSourceValue = mapSourceLabelToValue(parsed.l_source);
-      const rSourceValue = mapSourceLabelToValue(parsed.r_source);
-      const operator = parsed.operator;
-      const ratio = filter.ratio;
-      if (filter.span && filter.l_position && filter.r_position) {
-        const idxs = getSpanIndices(filter.span, lSourceValue, windowSourcePattern);
-        if (!idxs || idxs.length === 0) return null;
-
-        const lIdx = filter.l_position === "first" ? idxs[0]
-                   : filter.l_position === "last" ? idxs[idxs.length - 1]
-                   : null;
-
-        const rIdx = filter.r_position === "first" ? idxs[0]
-                   : filter.r_position === "last" ? idxs[idxs.length - 1]
-                   : null;
-
-        if (lIdx == null || rIdx == null) return null;
-
-        const lExpr = buildPointExpr(parsed.l_feature, lIdx, lSourceValue);
-        const rExpr = buildPointExpr(parsed.r_feature, rIdx, rSourceValue);
-        if (!lExpr || !rExpr) return null;
-
-        return applyRatio(operator, lExpr, rExpr, ratio);
-      }
-      if (!filter.span && filter.r_position === "prev") {
-        const leftIdx = findPrevPairIndex(lSourceValue, rSourceValue, windowSourcePattern, "first");
-        if (leftIdx == null) return null;
-        const rightIdx = leftIdx - 1;
-
-        const lExpr = buildPointExpr(parsed.l_feature, leftIdx, lSourceValue);
-        const rExpr = buildPointExpr(parsed.r_feature, rightIdx, rSourceValue);
-        if (!lExpr || !rExpr) return null;
-
-        return applyRatio(operator, lExpr, rExpr, ratio);
-      }
-      if (filter.span === "full" && filter.r_position === "prev") {
-        const leftIdx = findPrevPairIndex(lSourceValue, rSourceValue, windowSourcePattern, "first");
-        if (leftIdx == null) return null;
-
-        const lExpr = buildPointExpr(parsed.l_feature, leftIdx, lSourceValue);
-        if (!lExpr) return null;
-
-        const earlierRightIdxs = [];
-        for (let j = 0; j < leftIdx; j++) {
-          if (windowSourcePattern[j] === rSourceValue) earlierRightIdxs.push(j);
-        }
-        if (earlierRightIdxs.length === 0) return null;
-
-        const conds = earlierRightIdxs
-          .map((j) => {
-            const rExpr = buildPointExpr(parsed.r_feature, j, rSourceValue);
-            if (!rExpr) return null;
-            return applyRatio(operator, lExpr, rExpr, ratio);
-          })
-          .filter(Boolean);
-
-        if (conds.length === 0) return null;
-        return "(" + conds.join(" AND ") + ")";
-      }
-
-      console.warn("Unrecognized filter structure:", filter);
+    function mapSourceLabelToValue(label) {
+      if (label === "Human") return "user";
+      if (label === "AI") return "api";
       return null;
-    })
-    .filter(Boolean);
-  const hasSourceConstraint = explanations.some((exp) => exp.feature === "source");
-  const sourceConstraints = hasSourceConstraint
-    ? windowSourcePattern.map(
-        (src, i) =>
-          `JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = '${src.replace(/'/g, "''")}'`,
-      )
-    : [];
+    }
 
-  const whereClause = [...comparisons, ...sourceConstraints].join(" AND ");
+    function buildPointExpr(feature, absIdx, sourceValue) {
+      const featureDef = featureMap[feature];
+      if (!featureDef) return null;
+      if (absIdx < 0 || absIdx >= windowSize) return null;
+      return featureDef.point(absIdx, "d.content", sourceValue);
+    }
 
-  const elements = Array(windowSize).fill(0).map((_, i) => i);
+    function getPrefixBlockIndices(sourceValue, pattern) {
+      const idxs = [];
+      for (let i = 0; i < pattern.length; i++) {
+        if (pattern[i] === sourceValue) idxs.push(i);
+        else break;
+      }
+      return idxs;
+    }
 
-  const sqlQuery = `
+    function getSuffixBlockIndices(sourceValue, pattern) {
+      const idxs = [];
+      for (let i = pattern.length - 1; i >= 0; i--) {
+        if (pattern[i] === sourceValue) idxs.push(i);
+        else break;
+      }
+      idxs.reverse();
+      return idxs;
+    }
+
+    function getFullIndices(sourceValue, pattern) {
+      const idxs = [];
+      for (let i = 0; i < pattern.length; i++) {
+        if (pattern[i] === sourceValue) idxs.push(i);
+      }
+      return idxs;
+    }
+
+    function getSpanIndices(span, sourceValue, pattern) {
+      if (!span) return null;
+      if (span === "prefix") return getPrefixBlockIndices(sourceValue, pattern);
+      if (span === "suffix") return getSuffixBlockIndices(sourceValue, pattern);
+      if (span === "full") return getFullIndices(sourceValue, pattern);
+      return null;
+    }
+    function findPrevPairIndex(
+      leftSourceValue,
+      rightSourceValue,
+      pattern,
+      prefer = "first",
+    ) {
+      const candidates = [];
+      for (let i = 1; i < pattern.length; i++) {
+        if (
+          pattern[i] === leftSourceValue &&
+          pattern[i - 1] === rightSourceValue
+        ) {
+          candidates.push(i);
+        }
+      }
+      if (candidates.length === 0) return null;
+      return prefer === "last"
+        ? candidates[candidates.length - 1]
+        : candidates[0];
+    }
+
+    function applyRatio(operator, lExpr, rExpr, ratio) {
+      if (ratio == null) return `(${lExpr}) ${operator} (${rExpr})`;
+      if (operator === ">") return `(${lExpr}) > ((${rExpr}) * ${ratio})`;
+      if (operator === "<") return `((${lExpr}) * ${ratio}) < (${rExpr})`;
+      return `(${lExpr}) ${operator} ((${rExpr}) * ${ratio})`;
+    }
+
+    const comparisons = filters
+      .map((filter, i) => {
+        if (explanations[i]?.feature === "source") return null;
+
+        const parsed = parseRelation(filter.relation);
+        if (!parsed) {
+          console.warn("Could not parse relation:", filter.relation);
+          return null;
+        }
+
+        const lSourceValue = mapSourceLabelToValue(parsed.l_source);
+        const rSourceValue = mapSourceLabelToValue(parsed.r_source);
+        const operator = parsed.operator;
+        const ratio = filter.ratio;
+        if (filter.span && filter.l_position && filter.r_position) {
+          const idxs = getSpanIndices(
+            filter.span,
+            lSourceValue,
+            windowSourcePattern,
+          );
+          if (!idxs || idxs.length === 0) return null;
+
+          const lIdx =
+            filter.l_position === "first"
+              ? idxs[0]
+              : filter.l_position === "last"
+                ? idxs[idxs.length - 1]
+                : null;
+
+          const rIdx =
+            filter.r_position === "first"
+              ? idxs[0]
+              : filter.r_position === "last"
+                ? idxs[idxs.length - 1]
+                : null;
+
+          if (lIdx == null || rIdx == null) return null;
+
+          const lExpr = buildPointExpr(parsed.l_feature, lIdx, lSourceValue);
+          const rExpr = buildPointExpr(parsed.r_feature, rIdx, rSourceValue);
+          if (!lExpr || !rExpr) return null;
+
+          return applyRatio(operator, lExpr, rExpr, ratio);
+        }
+        if (!filter.span && filter.r_position === "prev") {
+          const leftIdx = findPrevPairIndex(
+            lSourceValue,
+            rSourceValue,
+            windowSourcePattern,
+            "first",
+          );
+          if (leftIdx == null) return null;
+          const rightIdx = leftIdx - 1;
+
+          const lExpr = buildPointExpr(parsed.l_feature, leftIdx, lSourceValue);
+          const rExpr = buildPointExpr(
+            parsed.r_feature,
+            rightIdx,
+            rSourceValue,
+          );
+          if (!lExpr || !rExpr) return null;
+
+          return applyRatio(operator, lExpr, rExpr, ratio);
+        }
+        if (filter.span === "full" && filter.r_position === "prev") {
+          const leftIdx = findPrevPairIndex(
+            lSourceValue,
+            rSourceValue,
+            windowSourcePattern,
+            "first",
+          );
+          if (leftIdx == null) return null;
+
+          const lExpr = buildPointExpr(parsed.l_feature, leftIdx, lSourceValue);
+          if (!lExpr) return null;
+
+          const earlierRightIdxs = [];
+          for (let j = 0; j < leftIdx; j++) {
+            if (windowSourcePattern[j] === rSourceValue)
+              earlierRightIdxs.push(j);
+          }
+          if (earlierRightIdxs.length === 0) return null;
+
+          const conds = earlierRightIdxs
+            .map((j) => {
+              const rExpr = buildPointExpr(parsed.r_feature, j, rSourceValue);
+              if (!rExpr) return null;
+              return applyRatio(operator, lExpr, rExpr, ratio);
+            })
+            .filter(Boolean);
+
+          if (conds.length === 0) return null;
+          return "(" + conds.join(" AND ") + ")";
+        }
+
+        console.warn("Unrecognized filter structure:", filter);
+        return null;
+      })
+      .filter(Boolean);
+    const hasSourceConstraint = explanations.some(
+      (exp) => exp.feature === "source",
+    );
+    const sourceConstraints = hasSourceConstraint
+      ? windowSourcePattern.map(
+          (src, i) =>
+            `JSON_EXTRACT(d.content, '$[' || (n.n + ${i}) || '].source') = '${src.replace(/'/g, "''")}'`,
+        )
+      : [];
+
+    const whereClause = [...comparisons, ...sourceConstraints].join(" AND ");
+
+    const elements = Array(windowSize)
+      .fill(0)
+      .map((_, i) => i);
+
+    const sqlQuery = `
     WITH RECURSIVE 
     numbers(n) AS (
       SELECT 0
@@ -1139,9 +1190,9 @@
     ORDER BY original_rowid, window_start
   `;
 
-  console.log("SQL:", sqlQuery);
-  interpretedQuery = sqlQuery;
-}
+    console.log("SQL:", sqlQuery);
+    interpretedQuery = sqlQuery;
+  }
 
   function getTrendPattern(values) {
     const pattern = [];
@@ -2665,9 +2716,7 @@
 
       // Check if numeric
       if (typeof value !== "number") {
-        console.log(
-          `Skipping non-numeric field: ${key} (${typeof value})`,
-        );
+        console.log(`Skipping non-numeric field: ${key} (${typeof value})`);
         continue;
       }
 
@@ -3125,11 +3174,11 @@
     //     const dbBuffer = await dbResponse.arrayBuffer();
     //     const db = new SQL.Database(new Uint8Array(dbBuffer));
     //     const stepStats = db.exec(`
-    //       WITH RECURSIVE 
+    //       WITH RECURSIVE
     //             numbers(n) AS (
     //               SELECT 0
     //               UNION ALL
-    //               SELECT n + 1 FROM numbers 
+    //               SELECT n + 1 FROM numbers
     //               WHERE n < (SELECT MAX(json_array_length(content)) FROM data)
     //             ),
     //             idx AS (
@@ -3137,18 +3186,18 @@
     //               UNION ALL
     //               SELECT i + 1 FROM idx WHERE i < 1
     //             )
-    //             SELECT 
+    //             SELECT
     //               d.rowid as original_rowid,
     //               d.content as original_content,
     //               n.n as window_start,
     //               json_array(json_extract(d.content, '$[' || (n.n + 0) || ']'), json_extract(d.content, '$[' || (n.n + 1) || ']')) as window_content
     //             FROM data d
-    //             JOIN numbers n 
+    //             JOIN numbers n
     //               ON n.n + 1 < json_array_length(d.content)
     //             WHERE json_array_length(d.content) >= 2
     //               AND json_extract(d.content, '$[' || (n.n + 0) || ']') IS NOT NULL AND json_extract(d.content, '$[' || (n.n + 1) || ']') IS NOT NULL
     //               AND (((
-    //                   SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user' 
+    //                   SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'user'
     //                       THEN COALESCE(
     //                         CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
     //                       ) - COALESCE(
@@ -3157,7 +3206,7 @@
     //                   FROM idx k
     //                   WHERE k.i BETWEEN 0 AND 1
     //                 )) > (((
-    //                   SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api' 
+    //                   SELECT SUM(CASE WHEN JSON_EXTRACT(window_content, '$[' || k.i || '].source') = 'api'
     //                       THEN COALESCE(
     //                         CAST(JSON_EXTRACT(window_content, '$[' || k.i || '].end_progress') AS REAL),0
     //                       ) - COALESCE(
@@ -3240,7 +3289,8 @@
     if (!$clickSession || !$clickSession.sessionId) return;
     barDragState = {
       startX: event.clientX,
-      initialTransform: zoomTransforms[$clickSession.sessionId] || d3.zoomIdentity,
+      initialTransform:
+        zoomTransforms[$clickSession.sessionId] || d3.zoomIdentity,
     };
     event.preventDefault();
   }
@@ -3258,9 +3308,7 @@
     const minX = -barChartAreaWidth * (t.k - 1);
     const newX = Math.max(minX, Math.min(0, t.x + dx));
 
-    zoomTransforms[sessionId] = d3.zoomIdentity
-      .translate(newX, t.y)
-      .scale(t.k);
+    zoomTransforms[sessionId] = d3.zoomIdentity.translate(newX, t.y).scale(t.k);
 
     zoomTransforms = { ...zoomTransforms };
   }
@@ -4096,6 +4144,24 @@
     }
     return {};
   }
+
+  async function handleLoadMoreResults() {
+    if (isLoadingMore) return;
+
+    const increment = 5;
+    const loadBatchSize = 10;
+    const targetShowCount = $showResultCount + increment;
+
+    if (
+      targetShowCount > $patternDataList.length &&
+      loadedResultCount < allSearchResults.length
+    ) {
+      await loadMoreResultsInternal(loadBatchSize);
+    }
+
+    $showResultCount = Math.min(targetShowCount, $patternDataList.length);
+  }
+  
 </script>
 
 <div class="App">
@@ -5150,7 +5216,7 @@
                         </div>
                       {/if}
                     {/each}
-                    {#if $showResultCount < $patternDataList.length}
+                    {#if $showResultCount < $patternDataList.length || loadedResultCount < allSearchResults.length}
                       <div
                         style="display: flex; justify-content: center; margin-top: 10px;"
                       >
@@ -5158,21 +5224,13 @@
                           class="search-pattern-button"
                           style="margin-right: 10px;"
                           on:click={openSavePanel}
-                          >Save NOW Pattern
+                        >
+                          Save NOW Pattern
                         </button>
+
                         <button
                           class="search-pattern-button"
-                          on:click={async () => {
-                            const newShowCount = $showResultCount + 5;
-                            // If we need more data than what's loaded, load it first
-                            if (
-                              newShowCount > loadedResultCount &&
-                              loadedResultCount < allSearchResults.length
-                            ) {
-                              await loadMoreResultsInternal(10); // Load 10 more at a time
-                            }
-                            $showResultCount = newShowCount;
-                          }}
+                          on:click={handleLoadMoreResults}
                           disabled={isLoadingMore}
                         >
                           {isLoadingMore ? "Loading..." : "More Results"}
@@ -5183,7 +5241,8 @@
                         <button
                           class="search-pattern-button"
                           on:click={openSavePanel}
-                          >Save NOW Pattern
+                        >
+                          Save NOW Pattern
                         </button>
                       </div>
                       <div style="text-align: center; margin-top: 10px;">
@@ -5298,6 +5357,7 @@
             on:edit-pattern={handleEditPattern}
             on:delete-pattern={handleDeletePattern}
             on:row-click={handlePatternDetailRowClick}
+            {userInputStore}
           />
         </div>
       {:else}
@@ -5656,7 +5716,11 @@
                           on:mousemove={handleBarChartMouseMove}
                           on:mouseup={handleBarChartMouseUp}
                           on:mouseleave={handleBarChartMouseUp}
-                          style="cursor: {barDragState ? 'grabbing' : (selectionMode ? 'default' : 'grab')}"
+                          style="cursor: {barDragState
+                            ? 'grabbing'
+                            : selectionMode
+                              ? 'default'
+                              : 'grab'}"
                         >
                           {#if $clickSession.similarityData && Object.keys(barChartAttributeConfig).length > 0}
                             <BarChartY
