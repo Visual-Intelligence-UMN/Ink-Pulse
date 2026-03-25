@@ -44,10 +44,11 @@
   let isTest = false;
 
   let chartRefs = {};
-  let searchResultBarRoots = {};
-  let searchResultLineRoots = {};
+  // Keep one visible batch live and freeze prior visible batches as SVG previews.
+  let searchResultBarContainersBySegmentId = {};
+  let searchResultLineContainersBySegmentId = {};
   let frozenSegmentIds = new Set();
-  let lastBatchSegmentIds = [];
+  let pendingFreezeSegmentIds = [];
   let barPreviewImageBySegmentId = {};
   let linePreviewImageBySegmentId = {};
   let isFreezingBatch = false;
@@ -325,29 +326,32 @@
     const nextFrozen = new Set(frozenSegmentIds);
     nextFrozen.delete(segmentId);
     frozenSegmentIds = nextFrozen;
-    lastBatchSegmentIds = lastBatchSegmentIds.filter((id) => id !== segmentId);
+    pendingFreezeSegmentIds = pendingFreezeSegmentIds.filter(
+      (id) => id !== segmentId,
+    );
     const nextBarImages = { ...barPreviewImageBySegmentId };
     const nextLineImages = { ...linePreviewImageBySegmentId };
-    const nextBarRoots = { ...searchResultBarRoots };
-    const nextLineRoots = { ...searchResultLineRoots };
+    const nextBarContainers = { ...searchResultBarContainersBySegmentId };
+    const nextLineContainers = { ...searchResultLineContainersBySegmentId };
     delete nextBarImages[segmentId];
     delete nextLineImages[segmentId];
-    delete nextBarRoots[segmentId];
-    delete nextLineRoots[segmentId];
+    delete nextBarContainers[segmentId];
+    delete nextLineContainers[segmentId];
     barPreviewImageBySegmentId = nextBarImages;
     linePreviewImageBySegmentId = nextLineImages;
-    searchResultBarRoots = nextBarRoots;
-    searchResultLineRoots = nextLineRoots;
+    searchResultBarContainersBySegmentId = nextBarContainers;
+    searchResultLineContainersBySegmentId = nextLineContainers;
     showResultCount.update((count) => count - 1);
   };
 
   function resetSearchResultSnapshotState() {
+    // Run before new searches/session switches to avoid stale frozen previews.
     frozenSegmentIds = new Set();
-    lastBatchSegmentIds = [];
+    pendingFreezeSegmentIds = [];
     barPreviewImageBySegmentId = {};
     linePreviewImageBySegmentId = {};
-    searchResultBarRoots = {};
-    searchResultLineRoots = {};
+    searchResultBarContainersBySegmentId = {};
+    searchResultLineContainersBySegmentId = {};
     isFreezingBatch = false;
   }
 
@@ -452,14 +456,16 @@
       for (const segmentId of segmentIds) {
         if (frozenSegmentIds.has(segmentId)) continue;
 
-        const barSvg = searchResultBarRoots[segmentId]?.querySelector("svg");
-        const lineSvg = searchResultLineRoots[segmentId]?.querySelector("svg");
+        const barSvg =
+          searchResultBarContainersBySegmentId[segmentId]?.querySelector("svg");
+        const lineSvg =
+          searchResultLineContainersBySegmentId[segmentId]?.querySelector(
+            "svg",
+          );
         if (!barSvg || !lineSvg) continue;
 
-        const [barImage, lineImage] = await Promise.all([
-          Promise.resolve(svgToFrozenImage(barSvg)),
-          Promise.resolve(svgToFrozenImage(lineSvg)),
-        ]);
+        const barImage = svgToFrozenImage(barSvg);
+        const lineImage = svgToFrozenImage(lineSvg);
 
         // Freeze only when both previews are captured so the row keeps visual parity.
         if (!barImage || !lineImage) continue;
@@ -2182,7 +2188,7 @@
     );
 
     // First visible batch starts as live charts and will be frozen on next load-more click.
-    lastBatchSegmentIds = getVisibleSegmentIds($showResultCount);
+    pendingFreezeSegmentIds = getVisibleSegmentIds($showResultCount);
 
     isSearch = 2; // reset search state; 0: not searching, 1: searching, 2: search done
     fetchProgress = 0;
@@ -4336,11 +4342,11 @@
       (id) => !previousVisibleSet.has(id),
     );
 
-    // Render new cards first, then freeze the previous live batch in the background.
+    // Wait for DOM paint so freeze captures the previous batch after new cards mount.
     await tick();
     await new Promise((resolve) => requestAnimationFrame(resolve));
-    await freezeSearchResultBatch([...lastBatchSegmentIds]);
-    lastBatchSegmentIds = newlyRevealedIds;
+    await freezeSearchResultBatch([...pendingFreezeSegmentIds]);
+    pendingFreezeSegmentIds = newlyRevealedIds;
   }
 </script>
 
@@ -5384,7 +5390,9 @@
                               <!-- Keep current batch live, then freeze after next load-more click. -->
                               <div
                                 bind:this={
-                                  searchResultBarRoots[sessionData.segmentId]
+                                  searchResultBarContainersBySegmentId[
+                                    sessionData.segmentId
+                                  ]
                                 }
                               >
                                 <BarChartY
@@ -5402,30 +5410,18 @@
                                   )}
                                   on:selectionChanged={() => {}}
                                   on:selectionCleared={() => {}}
-                                  bind:this={
-                                    chartRefs[
-                                      "search-" +
-                                        sessionData.segmentId +
-                                        "-barChart"
-                                    ]
-                                  }
                                   on:chartLoaded={() => {}}
                                   bind:xScaleBarChartFactor
                                 />
                               </div>
                               <div
                                 bind:this={
-                                  searchResultLineRoots[sessionData.segmentId]
+                                  searchResultLineContainersBySegmentId[
+                                    sessionData.segmentId
+                                  ]
                                 }
                               >
                                 <LineChartPreview
-                                  bind:this={
-                                    chartRefs[
-                                      "search-" +
-                                        sessionData.segmentId +
-                                        "-line"
-                                    ]
-                                  }
                                   chartData={sessionData.chartData}
                                   selectedTimeRange={sessionData.highlightRanges
                                     ?.time ?? null}
