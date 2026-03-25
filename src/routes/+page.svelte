@@ -44,6 +44,14 @@
   let isTest = false;
 
   let chartRefs = {};
+  // Keep one visible batch live and freeze prior visible batches as SVG previews.
+  let searchResultBarContainersBySegmentId = {};
+  let searchResultLineContainersBySegmentId = {};
+  let frozenSegmentIds = new Set();
+  let pendingFreezeSegmentIds = [];
+  let barPreviewImageBySegmentId = {};
+  let linePreviewImageBySegmentId = {};
+  let isFreezingBatch = false;
   let filterButton;
   let collapseButton;
   let selectionMode = false;
@@ -315,8 +323,167 @@
     patternDataList.update((patternList) =>
       patternList.filter((pattern) => pattern.segmentId !== segmentId),
     );
+    const nextFrozen = new Set(frozenSegmentIds);
+    nextFrozen.delete(segmentId);
+    frozenSegmentIds = nextFrozen;
+    pendingFreezeSegmentIds = pendingFreezeSegmentIds.filter(
+      (id) => id !== segmentId,
+    );
+    const nextBarImages = { ...barPreviewImageBySegmentId };
+    const nextLineImages = { ...linePreviewImageBySegmentId };
+    const nextBarContainers = { ...searchResultBarContainersBySegmentId };
+    const nextLineContainers = { ...searchResultLineContainersBySegmentId };
+    delete nextBarImages[segmentId];
+    delete nextLineImages[segmentId];
+    delete nextBarContainers[segmentId];
+    delete nextLineContainers[segmentId];
+    barPreviewImageBySegmentId = nextBarImages;
+    linePreviewImageBySegmentId = nextLineImages;
+    searchResultBarContainersBySegmentId = nextBarContainers;
+    searchResultLineContainersBySegmentId = nextLineContainers;
     showResultCount.update((count) => count - 1);
   };
+
+  function resetSearchResultSnapshotState() {
+    // Run before new searches/session switches to avoid stale frozen previews.
+    frozenSegmentIds = new Set();
+    pendingFreezeSegmentIds = [];
+    barPreviewImageBySegmentId = {};
+    linePreviewImageBySegmentId = {};
+    searchResultBarContainersBySegmentId = {};
+    searchResultLineContainersBySegmentId = {};
+    isFreezingBatch = false;
+  }
+
+  function getVisibleSegmentIds(limit = $showResultCount) {
+    return $patternDataList
+      .slice(0, Math.min(limit, $patternDataList.length))
+      .map((item) => item?.segmentId)
+      .filter((id) => id !== null && id !== undefined && id !== "");
+  }
+
+  function getSvgSize(svgElement) {
+    const rect = svgElement.getBoundingClientRect();
+    const width =
+      Number.parseFloat(svgElement.getAttribute("width")) ||
+      rect.width ||
+      svgElement.clientWidth ||
+      1;
+    const height =
+      Number.parseFloat(svgElement.getAttribute("height")) ||
+      rect.height ||
+      svgElement.clientHeight ||
+      1;
+    return {
+      width: Math.max(1, Math.round(width)),
+      height: Math.max(1, Math.round(height)),
+    };
+  }
+
+  function applyFrozenAxisStyles(svgRoot) {
+    // Mirror chart axis typography so frozen previews look like live charts.
+    const axisTickTexts = svgRoot.querySelectorAll(".tick text");
+    axisTickTexts.forEach((node) => {
+      node.setAttribute("font-family", "Poppins, sans-serif");
+      node.setAttribute("font-size", "10px");
+      node.setAttribute("font-weight", "600");
+      node.setAttribute("fill", "black");
+    });
+
+    const axisLabels = svgRoot.querySelectorAll(
+      ".x-axis > text, .y-axis > text, .y-axis-label",
+    );
+    axisLabels.forEach((node) => {
+      node.setAttribute("font-family", "Poppins, sans-serif");
+      node.setAttribute("font-size", "10px");
+      node.setAttribute("font-weight", "600");
+      node.setAttribute("fill", "black");
+    });
+
+    const fallbackAxisLabels = svgRoot.querySelectorAll("g > text");
+    fallbackAxisLabels.forEach((node) => {
+      const parentClass = node.parentElement?.getAttribute("class") || "";
+      if (parentClass.includes("tick") || parentClass.includes("brush")) return;
+      if (node.closest("defs")) return;
+      if (node.hasAttribute("font-weight")) return;
+      node.setAttribute("font-family", "Poppins, sans-serif");
+      node.setAttribute("font-size", node.getAttribute("font-size") || "10px");
+      node.setAttribute("font-weight", "600");
+      node.setAttribute("fill", node.getAttribute("fill") || "black");
+    });
+
+    const axisLines = svgRoot.querySelectorAll(".tick line, .domain");
+    axisLines.forEach((node) => {
+      node.setAttribute("stroke", "#000");
+      node.setAttribute("stroke-width", "1");
+      node.setAttribute("shape-rendering", "crispEdges");
+    });
+  }
+
+  function svgToFrozenImage(svgElement) {
+    const clone = svgElement.cloneNode(true);
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    clone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+
+    applyFrozenAxisStyles(clone);
+
+    const { width, height } = getSvgSize(svgElement);
+    clone.setAttribute("width", String(width));
+    clone.setAttribute("height", String(height));
+
+    const svgText = new XMLSerializer().serializeToString(clone);
+    const encodedSvg = encodeURIComponent(svgText)
+      .replace(/%0A/g, "")
+      .replace(/%20/g, " ");
+    return {
+      src: `data:image/svg+xml;charset=utf-8,${encodedSvg}`,
+      width,
+      height,
+    };
+  }
+
+  async function freezeSearchResultBatch(segmentIds) {
+    if (
+      isFreezingBatch ||
+      !Array.isArray(segmentIds) ||
+      segmentIds.length === 0
+    ) {
+      return;
+    }
+
+    isFreezingBatch = true;
+    try {
+      for (const segmentId of segmentIds) {
+        if (frozenSegmentIds.has(segmentId)) continue;
+
+        const barSvg =
+          searchResultBarContainersBySegmentId[segmentId]?.querySelector("svg");
+        const lineSvg =
+          searchResultLineContainersBySegmentId[segmentId]?.querySelector(
+            "svg",
+          );
+        if (!barSvg || !lineSvg) continue;
+
+        const barImage = svgToFrozenImage(barSvg);
+        const lineImage = svgToFrozenImage(lineSvg);
+
+        // Freeze only when both previews are captured so the row keeps visual parity.
+        if (!barImage || !lineImage) continue;
+
+        barPreviewImageBySegmentId = {
+          ...barPreviewImageBySegmentId,
+          [segmentId]: barImage,
+        };
+        linePreviewImageBySegmentId = {
+          ...linePreviewImageBySegmentId,
+          [segmentId]: lineImage,
+        };
+        frozenSegmentIds = new Set([...frozenSegmentIds, segmentId]);
+      }
+    } finally {
+      isFreezingBatch = false;
+    }
+  }
 
   let isSave = false;
   let nameInput = "";
@@ -786,6 +953,7 @@
     const newSelectedPatterns = { ...selectedPatterns };
     delete newSelectedPatterns[sessionId];
     patternData = [];
+    resetSearchResultSnapshotState();
     patternDataList.set([]);
     currentResults = {};
 
@@ -1447,6 +1615,7 @@
 
   async function searchPattern(sessionId) {
     isSearch = 1; // 0: not searching, 1: searching, 2: search done
+    resetSearchResultSnapshotState();
     allSearchResults = []; // Reset search results
     loadedResultCount = 0;
     const sessionData = selectedPatterns[sessionId];
@@ -2007,6 +2176,7 @@
     loadedResultCount = 0;
 
     // Clear existing data
+    resetSearchResultSnapshotState();
     patternDataList.set([]);
 
     // Load initial batch
@@ -2016,6 +2186,9 @@
     console.log(
       `Loaded ${loadedResultCount} of ${allSearchResults.length} results (showing first ${$showResultCount})`,
     );
+
+    // First visible batch starts as live charts and will be frozen on next load-more click.
+    pendingFreezeSegmentIds = getVisibleSegmentIds($showResultCount);
 
     isSearch = 2; // reset search state; 0: not searching, 1: searching, 2: search done
     fetchProgress = 0;
@@ -2187,6 +2360,7 @@
     semanticTrend = [];
     selectedPatterns = {};
     patternData = [];
+    resetSearchResultSnapshotState();
     patternDataList.set([]);
     currentResults = {};
     const { sessionId, range, dataRange, data, wholeData, sources } =
@@ -4150,6 +4324,8 @@
 
     const increment = 5;
     const loadBatchSize = 10;
+    const previousVisibleIds = getVisibleSegmentIds($showResultCount);
+    const previousVisibleSet = new Set(previousVisibleIds);
     const targetShowCount = $showResultCount + increment;
 
     if (
@@ -4160,8 +4336,18 @@
     }
 
     $showResultCount = Math.min(targetShowCount, $patternDataList.length);
+
+    const currentVisibleIds = getVisibleSegmentIds($showResultCount);
+    const newlyRevealedIds = currentVisibleIds.filter(
+      (id) => !previousVisibleSet.has(id),
+    );
+
+    // Wait for DOM paint so freeze captures the previous batch after new cards mount.
+    await tick();
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    await freezeSearchResultBatch([...pendingFreezeSegmentIds]);
+    pendingFreezeSegmentIds = newlyRevealedIds;
   }
-  
 </script>
 
 <div class="App">
@@ -5169,49 +5355,90 @@
                             >
                           </div>
                           <div style="display: flex; align-items: flex-start">
-                            <!--Barchart for search result preview-->
-                            <div>
-                              <BarChartY
-                                sessionId={sessionData.sessionId}
-                                similarityData={sessionData.similarityData}
-                                height={150}
-                                width={180}
-                                {yScale}
-                                xAxisField={barChartXAxis}
-                                yAxisField={barChartYAxis}
-                                readOnly={true}
-                                sharedSelection={generateBarchartSelection(
-                                  sessionData,
-                                  barChartXAxis,
-                                )}
-                                on:selectionChanged={() => {}}
-                                on:selectionCleared={() => {}}
+                            {#if frozenSegmentIds.has(sessionData.segmentId) && barPreviewImageBySegmentId[sessionData.segmentId] && linePreviewImageBySegmentId[sessionData.segmentId]}
+                              <div>
+                                <img
+                                  src={barPreviewImageBySegmentId[
+                                    sessionData.segmentId
+                                  ].src}
+                                  alt="Bar chart preview"
+                                  width={barPreviewImageBySegmentId[
+                                    sessionData.segmentId
+                                  ].width}
+                                  height={barPreviewImageBySegmentId[
+                                    sessionData.segmentId
+                                  ].height}
+                                  style="display: block;"
+                                />
+                              </div>
+                              <div>
+                                <img
+                                  src={linePreviewImageBySegmentId[
+                                    sessionData.segmentId
+                                  ].src}
+                                  alt="Line chart preview"
+                                  width={linePreviewImageBySegmentId[
+                                    sessionData.segmentId
+                                  ].width}
+                                  height={linePreviewImageBySegmentId[
+                                    sessionData.segmentId
+                                  ].height}
+                                  style="display: block;"
+                                />
+                              </div>
+                            {:else}
+                              <!-- Keep current batch live, then freeze after next load-more click. -->
+                              <div
                                 bind:this={
-                                  chartRefs[sessionData.sessionId + "-barChart"]
+                                  searchResultBarContainersBySegmentId[
+                                    sessionData.segmentId
+                                  ]
                                 }
-                                on:chartLoaded={() => {}}
-                                bind:xScaleBarChartFactor
-                              />
-                            </div>
-                            <div>
-                              <LineChartPreview
-                                bind:this={chartRefs[sessionData.sessionId]}
-                                chartData={sessionData.chartData}
-                                selectedTimeRange={sessionData.highlightRanges
-                                  ?.time ?? null}
-                                selectedProgressRange={sessionData
-                                  .highlightRanges?.progress ?? null}
-                                highlightWindows={sessionData.highlightRanges
-                                  ?.windows ?? []}
-                                highlightMode={sessionData.highlightRanges
-                                  ?.mode ??
-                                  resolveHighlightModeFromSource(
-                                    searchDetail?.selectionSource ?? null,
+                              >
+                                <BarChartY
+                                  sessionId={sessionData.sessionId}
+                                  similarityData={sessionData.similarityData}
+                                  height={150}
+                                  width={180}
+                                  {yScale}
+                                  xAxisField={barChartXAxis}
+                                  yAxisField={barChartYAxis}
+                                  readOnly={true}
+                                  sharedSelection={generateBarchartSelection(
+                                    sessionData,
+                                    barChartXAxis,
                                   )}
-                                selectionContext={sessionData.highlightRanges
-                                  ?.selectionContext ?? null}
-                              />
-                            </div>
+                                  on:selectionChanged={() => {}}
+                                  on:selectionCleared={() => {}}
+                                  on:chartLoaded={() => {}}
+                                  bind:xScaleBarChartFactor
+                                />
+                              </div>
+                              <div
+                                bind:this={
+                                  searchResultLineContainersBySegmentId[
+                                    sessionData.segmentId
+                                  ]
+                                }
+                              >
+                                <LineChartPreview
+                                  chartData={sessionData.chartData}
+                                  selectedTimeRange={sessionData.highlightRanges
+                                    ?.time ?? null}
+                                  selectedProgressRange={sessionData
+                                    .highlightRanges?.progress ?? null}
+                                  highlightWindows={sessionData.highlightRanges
+                                    ?.windows ?? []}
+                                  highlightMode={sessionData.highlightRanges
+                                    ?.mode ??
+                                    resolveHighlightModeFromSource(
+                                      searchDetail?.selectionSource ?? null,
+                                    )}
+                                  selectionContext={sessionData.highlightRanges
+                                    ?.selectionContext ?? null}
+                                />
+                              </div>
+                            {/if}
                           </div>
                         </div>
                       {/if}
