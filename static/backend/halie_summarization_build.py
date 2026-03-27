@@ -26,7 +26,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATASET_DIR = os.path.join(SCRIPT_DIR, "..", "dataset", "halie_summarization")
 
 LOGS_ZIP       = os.path.expanduser("~/Downloads/summarization_logs.zip")
-EVENT_BLOCKS   = os.path.expanduser("~/Downloads/summarization_event_blocks.csv")
+EVENT_BLOCKS   = os.path.expanduser("~/Desktop/25Summer/Visualization Intelligence Lab/halie/summarization_event_blocks.csv")
 
 JSON_OUT_DIR    = os.path.join(DATASET_DIR, "json")
 SEGMENT_OUT_DIR = os.path.join(DATASET_DIR, "segment_results")
@@ -369,13 +369,22 @@ def build_session_csv(session_ids: list, segments_map: dict):
             or (bool_val(s.get("edited_relevance", "")) > bool_val(s.get("original_relevance", "")))
         )
 
+        avg_edited_quality = round(
+            sum(
+                (bool_val(s.get("edited_consistency", "")) +
+                 bool_val(s.get("edited_coherency", "")) +
+                 bool_val(s.get("edited_relevance", ""))) / 3
+                for s in segs
+            ) / n, 4
+        ) if n else 0
+
         new_rows[sid] = {
             "session_id": sid,
             "num_docs": n,
             "avg_edit_distance": avg_dist,
             "total_edit_distance": total_dist,
             "quality_improvements": quality_improvements,
-            "judge_score": avg_dist,   # import-groups.ts reads col[1] as judge_score
+            "judge_score": round(avg_edited_quality * 10, 4),
         }
 
     # Merge with existing

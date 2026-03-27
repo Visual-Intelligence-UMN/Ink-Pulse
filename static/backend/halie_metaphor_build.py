@@ -217,17 +217,23 @@ def build_session_csv(session_data, segments_map):
         ai_ratio = total_api / len(segs) if segs else 0
         sem_sum = sum(s["residual_vector_norm"] for s in segs)
 
+        # avg_overall: mean of non-empty 'overall' values across sentences
+        # Note: CSV column is "overall " (trailing space); strip keys when loading if needed
+        overall_vals = [safe_float(m.get("overall", m.get("overall ", ""))) for m in metaphors if m.get("overall", m.get("overall ", "")).strip()]
+        avg_overall = round(sum(overall_vals) / len(overall_vals), 4) if overall_vals else ""
+
         rows.append({
             "session_id": sid,
-            "judge_score": "",
+            "judge_score": round(float(avg_overall) * 10, 4) if avg_overall != "" else "",
             "length": len(metaphors),
             "AI_ratio": round(ai_ratio, 4),
             "sum_semantic_score": round(sem_sum, 4),
             "prompt_code": metaphors[0].get("prompt", "metaphor"),
+            "avg_overall": avg_overall,
         })
 
     with open(SESSION_CSV_PATH, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["session_id", "judge_score", "length", "AI_ratio", "sum_semantic_score", "prompt_code"])
+        writer = csv.DictWriter(f, fieldnames=["session_id", "judge_score", "length", "AI_ratio", "sum_semantic_score", "prompt_code", "avg_overall"])
         writer.writeheader()
         writer.writerows(rows)
     print(f"  session.csv → {len(rows)} sessions")
