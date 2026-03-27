@@ -5127,12 +5127,12 @@
                     </div>
                   {/if}
                   <div class="chat-panel">
-                    <!-- <button
+                    <button
                       on:click={toggleTestMode}
                       class="search-pattern-button"
                     >
                       {isTest ? "Switch to Normal Mode" : "Switch to Test Mode"}
-                    </button> -->
+                    </button>
                     <Interpreter
                       {pattern}
                       on:parsedFilters={handleInterpreterFilters}
