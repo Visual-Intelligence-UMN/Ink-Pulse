@@ -52,6 +52,7 @@
 
   let xScale: any;
   export let yScale;
+  let newYScale: any;
   export let zoomTransform = d3.zoomIdentity;
   let ZoomTransformIsInteral = d3.zoomIdentity;
 
@@ -68,6 +69,10 @@
   let brushY: any = null;
   let brushX: any = null;
   export let brushIsX: boolean = false;
+
+  let processedData: any[] = [];
+  let xDomain: [number, number] = [0, 1];
+  let yDomain: [number, number] = [0, 1];
 
   // attribute config for the chart (from parent or use default)
   export let attributeConfig: any = {
@@ -98,35 +103,8 @@
   $: allBars = handleLine2Bar(allBlocks);
 
   onMount(() => {
-    brushY = d3
-      .brushY()
-      .extent([
-        [0, 0],
-        [chartWidth, chartHeight],
-      ])
-      .on("start brush end", (event: any) => {
-        if (event.sourceEvent) event.sourceEvent.stopPropagation();
-      })
-      .on("end", brushedY);
-
-    brushX = d3
-      .brushX()
-      .extent([
-        [0, 0],
-        [chartWidth, chartHeight],
-      ])
-      .on("start brush end", (event: any) => {
-        if (event.sourceEvent) event.sourceEvent.stopPropagation();
-      })
-      .on("end", brushedX);
-
-    const plot = d3
-      .select(svgContainer)
-      .select("g")
-      .select('g[clip-path="url(#clip)"]');
-
-    brushGroup = plot.append("g").attr("class", "brush");
-    brushGroup.call(brushX);
+    initBrushes();
+    renderChart();
   });
 
   // $: {
@@ -169,6 +147,18 @@
   // $: if (brushGroup && zoomTransform) {
   //   brushGroup.select(".selection").style("display", "none");
   // }
+
+  $: if (!zoomTransform) {
+    zoomTransform = d3.zoomIdentity;
+  }
+
+  $: if (xAxisField && yAxisField && chartData.length) {
+    renderChart();
+  }
+
+  $: if (chartData.length) {
+    renderChart();
+  }
 
   function getCircleOpacity(d) {
     // if (!selectionMode) {
@@ -325,6 +315,148 @@
     return result;
   }
 
+  function initBrushes() {
+    brushY = d3
+      .brushY()
+      .extent([
+        [0, 0],
+        [chartWidth, chartHeight],
+      ])
+      .on("start brush end", (event: any) => {
+        if (event.sourceEvent) event.sourceEvent.stopPropagation();
+      })
+      .on("end", brushedY);
+
+    brushX = d3
+      .brushX()
+      .extent([
+        [0, 0],
+        [chartWidth, chartHeight],
+      ])
+      .on("start brush end", (event: any) => {
+        if (event.sourceEvent) event.sourceEvent.stopPropagation();
+      })
+      .on("end", brushedX);
+  }
+
+  function buildProcessedData() {
+    const xConfig = attributeConfig[xAxisField];
+    const yConfig = attributeConfig[yAxisField];
+
+    processedData = chartData.map((item, i) => ({
+      ...item,
+      index: item.index ?? i,
+      xValue: xConfig?.getValue(item) ?? 0,
+      yValue: yConfig?.getValue(item) ?? 0,
+    }));
+  }
+
+  function buildScales() {
+    const xConfig = attributeConfig[xAxisField];
+    const yConfig = attributeConfig[yAxisField];
+
+    // dynamicly calculate X axis's domain
+    let nextXDomain = xConfig.domain;
+    if (!nextXDomain) {
+      const xValues = processedData.map((d) => d.xValue);
+      const minX = Math.min(...xValues);
+      const maxX = Math.max(...xValues);
+      nextXDomain = [minX, maxX];
+    }
+
+    // dynamicly calculate Y axis's domain
+    let nextYDomain = yConfig.domain;
+    if (!nextYDomain) {
+      const yValues = processedData.map((d) => d.yValue);
+      const minY = Math.min(...yValues);
+      const maxY = Math.max(...yValues);
+      nextYDomain = [minY, maxY];
+    }
+
+    xDomain = nextXDomain;
+    yDomain = nextYDomain;
+
+    xScale = d3.scaleLinear().domain(xDomain).range([0, chartWidth]);
+
+    xScaleLineChartFactor =
+      chartWidth /
+      ((xDomain[1] - xDomain[0]) * (xAxisField === "time" ? 60 : 1));
+
+    // keep the initial external yScale for progress if needed
+    if (yAxisField === "progress" && yScale) {
+      newYScale = yScale.copy ? yScale.copy() : yScale;
+    } else {
+      newYScale = d3.scaleLinear().domain(yDomain).range([chartHeight, 0]);
+    }
+  }
+
+  function renderChart() {
+    if (!chartData?.length) return;
+    if (!svgContainer) return;
+
+    buildProcessedData();
+    buildScales();
+    updateAxes();
+    bindZoom();
+    refreshBrushLayer();
+  }
+
+  function refreshBrushLayer() {
+    if (!svgContainer) return;
+
+    const plot = d3
+      .select(svgContainer)
+      .select("g")
+      .select('g[clip-path="url(#clip)"]');
+
+    if (plot.empty()) return;
+
+    if (!brushGroup || brushGroup.empty()) {
+      brushGroup = plot.append("g").attr("class", "brush");
+    }
+
+    if (brushIsX) {
+      brushGroup.call(brushX);
+    } else {
+      brushGroup.call(brushY);
+    }
+
+    if (!selectionMode) {
+      brushGroup.call(brushX.move, null);
+      brushGroup.call(brushY.move, null);
+      brushGroup.select(".overlay")?.style("pointer-events", "none");
+    } else {
+      brushGroup.select(".overlay")?.style("pointer-events", "all");
+    }
+  }
+
+  function bindZoom() {
+    zoom = d3
+      .zoom()
+      .scaleExtent([1, 5])
+      .translateExtent([
+        [0, 0],
+        [width, height],
+      ])
+      .on("zoom", (event) => {
+        let transform = event.transform;
+        const maxTranslateY = 0;
+        const minTranslateY =
+          -(height - margin.top - margin.bottom) * (transform.k - 1);
+        const clampedY = Math.max(
+          minTranslateY,
+          Math.min(transform.y, maxTranslateY),
+        );
+        zoomTransform = d3.zoomIdentity
+          .translate(transform.x, clampedY)
+          .scale(transform.k);
+        ZoomTransformIsInteral = zoomTransform;
+        updateAxes();
+      });
+
+    d3.select(svgContainer).call(zoom);
+  }
+
   function brushedY(event) {
     if (!event.selection) {
       sharedSelection = null;
@@ -334,14 +466,14 @@
 
     const [y0, y1] = event.selection;
     const zx = zoomTransform.rescaleX(xScale);
-    const zy = zoomTransform.rescaleY(yScale);
+    const zy = zoomTransform.rescaleY(newYScale);
 
     const x0 = 0;
     const x1 = chartWidth;
 
-    insidePoints = chartData.filter((d) => {
-      const px = zx(getXValue(d));
-      const py = zy(getYValue(d));
+    insidePoints = processedData.filter((d) => {
+      const px = zx(d.xValue);
+      const py = zy(d.yValue);
       return px >= x0 && px <= x1 && py >= y0 && py <= y1;
     });
 
@@ -371,8 +503,8 @@
     // console.log("points", matchedPoints)
     // console.log("converted points", handleLine2Bar(matchedPoints))
 
-    const yMin = d3.min(insidePoints, (d) => getYValue(d));
-    const yMax = d3.max(insidePoints, (d) => getYValue(d));
+    const yMin = d3.min(insidePoints, (d) => d.yValue);
+    const yMax = d3.max(insidePoints, (d) => d.yValue);
     const scValues = matchedPoints.map((d) => d.residual_vector_norm || 0);
     const scMin = d3.min(scValues) || 0;
     const scMax = d3.max(scValues) || 1;
@@ -445,8 +577,8 @@
 
     const xMin = zx.invert(x0);
     const xMax = zx.invert(x1);
-    insidePoints = chartData.filter((d) => {
-      const xVal = getXValue(d);
+    insidePoints = processedData.filter((d) => {
+      const xVal = d.xValue;
       return xVal >= xMin && xVal <= xMax;
     });
 
@@ -543,19 +675,6 @@
       .call(zoom.transform, d3.zoomIdentity);
   }
 
-  $: if (xAxisField && yAxisField && chartData.length) {
-    initChart();
-  }
-
-  $: if (chartData.length) {
-    updateAxes();
-    initChart();
-  }
-
-  $: if (xAxisG && yAxisG) {
-    updateAxes();
-  }
-
   // $: if (zoom) {
   //   console.log("zoomTransform:", zoomTransform);
   // }
@@ -568,11 +687,14 @@
     // console.log("zooming:", zoomTransform);
 
     if (ZoomTransformIsInteral.k !== zoomTransform.k) {
-      let centerY =
+      const centerY =
         (zoomTransform.y - ZoomTransformIsInteral.y) /
         (ZoomTransformIsInteral.k - zoomTransform.k);
-      let { x, y } = findPointAtY(centerY);
-      let centerX =
+
+      const point = findPointAtY(centerY);
+
+      let { x } = point;
+      const centerX =
         x * (ZoomTransformIsInteral.k - zoomTransform.k) +
         ZoomTransformIsInteral.x;
       const maxTranslateX = 0;
@@ -584,7 +706,9 @@
       );
       zoomTransform.x = clampedY;
       ZoomTransformIsInteral = zoomTransform;
-      d3.select(svgContainer).call(zoom.transform, zoomTransform);
+      if (svgContainer && zoom) {
+        d3.select(svgContainer).call(zoom.transform, zoomTransform);
+      }
       updateAxes();
     }
   }
@@ -599,8 +723,8 @@
     let closestPoint = null;
     let minDistance = Infinity;
 
-    for (const d of chartData) {
-      const scaledYValue = scaledY(d.percentage);
+    for (const d of processedData) {
+      const scaledYValue = scaledY(d.yValue);
       const distance = Math.abs(scaledYValue - yCoordinate);
 
       if (distance < minDistance) {
@@ -610,8 +734,8 @@
     }
 
     if (closestPoint) {
-      const x = scaledX(closestPoint.time);
-      const y = scaledY(closestPoint.percentage);
+      const x = scaledX(closestPoint.xValue);
+      const y = scaledY(closestPoint.yValue);
       return { x, y };
     }
 
@@ -619,10 +743,10 @@
   }
 
   function updateAxes() {
-    if (!xScale || !yScale) return;
+    if (!xScale || !newYScale || !xAxisG || !yAxisG) return;
 
     const xAxis = d3.axisBottom(zoomTransform.rescaleX(xScale)).ticks(5);
-    const yAxis = d3.axisRight(zoomTransform.rescaleY(yScale)).ticks(5);
+    const yAxis = d3.axisRight(zoomTransform.rescaleY(newYScale)).ticks(5);
 
     d3.select(xAxisG).call(xAxis);
     d3.select(yAxisG).call(yAxis);
@@ -632,78 +756,6 @@
       .filter((_, i) => i === 0)
       .attr("text-anchor", "start")
       .attr("dx", "0.01em");
-  }
-
-  function initChart() {
-    // Safety check: ensure attributeConfig is not empty
-    if (!attributeConfig || Object.keys(attributeConfig).length === 0) {
-      console.warn("⚠️ LineChart attributeConfig is empty, skipping init");
-      return;
-    }
-
-    const xConfig = attributeConfig[xAxisField];
-    const yConfig = attributeConfig[yAxisField];
-
-    // Safety check: ensure selected fields exist in config
-    if (!xConfig || !yConfig) {
-      console.warn(
-        `LineChart field not found: x=${xAxisField}, y=${yAxisField}`,
-      );
-      return;
-    }
-
-    // dynamicly calculate X axis's domain
-    let xDomain = xConfig.domain;
-    if (!xDomain) {
-      const xValues = chartData.map((d) => xConfig.getValue(d));
-      const minX = Math.min(...xValues);
-      const maxX = Math.max(...xValues);
-      xDomain = [minX, maxX];
-    }
-
-    // dynamicly calculate Y axis's domain
-    let yDomain = yConfig.domain;
-    if (!yDomain) {
-      const yValues = chartData.map((d) => yConfig.getValue(d));
-      const minY = Math.min(...yValues);
-      const maxY = Math.max(...yValues);
-      yDomain = [minY, maxY];
-    }
-
-    xScale = d3
-      .scaleLinear()
-      .domain(xDomain)
-      .range([0, width - margin.left - margin.right]);
-
-    xScaleLineChartFactor =
-      (width - margin.left - margin.right) /
-      ((xDomain[1] - xDomain[0]) * (xAxisField === "time" ? 60 : 1));
-
-    zoom = d3
-      .zoom()
-      .scaleExtent([1, 5])
-      .translateExtent([
-        [0, 0],
-        [width, height],
-      ])
-      .on("zoom", (event) => {
-        let transform = event.transform;
-        const maxTranslateY = 0;
-        const minTranslateY =
-          -(height - margin.top - margin.bottom) * (transform.k - 1);
-        const clampedY = Math.max(
-          minTranslateY,
-          Math.min(transform.y, maxTranslateY),
-        );
-        zoomTransform = d3.zoomIdentity
-          .translate(transform.x, clampedY)
-          .scale(transform.k);
-        ZoomTransformIsInteral = zoomTransform;
-        updateAxes();
-      });
-
-    d3.select(svgContainer).call(zoom);
-    updateAxes();
   }
 
   function handlePointClick(d) {
@@ -716,7 +768,7 @@
   }
 
   function scaledY(val) {
-    return yScale ? yScale(val) : 0;
+    return newYScale ? newYScale(val) : 0;
   }
 
   // dynamicly get point's X/Y value
@@ -754,10 +806,10 @@
       {/each}
 
       <g>
-        {#each chartData.filter((d) => !d.isSuggestionOpen) as d (d.index)}
+        {#each processedData.filter((d) => !d.isSuggestionOpen) as d (d.index)}
           <circle
-            cx={zoomTransform.applyX(scaledX(getXValue(d)))}
-            cy={zoomTransform.applyY(scaledY(getYValue(d)))}
+            cx={zoomTransform.applyX(scaledX(d.xValue))}
+            cy={zoomTransform.applyY(scaledY(d.yValue))}
             r={selectedPoint?.index === d.index
               ? 5
               : hoveredPoint?.index === d.index
@@ -772,14 +824,14 @@
           />
         {/each}
 
-        {#each chartData.filter((d) => d.isSuggestionOpen) as d}
+        {#each processedData.filter((d) => d.isSuggestionOpen) as d}
           <path
             d={d3.symbol().type(d3.symbolTriangle).size(40)()}
             fill={d.isSuggestionAccept ? "#ffffff" : "#cccccc"}
             stroke="#aaaaaa"
             stroke-width="1"
             opacity={d.opacity + 0.29}
-            transform={`translate(${zoomTransform.applyX(scaledX(getXValue(d)))},${zoomTransform.applyY(scaledY(getYValue(d) + 6 / zoomTransform.k))}) rotate(180)`}
+            transform={`translate(${zoomTransform.applyX(scaledX(d.xValue))},${zoomTransform.applyY(scaledY(d.yValue)) - 6}) rotate(180)`}
           />
         {/each}
       </g>

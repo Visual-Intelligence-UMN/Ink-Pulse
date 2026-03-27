@@ -27,7 +27,7 @@
   let xScale;
   let newyScale;
 
-  // 属性配置池
+  // attribute config
   const attributeConfig = {
     progress: {
       label: "Writing length",
@@ -156,26 +156,26 @@
       bars.attr("opacity", (d) => (selectedIds.has(d.id) ? 0.9 : 0.1));
     }
 
-    // 通用格式：优先使用 xMin/xMax/xField
+    // genral: xMin/xMax/xField first
     let selectionMin, selectionMax;
 
     if (sharedSelection.xField && sharedSelection.xField === xAxisField) {
-      // 新格式：字段匹配
+      // new type
       selectionMin = sharedSelection.xMin;
       selectionMax = sharedSelection.xMax;
     } else if (
       sharedSelection.progressMin !== null &&
       xAxisField === "progress"
     ) {
-      // 向后兼容：progressMin/progressMax
+      // progressMin/progressMax
       selectionMin = sharedSelection.progressMin;
       selectionMax = sharedSelection.progressMax;
     } else if (sharedSelection.timeMin !== null && xAxisField === "time") {
-      // 向后兼容：timeMin/timeMax
+      // timeMin/timeMax
       selectionMin = sharedSelection.timeMin;
       selectionMax = sharedSelection.timeMax;
     } else {
-      // 字段不匹配，不响应
+      // no match
       bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
       return;
     }
