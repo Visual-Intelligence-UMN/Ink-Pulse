@@ -12,6 +12,7 @@
   export let readOnly = false;
   export let sharedSelection = null;
   export let xScaleBarChartFactor = 1;
+  export let dataset = "";
   const uniqueId = Math.random().toString(36).substring(2, 9);
 
   let container;
@@ -59,7 +60,28 @@
       hasRange: false,
       domain: [0, 1],
     },
+    edit_distance: {
+      label: "Edit Distance",
+      getValue: (item) => item.edit_distance ?? 0,
+      hasRange: false,
+      domain: null,
+    },
   };
+
+  function getQualityImprovementColor(d) {
+    const bool = (v) => String(v).trim() === "True";
+    const improved =
+      (!bool(d.original_consistency) && bool(d.edited_consistency)) ||
+      (!bool(d.original_coherency) && bool(d.edited_coherency)) ||
+      (!bool(d.original_relevance) && bool(d.edited_relevance));
+    const degraded =
+      (bool(d.original_consistency) && !bool(d.edited_consistency)) ||
+      (bool(d.original_coherency) && !bool(d.edited_coherency)) ||
+      (bool(d.original_relevance) && !bool(d.edited_relevance));
+    if (improved) return "#4CAF50";
+    if (degraded) return "#E53935";
+    return "#aaaaaa";
+  }
 
   import sourceColorManager from "./sourceColorManager.js";
 
@@ -274,6 +296,13 @@
         source: item.source,
         startTime: item.start_time / 60,
         endTime: item.end_time / 60,
+        edit_distance: item.edit_distance ?? 0,
+        original_consistency: item.original_consistency,
+        original_coherency: item.original_coherency,
+        original_relevance: item.original_relevance,
+        edited_consistency: item.edited_consistency,
+        edited_coherency: item.edited_coherency,
+        edited_relevance: item.edited_relevance,
         // calculate selected X/Y values
         xValue: xConfig.getValue(item),
         yValue: yConfig.getValue(item),
@@ -411,8 +440,8 @@
           return newyScale(yDomain[0]) - newyScale(d.yValue);
         }
       })
-      .attr("fill", (d) => getSourceColor(d.source))
-      .attr("stroke", (d) => getSourceColor(d.source))
+      .attr("fill", (d) => dataset === "halie_summarization" ? getQualityImprovementColor(d) : getSourceColor(d.source))
+      .attr("stroke", (d) => dataset === "halie_summarization" ? getQualityImprovementColor(d) : getSourceColor(d.source))
       .attr("opacity", 0.5)
       .attr("stroke-width", 0.1)
       .attr("clip-path", `url(#clip_bar_${uniqueId})`);

@@ -86,12 +86,19 @@
       hasRange: false,
       domain: [0, 1],
     },
+    edit_distance: {
+      label: "Edit Distance",
+      getValue: (item) => item.edit_distance ?? 0,
+      hasRange: false,
+      domain: null,
+    },
   };
 
   let availableBarChartFields = [
     { key: "progress", label: "Progress" },
     { key: "time", label: "Time" },
     { key: "semantic_change", label: "Semantic Change" },
+    { key: "edit_distance", label: "Edit Distance" },
   ];
 
   let lineChartAttributeConfig = {
@@ -1395,6 +1402,7 @@
     if (checks.progress[0]) currentVector.p = []; // n
     if (checks.trend[0]) currentVector.tr = [];
     if (checks.semantic[0]) currentVector.sem = [];
+    if (selectedDataset === "halie_summarization") currentVector.qi = [];
     for (let i = 0; i < currentResults.length; i++) {
       const currentItem = currentResults[i];
       if (checks.source[0]) {
@@ -1416,6 +1424,15 @@
       if (checks.semantic[0]) {
         currentVector.sem.push(currentItem.residual_vector_norm);
       }
+
+      if (selectedDataset === "halie_summarization") {
+        const bool = (v) => String(v).trim() === "True";
+        const improved =
+          (!bool(currentItem.original_consistency) && bool(currentItem.edited_consistency)) ||
+          (!bool(currentItem.original_coherency) && bool(currentItem.edited_coherency)) ||
+          (!bool(currentItem.original_relevance) && bool(currentItem.edited_relevance));
+        currentVector.qi.push(improved ? 1 : 0);
+      }
     }
 
     if (checks.trend[0]) {
@@ -1432,6 +1449,7 @@
     if (checks.progress[0]) vector.p = []; // 0.n
     if (checks.trend[0]) vector.tr = [];
     if (checks.semantic[0]) vector.sem = [];
+    if (selectedDataset === "halie_summarization") vector.qi = [];
 
     for (let i = 0; i < segment.length; i++) {
       const item = segment[i];
@@ -1452,6 +1470,14 @@
       }
       if (checks.semantic[0]) {
         vector.sem.push(item.residual_vector_norm);
+      }
+      if (selectedDataset === "halie_summarization") {
+        const bool = (v) => String(v).trim() === "True";
+        const improved =
+          (!bool(item.original_consistency) && bool(item.edited_consistency)) ||
+          (!bool(item.original_coherency) && bool(item.edited_coherency)) ||
+          (!bool(item.original_relevance) && bool(item.edited_relevance));
+        vector.qi.push(improved ? 1 : 0);
       }
     }
     if (checks.trend[0]) {
@@ -2085,7 +2111,14 @@
           const fallbackMode = resolveHighlightModeFromSource(
             searchDetail?.selectionSource ?? null,
           );
-          const highlightMode = fallbackMode ?? highlightRanges.mode ?? null;
+          const normalizedHighlightMode =
+            highlightRanges.mode === "time" ||
+            highlightRanges.mode === "progress" ||
+            highlightRanges.mode === "both"
+              ? highlightRanges.mode
+              : null;
+          /** @type {"time" | "progress" | "both" | null} */
+          const highlightMode = fallbackMode ?? normalizedHighlightMode ?? null;
           const selectionContext = highlightRanges.selectionContext ?? {
             selectionSource:
               highlightMode === "time"
@@ -2223,15 +2256,16 @@
     lastSession = $clickSession;
 
     const highlightWindows = [];
+    /** @type {"time" | "progress" | "both" | null} */
     const highlightMode = resolveHighlightModeFromSource(selectionSrc);
 
-    if (highlightMode === "progress" || highlightMode === "both") {
+    if (highlightMode === "progress") {
       highlightWindows.push({
         progress: { ...range.progress },
       });
     }
 
-    if (highlightMode === "time" || highlightMode === "both") {
+    if (highlightMode === "time") {
       highlightWindows.push({
         time: { min: timeRange[0], max: timeRange[1] },
       });
@@ -3039,9 +3073,11 @@
         const pointFields = detectedFields.pointFields.map((f) =>
           f.key === "residual_vector_norm" ? "semantic_change" : f.key,
         );
-        const defaultYAxis = pointFields.includes("semantic_change")
-          ? "semantic_change"
-          : pointFields[0] || "semantic_change";
+        const defaultYAxis = selectedDataset === "halie_summarization"
+          ? "edit_distance"
+          : pointFields.includes("semantic_change")
+            ? "semantic_change"
+            : pointFields[0] || "semantic_change";
 
         barChartXAxis = defaultXAxis;
         barChartYAxis = defaultYAxis;
@@ -4673,6 +4709,7 @@
                               similarityData={$clickSession.similarityData}
                               height={150}
                               width={180}
+                              dataset={selectedDataset}
                               {yScale}
                               xAxisField={barChartXAxis}
                               yAxisField={barChartYAxis}
@@ -5078,6 +5115,7 @@
                             similarityData={$clickSession.similarityData}
                             height={150}
                             width={180}
+                            dataset={selectedDataset}
                             {yScale}
                             xAxisField={barChartXAxis}
                             yAxisField={barChartYAxis}
@@ -5277,6 +5315,7 @@
                                 similarityData={sessionData.similarityData}
                                 height={150}
                                 width={180}
+                                dataset={selectedDataset}
                                 {yScale}
                                 xAxisField={barChartXAxis}
                                 yAxisField={barChartYAxis}
@@ -5893,6 +5932,7 @@
                               similarityData={$clickSession.similarityData}
                               {yScale}
                               {height}
+                              dataset={selectedDataset}
                               xAxisField={barChartXAxis}
                               yAxisField={barChartYAxis}
                               attributeConfig={barChartAttributeConfig}
@@ -6098,7 +6138,7 @@
                                           ? 'chip-ok'
                                           : 'chip-bad'}"
                                   >
-                                    {metric.slice(0, 3).toUpperCase()}
+                                    {metric.charAt(0).toUpperCase() + metric.slice(1)}
                                     {orig ? "✓" : "✗"}→{edit ? "✓" : "✗"}
                                   </span>
                                 {/each}
