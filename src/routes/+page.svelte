@@ -1200,6 +1200,27 @@
         : candidates[0];
     }
 
+    function findNextPairIndex(
+      leftSourceValue,
+      rightSourceValue,
+      pattern,
+      prefer = "first",
+    ) {
+      const candidates = [];
+      for (let i = 0; i < pattern.length - 1; i++) {
+        if (
+          pattern[i] === leftSourceValue &&
+          pattern[i + 1] === rightSourceValue
+        ) {
+          candidates.push(i);
+        }
+      }
+      if (candidates.length === 0) return null;
+      return prefer === "last"
+        ? candidates[candidates.length - 1]
+        : candidates[0];
+    }
+
     function applyRatio(operator, lExpr, rExpr, ratio) {
       if (ratio == null) return `(${lExpr}) ${operator} (${rExpr})`;
       if (operator === ">") return `(${lExpr}) > ((${rExpr}) * ${ratio})`;
@@ -1251,15 +1272,47 @@
 
           return applyRatio(operator, lExpr, rExpr, ratio);
         }
+
         if (!filter.span && filter.r_position === "prev") {
-          const leftIdx = findPrevPairIndex(
+          let leftIdx = findPrevPairIndex(
             lSourceValue,
             rSourceValue,
             windowSourcePattern,
             "first",
           );
-          if (leftIdx == null) return null;
-          const rightIdx = leftIdx - 1;
+          let rightIdx = leftIdx == null ? null : leftIdx - 1;
+
+          // Fallback: if no "left compared to previous right" pair exists,
+          // accept adjacent left->right order from the selected window.
+          // This handles LLM outputs like "AI > Human" on an api,user pattern.
+          if (leftIdx == null) {
+            const nextLeftIdx = findNextPairIndex(
+              lSourceValue,
+              rSourceValue,
+              windowSourcePattern,
+              "first",
+            );
+
+            if (nextLeftIdx != null) {
+              leftIdx = nextLeftIdx;
+              rightIdx = nextLeftIdx + 1;
+              console.info(
+                "Interpreter filter resolved via adjacent fallback",
+                {
+                  index: i,
+                  relation: filter.relation,
+                  lSourceValue,
+                  rSourceValue,
+                  leftIdx,
+                  rightIdx,
+                },
+              );
+            }
+          }
+
+          if (leftIdx == null) {
+            return null;
+          }
 
           const lExpr = buildPointExpr(parsed.l_feature, leftIdx, lSourceValue);
           const rExpr = buildPointExpr(
@@ -1271,6 +1324,7 @@
 
           return applyRatio(operator, lExpr, rExpr, ratio);
         }
+
         if (filter.span === "full" && filter.r_position === "prev") {
           const leftIdx = findPrevPairIndex(
             lSourceValue,
