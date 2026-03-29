@@ -372,7 +372,7 @@
     For cross-source comparisons:
 
     - span MUST be null unless explicitly describing full-region comparison
-    - l_position and r_position should be null for simple prev comparison
+    - r_position MUST be "prev"
 
     IMPORTANT:
 
@@ -443,7 +443,7 @@
           "feature": "<feature_name>",
           "relation": "<searchable relation or null for source>",
           "span": "<prefix/suffix/full or null>",
-          "l_position": "<first/last or null>",
+          "l_position": "<first/last/prev or null>",
           "r_position": "<first/last/prev or null>"
         }
       ]
