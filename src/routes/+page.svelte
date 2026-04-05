@@ -2359,6 +2359,10 @@
 
   function handleSelectionChanged(event) {
     showResultCount.set(15);
+    exp_result = {
+      explanations: [],
+      filters: []
+    };
 
     if (sharedSelection) {
       selectionSrc = sharedSelection.selectionSource;
