@@ -2716,6 +2716,10 @@
       time100 = new Date(data.actions[data.actions.length - 1].event_time);
       time100 = (time100.getTime() - time0.getTime()) / (1000 * 60);
       currentTime = time100;
+      // segment_results times count from init_time, chart times from the first action
+      const initTime = new Date(data.init_time ?? NaN);
+      const segmentTimeOffset =
+        (time0.getTime() - initTime.getTime()) / (1000 * 60) || 0;
 
       const { chartData, textElements, paragraphColor, summaryData } =
         handleEvents(data);
@@ -2725,6 +2729,7 @@
         time0,
         time100,
         currentTime,
+        segmentTimeOffset,
         chartData,
         textElements,
         paragraphColor,
@@ -3535,6 +3540,8 @@
 
     const sessionId = $clickSession.sessionId;
     const dx = event.clientX - barDragState.startX;
+    // a tiny move is still a click on a bar; panning re-renders the bars
+    if (Math.abs(dx) < 3) return;
     const t = barDragState.initialTransform;
 
     // barChartY default width=300, margin.left=50, margin.right=10 → chartWidth=240
@@ -3893,6 +3900,23 @@
       };
     });
     let idx = findIndexFromTime(get(clickSession)?.chartData, d.time);
+    applyPlaybackFrame(sessionId, idx);
+    if (isPlaying) schedulePlayback(sessionId, idx);
+  }
+
+  // Jump to the moment the clicked bar (segment) was finished
+  function handleBarSelected(e, sessionId) {
+    const session = get(clickSession);
+    if (!session || session.sessionId !== sessionId) return;
+    if (!session.chartData?.length) return;
+    const targetTime =
+      e.detail.end_time / 60 - (session.segmentTimeOffset || 0);
+    // last frame at or before the bar's end (frames share whole seconds)
+    const idx = Math.max(
+      session.chartData.findLastIndex((p) => p.time <= targetTime + 1e-6),
+      0,
+    );
+    playbackIndex = idx;
     applyPlaybackFrame(sessionId, idx);
     if (isPlaying) schedulePlayback(sessionId, idx);
   }
@@ -6007,7 +6031,13 @@
                             {#if $clickSession.similarityData && Object.keys(barChartAttributeConfig).length > 0}
                               <BarChartY
                                 sessionId={$clickSession.sessionId}
-                                similarityData={$clickSession.similarityData}
+                                similarityData={(!selectionMode &&
+                                  $clickSession.totalSimilarityData) ||
+                                  $clickSession.similarityData}
+                                currentTime={$clickSession.currentTime +
+                                  ($clickSession.segmentTimeOffset || 0)}
+                                on:barSelected={(e) =>
+                                  handleBarSelected(e, $clickSession.sessionId)}
                                 {yScale}
                                 {height}
                                 xAxisField={barChartXAxis}
