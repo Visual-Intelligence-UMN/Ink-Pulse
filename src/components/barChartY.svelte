@@ -12,6 +12,10 @@
   export let readOnly = false;
   export let sharedSelection = null;
   export let xScaleBarChartFactor = 1;
+  // Playback time in minutes (same base as start_time / 60). When set, bars
+  // finished after it are faded and clicking a bar dispatches "barSelected".
+  /** @type {number | null} */
+  export let currentTime = null;
   const uniqueId = Math.random().toString(36).substring(2, 9);
 
   let container;
@@ -84,8 +88,15 @@
     renderChart();
   }
 
+  $: barOpacity = (d) =>
+    currentTime !== null && d.endTime > currentTime + 1e-6 ? 0.15 : 0.5;
+
   $: if ((similarityData && container) || zoomTransform !== d3.zoomIdentity) {
     renderChart();
+  }
+
+  $: if (bars && !sharedSelection) {
+    bars.attr("opacity", barOpacity);
   }
 
   $: if (svg && brushGroup) {
@@ -131,7 +142,7 @@
     // Only run if svg, brushGroup, brush exist
     if (svg && brushGroup && brush) {
       if (bars) {
-        bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
+        bars.attr("opacity", barOpacity).attr("stroke-width", 0.1);
       }
 
       if (currentSelection) {
@@ -176,12 +187,12 @@
       selectionMax = sharedSelection.timeMax;
     } else {
       // no match
-      bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
+      bars.attr("opacity", barOpacity).attr("stroke-width", 0.1);
       return;
     }
 
     if (selectionMin === null || selectionMax === null) {
-      bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
+      bars.attr("opacity", barOpacity).attr("stroke-width", 0.1);
       return;
     }
 
@@ -202,7 +213,7 @@
     });
 
     if (!filteredData.length) {
-      bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
+      bars.attr("opacity", barOpacity).attr("stroke-width", 0.1);
       return;
     }
 
@@ -413,9 +424,17 @@
       })
       .attr("fill", (d) => getSourceColor(d.source))
       .attr("stroke", (d) => getSourceColor(d.source))
-      .attr("opacity", 0.5)
+      .attr("opacity", barOpacity)
       .attr("stroke-width", 0.1)
       .attr("clip-path", `url(#clip_bar_${uniqueId})`);
+
+    if (currentTime !== null) {
+      bars
+        .style("cursor", "pointer")
+        .on("click", (event, d) =>
+          dispatch("barSelected", similarityData[d.id]),
+        );
+    }
 
     brush = d3
       .brushX()
@@ -469,7 +488,7 @@
     }
 
     function resetBars() {
-      bars.attr("opacity", 0.5).attr("stroke-width", 0.1);
+      bars.attr("opacity", barOpacity).attr("stroke-width", 0.1);
     }
 
     if (!selectionMode) {
