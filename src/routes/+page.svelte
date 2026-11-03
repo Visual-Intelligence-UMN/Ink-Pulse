@@ -4442,6 +4442,7 @@
     const idx = findIndexFromTime(session.chartData, targetTime);
     playbackIndex = idx;
     applyPlaybackFrame(session.sessionId, idx);
+    if (isPlaying) schedulePlayback(session.sessionId, idx);
   }
 
   function stepForward() {
@@ -4454,6 +4455,7 @@
     const idx = findIndexFromTime(session.chartData, targetTime);
     playbackIndex = idx;
     applyPlaybackFrame(session.sessionId, idx);
+    if (isPlaying) schedulePlayback(session.sessionId, idx);
   }
 
   function handleInterpreterDisplay(event) {
