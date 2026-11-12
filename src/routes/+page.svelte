@@ -30,6 +30,13 @@
     loadPattern,
   } from "../components/cache.js";
   import RankWorker from "../workers/rankWorker.js?worker";
+  import {
+    rankVectors,
+    buildCandidateVector,
+    buildReferenceVector,
+    computeRankingStats,
+    blocksOf,
+  } from "$lib/ranking.js";
   // import WeightPanel from "../components/weightPanel.svelte";
   import Papa from "papaparse";
   import JSZip from "jszip";
@@ -1600,77 +1607,15 @@
     return segments;
   }
 
-  function buildVectorForCurrentSegment(currentResults, checks) {
-    const currentVector = {};
-    if (checks.source[0]) currentVector.s = [];
-    if (checks.time[0]) currentVector.t = []; // n min
-    if (checks.progress[0]) currentVector.p = []; // n
-    if (checks.trend[0]) currentVector.tr = [];
-    if (checks.semantic[0]) currentVector.sem = [];
-    for (let i = 0; i < currentResults.length; i++) {
-      const currentItem = currentResults[i];
-      if (checks.source[0]) {
-        currentVector.s.push(checks.source[1][i] === "user" ? 1 : 0);
-      }
-
-      if (checks.time[0]) {
-        currentVector.t.push(
-          currentItem.endTime * 60 - currentItem.startTime * 60,
-        );
-      }
-
-      if (checks.progress[0]) {
-        currentVector.p.push(
-          currentItem.endProgress - currentItem.startProgress,
-        );
-      }
-
-      if (checks.semantic[0]) {
-        currentVector.sem.push(currentItem.residual_vector_norm);
-      }
-    }
-
-    if (checks.trend[0]) {
-      currentVector.tr = semanticTrend;
-    }
-
-    return currentVector;
+  // Ranking vectors are built in src/lib/ranking.js: every ranked feature is scaled to
+  // [0, 1] with dataset statistics (`stats`, from computeRankingStats). Time is not
+  // ranked; it is only a hard constraint in findSegments above.
+  function buildVectorForCurrentSegment(currentResults, checks, stats) {
+    return buildReferenceVector(currentResults, checks, stats);
   }
 
-  function buildVectorFromSegment(segment, checks) {
-    const vector = {};
-    if (checks.source[0]) vector.s = [];
-    if (checks.time[0]) vector.t = []; // n s
-    if (checks.progress[0]) vector.p = []; // 0.n
-    if (checks.trend[0]) vector.tr = [];
-    if (checks.semantic[0]) vector.sem = [];
-
-    for (let i = 0; i < segment.length; i++) {
-      const item = segment[i];
-
-      if (checks.source[0]) {
-        const source = item.source?.toLowerCase();
-        vector.s.push(source === "user" ? 1 : 0); // user is 1, api is 0
-      }
-      if (checks.time[0]) {
-        const tStart = item.start_time;
-        const tEnd = item.end_time;
-        vector.t.push(tEnd - tStart);
-      }
-      if (checks.progress[0]) {
-        const y1 = item.start_progress * 100;
-        const y2 = item.end_progress * 100;
-        vector.p.push(y2 - y1);
-      }
-      if (checks.semantic[0]) {
-        vector.sem.push(item.residual_vector_norm);
-      }
-    }
-    if (checks.trend[0]) {
-      const values = segment.map((d) => d.residual_vector_norm);
-      vector.tr = getTrendPattern(values);
-    }
-    return vector;
+  function buildVectorFromSegment(segment, checks, stats) {
+    return buildCandidateVector(segment, checks, stats);
   }
 
   async function searchPattern(sessionId) {
@@ -1817,6 +1762,7 @@
         }
         console.log("Use json files for search");
       }
+      const allSessionBlocks = []; // every session's blocks, for the ranking statistics
       for (const { sessionId, data } of segmentSources) {
         if (Array.isArray(data.chartData)) {
           data.chartData = data.chartData.map(
@@ -1828,6 +1774,7 @@
         const dataToProcess = Array.isArray(data)
           ? data
           : data.chartData || data.totalSimilarityData || [];
+        allSessionBlocks.push(dataToProcess);
         const segments = findSegments(dataToProcess, checks, count);
         const taggedSegments = segments.map((segment, index) =>
           segment.map((item) => ({
@@ -1836,17 +1783,21 @@
             segmentId: `${sessionId}_${index}`,
           })),
         );
-        for (const segment of taggedSegments) {
-          const vector = buildVectorFromSegment(segment, checks);
-          vector.id = segment[0]?.id ?? null;
-          vector.segmentId = segment[0]?.segmentId ?? null;
-          patternVectors.push(vector);
-        }
         results.push(...taggedSegments);
+      }
+      // Vectors are built after the loop because scaling needs statistics over the
+      // whole dataset (all sessions), not only the filtered candidates.
+      const rankingStats = computeRankingStats(allSessionBlocks, count);
+      for (const segment of results) {
+        const vector = buildVectorFromSegment(segment, checks, rankingStats);
+        vector.id = segment[0]?.id ?? null;
+        vector.segmentId = segment[0]?.segmentId ?? null;
+        patternVectors.push(vector);
       }
       const currentVector = buildVectorForCurrentSegment(
         currentResults,
         checks,
+        rankingStats,
       );
       patternData = results;
       const finalScore = await calculateRankAuto(patternVectors, currentVector);
@@ -1873,10 +1824,6 @@
     }
 
     try {
-      const currentVector = buildVectorForCurrentSegment(
-        currentResults,
-        checks,
-      );
       const wasmResponse = await fetch(`${base}/sql-wasm/sql-wasm.wasm`);
       const wasmBinary = await wasmResponse.arrayBuffer();
       const SQL = await initSqlJs({ wasmBinary });
@@ -1921,9 +1868,22 @@
       //slicing for testing purposes
       // patternData = patternData.slice(0, 100);
 
+      // Ranking statistics over every session in the same table the query searched
+      // (the query result holds only the filtered windows).
+      const allRows = db.exec("SELECT content FROM data")[0]?.values ?? [];
+      const rankingStats = computeRankingStats(
+        allRows.map((row) => blocksOf(JSON.parse(String(row[0])))),
+        currentResults.length,
+      );
+      const currentVector = buildVectorForCurrentSegment(
+        currentResults,
+        checks,
+        rankingStats,
+      );
+
       patternVectors = [];
       for (const segment of patternData) {
-        const vector = buildVectorFromSegment(segment, checks);
+        const vector = buildVectorFromSegment(segment, checks, rankingStats);
         vector.id = segment[0]?.id ?? null;
         vector.segmentId = segment[0]?.segmentId ?? null;
         patternVectors.push(vector);
@@ -1944,15 +1904,6 @@
       patternDataLoad([]);
       alert("Search query failed. Please check the console for details.");
     }
-  }
-
-  function l2(arr1, arr2) {
-    let sum = 0;
-    for (let i = 0; i < arr1.length; i++) {
-      const d = arr1[i] - arr2[i];
-      sum += d * d;
-    }
-    return sum;
   }
 
   // let isWeights = false;
@@ -2004,21 +1955,7 @@
   }
 
   function calculateRank(patternVectors, currentVector) {
-    let finalScore = [];
-    const weightValues = get(weights);
-    for (const item of patternVectors) {
-      let score = 0;
-      for (const key in item) {
-        if (key != "id" && key != "segmentId") {
-          let weight = weightValues[key] ?? 1;
-          let arr = item[key];
-          score += weight * l2(arr, currentVector[key]);
-        }
-      }
-      finalScore.push([item.segmentId, score]);
-    }
-    finalScore.sort((a, b) => a[1] - b[1]);
-    return finalScore;
+    return rankVectors(patternVectors, currentVector, get(weights));
   }
 
   async function calculateRankWorkers(
