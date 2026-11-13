@@ -4,15 +4,23 @@
 
   export let name = "";
   export let color = "#66ccff";
+  export let displayedCount = 0;
+  export let maxCount = 0;
+  export let busy = false;
+  export let error = "";
+  let count = displayedCount;
+  $: validCount = Number.isInteger(count) && count >= 1 && count <= maxCount;
 
   const dispatch = createEventDispatcher();
   let nameInput = name;
   let colorInput = color;
 
   function save() {
+    if (busy || !validCount) return;
     dispatch("save", {
       name: nameInput || "Default",
       color: colorInput,
+      count,
     });
   }
 
@@ -25,6 +33,15 @@
   <div class="save-panel-content">
     <h3 style="text-align: center;">Save Pattern</h3>
     <div style="display: flex; flex-direction: column; gap: 1rem;">
+      <label>
+        Results to save:
+        <input type="number" min="1" max={maxCount} step="1" bind:value={count} disabled={busy} />
+        <small>(max {maxCount})</small>
+      </label>
+      {#if count > displayedCount}
+        <p role="status">Includes results not yet displayed.</p>
+      {/if}
+      {#if error}<p role="alert">{error}</p>{/if}
       <label>
         Pattern Name:
         <input type="text" bind:value={nameInput} placeholder="Name" />
@@ -41,8 +58,8 @@
       </div>
     </div>
     <div style="text-align: center;">
-      <button class="search-pattern-button" on:click={save}>Save</button>
-      <button class="delete-pattern-button" on:click={close}>Exit</button>
+      <button class="search-pattern-button" on:click={save} disabled={busy || !validCount}>{busy ? "Loading…" : "Save"}</button>
+      <button class="delete-pattern-button" on:click={close} disabled={busy}>Exit</button>
     </div>
   </div>
 </div>

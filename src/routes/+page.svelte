@@ -329,7 +329,9 @@
     displaySessions.set(newDisplaySessions);
   }
 
+  let removedResultIds = new Set();
   const removepattern = (segmentId) => {
+    removedResultIds = new Set([...removedResultIds, segmentId]);
     patternDataList.update((patternList) =>
       patternList.filter((pattern) => pattern.segmentId !== segmentId),
     );
@@ -499,19 +501,43 @@
   let nameInput = "";
   let colorInput = "#66ccff";
   let showSavedMessage = false;
+  let isSaving = false;
+  let saveError = "";
+  let saveDefaultCount = 0;
+  let saveMaxCount = 0;
   async function openSavePanel() {
     isSave = false;
     await tick();
     nameInput = "";
     colorInput = "#66ccff";
+    saveDefaultCount = Math.min(get(showResultCount), get(patternDataList).length);
+    saveMaxCount = allSearchResults.filter((group) => !removedResultIds.has(group[0]?.segmentId)).length;
+    saveError = "";
     isSave = true;
   }
 
-  function handleSave(event) {
-    const { name, color } = event.detail;
-
-    // Top-N rows we're saving from the visible results
-    const allPatternData = get(patternDataList).slice(0, get(showResultCount));
+  async function handleSave(event) {
+    if (isSaving || isLoadingMore) return;
+    const { name, color, count } = event.detail;
+    if (!Number.isInteger(count) || count < 1 || count > saveMaxCount) return;
+    isSaving = true;
+    saveError = "";
+    try {
+      // Load extra results without displaying additional cards.
+      while (get(patternDataList).length < count && loadedResultCount < allSearchResults.length) {
+        const previousCount = loadedResultCount;
+        await loadMoreResultsInternal(Math.min(30, count - get(patternDataList).length), true);
+        if (loadedResultCount === previousCount) throw new Error("Could not load results. Please retry.");
+      }
+      if (get(patternDataList).length < count) {
+        throw new Error("Some results could not be loaded. Nothing was saved; please choose fewer results.");
+      }
+    } catch (error) {
+      saveError = error.message;
+      isSaving = false;
+      return;
+    }
+    const allPatternData = get(patternDataList).slice(0, count);
 
     // Group rows by sessionId so we can accumulate counts per session
     const sessionsById = new Map();
@@ -574,6 +600,7 @@
     // Commit & refresh UI
     searchPatternSet.update((cur) => [...cur, itemToSave]);
     isSave = false;
+    isSaving = false;
 
     tick().then(() => {
       initData.update((data) => [...data]); // poke reactivity
@@ -586,6 +613,7 @@
   }
 
   function handleClose() {
+    if (isSaving) return;
     isSave = false;
   }
 
@@ -1691,6 +1719,7 @@
     isSearch = 1; // 0: not searching, 1: searching, 2: search done
     resetSearchResultSnapshotState();
     allSearchResults = []; // Reset search results
+    removedResultIds = new Set();
     loadedResultCount = 0;
     const sessionData = selectedPatterns[sessionId];
     const count =
@@ -2270,7 +2299,7 @@
     fetchProgress = 0;
   }
 
-  async function loadMoreResultsInternal(count = 10) {
+  async function loadMoreResultsInternal(count = 10, requireComplete = false) {
     const startIndex = loadedResultCount;
     const endIndex = Math.min(startIndex + count, allSearchResults.length);
 
@@ -2296,11 +2325,15 @@
       }
 
       const sessionDataMap = get(storeSessionSummaryData);
+      if (requireComplete && resultsToLoad.some((group) =>
+        !removedResultIds.has(group[0]?.segmentId) && !sessionDataMap.has(group[0]?.id))) {
+        throw new Error("Could not load all requested results.");
+      }
       const newData = resultsToLoad
         .map((group) => {
           const id = group[0]?.id;
           const sessionData = sessionDataMap.get(id);
-          if (!sessionData) return null;
+          if (!sessionData || removedResultIds.has(group[0]?.segmentId)) return null;
           const newSessionData = { ...sessionData };
           delete newSessionData.paragraphColor;
           delete newSessionData.summaryData;
@@ -5656,6 +5689,10 @@
       <SavePanel
         name={nameInput}
         color={colorInput}
+        displayedCount={saveDefaultCount}
+        maxCount={saveMaxCount}
+        busy={isSaving || isLoadingMore}
+        error={saveError}
         on:save={handleSave}
         on:close={handleClose}
       />
