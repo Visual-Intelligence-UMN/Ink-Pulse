@@ -260,6 +260,10 @@
   let datasets = [];
   let selectedDataset = "creative";
   let interpretedQuery = null;
+  // The last interpreted query (user text, LLM request and answer, explanations, filters, SQL).
+  let lastInterpretation = null;
+  // How the current search results were produced; set when a search starts, saved with the pattern.
+  let searchSpec = null;
 
   // Reset playback state when session changes
   let lastPlaybackSessionId = null;
@@ -564,6 +568,7 @@
         originalMatches: allPatternData.length, // raw rows
       },
       searchDetail,
+      searchSpec,
     };
 
     // Commit & refresh UI
@@ -1420,6 +1425,15 @@
 
     console.log("SQL:", sqlQuery);
     interpretedQuery = sqlQuery;
+    lastInterpretation = {
+      userInput,
+      llmRequest: event.detail.llmRequest ?? null,
+      llmResponse: event.detail.llmResponse ?? null,
+      systemPromptHash: event.detail.systemPromptHash ?? null,
+      explanations,
+      filters,
+      sql: sqlQuery,
+    };
   }
 
   function getTrendPattern(values) {
@@ -1724,10 +1738,12 @@
     };
 
     if (interpretedQuery && interpretedQuery.trim() !== "") {
+      searchSpec = { mode: "query", ...lastInterpretation };
       await segmentQuery(patternVectors, checks);
       return;
     }
     console.log("Search with manual checks...");
+    searchSpec = { mode: "manual" }; // the checkbox settings are in searchDetail.flag
 
     try {
       const datasetInfo = datasets.find((d) => d.name === selectedDataset);
