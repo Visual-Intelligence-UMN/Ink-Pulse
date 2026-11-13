@@ -1,27 +1,13 @@
+// Ranks one chunk of candidate vectors off the main thread (used for > 100 candidates).
+// Uses the same distance as the main thread (src/lib/ranking.js), so the order does not
+// depend on how many candidates there are. Vectors arrive already scaled to [0, 1].
+import { rankingDistance } from "../lib/ranking.js";
+
 self.onmessage = function (e) {
   const { patternVectors, currentVector, weights } = e.data;
-
-  function l2(a, b) {
-    if (!a || !b || a.length !== b.length) return Infinity;
-    let sum = 0;
-    for (let i = 0; i < a.length; i++) {
-      const d = a[i] - b[i];
-      sum += d * d;
-    }
-    return sum;
-  }
-
-  let result = [];
-
-  for (const item of patternVectors) {
-    let score = 0;
-    for (const key in item) {
-      if (key !== "id" && key !== "segmentId") {
-        score += (weights[key] ?? 1) * l2(item[key], currentVector[key]);
-      }
-    }
-    result.push([item.segmentId, score]);
-  }
-
+  const result = patternVectors.map((item) => [
+    item.segmentId,
+    rankingDistance(item, currentVector, weights),
+  ]);
   self.postMessage(result);
 };
