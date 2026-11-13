@@ -123,6 +123,15 @@
   }
 
   $: patternSessions = pattern?.pattern || [];
+  let activityPage = 1;
+  let activityPatternKey = "";
+  $: if (activityPatternKey !== `${pattern?.dataset}::${pattern?.id}`) {
+    activityPatternKey = `${pattern?.dataset}::${pattern?.id}`;
+    activityPage = 1;
+  }
+  $: activityPageCount = Math.max(1, Math.ceil(patternSessions.length / 10));
+  $: if (activityPage > activityPageCount) activityPage = activityPageCount;
+  $: activitySessions = patternSessions.slice((activityPage - 1) * 10, activityPage * 10);
   // let scoreCount = {};
   // $: {
   //   const temp = {};
@@ -424,7 +433,7 @@
         <tr> </tr>
       </thead>
       <tbody>
-        {#each patternSessions as sessionData, _ (sessionData.sessionId)}
+        {#each activitySessions as sessionData, _ (sessionData.sessionId)}
           <tr class="session-row" on:click={() => handleRowClick(sessionData)}>
             <td class="activity-cell">
               <SessionCell
@@ -449,6 +458,13 @@
         {/if}
       </tbody>
     </table>
+    {#if activityPageCount > 1}
+      <nav aria-label="Activity pages" style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 12px;">
+        <button class="search-pattern-button activity-page-button" disabled={activityPage === 1} on:click={() => activityPage -= 1}>Previous</button>
+        <span>Page {activityPage} of {activityPageCount}</span>
+        <button class="search-pattern-button activity-page-button" disabled={activityPage === activityPageCount} on:click={() => activityPage += 1}>Next</button>
+      </nav>
+    {/if}
   </div>
 
   <div class="action-buttons">
@@ -462,6 +478,11 @@
 </div>
 
 <style>
+  .activity-page-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
   .pattern-detail-header {
     display: flex;
     align-items: center;

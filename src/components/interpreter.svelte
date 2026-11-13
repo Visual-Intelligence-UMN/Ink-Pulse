@@ -142,6 +142,10 @@
     }
   });
 
+  // Last LLM call (request and raw answer), sent to the page so a saved pattern can keep them.
+  let lastLlmRequest = null;
+  let lastRawResponse = null;
+
   let result = {
     explanations: [],
     filters: [],
@@ -434,6 +438,14 @@
     Do NOT wrap the response in Markdown.
 `;
 
+  // Short fingerprint of SYSTEM_PROMPT, saved with each pattern instead of the full prompt text,
+  // so we can tell later which prompt version produced it.
+  const SYSTEM_PROMPT_HASH = (() => {
+    let h = 5381;
+    for (let i = 0; i < SYSTEM_PROMPT.length; i++) h = ((h * 33) ^ SYSTEM_PROMPT.charCodeAt(i)) >>> 0;
+    return h.toString(16).padStart(8, "0");
+  })();
+
   const featureStyleMap = {
     source: {
       label: "Source",
@@ -519,8 +531,11 @@
     if (inputMessage.trim() === "") return;
     console.log("Sending message:", inputMessage);
     try {
+      const request = { userObservation: inputMessage, selectedPattern: signal };
       const raw = await sendMessageToAPI(inputMessage);
       console.log("raw", String(raw));
+      lastLlmRequest = request;
+      lastRawResponse = raw;
 
       if (isTest) {
         dispatch("parsedFilters", { sql: raw });
@@ -754,6 +769,10 @@
         explanations: explanationsWithRatios,
         filters: filtersWithRatio,
         userInput: inputMessage,
+        // Saved with the pattern: what was sent to the LLM and what it answered.
+        llmRequest: lastLlmRequest,
+        llmResponse: lastRawResponse,
+        systemPromptHash: SYSTEM_PROMPT_HASH,
       });
       dispatch("display", {
         explanations: explanationsWithRatios,
