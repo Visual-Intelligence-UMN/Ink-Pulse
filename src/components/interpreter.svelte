@@ -11,6 +11,7 @@
     hashPrompt,
   } from "../lib/interpreterPrompt.js";
   import { validateSpec, bindAnchors } from "../lib/patternSpec.js";
+  import { pendingRatioIds, USE_SPEC_INTERPRETER } from "../lib/specSearch.js";
 
   let apiKey = "";
   let displayApiKey = "";
@@ -159,7 +160,7 @@
     explanations: [],
     filters: [],
   };
-  let specResult = null;
+  let specPending = false;
   let specError = "";
   export let pattern;
   const rawPatternBlocks = Array.isArray(pattern) ? pattern : pattern?.data;
@@ -451,9 +452,6 @@
     Do NOT wrap the response in Markdown.
 `;
 
-  // Keep the old interpreter path as default until PR-1c wires spec execution and UI.
-  const USE_SPEC_INTERPRETER = false;
-
   // Short fingerprint of the active system prompt, saved with each pattern instead of the full
   // prompt text, so we can tell later which prompt version produced it.
   const SYSTEM_PROMPT_HASH = hashPrompt(
@@ -523,23 +521,24 @@
 
   async function handleSendMessage() {
     if (inputMessage.trim() === "") return;
-    console.log("Sending message:", inputMessage);
+    const useSpec = USE_SPEC_INTERPRETER && !isTest;
+    if (useSpec && specPending) return;
+    if (!useSpec) console.log("Sending message:", inputMessage);
     try {
-      if (USE_SPEC_INTERPRETER && !isTest) {
+      if (useSpec) {
         specError = "";
-        specResult = null;
+        specPending = true;
+        dispatch("specState", { reference: rawPatternBlocks, pending: true });
+        const userInput = inputMessage;
         const { blocks: catalogBlocks, sessionContext } =
           convertChartBlocksToCatalogBlocks(rawPatternBlocks, wholePatternBlocks);
         const request = buildInterpreterInput(
-          inputMessage,
+          userInput,
           catalogBlocks,
           FEATURE_CATALOG,
           { sessionContext },
         );
-        const raw = await sendMessageToAPI(inputMessage, request);
-        console.log("raw", String(raw));
-        lastLlmRequest = request;
-        lastRawResponse = raw;
+        const raw = await sendMessageToAPI(userInput, request);
 
         const parsed = JSON.parse(raw);
         const validation = validateSpec(parsed, {
@@ -553,7 +552,15 @@
         if (!bound.ok) {
           throw new Error(`Anchor binding failed: ${bound.errors.join("; ")}`);
         }
-        specResult = bound.spec;
+        dispatch("specState", {
+          reference: rawPatternBlocks,
+          draft: bound.spec,
+          pendingIds: pendingRatioIds(bound.spec, catalogBlocks, sessionContext),
+          userInput,
+          llmRequest: request,
+          llmResponse: raw,
+          systemPromptHash: SYSTEM_PROMPT_HASH,
+        });
         return;
       }
 
@@ -587,13 +594,15 @@
 
       sendParsedFilters();
     } catch (err) {
-      console.error("Send failed:", err);
-      if (USE_SPEC_INTERPRETER && !isTest) {
+      if (useSpec) {
         specError = err.message;
-        specResult = null;
+        dispatch("specState", { reference: rawPatternBlocks });
       } else {
+        console.error("Send failed:", err);
         result = { explanations: err.message, filters: [] };
       }
+    } finally {
+      if (useSpec) specPending = false;
     }
   }
 
@@ -954,15 +963,16 @@
     />
   </div>
   <div style="margin-top: 0.5rem; display: flex; justify-content: flex-end;">
-    <button on:click={handleSendMessage} class="send-btn">Check</button>
+    <button on:click={handleSendMessage} class="send-btn" disabled={specPending}>
+      {specPending ? "Checking…" : "Check"}
+    </button>
   </div>
   {#if USE_SPEC_INTERPRETER && !isTest}
     {#if specError}
       <div style="margin-top: 0.5rem; color: #b71c1c; font-size: 12px;">
-        {specError}
+        {specError} No description filters applied; Search uses manual settings.
       </div>
-    {:else if specResult}
-      <pre style="margin-top: 0.5rem; max-height: 220px; overflow: auto; font-size: 11px; background: #f5f5f5; padding: 0.5rem; border-radius: 4px;">{JSON.stringify(specResult, null, 2)}</pre>
+
     {/if}
   {/if}
 </div>

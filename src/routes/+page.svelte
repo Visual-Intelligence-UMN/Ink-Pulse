@@ -2419,6 +2419,7 @@
     }
 
     semanticTrend = [];
+    specInterpretation = null;
     selectedPatterns = {};
     patternData = [];
     resetSearchResultSnapshotState();
@@ -4459,6 +4460,11 @@
     if (isPlaying) schedulePlayback(session.sessionId, idx);
   }
 
+  function handleSpecState({ detail }) {
+    if (!specEnabled || !Object.values(selectedPatterns).some((pattern) => pattern.data === detail.reference)) return;
+    specInterpretation = detail;
+  }
+
   function handleInterpreterDisplay(event) {
     exp_result = {
       explanations: event.detail.explanations || [],
@@ -4816,6 +4822,7 @@
                       </button> -->
                       <button
                         class="search-pattern-button"
+                        disabled={specEnabled && specInterpretation?.reference === pattern.data && specInterpretation?.pending}
                         on:click={() => searchPattern(sessionId)}>Search</button
                       >
                       <button
@@ -5289,16 +5296,23 @@
                             >
                               {isTest ? "Switch to Normal Mode" : "Switch to Test Mode"}
                             </button> -->
-                            <Interpreter
-                              {pattern}
-                              on:parsedFilters={handleInterpreterFilters}
-                              on:display={handleInterpreterDisplay}
-                              {isTest}
-                            />
+                            {#key specEnabled ? pattern.data : null}
+                              <Interpreter
+                                {pattern}
+                                on:parsedFilters={handleInterpreterFilters}
+                                on:display={handleInterpreterDisplay}
+                                on:specState={handleSpecState}
+                                {isTest}
+                              />
+                            {/key}
                           </div>
                         </div>
                         <div style="margin-top: 8px">
-                          <ExplanationList {exp_result} />
+                          <ExplanationList
+                            exp_result={specEnabled ? null : exp_result}
+                            interpretation={specEnabled && specInterpretation?.reference === pattern.data ? specInterpretation : null}
+                            on:specState={handleSpecState}
+                          />
                         </div>
                         
                         <!-- <div style="margin-top: 10px; width: 50%">

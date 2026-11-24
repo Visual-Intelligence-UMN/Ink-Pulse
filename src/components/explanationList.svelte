@@ -1,4 +1,49 @@
 <script>
+  import { createEventDispatcher } from "svelte";
+  import { confirmRatio, describeRatio } from "../lib/specSearch.js";
+
+  /** @type {any} */
+  export let interpretation = null;
+  const dispatch = createEventDispatcher();
+  $: draft = interpretation?.draft;
+  $: pendingIds = interpretation?.pendingIds ?? [];
+  $: explanations = new Map(draft?.explanations.map(({ target_id, text }) => [target_id, text]));
+
+  function update(draft, pendingIds = interpretation.pendingIds) {
+    dispatch("specState", { ...interpretation, draft, pendingIds });
+  }
+
+  function removeConstraint(id) {
+    update({
+      ...draft,
+      constraints: draft.constraints.filter((clause) => clause.id !== id),
+      explanations: draft.explanations.filter(({ target_id }) => target_id !== id),
+    }, pendingIds.filter((pendingId) => pendingId !== id));
+  }
+
+  function flipPriority(attribute) {
+    update({
+      ...draft,
+      attributes: draft.attributes.map((entry) => entry.id === attribute.id ? {
+        ...entry, priority: entry.priority === "primary" ? "secondary" : "primary",
+      } : entry),
+    });
+  }
+
+  function changeMultiplier(id, value) {
+    if (!Number.isFinite(value)) return;
+    update(confirmRatio(draft, id, value), pendingIds.filter((pendingId) => pendingId !== id));
+  }
+
+  let customRatioId = null;
+  let customRatioValue = undefined;
+  $: if (!draft) customRatioId = null;
+
+  function applyCustomRatio(id) {
+    if (!Number.isFinite(customRatioValue) || customRatioValue <= 0) return;
+    changeMultiplier(id, customRatioValue);
+    customRatioId = null;
+  }
   export let exp_result = {
     explanations: [],
     filters: []
@@ -150,7 +195,71 @@
   }
 </script>
 
-{#if exp_result?.explanations?.length}
+{#if draft}
+  <div class="explanation-container" aria-label="Pattern specification">
+    {#each draft.constraints as clause (clause.id)}
+      <div class="explanation-text" data-constraint-type={clause.type}>
+        <span class="feature-badge">{clause.type}</span>
+        <div class="explanation-body">
+          {#if clause.type === "ratio"}
+            {@const pending = pendingIds.includes(clause.id)}
+            {@const options = [...new Set([clause.right.value, ...(clause.right.alternatives ?? [])])]}
+            {describeRatio(clause, pending)}
+            <select aria-label={`Multiplier for ${clause.id}`}
+              value={pending ? "" : String(clause.right.value)}
+              on:change={(event) => changeMultiplier(clause.id, Number(event.currentTarget.value))}>
+              {#if pending}<option value="" disabled>Pick a multiplier</option>{/if}
+              {#each options as option}
+                <option value={String(option)}>{option}×</option>
+              {/each}
+            </select>
+            {#if customRatioId === clause.id}
+              <form on:submit|preventDefault={() => applyCustomRatio(clause.id)}>
+                <input class="ratio-input" aria-label={`Custom multiplier for ${clause.id}`}
+                  type="number" min="0" step="any" required bind:value={customRatioValue} />
+                <button type="submit" disabled={!(customRatioValue > 0)}>Apply</button>
+                <button type="button" on:click={() => (customRatioId = null)}>Cancel</button>
+              </form>
+            {:else}
+              <button type="button" on:click={() => {
+                customRatioValue = undefined;
+                customRatioId = clause.id;
+              }}>Custom multiplier</button>
+            {/if}
+          {:else}
+            {explanations.get(clause.id) ?? `${featureStyleMap[clause.feature_id]?.label ?? clause.feature_id} (${clause.type} constraint)`}
+          {/if}
+        </div>
+        <button type="button" class="close-button" aria-label={`Remove constraint ${clause.id}`}
+          on:click={() => removeConstraint(clause.id)}>×</button>
+      </div>
+    {/each}
+    {#each draft.attributes as attribute (attribute.id)}
+      <div class="explanation-text">
+        <span class="feature-badge">{featureStyleMap[attribute.feature_id]?.label ?? attribute.feature_id}</span>
+        <span class="explanation-body">{explanations.get(attribute.id) ?? "Ranking attribute"}</span>
+        <button type="button" aria-label={`Priority for ${attribute.id}: ${attribute.priority}`}
+          title="Priorities do not change ranking yet" on:click={() => flipPriority(attribute)}>
+          {attribute.priority === "primary" ? "Primary" : "Secondary"}
+        </button>
+      </div>
+    {/each}
+    {#each draft.unresolved as item}
+      <div class="explanation-text"><span class="explanation-body"><strong>{item.term}:</strong> {item.message}</span></div>
+    {/each}
+    {#each draft.span.anchors as anchor (anchor.id)}
+      <div class="explanation-text"><span class="explanation-body">
+        Anchor {anchor.id} checks its predicate at block {anchor.offset + 1}; selector
+        {anchor.selector}{anchor.after ? ` (${anchor.after})` : ""} is not used in search yet.
+      </span></div>
+    {/each}
+    {#each draft.span.gaps as gap}
+      <div class="explanation-text"><span class="explanation-body">
+        Gap {gap.left} → {gap.right} ({gap.min_blocks}–{gap.max_blocks} blocks) is not used in search yet.
+      </span></div>
+    {/each}
+  </div>
+{:else if exp_result?.explanations?.length}
   <div class="explanation-container">
     {#each exp_result.explanations as exp, expIndex}
       <span class="explanation-text">
