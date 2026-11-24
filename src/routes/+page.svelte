@@ -1728,7 +1728,7 @@
     }
     try {
       const specRecord = mode === "spec" ? makeSpecSearchRecord(interpretation, count) : null;
-      searchSpec = specRecord ? null : { mode: "manual" }; // manual settings are in searchDetail.flag
+      searchSpec = specRecord ?? { mode: "manual" }; // manual settings are in searchDetail.flag
       const spec = specRecord?.spec;
       const reference = spec ? convertChartBlocksToCatalogBlocks(sessionData.data).blocks : null;
       if (!spec) console.log("Search with manual checks...");
