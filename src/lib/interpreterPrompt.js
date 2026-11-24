@@ -17,7 +17,7 @@ INTERPRETATION RULES
 - Use only feature identifiers from the supplied feature catalog.
 - Never use a feature whose analytical role is "outcome" as a search attribute or hard constraint.
 - Create a hard constraint only when the relationship is explicitly stated by the analyst or marked as analyst-confirmed in the input.
-- Represent salient properties visible in the reference but not stated by the analyst as soft ranking attributes (primary only for soft mentions without hard constraints; secondary if standout or ambiguous; omit routine values).
+- Represent salient properties visible in the reference but not stated by the analyst as soft ranking attributes.
 - Use fixed-length matching (min_blocks=max_blocks=N); bind anchors by reference position. Put other-length or skipped-block requests in unresolved.
 - Represent required events using anchors. Represent permitted intermediate events using gap rules. Do not constrain intermediate blocks unless the analyst's description requires it.
 - Use {offset} for positional blocks; create anchors only for explicit predicates (never >= 0 dummies).
@@ -114,8 +114,8 @@ export const CONSTRAINT_FORMS_GUIDE = {
     "FeatureRef is BlockRef optionally with feature_id (defaults to constraint feature_id; cross-feature requires matching nonempty catalog unit).",
     "Predicate is {feature_id, operator, value}.",
     "Attribute expected.value must be a single number or 'user'/'api' (never an array). To represent a per-block reference profile, emit one attribute per block with scope {offset: i} (or {anchor_id}); use scope {window: true} only with {trend: ...} or a single scalar summary.",
-    "Attribute priority: use 'primary' only when the analyst clearly asks for similarity on a feature without an explicit hard constraint; use 'secondary' for standout reference-only cues or ambiguous/uncertain terms in unresolved (never mark an unconfirmed candidate feature or a hard-constrained feature's reference values as 'primary').",
-    "Do not copy all unmentioned features or every block from the reference into attributes; emit secondary attributes only for genuinely standout reference properties or ambiguous candidate cues (leave attributes empty if none are salient).",
+    "Attribute priority: use 'primary' for descriptor features central to the analyst's description (including features that also have hard constraints, since constraints filter direction/bounds while attributes rank similarity to the reference); use 'secondary' for standout reference-only cues or ambiguous/uncertain terms in unresolved.",
+    "Include at least one descriptor attribute whenever any descriptor feature ('source', 'progress', 'semantic_change') is relevant to the pattern; do not copy routine unmentioned blocks from the reference.",
     "trend (< or >) computes an overall within-source least-squares slope (occasional rebounds are allowed).",
     "Only add unresolved entries for genuine ambiguities, unstated thresholds/multipliers, out-of-catalog concepts, or explicit requests for another span length or skipped blocks. Do not mark already-encoded constraints (e.g., whole-span sums/distributions, directional trend slopes/magnitudes or rebounds), soft similarity tolerances, or unstated ranking/comparison criteria as unresolved.",
     "If an ambiguous term could map to multiple features or contradicts the reference, place it in unresolved rather than guessing a hard constraint.",
