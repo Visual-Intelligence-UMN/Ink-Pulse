@@ -74,6 +74,9 @@
 
   let specInterpretation = null;
   let specRankState = null;
+  let lastSearchedFilterSig = null;
+  const filterSignature = (interp) =>
+    interp?.draft ? JSON.stringify({ c: interp.draft.constraints, p: interp.pendingIds ?? [] }) : null;
   let isReranking = false;
   $: isRankingBusy = isSearch === 1 || isReranking;
   const specRerankRunner = createSpecRerankRunner((vectors, refVector, nextWeights) =>
@@ -1711,6 +1714,7 @@
     if (specEnabled && interpretation?.pending) return;
     const mode = selectSearchMode(specEnabled, Boolean(interpretation?.draft), interpretedQuery);
     specRankState = null;
+    lastSearchedFilterSig = null;
     const seq = specRerankRunner.nextSeq();
     isReranking = false;
     isLoadingMore = false;
@@ -1916,6 +1920,10 @@
           idToData,
           attributeIdsSignature: attributeIdsSignature(spec.attributes),
           prioritiesSignature: prioritySignature(spec.attributes),
+        };
+        lastSearchedFilterSig = {
+          reference: sessionData.data,
+          sig: filterSignature(interpretation),
         };
       }
       const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
@@ -4211,6 +4219,7 @@
         draft: revised.spec,
         pendingIds: [],
         userInput,
+        originalUserInput: saved.searchSpec.userInput || "",
         llmRequest,
         llmResponse,
         systemPromptHash: hashPrompt(REFINE_SYSTEM_PROMPT),
@@ -4634,7 +4643,9 @@
   function handleSpecState({ detail }) {
     if (!specEnabled || !Object.values(selectedPatterns).some((pattern) => pattern.data === detail.reference)) return;
     const prevDraft = specInterpretation?.draft ?? null;
+    const prevFilterSig = filterSignature(specInterpretation);
     specInterpretation = detail;
+    if (detail.pending) lastSearchedFilterSig = null;
     if (detail.pending) {
       specRankState = null;
       if (searchSpec?.mode === "spec" || isReranking) {
@@ -4642,6 +4653,9 @@
         if (isSearch === 1) isSearch = 0;
       }
       return;
+    }
+    if (prevFilterSig && prevFilterSig !== filterSignature(detail)) {
+      specRankState = null;
     }
     if (
       specRankState &&
@@ -5501,6 +5515,12 @@
                             exp_result={specEnabled ? null : exp_result}
                             interpretation={specEnabled && specInterpretation?.reference === pattern.data ? specInterpretation : null}
                             disabled={isRankingBusy}
+                            isEdited={Boolean(
+                              lastSearchedFilterSig &&
+                              lastSearchedFilterSig.reference === pattern.data &&
+                              specInterpretation?.reference === pattern.data &&
+                              lastSearchedFilterSig.sig !== filterSignature(specInterpretation)
+                            )}
                             on:specState={handleSpecState}
                           />
                         </div>
