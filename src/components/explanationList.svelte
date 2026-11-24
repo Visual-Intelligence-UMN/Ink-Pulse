@@ -4,6 +4,7 @@
 
   /** @type {any} */
   export let interpretation = null;
+  export let disabled = false;
   const dispatch = createEventDispatcher();
   $: draft = interpretation?.draft;
   $: pendingIds = interpretation?.pendingIds ?? [];
@@ -22,6 +23,7 @@
   }
 
   function flipPriority(attribute) {
+    if (disabled) return;
     update({
       ...draft,
       attributes: draft.attributes.map((entry) => entry.id === attribute.id ? {
@@ -239,7 +241,8 @@
         <span class="feature-badge">{featureStyleMap[attribute.feature_id]?.label ?? attribute.feature_id}</span>
         <span class="explanation-body">{explanations.get(attribute.id) ?? "Ranking attribute"}</span>
         <button type="button" aria-label={`Priority for ${attribute.id}: ${attribute.priority}`}
-          title="Priorities do not change ranking yet" on:click={() => flipPriority(attribute)}>
+          title="Toggle primary or secondary ranking priority" disabled={disabled}
+          on:click={() => flipPriority(attribute)}>
           {attribute.priority === "primary" ? "Primary" : "Secondary"}
         </button>
       </div>
