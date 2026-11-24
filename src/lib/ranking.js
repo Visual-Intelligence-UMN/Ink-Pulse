@@ -37,6 +37,8 @@ export function attributeToRankingKey(attribute) {
 
 // Map spec attributes to normalized ranking weights (primary = 2, secondary = 1).
 // Unlisted keys and time get explicit 0; duplicate keys keep the higher priority.
+// If no valid ranking attributes exist, fall back to equal normalized weights over
+// the descriptor features so candidates still rank by similarity to the reference.
 export function weightsFromSpec(spec) {
   const raw = { s: 0, p: 0, sem: 0, tr: 0 };
   for (const attribute of spec?.attributes ?? []) {
@@ -46,7 +48,7 @@ export function weightsFromSpec(spec) {
     if (weight > raw[key]) raw[key] = weight;
   }
   const total = raw.s + raw.p + raw.sem + raw.tr;
-  if (total === 0) return { s: 0, t: 0, p: 0, tr: 0, sem: 0 };
+  if (total === 0) return { s: 0.25, t: 0, p: 0.25, tr: 0.25, sem: 0.25 };
   return {
     s: raw.s / total,
     t: 0,
