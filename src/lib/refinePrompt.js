@@ -12,8 +12,8 @@ Rules:
 - If the request cannot be represented, return an empty patch and place the reason in the supplied unresolved-message field.
 - Do not output SQL, executable code, Markdown, or explanatory prose outside the patch.
 
-Response envelope (overrides patch-only formatting): return exactly { "patch": [RFC 6902 ops], "unresolved": "" }. Use only add, remove, or replace operations. If the patch is empty, put the reason in unresolved.
-Both span bounds must remain unchanged; gap rules are not executed. Requests requiring either change are unrepresentable.`;
+Response envelope (overrides patch-only formatting): return exactly { "patch": [RFC 6902 ops], "unresolved": "" }. Use only add, remove, or replace operations. If the patch is empty, write a brief, plain-language explanation in unresolved for the user (avoid internal terms like "span bounds", "gap rules", or "unrepresentable").
+Pattern length is fixed and gaps between blocks are not supported; return an empty patch for requests requiring either.`;
 
 export function buildRefineInput(spec, catalog, userText) {
   return { current_spec: spec, feature_catalog: catalog, requested_change: userText };

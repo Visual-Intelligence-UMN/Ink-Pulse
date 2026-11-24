@@ -4178,7 +4178,7 @@
       if (request.signal.aborted) return;
       const revised = resolveRefineResponse(llmResponse, original, FEATURE_CATALOG, blocks);
       if (!revised.spec) {
-        refineMessage = revised.unresolved;
+        refineMessage = (revised.unresolved || "Could not apply that change to this pattern.").replace(/^unrepresentable:\s*/i, "");
         return;
       }
 
@@ -5924,7 +5924,9 @@
                   {#if refineError}
                     <div class="refine-error" role="alert">{refineError}</div>
                   {:else if refineMessage}
-                    <div role="status">{refineMessage}</div>
+                    <div class="refine-notice" role="status">
+                      <strong>Unable to apply change:</strong> {refineMessage}
+                    </div>
                   {/if}
                 </form>
               {/if}
@@ -6881,6 +6883,21 @@
 
   .refine-error {
     color: #b71c1c;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .refine-notice {
+    color: #78350f;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.45;
   }
 
   .chart-explanation {
