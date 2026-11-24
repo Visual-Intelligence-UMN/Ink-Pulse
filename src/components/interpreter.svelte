@@ -2,6 +2,15 @@
   import { createEventDispatcher, onMount } from "svelte";
   import "../components/styles.css";
   import { base } from "$app/paths";
+  import { FEATURE_CATALOG } from "../lib/featureCatalog.js";
+  import {
+    SPEC_SYSTEM_PROMPT,
+    buildInterpreterInput,
+    convertPatternToSignal,
+    convertChartBlocksToCatalogBlocks,
+    hashPrompt,
+  } from "../lib/interpreterPrompt.js";
+  import { validateSpec, bindAnchors } from "../lib/patternSpec.js";
 
   let apiKey = "";
   let displayApiKey = "";
@@ -150,8 +159,12 @@
     explanations: [],
     filters: [],
   };
+  let specResult = null;
+  let specError = "";
   export let pattern;
-  pattern = pattern.data;
+  const rawPatternBlocks = Array.isArray(pattern) ? pattern : pattern?.data;
+  const wholePatternBlocks = Array.isArray(pattern) ? null : pattern?.wholeData;
+  pattern = rawPatternBlocks;
   const signal = convertPatternToSignal(pattern);
   let openRatioIndex = null;
   let ratioSelections = {};
@@ -438,13 +451,14 @@
     Do NOT wrap the response in Markdown.
 `;
 
-  // Short fingerprint of SYSTEM_PROMPT, saved with each pattern instead of the full prompt text,
-  // so we can tell later which prompt version produced it.
-  const SYSTEM_PROMPT_HASH = (() => {
-    let h = 5381;
-    for (let i = 0; i < SYSTEM_PROMPT.length; i++) h = ((h * 33) ^ SYSTEM_PROMPT.charCodeAt(i)) >>> 0;
-    return h.toString(16).padStart(8, "0");
-  })();
+  // Keep the old interpreter path as default until PR-1c wires spec execution and UI.
+  const USE_SPEC_INTERPRETER = false;
+
+  // Short fingerprint of the active system prompt, saved with each pattern instead of the full
+  // prompt text, so we can tell later which prompt version produced it.
+  const SYSTEM_PROMPT_HASH = hashPrompt(
+    USE_SPEC_INTERPRETER && !isTest ? SPEC_SYSTEM_PROMPT : SYSTEM_PROMPT,
+  );
 
   const featureStyleMap = {
     source: {
@@ -469,34 +483,17 @@
     },
   };
 
-  function round2(num) {
-    return Math.round(num * 100) / 100;
-  }
-
-  function convertPatternToSignal(pattern) {
-    if (!pattern || pattern.length === 0) return null;
-    const sourceTrend = pattern.map((block) => block.source);
-    const progressDiff = [];
-    const timeDiff = [];
-    const semanticDiff = [];
-    for (let i = 0; i < pattern.length; i++) {
-      progressDiff.push(
-        round2(pattern[i].endProgress - pattern[i].startProgress),
-      );
-      timeDiff.push(round2(pattern[i].endTime - pattern[i].startTime));
-      semanticDiff.push(round2(pattern[i].residual_vector_norm));
-    }
-
-    return {
-      sourceTrend,
-      progress: progressDiff,
-      time: timeDiff,
-      semantic_change: semanticDiff,
+  async function sendMessageToAPI(userInput, requestPayload = null) {
+    const useSpec = USE_SPEC_INTERPRETER && !isTest;
+    const systemPrompt = isTest
+      ? SYSTEM_PROMPT_TEST
+      : useSpec
+        ? SPEC_SYSTEM_PROMPT
+        : SYSTEM_PROMPT;
+    const payload = requestPayload ?? {
+      userObservation: userInput,
+      selectedPattern: signal,
     };
-  }
-
-  async function sendMessageToAPI(userInput) {
-    const systemPrompt = isTest ? SYSTEM_PROMPT_TEST : SYSTEM_PROMPT;
     const messages = [
       {
         role: "system",
@@ -504,10 +501,7 @@
       },
       {
         role: "user",
-        content: JSON.stringify({
-          userObservation: userInput,
-          selectedPattern: signal,
-        }),
+        content: JSON.stringify(payload),
       },
     ];
     const API_BASE = "https://ink-pulse-one.vercel.app";
@@ -531,8 +525,40 @@
     if (inputMessage.trim() === "") return;
     console.log("Sending message:", inputMessage);
     try {
+      if (USE_SPEC_INTERPRETER && !isTest) {
+        specError = "";
+        specResult = null;
+        const { blocks: catalogBlocks, sessionContext } =
+          convertChartBlocksToCatalogBlocks(rawPatternBlocks, wholePatternBlocks);
+        const request = buildInterpreterInput(
+          inputMessage,
+          catalogBlocks,
+          FEATURE_CATALOG,
+          { sessionContext },
+        );
+        const raw = await sendMessageToAPI(inputMessage, request);
+        console.log("raw", String(raw));
+        lastLlmRequest = request;
+        lastRawResponse = raw;
+
+        const parsed = JSON.parse(raw);
+        const validation = validateSpec(parsed, {
+          catalog: FEATURE_CATALOG,
+          referenceLength: catalogBlocks.length,
+        });
+        if (!validation.ok) {
+          throw new Error(`Invalid pattern spec: ${validation.errors.join("; ")}`);
+        }
+        const bound = bindAnchors(parsed, catalogBlocks);
+        if (!bound.ok) {
+          throw new Error(`Anchor binding failed: ${bound.errors.join("; ")}`);
+        }
+        specResult = bound.spec;
+        return;
+      }
+
       const request = { userObservation: inputMessage, selectedPattern: signal };
-      const raw = await sendMessageToAPI(inputMessage);
+      const raw = await sendMessageToAPI(inputMessage, request);
       console.log("raw", String(raw));
       lastLlmRequest = request;
       lastRawResponse = raw;
@@ -562,7 +588,12 @@
       sendParsedFilters();
     } catch (err) {
       console.error("Send failed:", err);
-      result = { explanations: err.message, filters: [] };
+      if (USE_SPEC_INTERPRETER && !isTest) {
+        specError = err.message;
+        specResult = null;
+      } else {
+        result = { explanations: err.message, filters: [] };
+      }
     }
   }
 
@@ -925,6 +956,15 @@
   <div style="margin-top: 0.5rem; display: flex; justify-content: flex-end;">
     <button on:click={handleSendMessage} class="send-btn">Check</button>
   </div>
+  {#if USE_SPEC_INTERPRETER && !isTest}
+    {#if specError}
+      <div style="margin-top: 0.5rem; color: #b71c1c; font-size: 12px;">
+        {specError}
+      </div>
+    {:else if specResult}
+      <pre style="margin-top: 0.5rem; max-height: 220px; overflow: auto; font-size: 11px; background: #f5f5f5; padding: 0.5rem; border-radius: 4px;">{JSON.stringify(specResult, null, 2)}</pre>
+    {/if}
+  {/if}
 </div>
 <!-- <div>
   {#if result?.explanations}
