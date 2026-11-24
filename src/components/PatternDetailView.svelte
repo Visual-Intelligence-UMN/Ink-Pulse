@@ -353,6 +353,7 @@
         </div>
       </div> -->
     </div>
+    <slot name="refine" />
   </div>
 
   <div class="chart-legend">
