@@ -48,6 +48,13 @@
   import sourceColorManager from "../components/sourceColorManager.js";
   import ColorSettingsPanel from "../components/ColorSettingsPanel.svelte";
   import ExplanationList from "../components/explanationList.svelte";
+  import { convertChartBlocksToCatalogBlocks } from "$lib/interpreterPrompt.js";
+  import {
+    findSpecSegments, makeSpecSearchRecord, selectSearchMode, specRankingChecks, USE_SPEC_INTERPRETER,
+  } from "$lib/specSearch.js";
+
+  let specInterpretation = null;
+  $: specEnabled = USE_SPEC_INTERPRETER && !isTest;
 
   let exp_result = {
     explanations: [],
@@ -1661,12 +1668,15 @@
   }
 
   async function searchPattern(sessionId) {
+    const sessionData = selectedPatterns[sessionId];
+    const interpretation = specInterpretation?.reference === sessionData.data ? specInterpretation : null;
+    if (specEnabled && interpretation?.pending) return;
+    const mode = selectSearchMode(specEnabled, Boolean(interpretation?.draft), interpretedQuery);
     isSearch = 1; // 0: not searching, 1: searching, 2: search done
     resetSearchResultSnapshotState();
     allSearchResults = []; // Reset search results
     removedResultIds = new Set();
     loadedResultCount = 0;
-    const sessionData = selectedPatterns[sessionId];
     const count =
       sessionData.count || Math.max(1, sessionData.data?.length || 1);
 
@@ -1703,7 +1713,7 @@
     };
     let results = [];
     let patternVectors = [];
-    const checks = {
+    const checks = mode === "spec" ? specRankingChecks(interpretation.draft) : {
       progress: [isProgressChecked, writingProgressRange],
       time: [isTimeChecked, timeRange],
       source: [isSourceChecked, sourceRange],
@@ -1711,15 +1721,17 @@
       trend: [isValueTrendChecked, semanticTrend],
     };
 
-    if (interpretedQuery && interpretedQuery.trim() !== "") {
+    if (mode === "query") {
       searchSpec = { mode: "query", ...lastInterpretation };
       await segmentQuery(patternVectors, checks);
       return;
     }
-    console.log("Search with manual checks...");
-    searchSpec = { mode: "manual" }; // the checkbox settings are in searchDetail.flag
-
     try {
+      const specRecord = mode === "spec" ? makeSpecSearchRecord(interpretation, count) : null;
+      searchSpec = specRecord ? null : { mode: "manual" }; // manual settings are in searchDetail.flag
+      const spec = specRecord?.spec;
+      const reference = spec ? convertChartBlocksToCatalogBlocks(sessionData.data).blocks : null;
+      if (!spec) console.log("Search with manual checks...");
       const datasetInfo = datasets.find((d) => d.name === selectedDataset);
       let segmentSources = [];
       let useDB = false;
@@ -1820,6 +1832,10 @@
           ? data
           : data.chartData || data.totalSimilarityData || [];
         allSessionBlocks.push(dataToProcess);
+        if (spec) {
+          results.push(...findSpecSegments(dataToProcess, spec, sessionId));
+          continue;
+        }
         const segments = findSegments(dataToProcess, checks, count);
         const taggedSegments = segments.map((segment, index) =>
           segment.map((item) => ({
@@ -1839,11 +1855,9 @@
         vector.segmentId = segment[0]?.segmentId ?? null;
         patternVectors.push(vector);
       }
-      const currentVector = buildVectorForCurrentSegment(
-        currentResults,
-        checks,
-        rankingStats,
-      );
+      const currentVector = spec
+        ? buildVectorFromSegment(reference, checks, rankingStats)
+        : buildVectorForCurrentSegment(currentResults, checks, rankingStats);
       patternData = results;
       const finalScore = await calculateRankAuto(patternVectors, currentVector);
       const idToData = Object.fromEntries(
@@ -1855,6 +1869,7 @@
     } catch (error) {
       isSearch = 0;
       console.error("Search failed", error);
+      if (mode === "spec") alert("Pattern search failed. Please check the console for details.");
     }
   }
 
@@ -5438,7 +5453,7 @@
                     </div>
                     {#each $patternDataList as sessionData, index (sessionData.segmentId)}
                       {#if index < $showResultCount}
-                        <div class="search-result-container">
+                        <div class="search-result-container" data-segment-id={sessionData.segmentId}>
                           <div
                             style="font-size: 13px; margin-bottom: 4px; margin-left: 8px; position: relative;"
                           >
