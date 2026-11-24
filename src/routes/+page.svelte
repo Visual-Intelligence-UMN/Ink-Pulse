@@ -4191,12 +4191,20 @@
       }
       if (!session) throw new Error("Could not restore the saved reference session.");
 
+      selectedPatterns = {};
+      clickSession.set(session);
+      sharedSelection = null;
+      showMulti = true;
+      selectionMode = true;
+      showPatternSearch = true;
+      handleBackFromDetail();
+      // Mount the session charts first; the line chart clears its brush when it mounts.
+      await tick();
+
       selection.count = blocks.length;
       selectedPatterns = { [sessionId]: selection };
       currentResults = selection.data;
       lastSession = session;
-      clickSession.set(session);
-      sharedSelection = null; // Do not re-brush and replace the saved blocks.
       showResultCount.set(15);
       specInterpretation = {
         reference: selection.data,
@@ -4207,10 +4215,6 @@
         llmResponse,
         systemPromptHash: hashPrompt(REFINE_SYSTEM_PROMPT),
       };
-      showMulti = true;
-      selectionMode = true;
-      showPatternSearch = true;
-      handleBackFromDetail();
       await searchPattern(sessionId);
     } catch (error) {
       if (!request.signal.aborted) refineError = `Could not refine pattern: ${error.message}`;
