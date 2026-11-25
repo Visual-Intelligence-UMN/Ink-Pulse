@@ -1,5 +1,6 @@
 import { FEATURE_CATALOG } from "./featureCatalog.js";
 import { evaluateSpec, validateSpec } from "./patternSpec.js";
+import { weightsFromSpec } from "./ranking.js";
 
 export const USE_SPEC_INTERPRETER = false;
 
@@ -112,15 +113,50 @@ export function findSpecSegments(blocks, spec, sessionId) {
 }
 
 // Spec search derives feature switches from attributes, not the manual controls.
-// Priorities will affect weights in a later step.
 export function specRankingChecks(spec) {
-  const has = (id, trend = false) => spec.attributes.some((attribute) =>
-    attribute.feature_id === id && Boolean(attribute.expected.trend) === trend,
-  );
+  const weights = weightsFromSpec(spec);
   return {
-    source: [has("source")],
-    progress: [spec.attributes.some(({ feature_id }) => feature_id === "progress")],
-    semantic: [has("semantic_change")],
-    trend: [has("semantic_change", true)],
+    source: [weights.s > 0],
+    progress: [weights.p > 0],
+    semantic: [weights.sem > 0],
+    trend: [weights.tr > 0],
+  };
+}
+
+export function attributeIdsSignature(attributes = []) {
+  return JSON.stringify(attributes.map((attribute) => attribute.id));
+}
+
+export function prioritySignature(attributes = []) {
+  return JSON.stringify(attributes.map((attribute) => [attribute.id, attribute.priority]));
+}
+
+export function shouldRerankSpec(prevDraft, nextDraft, rankState) {
+  if (!rankState || !nextDraft) return false;
+  if (attributeIdsSignature(nextDraft.attributes) !== rankState.attributeIdsSignature) return false;
+  const nextPriorities = prioritySignature(nextDraft.attributes);
+  const prevPriorities = prevDraft ? prioritySignature(prevDraft.attributes) : rankState.prioritiesSignature;
+  return nextPriorities !== prevPriorities;
+}
+
+export function createSpecRerankRunner(rankFn) {
+  let seq = 0;
+  return {
+    nextSeq() {
+      return ++seq;
+    },
+    currentSeq() {
+      return seq;
+    },
+    isCurrent(token) {
+      return token === seq;
+    },
+    async run(draft, state, onCommit, token = ++seq) {
+      const nextWeights = weightsFromSpec(draft);
+      const finalScore = await rankFn(state.patternVectors, state.currentVector, nextWeights);
+      if (token !== seq) return { committed: false, seq: token };
+      await onCommit(finalScore, token);
+      return { committed: token === seq, seq: token };
+    },
   };
 }

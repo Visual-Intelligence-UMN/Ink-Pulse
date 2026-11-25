@@ -21,6 +21,45 @@
 
 export const RANKED_FEATURES = ["s", "p", "sem", "tr"];
 
+const PRIORITY_WEIGHTS = { primary: 2, secondary: 1 };
+
+export function attributeToRankingKey(attribute) {
+  if (!attribute || typeof attribute !== "object") return null;
+  if (attribute.feature_id === "source") return "s";
+  if (attribute.feature_id === "progress") return "p";
+  if (attribute.feature_id === "semantic_change") {
+    return attribute.expected && typeof attribute.expected === "object" && attribute.expected.trend
+      ? "tr"
+      : "sem";
+  }
+  return null;
+}
+
+// Map spec attributes to normalized ranking weights (primary = 2, secondary = 1).
+// Unlisted keys and time get explicit 0; duplicate keys keep the higher priority.
+export function weightsFromSpec(spec) {
+  const raw = { s: 0, p: 0, sem: 0, tr: 0 };
+  for (const attribute of spec?.attributes ?? []) {
+    const key = attributeToRankingKey(attribute);
+    const weight = PRIORITY_WEIGHTS[attribute?.priority];
+    if (!key || !weight) continue;
+    if (weight > raw[key]) raw[key] = weight;
+  }
+  const total = raw.s + raw.p + raw.sem + raw.tr;
+  if (total === 0) return { s: 0, t: 0, p: 0, tr: 0, sem: 0 };
+  return {
+    s: raw.s / total,
+    t: 0,
+    p: raw.p / total,
+    tr: raw.tr / total,
+    sem: raw.sem / total,
+  };
+}
+
+export function hasActiveWeights(weights = {}) {
+  return RANKED_FEATURES.some((key) => (weights?.[key] ?? 1) > 0);
+}
+
 // x' = clamp(0.5 + (x - median) / (IQR_SPAN * IQR), 0, 1):
 // the median maps to 0.5 and median +/- 2 IQR map to 1 / 0; values further out are clipped.
 const IQR_SPAN = 4;
@@ -128,12 +167,68 @@ export function rankingDistance(item, ref, weights = {}) {
 
 // Returns [[segmentId, score], ...] sorted by ascending distance (most similar first).
 export function rankVectors(patternVectors, currentVector, weights = {}) {
+  if (!hasActiveWeights(weights)) {
+    return patternVectors.map((item) => [item.segmentId, 0]);
+  }
   const result = patternVectors.map((item) => [
     item.segmentId,
     rankingDistance(item, currentVector, weights),
   ]);
   result.sort((a, b) => a[1] - b[1]);
   return result;
+}
+
+// Ranks candidates across worker chunks. Typed-spec searches merge by chunk index for
+// deterministic tie-breaking; manual and legacy SQL searches append in completion order.
+export function rankVectorsInWorkers(
+  patternVectors,
+  currentVector,
+  weights,
+  createWorker,
+  { threadCount = 4, deterministic = false } = {},
+) {
+  const chunkSize = Math.ceil(patternVectors.length / threadCount);
+  let completed = 0;
+  const allResults = [];
+  const chunkResults = deterministic ? Array.from({ length: threadCount }, () => []) : null;
+
+  return new Promise((resolve, reject) => {
+    for (let i = 0; i < threadCount; i++) {
+      const chunk = patternVectors.slice(i * chunkSize, (i + 1) * chunkSize);
+      if (chunk.length === 0) {
+        completed++;
+        if (completed === threadCount) {
+          const merged = deterministic ? chunkResults.flat() : allResults;
+          merged.sort((a, b) => a[1] - b[1]);
+          resolve(merged);
+        }
+        continue;
+      }
+      const worker = createWorker();
+      worker.postMessage({
+        patternVectors: chunk,
+        currentVector,
+        weights,
+      });
+      worker.onmessage = (e) => {
+        if (deterministic) {
+          chunkResults[i] = e.data;
+        } else {
+          allResults.push(...e.data);
+        }
+        completed++;
+        worker.terminate();
+        if (completed === threadCount) {
+          const merged = deterministic ? chunkResults.flat() : allResults;
+          merged.sort((a, b) => a[1] - b[1]);
+          resolve(merged);
+        }
+      };
+      worker.onerror = (err) => {
+        reject(err);
+      };
+    }
+  });
 }
 
 // ---------- vectors ----------
