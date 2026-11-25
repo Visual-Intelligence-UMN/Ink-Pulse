@@ -459,14 +459,14 @@
         {/if}
       </tbody>
     </table>
-    {#if activityPageCount > 1}
-      <nav aria-label="Activity pages" style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 12px;">
+  </div>
+  {#if activityPageCount > 1}
+      <nav aria-label="Activity pages" style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 12px; margin-bottom: 12px;">
         <button class="search-pattern-button activity-page-button" disabled={activityPage === 1} on:click={() => activityPage -= 1}>Previous</button>
         <span>Page {activityPage} of {activityPageCount}</span>
         <button class="search-pattern-button activity-page-button" disabled={activityPage === activityPageCount} on:click={() => activityPage += 1}>Next</button>
       </nav>
     {/if}
-  </div>
 
   <div class="action-buttons">
     <!-- <button class="btn btn-secondary" on:click={handleEditPattern}>
