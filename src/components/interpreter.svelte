@@ -837,10 +837,6 @@
       <div
         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;"
       >
-        <h4 style="margin: 0;">OpenAI API Key</h4>
-        {#if isApiKeyLoaded}
-          <span class="key-status-badge">✓ Saved</span>
-        {/if}
       </div>
 
       <input
@@ -854,9 +850,9 @@
         class="api-key-input"
       />
 
-      <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+      <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; justify-content: center;">
         <button on:click={handleSetApiKey} class="save-key-btn">
-          {isApiKeyLoaded ? "Update API Key" : "Save API Key"}
+          {isApiKeyLoaded ? "Update" : "Save"}
         </button>
         {#if isApiKeyLoaded}
           <button on:click={handleClearApiKey} class="clear-key-btn">
@@ -1087,141 +1083,7 @@
     border-radius: 6px;
     margin-bottom: 0.5rem;
   }
-
-  .explanation-container {
-    width: 100%;
-    word-wrap: break-word;
-    line-height: 1.5;
-  }
-
-  .explanation-text {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-    width: 100%;
-  }
-
-  .explanation-body {
-    flex: 1;
-    line-height: 1.6;
-  }
-
-  .explanation-text:has(.close-button:hover) {
-    background-color: #f0f0f0;
-  }
-
-  .close-button {
-    cursor: pointer;
-    display: inline;
-    font-size: 0.8em;
-    margin-left: 2px;
-  }
-
-  .close-button:hover {
-    opacity: 0.9;
-  }
-
-  .feature-badge {
-    font-size: 12px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 999px;
-    line-height: 1.4;
-    white-space: nowrap;
-  }
-
-  .ratio-wrapper {
-    position: relative;
-    display: inline-block;
-    margin: 0 4px;
-  }
-
-  .ratio-selected {
-    font-size: 12px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 999px;
-    line-height: 1.4;
-    white-space: nowrap;
-
-    background: #e0e0e0;
-    color: #333;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.15s ease;
-  }
-
-  .ratio-selected:hover {
-    background: #d0d0d0;
-  }
-
-  .ratio-input {
-    font-size: 12px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 999px;
-    line-height: 1.4;
-    width: 50px;
-    background: #fff;
-    color: #333;
-    border: 2px solid #137a7f;
-    outline: none;
-    text-align: center;
-    font-family: inherit;
-  }
-
-  .ratio-input-hint {
-    font-size: 12px;
-    color: #666;
-    margin-left: 2px;
-  }
-
-  .ratio-menu {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    z-index: 1000;
-    background: white;
-    border-radius: 8px;
-    padding: 4px 0;
-    min-width: 60px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    border: 1px solid #e0e0e0;
-    margin-top: 2px;
-  }
-
-  .ratio-item {
-    list-style: none;
-    padding: 6px 12px;
-    font-size: 12px;
-    cursor: pointer;
-    color: #333;
-  }
-
-  .ratio-item:hover {
-    background: #f0f0f0;
-  }
-
-  .ratio-item.active {
-    color: #666;
-    font-weight: 700;
-    background: #f8f8f8;
-  }
-
-  .filter-list {
-    list-style: none;
-    padding: 0;
-    margin-top: 1rem;
-  }
-
-  .filter-list li {
-    padding: 0.5rem;
-    margin: 0.25rem 0;
-    background: #f5f5f5;
-    border-radius: 4px;
-    font-size: 0.9em;
-  }
-
+  
   .api-key-input {
     width: 220px;
     padding: 0.5rem;
@@ -1240,7 +1102,7 @@
 
   .save-key-btn {
     /* flex: 1; */
-    width: 220px;
+    width: 100px;
     padding: 0.5rem;
     background-color: #137a7f;
     color: white;
@@ -1280,9 +1142,8 @@
   .key-info {
     margin-top: 0.75rem;
     padding: 0.5rem;
-    background-color: #f8f9fa;
+    background-color: #ffffff;
     border-radius: 4px;
-    border-left: 3px solid #137a7f;
     width: 220px;
   }
 
