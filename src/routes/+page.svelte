@@ -32,10 +32,13 @@
   import RankWorker from "../workers/rankWorker.js?worker";
   import {
     rankVectors,
+    rankVectorsInWorkers,
     buildCandidateVector,
     buildReferenceVector,
     computeRankingStats,
     blocksOf,
+    hasActiveWeights,
+    weightsFromSpec,
   } from "$lib/ranking.js";
   // import WeightPanel from "../components/weightPanel.svelte";
   import Papa from "papaparse";
@@ -48,12 +51,34 @@
   import sourceColorManager from "../components/sourceColorManager.js";
   import ColorSettingsPanel from "../components/ColorSettingsPanel.svelte";
   import ExplanationList from "../components/explanationList.svelte";
-  import { convertChartBlocksToCatalogBlocks } from "$lib/interpreterPrompt.js";
+  import { convertChartBlocksToCatalogBlocks, hashPrompt } from "$lib/interpreterPrompt.js";
+  import { loadApiKey, sendChat } from "$lib/chat.js";
+  import { FEATURE_CATALOG } from "$lib/featureCatalog.js";
   import {
-    findSpecSegments, makeSpecSearchRecord, selectSearchMode, specRankingChecks, USE_SPEC_INTERPRETER,
+    REFINE_SYSTEM_PROMPT,
+    buildRefineInput,
+    resolveRefineResponse,
+    validateRefineSpec,
+  } from "$lib/refinePrompt.js";
+  import {
+    createSpecRerankRunner,
+    findSpecSegments,
+    makeSpecSearchRecord,
+    prioritySignature,
+    attributeIdsSignature,
+    selectSearchMode,
+    shouldRerankSpec,
+    specRankingChecks,
+    USE_SPEC_INTERPRETER,
   } from "$lib/specSearch.js";
 
   let specInterpretation = null;
+  let specRankState = null;
+  let isReranking = false;
+  $: isRankingBusy = isSearch === 1 || isReranking;
+  const specRerankRunner = createSpecRerankRunner((vectors, refVector, nextWeights) =>
+    calculateRankAuto(vectors, refVector, 4, 100, nextWeights, true),
+  );
   $: specEnabled = USE_SPEC_INTERPRETER && !isTest;
 
   let exp_result = {
@@ -226,6 +251,10 @@
   });
   let currentView = "landing";
   let selectedPatternForDetail = null;
+  let refineText = "";
+  let refineMessage = "";
+  let refineError = "";
+  let refineRequest = null;
   let activePatternId = null;
 
   // Loading state for pattern import
@@ -520,6 +549,7 @@
   let saveDefaultCount = 0;
   let saveMaxCount = 0;
   async function openSavePanel() {
+    if (isSearch === 1 || isReranking) return;
     isSave = false;
     await tick();
     nameInput = "";
@@ -531,7 +561,7 @@
   }
 
   async function handleSave(event) {
-    if (isSaving || isLoadingMore) return;
+    if (isSaving || isLoadingMore || isSearch === 1 || isReranking) return;
     const { name, color, count } = event.detail;
     if (!Number.isInteger(count) || count < 1 || count > saveMaxCount) return;
     isSaving = true;
@@ -1001,8 +1031,16 @@
     }
   }
 
+  function invalidatePendingRanking() {
+    specRerankRunner.nextSeq();
+    isReranking = false;
+    isLoadingMore = false;
+  }
+
   function deletePattern(sessionId) {
     isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
+    specRankState = null;
+    invalidatePendingRanking();
     const newSelectedPatterns = { ...selectedPatterns };
     delete newSelectedPatterns[sessionId];
     patternData = [];
@@ -1672,6 +1710,10 @@
     const interpretation = specInterpretation?.reference === sessionData.data ? specInterpretation : null;
     if (specEnabled && interpretation?.pending) return;
     const mode = selectSearchMode(specEnabled, Boolean(interpretation?.draft), interpretedQuery);
+    specRankState = null;
+    const seq = specRerankRunner.nextSeq();
+    isReranking = false;
+    isLoadingMore = false;
     isSearch = 1; // 0: not searching, 1: searching, 2: search done
     resetSearchResultSnapshotState();
     allSearchResults = []; // Reset search results
@@ -1723,7 +1765,7 @@
 
     if (mode === "query") {
       searchSpec = { mode: "query", ...lastInterpretation };
-      await segmentQuery(patternVectors, checks);
+      await segmentQuery(patternVectors, checks, seq);
       return;
     }
     try {
@@ -1855,25 +1897,39 @@
         vector.segmentId = segment[0]?.segmentId ?? null;
         patternVectors.push(vector);
       }
+      if (!specRerankRunner.isCurrent(seq)) return;
       const currentVector = spec
         ? buildVectorFromSegment(reference, checks, rankingStats)
         : buildVectorForCurrentSegment(currentResults, checks, rankingStats);
       patternData = results;
-      const finalScore = await calculateRankAuto(patternVectors, currentVector);
+      const rankWeights = spec ? weightsFromSpec(spec) : get(weights);
+      const finalScore = await calculateRankAuto(patternVectors, currentVector, 4, 100, rankWeights, Boolean(spec));
+      if (!specRerankRunner.isCurrent(seq)) return;
       const idToData = Object.fromEntries(
         patternData.map((d) => [d[0].segmentId, d]),
       );
+      if (spec) {
+        specRankState = {
+          reference: sessionData.data,
+          patternVectors,
+          currentVector,
+          idToData,
+          attributeIdsSignature: attributeIdsSignature(spec.attributes),
+          prioritiesSignature: prioritySignature(spec.attributes),
+        };
+      }
       const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
       searchCount = fullData.length;
-      patternDataLoad(fullData);
+      patternDataLoad(fullData, 30, seq);
     } catch (error) {
+      if (!specRerankRunner.isCurrent(seq)) return;
       isSearch = 0;
       console.error("Search failed", error);
       if (mode === "spec") alert("Pattern search failed. Please check the console for details.");
     }
   }
 
-  async function segmentQuery(patternVectors, checks) {
+  async function segmentQuery(patternVectors, checks, seq = specRerankRunner.currentSeq()) {
     // Temporarily use checkboxes to build vector, later will be replaced by interpreter output
     // Function called when interpretedQuery is not empty
     console.log("search with interpreted query...");
@@ -1897,23 +1953,26 @@
       );
 
       const dbBuffer = await dbResponse.arrayBuffer();
+      if (!specRerankRunner.isCurrent(seq)) return;
       const db = new SQL.Database(new Uint8Array(dbBuffer));
       const queryResults = db.exec(interpretedQuery);
 
       if (!queryResults || queryResults.length === 0) {
+        if (!specRerankRunner.isCurrent(seq)) return;
         console.warn("Query returned no results");
         patternData = [];
         searchCount = 0;
-        patternDataLoad([]);
+        patternDataLoad([], 30, seq);
         return;
       }
 
       const stepStats = queryResults[0];
       if (!stepStats || !stepStats.values) {
+        if (!specRerankRunner.isCurrent(seq)) return;
         console.warn("Invalid query results structure");
         patternData = [];
         searchCount = 0;
-        patternDataLoad([]);
+        patternDataLoad([], 30, seq);
         return;
       }
 
@@ -1950,18 +2009,20 @@
       }
 
       const finalScore = await calculateRankAuto(patternVectors, currentVector);
+      if (!specRerankRunner.isCurrent(seq)) return;
       const idToData = Object.fromEntries(
         patternData.map((d) => [d[0].segmentId, d]),
       );
       const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
       searchCount = fullData.length;
       console.log("Full data", fullData);
-      patternDataLoad(fullData);
+      patternDataLoad(fullData, 30, seq);
     } catch (error) {
+      if (!specRerankRunner.isCurrent(seq)) return;
       console.error("segmentQuery failed:", error);
       patternData = [];
       searchCount = 0;
-      patternDataLoad([]);
+      patternDataLoad([], 30, seq);
       alert("Search query failed. Please check the console for details.");
     }
   }
@@ -2006,55 +2067,37 @@
     currentVector,
     threadCount = 4,
     threshold = 100,
+    rankWeights = get(weights),
+    deterministic = false,
   ) {
+    if (!hasActiveWeights(rankWeights)) {
+      return patternVectors.map((item) => [item.segmentId, 0]);
+    }
     if (patternVectors.length <= threshold) {
-      return calculateRank(patternVectors, currentVector);
+      return calculateRank(patternVectors, currentVector, rankWeights);
     } else {
-      return calculateRankWorkers(patternVectors, currentVector, threadCount);
+      return calculateRankWorkers(patternVectors, currentVector, threadCount, rankWeights, deterministic);
     }
   }
 
-  function calculateRank(patternVectors, currentVector) {
-    return rankVectors(patternVectors, currentVector, get(weights));
+  function calculateRank(patternVectors, currentVector, rankWeights = get(weights)) {
+    return rankVectors(patternVectors, currentVector, rankWeights);
   }
 
   async function calculateRankWorkers(
     patternVectors,
     currentVector,
     threadCount = 4,
+    rankWeights = get(weights),
+    deterministic = false,
   ) {
-    const chunkSize = Math.ceil(patternVectors.length / threadCount);
-    let completed = 0;
-    const weightValues = get(weights);
-    const allResults = [];
-
-    return new Promise((resolve, reject) => {
-      for (let i = 0; i < threadCount; i++) {
-        const chunk = patternVectors.slice(i * chunkSize, (i + 1) * chunkSize);
-        if (chunk.length === 0) {
-          completed++;
-          continue;
-        }
-        const worker = new RankWorker();
-        worker.postMessage({
-          patternVectors: chunk,
-          currentVector,
-          weights: weightValues,
-        });
-        worker.onmessage = (e) => {
-          allResults.push(...e.data);
-          completed++;
-          worker.terminate();
-          if (completed === threadCount) {
-            allResults.sort((a, b) => a[1] - b[1]);
-            resolve(allResults);
-          }
-        };
-        worker.onerror = (err) => {
-          reject(err);
-        };
-      }
-    });
+    return rankVectorsInWorkers(
+      patternVectors,
+      currentVector,
+      rankWeights,
+      () => new RankWorker(),
+      { threadCount, deterministic },
+    );
   }
 
   let fetchProgress = 0;
@@ -2224,7 +2267,8 @@
     };
   }
 
-  async function patternDataLoad(results, initialLoadCount = 30) {
+  async function patternDataLoad(results, initialLoadCount = 30, seq = specRerankRunner.currentSeq()) {
+    if (!specRerankRunner.isCurrent(seq)) return;
     console.log(`Search complete: ${results.length} total results found`);
     console.time("Initial load time");
 
@@ -2237,7 +2281,11 @@
     patternDataList.set([]);
 
     // Load initial batch
-    await loadMoreResultsInternal(initialLoadCount);
+    await loadMoreResultsInternal(initialLoadCount, false, seq);
+    if (!specRerankRunner.isCurrent(seq)) {
+      console.timeEnd("Initial load time");
+      return;
+    }
 
     console.timeEnd("Initial load time");
     console.log(
@@ -2251,7 +2299,8 @@
     fetchProgress = 0;
   }
 
-  async function loadMoreResultsInternal(count = 10, requireComplete = false) {
+  async function loadMoreResultsInternal(count = 10, requireComplete = false, seq = specRerankRunner.currentSeq()) {
+    if (!specRerankRunner.isCurrent(seq)) return;
     const startIndex = loadedResultCount;
     const endIndex = Math.min(startIndex + count, allSearchResults.length);
 
@@ -2269,11 +2318,13 @@
       // Load data in smaller batches for better UX
       const BATCH_SIZE = 10;
       for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        if (!specRerankRunner.isCurrent(seq)) return;
         fetchProgress = Math.round(
           ((startIndex + i) / allSearchResults.length) * 100,
         );
         const chunk = ids.slice(i, i + BATCH_SIZE);
         await Promise.allSettled(chunk.map((id) => fetchDataSummary(id)));
+        if (!specRerankRunner.isCurrent(seq)) return;
       }
 
       const sessionDataMap = get(storeSessionSummaryData);
@@ -2332,6 +2383,7 @@
         })
         .filter(Boolean);
 
+      if (!specRerankRunner.isCurrent(seq)) return;
       // Append new data to existing list
       patternDataList.update((current) => [...current, ...newData]);
       loadedResultCount = endIndex;
@@ -2341,7 +2393,9 @@
     } catch (error) {
       console.error("Error loading more results:", error);
     } finally {
-      isLoadingMore = false;
+      if (specRerankRunner.isCurrent(seq)) {
+        isLoadingMore = false;
+      }
     }
   }
 
@@ -2420,6 +2474,8 @@
 
     semanticTrend = [];
     specInterpretation = null;
+    specRankState = null;
+    invalidatePendingRanking();
     selectedPatterns = {};
     patternData = [];
     resetSearchResultSnapshotState();
@@ -4063,8 +4119,17 @@
     }
   }
 
+  function resetRefine() {
+    refineRequest?.abort();
+    refineRequest = null;
+    refineText = "";
+    refineMessage = "";
+    refineError = "";
+  }
+
   function handlePatternClick(event) {
     const { pattern } = event.detail;
+    resetRefine();
     selectedPatternForDetail = pattern;
     activePatternId = pattern.id;
     currentView = "pattern-detail";
@@ -4083,9 +4148,79 @@
   }
 
   function handleBackFromDetail() {
+    resetRefine();
     currentView = "landing";
     selectedPatternForDetail = null;
     activePatternId = null;
+  }
+
+  async function handleRefine() {
+    const saved = selectedPatternForDetail;
+    const userInput = refineText.trim();
+    if (saved?.searchSpec?.mode !== "spec" || !userInput || refineRequest) return;
+
+    const request = new AbortController();
+    refineRequest = request;
+    refineError = "";
+    refineMessage = "";
+    try {
+      const detail = saved.searchDetail;
+      const sessionId = detail?.sessionId;
+      if (!sessionId || !detail.data?.length || saved.dataset !== selectedDataset) {
+        throw new Error("The saved reference is not available in this dataset.");
+      }
+      const selection = structuredClone(detail);
+      const { blocks } = convertChartBlocksToCatalogBlocks(selection.data);
+      const original = saved.searchSpec.spec;
+      validateRefineSpec(original, FEATURE_CATALOG, blocks.length);
+      const llmRequest = buildRefineInput(original, FEATURE_CATALOG, userInput);
+      const llmResponse = await sendChat(REFINE_SYSTEM_PROMPT, llmRequest, loadApiKey(), request.signal);
+      if (request.signal.aborted) return;
+      const revised = resolveRefineResponse(llmResponse, original, FEATURE_CATALOG, blocks);
+      if (!revised.spec) {
+        refineMessage = (revised.unresolved || "Could not apply that change to this pattern.").replace(/^unrepresentable:\s*/i, "");
+        return;
+      }
+
+      // The detail panel can be opened without a current session, or from another session.
+      let session = $clickSession?.sessionId === sessionId ? $clickSession : $storeSessionData.get(sessionId);
+      if (!session) {
+        await fetchData(sessionId, false);
+        if (request.signal.aborted) return;
+        session = $storeSessionData.get(sessionId);
+      }
+      if (!session) throw new Error("Could not restore the saved reference session.");
+
+      selectedPatterns = {};
+      clickSession.set(session);
+      sharedSelection = null;
+      showMulti = true;
+      selectionMode = true;
+      showPatternSearch = true;
+      handleBackFromDetail();
+      // Mount the session charts first; the line chart clears its brush when it mounts.
+      await tick();
+
+      selection.count = blocks.length;
+      selectedPatterns = { [sessionId]: selection };
+      currentResults = selection.data;
+      lastSession = session;
+      showResultCount.set(15);
+      specInterpretation = {
+        reference: selection.data,
+        draft: revised.spec,
+        pendingIds: [],
+        userInput,
+        llmRequest,
+        llmResponse,
+        systemPromptHash: hashPrompt(REFINE_SYSTEM_PROMPT),
+      };
+      await searchPattern(sessionId);
+    } catch (error) {
+      if (!request.signal.aborted) refineError = `Could not refine pattern: ${error.message}`;
+    } finally {
+      if (refineRequest === request) refineRequest = null;
+    }
   }
 
   function handleApplyPattern(event) {
@@ -4406,7 +4541,8 @@
   }
 
   async function handleLoadMoreResults() {
-    if (isLoadingMore) return;
+    if (isLoadingMore || isSearch === 1 || isReranking) return;
+    const seq = specRerankRunner.currentSeq();
 
     const increment = 5;
     const loadBatchSize = 10;
@@ -4418,7 +4554,8 @@
       targetShowCount > $patternDataList.length &&
       loadedResultCount < allSearchResults.length
     ) {
-      await loadMoreResultsInternal(loadBatchSize);
+      await loadMoreResultsInternal(loadBatchSize, false, seq);
+      if (!specRerankRunner.isCurrent(seq)) return;
     }
 
     $showResultCount = Math.min(targetShowCount, $patternDataList.length);
@@ -4430,8 +4567,11 @@
 
     // Wait for DOM paint so freeze captures the previous batch after new cards mount.
     await tick();
+    if (!specRerankRunner.isCurrent(seq)) return;
     await new Promise((resolve) => requestAnimationFrame(resolve));
+    if (!specRerankRunner.isCurrent(seq)) return;
     await freezeSearchResultBatch([...pendingFreezeSegmentIds]);
+    if (!specRerankRunner.isCurrent(seq)) return;
     pendingFreezeSegmentIds = newlyRevealedIds;
   }
 
@@ -4460,9 +4600,58 @@
     if (isPlaying) schedulePlayback(session.sessionId, idx);
   }
 
+  async function rerankSpecResults(detail) {
+    const state = specRankState;
+    if (!state || state.reference !== detail.reference || !detail.draft) return;
+    const seq = specRerankRunner.nextSeq();
+    isReranking = true;
+    isLoadingMore = false;
+    try {
+      await specRerankRunner.run(detail.draft, state, async (finalScore) => {
+        if (specRankState !== state) return;
+        const fullData = finalScore.map(([segmentId]) => state.idToData[segmentId]);
+        specRankState = {
+          ...state,
+          prioritiesSignature: prioritySignature(detail.draft.attributes),
+        };
+        if (searchSpec?.mode === "spec") {
+          searchSpec = {
+            ...searchSpec,
+            spec: { ...searchSpec.spec, attributes: detail.draft.attributes },
+          };
+        }
+        if (fullData.length > 0) {
+          await patternDataLoad(fullData, Math.max(30, get(showResultCount)), seq);
+        }
+      }, seq);
+    } finally {
+      if (specRerankRunner.isCurrent(seq)) {
+        isReranking = false;
+      }
+    }
+  }
+
   function handleSpecState({ detail }) {
     if (!specEnabled || !Object.values(selectedPatterns).some((pattern) => pattern.data === detail.reference)) return;
+    const prevDraft = specInterpretation?.draft ?? null;
     specInterpretation = detail;
+    if (detail.pending) {
+      specRankState = null;
+      if (searchSpec?.mode === "spec" || isReranking) {
+        invalidatePendingRanking();
+        if (isSearch === 1) isSearch = 0;
+      }
+      return;
+    }
+    if (
+      specRankState &&
+      specRankState.reference === detail.reference &&
+      searchSpec?.mode === "spec" &&
+      isSearch === 2 &&
+      shouldRerankSpec(prevDraft, detail.draft, specRankState)
+    ) {
+      rerankSpecResults(detail);
+    }
   }
 
   function handleInterpreterDisplay(event) {
@@ -5311,6 +5500,7 @@
                           <ExplanationList
                             exp_result={specEnabled ? null : exp_result}
                             interpretation={specEnabled && specInterpretation?.reference === pattern.data ? specInterpretation : null}
+                            disabled={isRankingBusy}
                             on:specState={handleSpecState}
                           />
                         </div>
@@ -5575,6 +5765,7 @@
                         <button
                           class="search-pattern-button"
                           style="margin-right: 10px;"
+                          disabled={isRankingBusy}
                           on:click={openSavePanel}
                         >
                           Save NOW Pattern
@@ -5583,7 +5774,7 @@
                         <button
                           class="search-pattern-button"
                           on:click={handleLoadMoreResults}
-                          disabled={isLoadingMore}
+                          disabled={isLoadingMore || isRankingBusy}
                         >
                           {isLoadingMore ? "Loading..." : "More Results"}
                         </button>
@@ -5592,6 +5783,7 @@
                       <div style="text-align: center;">
                         <button
                           class="search-pattern-button"
+                          disabled={isRankingBusy}
                           on:click={openSavePanel}
                         >
                           Save NOW Pattern
@@ -5657,7 +5849,7 @@
         color={colorInput}
         displayedCount={saveDefaultCount}
         maxCount={saveMaxCount}
-        busy={isSaving || isLoadingMore}
+        busy={isSaving || isLoadingMore || isRankingBusy}
         error={saveError}
         on:save={handleSave}
         on:close={handleClose}
@@ -5714,7 +5906,32 @@
             on:delete-pattern={handleDeletePattern}
             on:row-click={handlePatternDetailRowClick}
             {userInputStore}
-          />
+          >
+            <svelte:fragment slot="refine">
+              {#if selectedPatternForDetail.searchSpec?.mode === "spec"}
+                <form class="refine-form" on:submit|preventDefault={handleRefine}>
+                  <label for="refine-pattern">Refine pattern</label>
+                  <textarea
+                    id="refine-pattern"
+                    bind:value={refineText}
+                    placeholder="Describe what to change…"
+                    disabled={Boolean(refineRequest)}
+                    rows="3"
+                  ></textarea>
+                  <button class="search-pattern-button" disabled={Boolean(refineRequest) || !refineText.trim()}>
+                    {refineRequest ? "Refining…" : "Refine"}
+                  </button>
+                  {#if refineError}
+                    <div class="refine-error" role="alert">{refineError}</div>
+                  {:else if refineMessage}
+                    <div class="refine-notice" role="status">
+                      <strong>Unable to apply change:</strong> {refineMessage}
+                    </div>
+                  {/if}
+                </form>
+              {/if}
+            </svelte:fragment>
+          </PatternDetailView>
         </div>
       {:else}
         <div style="margin-top: 70px;" hidden={showMulti}>
@@ -6640,6 +6857,47 @@
 
   .search-result-item:last-child {
     border-bottom: none !important;
+  }
+
+  .refine-form {
+    display: grid;
+    gap: 8px;
+    max-width: 420px;
+    margin-top: 12px;
+    color: #5f6368;
+    font-size: 13px;
+  }
+
+  .refine-form textarea {
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 0.5rem;
+    width: 100%;
+    resize: vertical;
+  }
+
+  .refine-form button {
+    justify-self: start;
+  }
+
+  .refine-error {
+    color: #b71c1c;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .refine-notice {
+    color: #78350f;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.45;
   }
 
   .chart-explanation {

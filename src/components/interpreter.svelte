@@ -2,6 +2,7 @@
   import { createEventDispatcher, onMount } from "svelte";
   import "../components/styles.css";
   import { base } from "$app/paths";
+  import { loadApiKey, sendChat, STORAGE_KEY } from "../lib/chat.js";
   import { FEATURE_CATALOG } from "../lib/featureCatalog.js";
   import {
     SPEC_SYSTEM_PROMPT,
@@ -23,8 +24,6 @@
   let isEditingKey = false;
 
   export let isTest = false;
-
-  const STORAGE_KEY = "inkpulse_openai_api_key";
 
   // simple encryption function based on device fingerprint
   function encryptKey(key) {
@@ -52,38 +51,6 @@
   }
 
   /**
-   * decryption function
-   */
-  function decryptKey(encrypted) {
-    if (!encrypted) return "";
-    try {
-      const secret = (
-        navigator.userAgent +
-        navigator.language +
-        screen.width
-      ).slice(0, 50);
-      const decoded = atob(encrypted);
-
-      const decrypted = decoded
-        .split("")
-        .map((char, i) => {
-          const keyChar = secret.charCodeAt(i % secret.length);
-          return String.fromCharCode(char.charCodeAt(0) ^ keyChar);
-        })
-        .join("");
-
-      return decrypted;
-    } catch (error) {
-      console.warn("Decryption failed:", error);
-      try {
-        return atob(encrypted);
-      } catch {
-        return "";
-      }
-    }
-  }
-
-  /**
    * save API Key to localStorage
    */
   function saveApiKey(key) {
@@ -100,24 +67,6 @@
     } catch (error) {
       console.error("Failed to save API Key:", error);
     }
-  }
-
-  /**
-   * from localStorage load API Key
-   */
-  function loadApiKey() {
-    if (typeof window === "undefined") return "";
-    try {
-      const encrypted = localStorage.getItem(STORAGE_KEY);
-      if (encrypted) {
-        const decrypted = decryptKey(encrypted);
-        console.log("API Key loaded from storage");
-        return decrypted;
-      }
-    } catch (error) {
-      console.error("Failed to load API Key:", error);
-    }
-    return "";
   }
 
   /**
@@ -492,31 +441,7 @@
       userObservation: userInput,
       selectedPattern: signal,
     };
-    const messages = [
-      {
-        role: "system",
-        content: systemPrompt,
-      },
-      {
-        role: "user",
-        content: JSON.stringify(payload),
-      },
-    ];
-    const API_BASE = "https://ink-pulse-one.vercel.app";
-    const response = await fetch(`${API_BASE}/api/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        apiKey,
-        messages,
-      }),
-    });
-    const data = await response.json();
-    if (!data.choices || data.choices.length === 0) {
-      throw new Error(data.error?.message || "No choices returned from API");
-    }
-
-    return data.choices[0].message.content;
+    return sendChat(systemPrompt, payload, apiKey);
   }
 
   async function handleSendMessage() {
