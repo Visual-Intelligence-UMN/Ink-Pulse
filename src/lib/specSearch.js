@@ -2,7 +2,7 @@ import { FEATURE_CATALOG } from "./featureCatalog.js";
 import { evaluateSpec, validateSpec } from "./patternSpec.js";
 import { weightsFromSpec } from "./ranking.js";
 
-export const USE_SPEC_INTERPRETER = false;
+export const USE_SPEC_INTERPRETER = true;
 
 // Check the multiplier itself, not whether unrelated clauses match the reference.
 export function pendingRatioIds(spec, reference, sessionContext) {
