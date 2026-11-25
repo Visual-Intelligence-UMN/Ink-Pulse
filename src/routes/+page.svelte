@@ -51,7 +51,15 @@
   import sourceColorManager from "../components/sourceColorManager.js";
   import ColorSettingsPanel from "../components/ColorSettingsPanel.svelte";
   import ExplanationList from "../components/explanationList.svelte";
-  import { convertChartBlocksToCatalogBlocks } from "$lib/interpreterPrompt.js";
+  import { convertChartBlocksToCatalogBlocks, hashPrompt } from "$lib/interpreterPrompt.js";
+  import { loadApiKey, sendChat } from "$lib/chat.js";
+  import { FEATURE_CATALOG } from "$lib/featureCatalog.js";
+  import {
+    REFINE_SYSTEM_PROMPT,
+    buildRefineInput,
+    resolveRefineResponse,
+    validateRefineSpec,
+  } from "$lib/refinePrompt.js";
   import {
     createSpecRerankRunner,
     findSpecSegments,
@@ -243,6 +251,10 @@
   });
   let currentView = "landing";
   let selectedPatternForDetail = null;
+  let refineText = "";
+  let refineMessage = "";
+  let refineError = "";
+  let refineRequest = null;
   let activePatternId = null;
 
   // Loading state for pattern import
@@ -4107,8 +4119,17 @@
     }
   }
 
+  function resetRefine() {
+    refineRequest?.abort();
+    refineRequest = null;
+    refineText = "";
+    refineMessage = "";
+    refineError = "";
+  }
+
   function handlePatternClick(event) {
     const { pattern } = event.detail;
+    resetRefine();
     selectedPatternForDetail = pattern;
     activePatternId = pattern.id;
     currentView = "pattern-detail";
@@ -4127,9 +4148,79 @@
   }
 
   function handleBackFromDetail() {
+    resetRefine();
     currentView = "landing";
     selectedPatternForDetail = null;
     activePatternId = null;
+  }
+
+  async function handleRefine() {
+    const saved = selectedPatternForDetail;
+    const userInput = refineText.trim();
+    if (saved?.searchSpec?.mode !== "spec" || !userInput || refineRequest) return;
+
+    const request = new AbortController();
+    refineRequest = request;
+    refineError = "";
+    refineMessage = "";
+    try {
+      const detail = saved.searchDetail;
+      const sessionId = detail?.sessionId;
+      if (!sessionId || !detail.data?.length || saved.dataset !== selectedDataset) {
+        throw new Error("The saved reference is not available in this dataset.");
+      }
+      const selection = structuredClone(detail);
+      const { blocks } = convertChartBlocksToCatalogBlocks(selection.data);
+      const original = saved.searchSpec.spec;
+      validateRefineSpec(original, FEATURE_CATALOG, blocks.length);
+      const llmRequest = buildRefineInput(original, FEATURE_CATALOG, userInput);
+      const llmResponse = await sendChat(REFINE_SYSTEM_PROMPT, llmRequest, loadApiKey(), request.signal);
+      if (request.signal.aborted) return;
+      const revised = resolveRefineResponse(llmResponse, original, FEATURE_CATALOG, blocks);
+      if (!revised.spec) {
+        refineMessage = (revised.unresolved || "Could not apply that change to this pattern.").replace(/^unrepresentable:\s*/i, "");
+        return;
+      }
+
+      // The detail panel can be opened without a current session, or from another session.
+      let session = $clickSession?.sessionId === sessionId ? $clickSession : $storeSessionData.get(sessionId);
+      if (!session) {
+        await fetchData(sessionId, false);
+        if (request.signal.aborted) return;
+        session = $storeSessionData.get(sessionId);
+      }
+      if (!session) throw new Error("Could not restore the saved reference session.");
+
+      selectedPatterns = {};
+      clickSession.set(session);
+      sharedSelection = null;
+      showMulti = true;
+      selectionMode = true;
+      showPatternSearch = true;
+      handleBackFromDetail();
+      // Mount the session charts first; the line chart clears its brush when it mounts.
+      await tick();
+
+      selection.count = blocks.length;
+      selectedPatterns = { [sessionId]: selection };
+      currentResults = selection.data;
+      lastSession = session;
+      showResultCount.set(15);
+      specInterpretation = {
+        reference: selection.data,
+        draft: revised.spec,
+        pendingIds: [],
+        userInput,
+        llmRequest,
+        llmResponse,
+        systemPromptHash: hashPrompt(REFINE_SYSTEM_PROMPT),
+      };
+      await searchPattern(sessionId);
+    } catch (error) {
+      if (!request.signal.aborted) refineError = `Could not refine pattern: ${error.message}`;
+    } finally {
+      if (refineRequest === request) refineRequest = null;
+    }
   }
 
   function handleApplyPattern(event) {
@@ -5815,7 +5906,32 @@
             on:delete-pattern={handleDeletePattern}
             on:row-click={handlePatternDetailRowClick}
             {userInputStore}
-          />
+          >
+            <svelte:fragment slot="refine">
+              {#if selectedPatternForDetail.searchSpec?.mode === "spec"}
+                <form class="refine-form" on:submit|preventDefault={handleRefine}>
+                  <label for="refine-pattern">Refine pattern</label>
+                  <textarea
+                    id="refine-pattern"
+                    bind:value={refineText}
+                    placeholder="Describe what to change…"
+                    disabled={Boolean(refineRequest)}
+                    rows="3"
+                  ></textarea>
+                  <button class="search-pattern-button" disabled={Boolean(refineRequest) || !refineText.trim()}>
+                    {refineRequest ? "Refining…" : "Refine"}
+                  </button>
+                  {#if refineError}
+                    <div class="refine-error" role="alert">{refineError}</div>
+                  {:else if refineMessage}
+                    <div class="refine-notice" role="status">
+                      <strong>Unable to apply change:</strong> {refineMessage}
+                    </div>
+                  {/if}
+                </form>
+              {/if}
+            </svelte:fragment>
+          </PatternDetailView>
         </div>
       {:else}
         <div style="margin-top: 70px;" hidden={showMulti}>
@@ -6741,6 +6857,47 @@
 
   .search-result-item:last-child {
     border-bottom: none !important;
+  }
+
+  .refine-form {
+    display: grid;
+    gap: 8px;
+    max-width: 420px;
+    margin-top: 12px;
+    color: #5f6368;
+    font-size: 13px;
+  }
+
+  .refine-form textarea {
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 0.5rem;
+    width: 100%;
+    resize: vertical;
+  }
+
+  .refine-form button {
+    justify-self: start;
+  }
+
+  .refine-error {
+    color: #b71c1c;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .refine-notice {
+    color: #78350f;
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.45;
   }
 
   .chart-explanation {
