@@ -2,7 +2,15 @@
   import { createEventDispatcher, onMount } from "svelte";
   import "../components/styles.css";
   import { base } from "$app/paths";
-  import { loadApiKey, sendChat, STORAGE_KEY } from "../lib/chat.js";
+  import {
+    loadApiKey,
+    sendChat,
+    storageKeyFor,
+    loadProvider,
+    saveProvider,
+    PROVIDERS,
+    BEDROCK_MODEL,
+  } from "../lib/chat.js";
   import { FEATURE_CATALOG } from "../lib/featureCatalog.js";
   import {
     SPEC_SYSTEM_PROMPT,
@@ -14,6 +22,7 @@
   import { validateSpec, bindAnchors } from "../lib/patternSpec.js";
   import { pendingRatioIds, USE_SPEC_INTERPRETER } from "../lib/specSearch.js";
 
+  let provider = loadProvider();
   let apiKey = "";
   let displayApiKey = "";
   let inputMessage = "";
@@ -58,10 +67,10 @@
     try {
       if (key && key.trim()) {
         const encrypted = encryptKey(key.trim());
-        localStorage.setItem(STORAGE_KEY, encrypted);
+        localStorage.setItem(storageKeyFor(provider), encrypted);
         console.log("API Key saved successfully");
       } else {
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(storageKeyFor(provider));
         console.log("API Key removed");
       }
     } catch (error) {
@@ -92,13 +101,24 @@
   }
 
   // component mounted
+  // Load the saved key of the current provider (each provider keeps its own key).
+  function loadProviderKey() {
+    const savedKey = loadApiKey(provider);
+    apiKey = savedKey || "";
+    isApiKeyLoaded = !!savedKey;
+    displayApiKey = savedKey ? maskApiKey(savedKey) : "";
+    isEditingKey = !savedKey;
+  }
+
+  function handleProviderChange(event) {
+    provider = event.target.value;
+    saveProvider(provider);
+    loadProviderKey();
+  }
+
   onMount(() => {
-    const savedKey = loadApiKey();
-    if (savedKey) {
-      apiKey = savedKey;
-      displayApiKey = maskApiKey(savedKey);
-      isApiKeyLoaded = true;
-    }
+    provider = loadProvider();
+    loadProviderKey();
   });
 
   // Last LLM call (request and raw answer), sent to the page so a saved pattern can keep them.
@@ -441,7 +461,7 @@
       userObservation: userInput,
       selectedPattern: signal,
     };
-    return sendChat(systemPrompt, payload, apiKey);
+    return sendChat(systemPrompt, payload, apiKey, undefined, provider);
   }
 
   async function handleSendMessage() {
@@ -568,7 +588,7 @@
       toggleSettingsWindow();
     } else {
       // verify API Key format
-      if (!trimmedKey.startsWith("sk-")) {
+      if (provider === "openai" && !trimmedKey.startsWith("sk-")) {
         alert(
           'Invalid API Key format. OpenAI API Keys usually start with "sk-"',
         );
@@ -837,6 +857,16 @@
       <div
         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;"
       >
+        <select
+          value={provider}
+          on:change={handleProviderChange}
+          class="provider-select"
+          title="LLM provider"
+        >
+          {#each Object.entries(PROVIDERS) as [id, p]}
+            <option value={id}>{p.label}</option>
+          {/each}
+        </select>
       </div>
 
       <input
@@ -846,7 +876,9 @@
         on:focus={handleKeyInputFocus}
         placeholder={isApiKeyLoaded
           ? "••••••••••••••• (click to update)"
-          : "Enter OpenAI API Key (sk-proj-...)"}
+          : provider === "bedrock"
+            ? "Enter Amazon Bedrock API Key"
+            : "Enter OpenAI API Key (sk-proj-...)"}
         class="api-key-input"
       />
 
@@ -864,6 +896,9 @@
       <div class="key-info">
         <small>
           💡 Your API Key is encrypted and stored locally in your browser.
+          {#if provider === "bedrock"}
+            <br />Bedrock model: {BEDROCK_MODEL} (us-east-2).
+          {/if}
         </small>
       </div>
     </div>
@@ -1084,6 +1119,16 @@
     margin-bottom: 0.5rem;
   }
   
+  .provider-select {
+    width: 220px;
+    box-sizing: border-box;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    background: white;
+  }
+
   .api-key-input {
     width: 220px;
     padding: 0.5rem;
