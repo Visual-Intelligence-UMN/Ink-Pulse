@@ -3,7 +3,10 @@
   
   export let pattern;
   export let isActive = false;
-  
+  // Dataset currently open; patterns from other datasets are shown with a badge.
+  export let currentDataset = null;
+  $: foreign = currentDataset != null && pattern.dataset !== currentDataset;
+
   const dispatch = createEventDispatcher();
   
   function handleClick() {
@@ -31,10 +34,11 @@
 <div 
   class="pattern-icon" 
   class:active={isActive}
+  class:foreign
   style="background-color: {pattern.color}"
   on:click={handleClick}
   on:contextmenu={handleContextMenu}
-  title="Pattern '{pattern.name}' - {pattern.pattern.length} sessions - Avg Score: {getAverageScore(pattern)}"
+  title="Pattern '{pattern.name}'{foreign ? ` (dataset: ${pattern.dataset})` : ''} - {pattern.pattern.length} sessions - Avg Score: {getAverageScore(pattern)}"
 >
   {getDisplayText(pattern.name)}
 </div>
@@ -61,6 +65,12 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
   
+  .pattern-icon.foreign {
+    opacity: 0.6;
+    outline: 2px dashed #888;
+    outline-offset: 1px;
+  }
+
   .pattern-icon.active {
     box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--pattern-color);
     transform: scale(1.05);

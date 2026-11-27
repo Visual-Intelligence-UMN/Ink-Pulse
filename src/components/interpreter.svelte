@@ -33,6 +33,9 @@
   let isEditingKey = false;
 
   export let isTest = false;
+  // Prefills the description box, e.g. when re-using a saved pattern.
+  export let initialInput = "";
+  inputMessage = initialInput;
 
   // simple encryption function based on device fingerprint
   function encryptKey(key) {
