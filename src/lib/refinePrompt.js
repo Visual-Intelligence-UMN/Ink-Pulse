@@ -7,7 +7,7 @@ Rules:
 - Use only features and operations in the supplied feature catalog.
 - Do not convert a soft attribute into a hard constraint unless the analyst explicitly requests that change.
 - Do not invent numeric thresholds.
-- Mark newly introduced fields with provenance “analyst-confirmed.”
+- Mark newly introduced attributes and constraints with provenance “analyst-confirmed.” Only attributes and constraints have a provenance field; never add provenance to explanations, assumptions, or unresolved entries (explanations contain only target_id and text).
 - Do not modify the reference episode, segmentation configuration, or outcome-feature restrictions.
 - If the request cannot be represented, return an empty patch and place the reason in the supplied unresolved-message field.
 - Do not output SQL, executable code, Markdown, or explanatory prose outside the patch.
@@ -106,6 +106,17 @@ export function resolveRefineResponse(raw, originalSpec, catalog, reference) {
   if (!patch.length) return { unresolved: unresolved.trim() || "No changes could be made." };
 
   const patched = applyPatch(originalSpec, patch);
+  // Models sometimes copy provenance onto new explanations; the schema only allows
+  // {target_id, text} there, so drop the extra field instead of failing the whole refine.
+  if (Array.isArray(patched?.explanations)) {
+    patched.explanations = patched.explanations.map((entry) => {
+      if (entry && typeof entry === "object" && "provenance" in entry) {
+        const { provenance, ...rest } = entry;
+        return rest;
+      }
+      return entry;
+    });
+  }
   validateRefineSpec(patched, catalog, reference.length);
   const gapFields = ["left", "right", "min_blocks", "max_blocks", "constrain_intermediate"];
   if (JSON.stringify(patched.span.gaps, gapFields) !== JSON.stringify(originalSpec.span.gaps, gapFields)) {

@@ -21,11 +21,13 @@
     dispatch("show-more-patterns");
   }
 
-  $: visiblePatterns = patterns
-    .filter((p) => p.dataset === dataset && p.id !== "pattern_0")
-    .slice(0, maxVisible);
-
-  $: remainingCount = Math.max(0, patterns.filter((p) => p.dataset === dataset && p.id !== "pattern_0").length - maxVisible);
+  // Patterns from every dataset stay visible (current dataset first) so they can be
+  // inspected, compared, and re-used across datasets.
+  $: allPatterns = patterns
+    .filter((p) => p.id !== "pattern_0")
+    .sort((a, b) => Number(b.dataset === dataset) - Number(a.dataset === dataset));
+  $: visiblePatterns = allPatterns.slice(0, maxVisible);
+  $: remainingCount = Math.max(0, allPatterns.length - maxVisible);
 </script>
 
 <div class="saved-patterns-bar">
@@ -35,9 +37,10 @@
     <span class="no-patterns">No saved patterns yet</span>
   {:else}
     <div class="patterns-container">
-      {#each visiblePatterns as pattern (pattern.id)}
+      {#each visiblePatterns as pattern (`${pattern.id}::${pattern.dataset}`)}
         <PatternIcon
           {pattern}
+          currentDataset={dataset}
           isActive={activePatternId === pattern.id}
           on:click={handlePatternClick}
           on:contextmenu={handlePatternContextMenu}

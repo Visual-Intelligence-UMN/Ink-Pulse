@@ -66,6 +66,8 @@
     makeSpecSearchRecord,
     prioritySignature,
     attributeIdsSignature,
+    buildReproducibility,
+    checkSpecCompatibility,
     selectSearchMode,
     shouldRerankSpec,
     specRankingChecks,
@@ -584,7 +586,11 @@
       isSaving = false;
       return;
     }
-    const allPatternData = get(patternDataList).slice(0, count);
+    // Removed results never enter a saved pattern; their ids are saved so a re-run excludes them.
+    const allPatternData = get(patternDataList)
+      .filter((row) => !removedResultIds.has(row.segmentId))
+      .slice(0, count);
+    const datasetMeta = await loadDatasetMeta(selectedDataset);
 
     // Group rows by sessionId so we can accumulate counts per session
     const sessionsById = new Map();
@@ -642,6 +648,7 @@
       },
       searchDetail,
       searchSpec,
+      reproducibility: buildReproducibility(datasetMeta, removedResultIds),
     };
 
     // Commit & refresh UI
@@ -1019,6 +1026,7 @@
       ...loadedMap,
       [sessionId]: true,
     };
+    if (pendingReuseSelection?.sessionId === sessionId) setTimeout(applyPendingReuseSelection, 50);
   }
 
   function open2close() {
@@ -1721,7 +1729,8 @@
     isSearch = 1; // 0: not searching, 1: searching, 2: search done
     resetSearchResultSnapshotState();
     allSearchResults = []; // Reset search results
-    removedResultIds = new Set();
+    // A re-used pattern carries the results its author removed (same dataset only).
+    removedResultIds = new Set(interpretation?.excludedSegmentIds ?? []);
     loadedResultCount = 0;
     const count =
       sessionData.count || Math.max(1, sessionData.data?.length || 1);
@@ -2820,6 +2829,7 @@
         return newMap;
       });
     } catch (error) {
+      lastFetchError = `(${error.message})`;
       console.error("Error when reading the data file:", error);
     }
   };
@@ -4236,6 +4246,135 @@
     }
   }
 
+  // Optional static/dataset/<name>/meta.json declares segmentation and feature versions.
+  async function loadDatasetMeta(name) {
+    try {
+      const info = datasets.find((d) => d.name === name);
+      if (info?.source !== "repo") return null;
+      const res = await fetch(`${base}/dataset/${name}/meta.json`);
+      return res.ok ? await res.json() : null;
+    } catch {
+      return null;
+    }
+  }
+
+  let pendingReuseSelection = null;
+  let lastFetchError = "";
+  function applyPendingReuseSelection() {
+    if (!pendingReuseSelection || $clickSession?.sessionId !== pendingReuseSelection.sessionId) return;
+    sharedSelection = pendingReuseSelection;
+    pendingReuseSelection = null;
+  }
+
+  // Re-run a saved typed pattern in the search panel without calling the LLM. The saved
+  // reference, description and specification are restored; the user then presses Search.
+  // For another dataset the specification is first checked against that dataset's blocks.
+  async function handleReusePattern(saved) {
+    if (!saved) return;
+    try {
+      let sampleBlocks = null;
+      let targetMeta = null;
+      const sameDataset = saved.dataset === selectedDataset;
+      let sessionId = saved.searchDetail?.sessionId;
+      if (!sameDataset) {
+        // Sample blocks from a few sessions of the target dataset to verify required features.
+        const probeIds = (CSVData ?? []).slice(0, 5).map((row) => row.session_id).filter(Boolean);
+        sampleBlocks = [];
+        for (const id of probeIds) {
+          const blocks = await fetchSimilarityData(id);
+          if (Array.isArray(blocks)) sampleBlocks.push(...blocks);
+        }
+        if (!sampleBlocks.length) {
+          alert(`Cannot reuse "${saved.name}": no block data could be read from ${selectedDataset}.`);
+          return;
+        }
+        targetMeta = await loadDatasetMeta(selectedDataset);
+      }
+      const check = checkSpecCompatibility(saved, { sampleBlocks, targetMeta });
+      if (!check.ok) {
+        alert(`Pattern "${saved.name}" (from ${saved.dataset}) cannot be used on ${selectedDataset}:\n\n- ${check.errors.join("\n- ")}`);
+        return;
+      }
+      if (check.warnings.length &&
+          !confirm(`Pattern "${saved.name}" may not behave the same on ${selectedDataset}:\n\n- ${check.warnings.join("\n- ")}\n\nLoad it anyway?`)) {
+        return;
+      }
+
+      const selection = structuredClone(saved.searchDetail);
+      const spec = structuredClone(saved.searchSpec.spec);
+      // The chart panel needs a current session; foreign references have none here.
+      // Try the reference session first (same dataset), then fall back to other sessions.
+      const candidates = [
+        ...(sameDataset ? [sessionId] : []),
+        ...(CSVData ?? []).slice(0, 3).map((row) => row.session_id),
+      ].filter(Boolean);
+      if (!candidates.length) throw new Error(`No sessions are loaded for dataset "${selectedDataset}".`);
+      let session = null;
+      let contextId = null;
+      for (const id of candidates) {
+        session = $clickSession?.sessionId === id ? $clickSession : get(storeSessionData).get(id);
+        if (!session) {
+          lastFetchError = "";
+          await fetchData(id, false);
+          session = get(storeSessionData).get(id);
+        }
+        if (session) { contextId = id; break; }
+      }
+      if (!session) {
+        throw new Error(`Could not load a session to anchor the search panel (tried ${candidates.join(", ")}). ${lastFetchError}`);
+      }
+
+      selectedPatterns = {};
+      clickSession.set(session);
+      sharedSelection = null;
+      pendingReuseSelection = null;
+      showMulti = true;
+      selectionMode = true;
+      showPatternSearch = true;
+      if (currentView === "pattern-detail") handleBackFromDetail();
+      await tick();
+
+      selection.count = selection.data.length;
+      selectedPatterns = { [sessionId]: selection };
+      currentResults = selection.data;
+      lastSession = session;
+      // Re-highlight the saved region in the session chart (same dataset only: a foreign
+      // reference does not exist in the anchor session). The source is not "barChart_y",
+      // so the chart highlights without emitting a new selection that would reset the panel.
+      const progress = selection.range?.progress;
+      const time = selection.selectedTimeRange;
+      // Applied once the chart has rendered its bars (see applyPendingReuseSelection).
+      pendingReuseSelection = sameDataset && contextId === sessionId && progress ? {
+        xMin: progress.min,
+        xMax: progress.max,
+        xField: "progress",
+        yField: "semantic_change",
+        selectionSource: "reuse",
+        progressMin: progress.min,
+        progressMax: progress.max,
+        timeMin: time?.min ?? null,
+        timeMax: time?.max ?? null,
+        sessionId,
+      } : null;
+      specInterpretation = {
+        reference: selection.data,
+        draft: spec,
+        pendingIds: [],
+        userInput: saved.searchSpec.userInput || "",
+        llmRequest: saved.searchSpec.llmRequest,
+        llmResponse: saved.searchSpec.llmResponse,
+        systemPromptHash: saved.searchSpec.systemPromptHash,
+        // Segment ids are `<session>_<window start>`, so they only carry over within a dataset.
+        excludedSegmentIds: sameDataset ? saved.reproducibility?.excludedSegmentIds ?? [] : [],
+      };
+      // The chart may already be mounted (no chartLoaded event) or still rendering.
+      await tick();
+      setTimeout(applyPendingReuseSelection, 150);
+    } catch (error) {
+      alert(`Could not reuse pattern: ${error.message}`);
+    }
+  }
+
   function handleApplyPattern(event) {
     const { pattern } = event.detail;
     if (!selectionMode) {
@@ -4300,6 +4439,10 @@
 
   function handlePatternDetailRowClick(event) {
     const { sessionData } = event.detail;
+    if (selectedPatternForDetail && selectedPatternForDetail.dataset !== selectedDataset) {
+      alert(`This session belongs to dataset "${selectedPatternForDetail.dataset}". Switch to that dataset to open it.`);
+      return;
+    }
     handleContainerClick({ detail: { sessionId: sessionData.sessionId } });
     handleBackFromDetail();
   }
@@ -4930,7 +5073,7 @@
 
                       <div class="export-divider">Individual Patterns:</div>
 
-                      {#each $searchPatternSet.filter((p) => p.dataset === selectedDataset && p.id !== "pattern_0") as pattern}
+                      {#each $searchPatternSet.filter((p) => p.id !== "pattern_0") as pattern}
                         <button
                           class="export-option pattern-export"
                           on:click={() => handleExportSingle(pattern.id)}
@@ -4940,7 +5083,7 @@
                             class="pattern-color"
                             style="background-color: {pattern.color}"
                           ></span>
-                          {pattern.name}
+                          {pattern.name}{pattern.dataset === selectedDataset ? "" : ` (${pattern.dataset})`}
                         </button>
                       {:else}
                         <div class="export-no-patterns">
@@ -5506,6 +5649,7 @@
                             {#key specEnabled ? pattern.data : null}
                               <Interpreter
                                 {pattern}
+                                initialInput={specInterpretation?.reference === pattern.data ? specInterpretation.userInput || "" : ""}
                                 on:parsedFilters={handleInterpreterFilters}
                                 on:display={handleInterpreterDisplay}
                                 on:specState={handleSpecState}
@@ -5933,6 +6077,16 @@
           >
             <svelte:fragment slot="refine">
               {#if selectedPatternForDetail.searchSpec?.mode === "spec"}
+                <div style="margin-top: 8px;">
+                  <button
+                    type="button"
+                    class="search-pattern-button"
+                    title="Load this pattern's reference and specification into the search panel"
+                    on:click={() => handleReusePattern(selectedPatternForDetail)}
+                  >
+                    Reuse in search
+                  </button>
+                </div>
                 <form class="refine-form" on:submit|preventDefault={handleRefine}>
                   <label for="refine-pattern">Refine pattern</label>
                   <textarea
