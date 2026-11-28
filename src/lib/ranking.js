@@ -32,6 +32,21 @@ export function initialWeights(currentVector) {
   ]);
 }
 
+// Re-apply saved (feedback-updated) weights to a new search. Features absent from the
+// reference stay at 0 and the rest are renormalized; falls back to the equal start weights.
+export function restoreWeights(saved, currentVector) {
+  const base = initialWeights(currentVector);
+  if (!saved || typeof saved !== "object") return base;
+  const active = RANKED_FEATURES.filter((key) => base[key] > 0);
+  const value = (key) => (Number.isFinite(Number(saved[key])) ? Math.max(0, Number(saved[key])) : 0);
+  const total = active.reduce((sum, key) => sum + value(key), 0);
+  if (!(total > 0)) return base;
+  return Object.fromEntries([
+    ["t", 0],
+    ...RANKED_FEATURES.map((key) => [key, active.includes(key) ? value(key) / total : 0]),
+  ]);
+}
+
 // Appendix C.3: only explicitly kept examples and the reference are positives.
 // Inactive features remain at zero instead of receiving the epsilon floor.
 export function updateWeights(weights, reference, rejected, kept = []) {

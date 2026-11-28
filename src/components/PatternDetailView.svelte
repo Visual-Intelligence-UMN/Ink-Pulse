@@ -45,7 +45,10 @@
   // let overallSemScoreSummaryData = init.overallSemScoreSummaryData;
   let patternData = featureData;
   let flag = "overall";
-  let selectedIdDataset = `${init.id}::${init.dataset}`;
+  // Feature rows of the dataset the compared pattern belongs to (its sessions are looked up here).
+  let compareFeatureData = featureData;
+  // `init` is missing when this pattern's dataset has not been opened yet.
+  let selectedIdDataset = init ? `${init.id}::${init.dataset}` : "";
   $: title = [
     pattern?.name,
     normalizeName(findPatternByKey(selectedIdDataset)?.name),
@@ -88,6 +91,9 @@
     selectedIdDataset = selectedKey;
     const select = findPatternByKey(selectedKey);
     if (!select) return;
+    compareFeatureData =
+      searchPatternSet.find((p) => p.id === "pattern_0" && p.dataset === select.dataset)
+        ?.featuredata || [];
 
     const [selectedValue, _] = selectedKey.split("::");
 
@@ -123,6 +129,9 @@
   }
 
   $: patternSessions = pattern?.pattern || [];
+
+  // The natural-language input the pattern was searched with.
+  $: specInput = pattern?.searchSpec?.userInput || "";
   let activityPage = 1;
   let activityPatternKey = "";
   $: if (activityPatternKey !== `${pattern?.dataset}::${pattern?.id}`) {
@@ -148,9 +157,12 @@
     return s?.startsWith("Others-") ? "Others" : s;
   }
 
-  $: filteredPatterns = searchPatternSet.filter(
-    (p) => p.dataset === pattern.dataset,
+  // Patterns from every dataset can be compared; this pattern's own dataset comes first.
+  $: filteredPatterns = [...searchPatternSet].sort(
+    (a, b) => Number(b.dataset === pattern.dataset) - Number(a.dataset === pattern.dataset),
   );
+  const optionLabel = (p) =>
+    normalizeName(p.name) + (p.dataset !== pattern.dataset ? ` (${p.dataset})` : "");
   $: {
     if (
       !filteredPatterns.find(
@@ -158,7 +170,7 @@
       )
     ) {
       const defaultPattern =
-        filteredPatterns.find((p) => p.id === "pattern_0") ||
+        filteredPatterns.find((p) => p.id === "pattern_0" && p.dataset === pattern.dataset) ||
         filteredPatterns[0];
       if (defaultPattern) {
         const dataset = defaultPattern.dataset.startsWith("Others-")
@@ -207,7 +219,7 @@
         >
           {#each filteredPatterns as filteredPattern}
             <option value={`${filteredPattern.id}::${filteredPattern.dataset}`}>
-              {normalizeName(filteredPattern.name)}
+              {optionLabel(filteredPattern)}
             </option>
           {/each}
         </select>
@@ -217,6 +229,9 @@
   </div>
 
   <div class="pattern-item">
+    <div class="pattern-header">
+      <h5 style="margin: 0 0 4px 0;">Dataset: {pattern?.dataset}</h5>
+    </div>
     <div class="pattern-header">
       <h5 style="margin: 0 0 4px 0;">Session: {pattern.searchDetail.sessionId.slice(0, 4)}</h5>
     </div>
@@ -263,7 +278,8 @@
             white-space: normal;
           "
         >
-          {$userInputStore}
+          <!-- Saved user input; falls back to the live input for patterns that have none. -->
+          {specInput || $userInputStore}
         </div>
       </div>
       <!-- <div style="margin-top: 15px; margin-left:10px; width: 40%">
@@ -390,7 +406,7 @@
         featureName={key}
         data={getFeatureValues(key, patternSessionIds)}
         {patternData}
-        {featureData}
+        featureData={compareFeatureData}
         {flag}
         {title}
       />
