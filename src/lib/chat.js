@@ -71,7 +71,7 @@ export function loadApiKey(provider = loadProvider()) {
     const encrypted = localStorage.getItem(storageKeyFor(provider));
     if (encrypted) {
       const decrypted = decryptKey(encrypted);
-      console.log("API Key loaded from storage");
+      // console.log("API Key loaded from storage");
       return decrypted;
     }
   } catch (error) {

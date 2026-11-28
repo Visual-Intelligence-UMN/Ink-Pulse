@@ -124,9 +124,13 @@ export function normalizeDatasetMeta(meta) {
 
 // Recorded on every saved pattern (paper App. C.4); excluded ids make the saved result
 // set reproducible on the same dataset.
-export function buildReproducibility(meta, excludedSegmentIds) {
+export function buildReproducibility(meta, excludedSegmentIds, rankingWeights = null) {
   const info = normalizeDatasetMeta(meta);
   return {
+    // Ranking weights after analyst feedback (App. C.3); re-used so the same order is reproduced.
+    rankingWeights: rankingWeights
+      ? Object.fromEntries(["s", "p", "sem", "tr"].map((key) => [key, Number(rankingWeights[key]) || 0]))
+      : null,
     segmentation: info.segmentation,
     segmentationAssumed: info.segmentationAssumed,
     featureVersions: info.featureVersions,
@@ -167,8 +171,6 @@ export function checkSpecCompatibility(saved, { sampleBlocks = null, targetMeta 
       const missing = sampleBlocks.filter((block) => !blockHas(block, names)).length;
       if (sampleBlocks.length && missing === sampleBlocks.length) {
         errors.push(`This dataset has no "${names[0]}" values, which the pattern needs for ${id}.`);
-      } else if (missing > 0) {
-        warnings.push(`${missing} of ${sampleBlocks.length} sampled blocks lack "${names[0]}" (needed for ${id}).`);
       }
     }
     if (id === "semantic_change" && sampleBlocks.length &&
@@ -180,20 +182,16 @@ export function checkSpecCompatibility(saved, { sampleBlocks = null, targetMeta 
   // Segmentation scheme and derived-feature versions.
   const target = normalizeDatasetMeta(targetMeta);
   const record = saved.reproducibility;
-  if (!record) {
-    warnings.push("This pattern was saved before segmentation and feature versions were recorded, so they cannot be compared.");
-  } else {
+  // Only explicit differences are reported; anything not recorded is not flagged.
+  if (record) {
     if (record.segmentation !== target.segmentation) {
       errors.push(`Segmentation differs: the pattern uses "${record.segmentation}", this dataset uses "${target.segmentation}".`);
-    } else if (record.segmentationAssumed || target.segmentationAssumed) {
-      warnings.push(`Segmentation "${target.segmentation}" is assumed (no meta.json declares it); confirm both datasets were cut the same way.`);
     }
     for (const id of features) {
       if (id !== "semantic_change") continue; // only derived features have versions
       const saves = record.featureVersions?.[id];
       const here = target.featureVersions[id];
       if (saves && here && saves !== here) errors.push(`Feature "${id}" was computed differently: pattern "${saves}" vs this dataset "${here}".`);
-      else if (!saves || !here) warnings.push(`The version of feature "${id}" is not recorded for ${!saves ? "the pattern" : "this dataset"}, so it cannot be verified.`);
     }
   }
   return { ok: errors.length === 0, errors, warnings };

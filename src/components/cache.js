@@ -189,7 +189,7 @@ async function importDBFromFile(file) {
               const newItems = incomingItems.filter(item => !existingKeys.has(patternKey(item)));
               mergedValue = [...existingItems, ...newItems];
 
-              console.log(`Merged ${newItems.length} new items into ${key}`);
+              // console.log(`Merged ${newItems.length} new items into ${key}`);
             } else if (Array.isArray(existingValue) && Array.isArray(importedValue)) {
               mergedValue = [...existingValue, ...importedValue];
             } else if (
@@ -216,7 +216,7 @@ async function importDBFromFile(file) {
           try {
             const updatedData = await getFromDB(CACHE_KEY);
             searchPatternSet.set(updatedData);
-            console.log('Store updated with imported data:', updatedData);
+            // console.log('Store updated with imported data:', updatedData);
           } catch (error) {
             console.warn('Failed to refresh store:', error);
           }
@@ -243,7 +243,7 @@ export function triggerImport() {
       const file = input.files[0];
       if (file) {
         try {
-          console.log('Starting import of file:', file.name, 'Size:', file.size);
+          // console.log('Starting import of file:', file.name, 'Size:', file.size);
           await importDBFromFile(file);
           console.log('Import completed successfully!');
           resolve();
@@ -302,10 +302,10 @@ if (typeof window !== 'undefined' && typeof indexedDB !== 'undefined') {
       const blob = await fileRes.blob();
       const file = new File([blob], name, { type: blob.type || 'application/octet-stream' });
       await importDBFromFile(file);  
-      console.info(`✔ Imported ${name}`);
+      // console.info(`Imported ${name}`);
     }
 
-    console.info(`loadPattern(): finished — ${fileNames.length} file(s) processed.`);
+    // console.info(`loadPattern(): finished — ${fileNames.length} file(s) processed.`);
   } catch (err) {
     console.error('loadPattern(): failed →', err);
     throw err;   

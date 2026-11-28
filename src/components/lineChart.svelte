@@ -13,7 +13,7 @@
   export let yAxisField = "progress"; // Add：new Y axis feature
   export let sessionId;
   const TREND_THRESHOLD = 5;
-  console.log("id", sessionId);
+  // console.log("id", sessionId);
 
   type ChartEvents = {
     pointSelected: {
@@ -310,7 +310,7 @@
       }
     }
 
-    console.log("num: ", result.length);
+    // console.log("num: ", result.length);
 
     return result;
   }

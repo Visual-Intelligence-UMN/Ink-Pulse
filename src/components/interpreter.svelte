@@ -71,10 +71,10 @@
       if (key && key.trim()) {
         const encrypted = encryptKey(key.trim());
         localStorage.setItem(storageKeyFor(provider), encrypted);
-        console.log("API Key saved successfully");
+        // console.log("API Key saved successfully");
       } else {
         localStorage.removeItem(storageKeyFor(provider));
-        console.log("API Key removed");
+        // console.log("API Key removed");
       }
     } catch (error) {
       console.error("Failed to save API Key:", error);
@@ -471,7 +471,7 @@
     if (inputMessage.trim() === "") return;
     const useSpec = USE_SPEC_INTERPRETER && !isTest;
     if (useSpec && specPending) return;
-    if (!useSpec) console.log("Sending message:", inputMessage);
+    // if (!useSpec) console.log("Sending message:", inputMessage);
     try {
       if (useSpec) {
         specError = "";
@@ -514,7 +514,7 @@
 
       const request = { userObservation: inputMessage, selectedPattern: signal };
       const raw = await sendMessageToAPI(inputMessage, request);
-      console.log("raw", String(raw));
+      // console.log("raw", String(raw));
       lastLlmRequest = request;
       lastRawResponse = raw;
 
@@ -745,12 +745,12 @@
       };
     });
 
-    console.log(
-      "Sending - explanations:",
-      explanationsWithRatios,
-      "filters with ratio:",
-      filtersWithRatio,
-    );
+    // console.log(
+      // "Sending - explanations:",
+      // explanationsWithRatios,
+      // "filters with ratio:",
+      // filtersWithRatio,
+    // );
 
     if (!isTest) {
       dispatch("parsedFilters", {

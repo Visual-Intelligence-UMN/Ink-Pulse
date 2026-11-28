@@ -40,6 +40,7 @@
     hasActiveWeights,
     weightsFromSpec,
     initialWeights,
+    restoreWeights,
     updateWeights,
     rerankCandidates,
   } from "$lib/ranking.js";
@@ -183,7 +184,7 @@
 
   let lastSharedSelection = null;
   $: if (sharedSelection) {
-    console.log("selectedPatterns", selectedPatterns);
+    // console.log("selectedPatterns", selectedPatterns);
     // console.log("sharedSelection", sharedSelection);
     if (sharedSelection !== lastSharedSelection) {
       isSearch = 0; // reset search state; 0: not searching, 1: searching, 2: search done
@@ -382,6 +383,9 @@
   }
 
   let removedResultIds = new Set();
+  // Weights before any feedback plus one entry per deleted result (App. C.3/C.4), so a
+  // saved pattern can replay the exact displayed order. Null once priorities are edited.
+  let rankHistory = null;
   const removepattern = async (segmentId) => {
     if (isRankingBusy || isLoadingMore || isSaving) return;
     const state = feedbackRankState;
@@ -424,6 +428,7 @@
     const nextIds = rerankCandidates(orderedIds, segmentId, state.patternVectors,
       state.currentVector, nextWeights, removedResultIds);
     weights.set(nextWeights);
+    rankHistory?.steps.push({ rejectedId: segmentId, weights: { ...nextWeights } });
     const byId = new Map(allSearchResults.map((group) => [group[0]?.segmentId, group]));
     allSearchResults = nextIds.map((id) => byId.get(id));
     searchCount = allSearchResults.length;
@@ -690,7 +695,12 @@
       },
       searchDetail,
       searchSpec,
-      reproducibility: buildReproducibility(datasetMeta, removedResultIds),
+      reproducibility: {
+        ...buildReproducibility(datasetMeta, removedResultIds, get(weights)),
+        rankingHistory: rankHistory
+          ? { initialWeights: rankHistory.initialWeights, steps: rankHistory.steps }
+          : null,
+      },
     };
 
     // Commit & refresh UI
@@ -820,7 +830,7 @@
         );
         if (!response.ok) throw new Error("Failed to fetch CSV data");
         const text = await response.text();
-        const parsedData = Papa.parse(text, { header: true }).data;
+        const parsedData = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
 
         return parsedData;
       }
@@ -830,7 +840,7 @@
         const sessionFile = zip.file(`${selectedDataset}/session.csv`);
         if (!sessionFile) throw new Error("session.csv not found in zip");
         const text = await sessionFile.async("string");
-        const parsedData = Papa.parse(text, { header: true }).data;
+        const parsedData = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
 
         return parsedData;
       }
@@ -1202,7 +1212,7 @@
     `;
 
       interpretedQuery = windowSQL;
-      console.log("Processed Test SQL:", windowSQL);
+      // console.log("Processed Test SQL:", windowSQL);
       return;
     }
 
@@ -1213,7 +1223,7 @@
     userInputStore.set(userInput);
     const windowSourcePattern =
       Object.values(selectedPatterns)[0]?.sources || []; // e.g. ["api","api","user","user"]
-    console.log("source", windowSourcePattern);
+    // console.log("source", windowSourcePattern);
 
     function parseRelation(relationString) {
       if (!relationString) return null;
@@ -1441,17 +1451,17 @@
             if (nextLeftIdx != null) {
               leftIdx = nextLeftIdx;
               rightIdx = nextLeftIdx + 1;
-              console.info(
-                "Interpreter filter resolved via adjacent fallback",
-                {
-                  index: i,
-                  relation: filter.relation,
-                  lSourceValue,
-                  rSourceValue,
-                  leftIdx,
-                  rightIdx,
-                },
-              );
+              // console.info(
+                // "Interpreter filter resolved via adjacent fallback",
+                // {
+                  // index: i,
+                  // relation: filter.relation,
+                  // lSourceValue,
+                  // rSourceValue,
+                  // leftIdx,
+                  // rightIdx,
+                // },
+              // );
             }
           }
 
@@ -1557,7 +1567,7 @@
     ORDER BY original_rowid, window_start
   `;
 
-    console.log("SQL:", sqlQuery);
+    // console.log("SQL:", sqlQuery);
     interpretedQuery = sqlQuery;
     lastInterpretation = {
       userInput,
@@ -1830,7 +1840,7 @@
       searchSpec = specRecord ?? { mode: "manual" }; // manual settings are in searchDetail.flag
       const spec = specRecord?.spec;
       const reference = spec ? convertChartBlocksToCatalogBlocks(sessionData.data).blocks : null;
-      if (!spec) console.log("Search with manual checks...");
+      // if (!spec) console.log("Search with manual checks...");
       const datasetInfo = datasets.find((d) => d.name === selectedDataset);
       let segmentSources = [];
       let useDB = false;
@@ -1839,7 +1849,7 @@
           browser &&
           (window.location.hostname === "localhost" ||
             window.location.hostname === "127.0.0.1");
-        console.log("Is local browser?", isLocalBrowser);
+        // console.log("Is local browser?", isLocalBrowser);
         if (isLocalBrowser) {
           const dbRes = await fetch(
             `${base}/api/getSegment?dataset=${selectedDataset}`,
@@ -1884,7 +1894,7 @@
           useDB = true;
         }
       } catch (e) {
-        console.log("No .db file or .db file is empty.", e);
+        // console.log("No .db file or .db file is empty.", e);
       }
       if (!useDB) {
         const fileList = CSVData.map((item) => item.session_id);
@@ -1959,10 +1969,42 @@
         ? buildVectorFromSegment(reference, checks, rankingStats)
         : buildVectorForCurrentSegment(currentResults, checks, rankingStats);
       patternData = results;
-      const rankWeights = initialWeights(currentVector);
+      // A re-used pattern starts from its saved, feedback-updated weights (unless the
+      // spec's attribute priorities changed since, which redefines the weighting).
+      const reuse = pendingReuseWeights;
+      pendingReuseWeights = null;
+      const reuseOk = Boolean(spec) && reuse?.reference === sessionData.data
+        && reuse.prioritySig === prioritySignature(spec.attributes);
+      // Same dataset: replay the saved history. Other dataset: start from the saved final weights.
+      const replay = reuseOk ? reuse.history : null;
+      const rankWeights = replay
+        ? restoreWeights(replay.initialWeights, currentVector)
+        : reuseOk
+          ? restoreWeights(reuse.weights, currentVector)
+          // App. C.2: spec searches start from priority weights (primary = 2x secondary).
+          : spec ? weightsFromSpec(spec) : initialWeights(currentVector);
       weights.set(rankWeights);
       const finalScore = await calculateRankAuto(patternVectors, currentVector, 4, 100, rankWeights, Boolean(spec));
       if (!specRerankRunner.isCurrent(seq)) return;
+      let orderedIds = finalScore.map(([segmentId]) => segmentId);
+      let currentWeights = rankWeights;
+      const replayedRejected = [];
+      rankHistory = { initialWeights: { ...rankWeights }, steps: [] };
+      if (replay) {
+        const vectorById = new Map(patternVectors.map((vector) => [vector.segmentId, vector]));
+        const removedSoFar = new Set();
+        for (const step of replay.steps) {
+          orderedIds = rerankCandidates(orderedIds, step.rejectedId, patternVectors,
+            currentVector, step.weights, removedSoFar);
+          removedSoFar.add(step.rejectedId);
+          currentWeights = step.weights;
+          rankHistory.steps.push({ rejectedId: step.rejectedId, weights: { ...step.weights } });
+          if (vectorById.has(step.rejectedId)) replayedRejected.push(vectorById.get(step.rejectedId));
+        }
+        weights.set(currentWeights);
+      }
+      // Deleted results never reappear (also covers patterns saved without a history).
+      orderedIds = orderedIds.filter((id) => !removedResultIds.has(id));
       const idToData = Object.fromEntries(
         patternData.map((d) => [d[0].segmentId, d]),
       );
@@ -1980,8 +2022,8 @@
           sig: filterSignature(interpretation),
         };
       }
-      const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
-      feedbackRankState = { patternVectors, currentVector, rejected: [] };
+      const fullData = orderedIds.map((segmentId) => idToData[segmentId]).filter(Boolean);
+      feedbackRankState = { patternVectors, currentVector, rejected: replayedRejected };
       searchCount = fullData.length;
       patternDataLoad(fullData, 30, seq);
     } catch (error) {
@@ -1995,7 +2037,7 @@
   async function segmentQuery(patternVectors, checks, seq = specRerankRunner.currentSeq()) {
     // Temporarily use checkboxes to build vector, later will be replaced by interpreter output
     // Function called when interpretedQuery is not empty
-    console.log("search with interpreted query...");
+    // console.log("search with interpreted query...");
 
     if (!interpretedQuery || interpretedQuery.trim() === "") {
       console.warn("No query provided");
@@ -2081,7 +2123,7 @@
       const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
       feedbackRankState = { patternVectors, currentVector, rejected: [] };
       searchCount = fullData.length;
-      console.log("Full data", fullData);
+      // console.log("Full data", fullData);
       patternDataLoad(fullData, 30, seq);
     } catch (error) {
       if (!specRerankRunner.isCurrent(seq)) return;
@@ -2355,9 +2397,9 @@
     }
 
     console.timeEnd("Initial load time");
-    console.log(
-      `Loaded ${loadedResultCount} of ${allSearchResults.length} results (showing first ${$showResultCount})`,
-    );
+    // console.log(
+      // `Loaded ${loadedResultCount} of ${allSearchResults.length} results (showing first ${$showResultCount})`,
+    // );
 
     // First visible batch starts as live charts and will be frozen on next load-more click.
     pendingFreezeSegmentIds = getVisibleSegmentIds($showResultCount);
@@ -2454,9 +2496,9 @@
       // Append new data to existing list
       patternDataList.update((current) => [...current, ...newData]);
       loadedResultCount = endIndex;
-      console.log(
-        `Loaded ${newData.length} results (total loaded: ${loadedResultCount}/${allSearchResults.length})`,
-      );
+      // console.log(
+        // `Loaded ${newData.length} results (total loaded: ${loadedResultCount}/${allSearchResults.length})`,
+      // );
     } catch (error) {
       console.error("Error loading more results:", error);
     } finally {
@@ -2480,6 +2522,7 @@
   }
 
   function handleSelectionChanged(event) {
+    pendingReuseSelection = null; // the user's own selection replaces a re-used one
     showResultCount.set(15);
     exp_result = {
       explanations: [],
@@ -2699,7 +2742,10 @@
         const sessionFile = sessionFiles[0];
         text = await sessionFile.async("string");
       }
-      const parsedData = Papa.parse(text, { header: true }).data;
+      // The CSV ends with a newline; without skipEmptyLines that yields a blank row whose
+      // empty session_id was requested as ".../segment_results/.json" (404).
+      const parsedData = Papa.parse(text, { header: true, skipEmptyLines: true }).data
+        .filter((row) => row.session_id && row.session_id.trim() !== "");
       sessions = parsedData.map((session) => ({
         session_id: session.session_id,
         prompt_code: session.prompt_code,
@@ -2988,7 +3034,7 @@
   function buildAttributeConfigs(detectedFields) {
     if (!detectedFields) return null;
 
-    console.log("Building attribute configs from detected fields");
+    // console.log("Building attribute configs from detected fields");
     const config = {};
 
     // Add range fields
@@ -3027,7 +3073,7 @@
         };
       }
 
-      console.log(`    Added range field config: ${key}`);
+      // console.log(`    Added range field config: ${key}`);
     }
 
     // Add point value fields
@@ -3042,9 +3088,9 @@
           hasRange: false,
           domain: [0, 1],
         };
-        console.log(
-          `    Added point field config: semantic_change (from ${key})`,
-        );
+        // console.log(
+          // `    Added point field config: semantic_change (from ${key})`,
+        // );
       } else {
         // Generic point field
         config[key] = {
@@ -3053,17 +3099,17 @@
           hasRange: false,
           domain: null, // auto-calculate
         };
-        console.log(`    Added point field config: ${key}`);
+        // console.log(`    Added point field config: ${key}`);
       }
     }
 
-    console.log("  Config built successfully:", config);
+    // console.log("  Config built successfully:", config);
     return config;
   }
 
   // Detect available fields from chartData (fine-grained data)
   function detectLineChartFields(chartDataSample) {
-    console.log("Detecting LineChart fields from chartData");
+    // console.log("Detecting LineChart fields from chartData");
 
     if (!chartDataSample || chartDataSample.length === 0) {
       console.warn("No chartData sample available");
@@ -3071,7 +3117,7 @@
     }
 
     const sample = chartDataSample[0];
-    console.log("  LineChart sample:", sample);
+    // console.log("  LineChart sample:", sample);
 
     const fields = {
       numericFields: [],
@@ -3086,13 +3132,13 @@
 
       // Check if numeric
       if (typeof value !== "number") {
-        console.log(`Skipping non-numeric field: ${key} (${typeof value})`);
+        // console.log(`Skipping non-numeric field: ${key} (${typeof value})`);
         continue;
       }
 
       // Skip excluded fields
       if (excludedFields.includes(key)) {
-        console.log(`     Skipping excluded field: ${key}`);
+        // console.log(`     Skipping excluded field: ${key}`);
         continue;
       }
 
@@ -3100,10 +3146,10 @@
         key,
         label: formatLabel(key),
       });
-      console.log(`    Numeric field detected: ${key}`);
+      // console.log(`    Numeric field detected: ${key}`);
     }
 
-    console.log("  LineChart detection complete:", fields);
+    // console.log("  LineChart detection complete:", fields);
     return fields;
   }
 
@@ -3111,7 +3157,7 @@
   function buildLineChartConfigs(detectedFields) {
     if (!detectedFields) return null;
 
-    console.log("Building LineChart attribute configs");
+    // console.log("Building LineChart attribute configs");
     const config = {};
 
     for (const field of detectedFields.numericFields) {
@@ -3140,17 +3186,17 @@
         };
       }
 
-      console.log(`Added LineChart field config: ${key}`);
+      // console.log(`Added LineChart field config: ${key}`);
     }
 
-    console.log("LineChart config built:", config);
+    // console.log("LineChart config built:", config);
     return config;
   }
 
   // Detect available fields from segment_results data
   async function detectAvailableFields(datasetName) {
     try {
-      console.log("🔍 Detecting fields for dataset:", datasetName);
+      // console.log("Detecting fields for dataset:", datasetName);
 
       // 1. Get first session's segment_results data
       if (!CSVData || CSVData.length === 0) {
@@ -3164,7 +3210,7 @@
         return null;
       }
 
-      console.log("Sampling from session:", firstSessionId);
+      // console.log("Sampling from session:", firstSessionId);
 
       const segmentData = await fetchSimilarityData(firstSessionId);
       if (!segmentData || !segmentData.length) {
@@ -3174,7 +3220,7 @@
 
       // 2. Analyze first segment's fields
       const sample = segmentData[0];
-      console.log("  Sample data:", sample);
+      // console.log("  Sample data:", sample);
 
       const fields = {
         rangeFields: [],
@@ -3190,9 +3236,9 @@
 
         // Skip non-numeric fields
         if (typeof value !== "number") {
-          console.log(
-            `     Skipping non-numeric field: ${key} (${typeof value})`,
-          );
+          // console.log(
+            // `     Skipping non-numeric field: ${key} (${typeof value})`,
+          // );
           continue;
         }
 
@@ -3213,7 +3259,7 @@
               label: formatLabel(baseKey),
               hasRange: true,
             });
-            console.log(`    Range field detected: ${baseKey}`);
+            // console.log(`    Range field detected: ${baseKey}`);
           }
           continue;
         }
@@ -3221,7 +3267,7 @@
         // Meta fields (usually not for visualization)
         if (["sentence", "score", "last_event_time"].includes(key)) {
           fields.metaFields.push({ key, label: formatLabel(key) });
-          console.log(`Meta field: ${key}`);
+          // console.log(`Meta field: ${key}`);
           continue;
         }
 
@@ -3231,10 +3277,10 @@
           label: formatLabel(key),
           hasRange: false,
         });
-        console.log(`    Point field detected: ${key}`);
+        // console.log(`    Point field detected: ${key}`);
       }
 
-      console.log("  Detection complete:", fields);
+      // console.log("  Detection complete:", fields);
       return fields;
     } catch (error) {
       console.error("  Field detection failed:", error);
@@ -3244,32 +3290,32 @@
 
   // Debug function to log current configuration
   function logCurrentConfiguration() {
-    console.log("=== InkPulse Configuration Debug ===");
-    console.log("Current Dataset:", selectedDataset);
-    console.log("BarChart Axes:", {
-      x: barChartXAxis,
-      y: barChartYAxis,
-    });
-    console.log("LineChart Axes:", {
-      x: lineChartXAxis,
-      y: lineChartYAxis,
-    });
-    console.log("BarChart Attribute Config:", barChartAttributeConfig);
-    console.log("Available BarChart Fields:", availableBarChartFields);
-    console.log("LineChart Attribute Config:", lineChartAttributeConfig);
-    console.log("Available LineChart Fields:", availableLineChartFields);
-    console.log(
-      "Number of config fields:",
-      Object.keys(barChartAttributeConfig).length,
-    );
-    console.log("====================================");
+    // console.log("=== InkPulse Configuration Debug ===");
+    // console.log("Current Dataset:", selectedDataset);
+    // console.log("BarChart Axes:", {
+      // x: barChartXAxis,
+      // y: barChartYAxis,
+    // });
+    // console.log("LineChart Axes:", {
+      // x: lineChartXAxis,
+      // y: lineChartYAxis,
+    // });
+    // console.log("BarChart Attribute Config:", barChartAttributeConfig);
+    // console.log("Available BarChart Fields:", availableBarChartFields);
+    // console.log("LineChart Attribute Config:", lineChartAttributeConfig);
+    // console.log("Available LineChart Fields:", availableLineChartFields);
+    // console.log(
+      // "Number of config fields:",
+      // Object.keys(barChartAttributeConfig).length,
+    // );
+    // console.log("====================================");
   }
 
   // Auto-log when configuration changes
   $: if (barChartAttributeConfig && selectedDataset) {
     // Triggered whenever barChartAttributeConfig or selectedDataset changes
     if (Object.keys(barChartAttributeConfig).length > 0) {
-      console.log("  Configuration updated for dataset:", selectedDataset);
+      console.log("Configuration updated for dataset:", selectedDataset);
     }
   }
 
@@ -3288,7 +3334,7 @@
     !lineChartFieldsDetected &&
     $clickSession.chartData.length > 0
   ) {
-    console.log("🔍 Detecting LineChart fields from first session data");
+    // console.log("Detecting LineChart fields from first session data");
     const detectedLineFields = detectLineChartFields($clickSession.chartData);
 
     if (detectedLineFields) {
@@ -3304,11 +3350,11 @@
           label: newLineConfig[key].label,
         }));
 
-        console.log(
-          "✨ LineChart config updated with",
-          Object.keys(newLineConfig).length,
-          "fields",
-        );
+        // console.log(
+          // "✨ LineChart config updated with",
+          // Object.keys(newLineConfig).length,
+          // "fields",
+        // );
         lineChartFieldsDetected = true; // Only detect once
       }
     }
@@ -3363,7 +3409,7 @@
 
     // Stage 1: Detect available fields
     const detectedFields = await detectAvailableFields(selectedDataset);
-    console.log("Detected fields result:", detectedFields);
+    // console.log("Detected fields result:", detectedFields);
 
     // Stage 2: Build attribute configurations
     if (detectedFields) {
@@ -3396,15 +3442,15 @@
         barChartXAxis = defaultXAxis;
         barChartYAxis = defaultYAxis;
 
-        console.log(
-          "BarChart config updated with",
-          Object.keys(newConfig).length,
-          "fields",
-        );
-        console.log("Default axes set to:", {
-          x: defaultXAxis,
-          y: defaultYAxis,
-        });
+        // console.log(
+          // "BarChart config updated with",
+          // Object.keys(newConfig).length,
+          // "fields",
+        // );
+        // console.log("Default axes set to:", {
+          // x: defaultXAxis,
+          // y: defaultYAxis,
+        // });
       }
     }
 
@@ -3414,7 +3460,9 @@
     // Stage 3: Detect LineChart fields (when first session data is available)
     // We'll do this via reactive statement after data loads
 
-    if (isLoadOverallData == false) {
+    // Refresh this dataset's baseline row every time it loads (the flag used to skip every
+    // dataset after the first, so later datasets had no baseline to compare against).
+    {
       const prefix = selectedDataset.slice(0, 2);
       const itemToSave = {
         id: `pattern_0`,
@@ -3449,7 +3497,7 @@
         browser &&
         (window.location.hostname === "localhost" ||
           window.location.hostname === "127.0.0.1");
-      console.log("Is local browser?", isLocalBrowser);
+      // console.log("Is local browser?", isLocalBrowser);
       if (isLocalBrowser) {
         const segmentDB = await fetch(
           `${base}/api/getSegment?dataset=${selectedDataset}`,
@@ -3491,7 +3539,7 @@
 
       console.log("Use DB:", useDB, "Segment data length:", segmentData.length);
     } catch (e) {
-      console.log("No .db file or .db file is empty.", e);
+      // console.log("No .db file or .db file is empty.", e);
     }
 
     if (useDB) {
@@ -4311,10 +4359,12 @@
   }
 
   // Optional static/dataset/<name>/meta.json declares segmentation and feature versions.
+  // Only requested for datasets that declare `meta: true`, so datasets without the file do
+  // not produce a 404 in the console.
   async function loadDatasetMeta(name) {
     try {
       const info = datasets.find((d) => d.name === name);
-      if (info?.source !== "repo") return null;
+      if (info?.source !== "repo" || !info.meta) return null;
       const res = await fetch(`${base}/dataset/${name}/meta.json`);
       return res.ok ? await res.json() : null;
     } catch {
@@ -4326,13 +4376,17 @@
   let lastFetchError = "";
   function applyPendingReuseSelection() {
     if (!pendingReuseSelection || $clickSession?.sessionId !== pendingReuseSelection.sessionId) return;
-    sharedSelection = pendingReuseSelection;
-    pendingReuseSelection = null;
+    // Kept (not cleared) so a later attempt can re-apply once the bars exist; a new object
+    // each time re-triggers the chart. Cleared when the user makes their own selection.
+    sharedSelection = { ...pendingReuseSelection };
   }
 
   // Re-run a saved typed pattern in the search panel without calling the LLM. The saved
   // reference, description and specification are restored; the user then presses Search.
   // For another dataset the specification is first checked against that dataset's blocks.
+  // Saved feedback-updated weights waiting for the next search of the re-used reference.
+  let pendingReuseWeights = null;
+
   async function handleReusePattern(saved) {
     if (!saved) return;
     try {
@@ -4359,33 +4413,64 @@
         alert(`Pattern "${saved.name}" (from ${saved.dataset}) cannot be used on ${selectedDataset}:\n\n- ${check.errors.join("\n- ")}`);
         return;
       }
-      if (check.warnings.length &&
-          !confirm(`Pattern "${saved.name}" may not behave the same on ${selectedDataset}:\n\n- ${check.warnings.join("\n- ")}\n\nLoad it anyway?`)) {
-        return;
-      }
 
       const selection = structuredClone(saved.searchDetail);
       const spec = structuredClone(saved.searchSpec.spec);
       // The chart panel needs a current session; foreign references have none here.
       // Try the reference session first (same dataset), then fall back to other sessions.
-      const candidates = [
-        ...(sameDataset ? [sessionId] : []),
-        ...(CSVData ?? []).slice(0, 3).map((row) => row.session_id),
-      ].filter(Boolean);
-      if (!candidates.length) throw new Error(`No sessions are loaded for dataset "${selectedDataset}".`);
       let session = null;
       let contextId = null;
-      for (const id of candidates) {
-        session = $clickSession?.sessionId === id ? $clickSession : get(storeSessionData).get(id);
-        if (!session) {
-          lastFetchError = "";
-          await fetchData(id, false);
-          session = get(storeSessionData).get(id);
+      if (!sameDataset && Array.isArray(selection.wholeData) && selection.wholeData.length) {
+        // Another dataset: show the saved reference session itself (its blocks and line chart
+        // were saved with the pattern), not an arbitrary session of this dataset. It is not
+        // added to the session store, so it never appears among this dataset's sessions.
+        const lineData = Array.isArray(selection.chartData) ? selection.chartData : [];
+        const endTime = Number(lineData[lineData.length - 1]?.time);
+        const time100 = Number.isFinite(endTime) ? endTime : 1;
+        // Saved `wholeData` is the bar chart's processed form (progress in %, time in minutes);
+        // the chart consumes raw blocks (progress 0-1, time in seconds), so convert back.
+        const rawBlocks = selection.wholeData.map((d) =>
+          "start_progress" in d
+            ? d
+            : {
+                start_progress: d.startProgress / 100,
+                end_progress: d.endProgress / 100,
+                start_time: d.startTime * 60,
+                end_time: d.endTime * 60,
+                residual_vector_norm: d.residual_vector_norm,
+                source: d.source,
+              },
+        );
+        session = {
+          sessionId,
+          time100,
+          currentTime: time100,
+          segmentTimeOffset: 0,
+          chartData: lineData,
+          textElements: [],
+          similarityData: rawBlocks,
+          totalSimilarityData: rawBlocks,
+          savedFromDataset: saved.dataset,
+        };
+        contextId = sessionId;
+      } else {
+        const candidates = [
+          ...(sameDataset ? [sessionId] : []),
+          ...(CSVData ?? []).slice(0, 3).map((row) => row.session_id),
+        ].filter(Boolean);
+        if (!candidates.length) throw new Error(`No sessions are loaded for dataset "${selectedDataset}".`);
+        for (const id of candidates) {
+          session = $clickSession?.sessionId === id ? $clickSession : get(storeSessionData).get(id);
+          if (!session) {
+            lastFetchError = "";
+            await fetchData(id, false);
+            session = get(storeSessionData).get(id);
+          }
+          if (session) { contextId = id; break; }
         }
-        if (session) { contextId = id; break; }
-      }
-      if (!session) {
-        throw new Error(`Could not load a session to anchor the search panel (tried ${candidates.join(", ")}). ${lastFetchError}`);
+        if (!session) {
+          throw new Error(`Could not load a session to anchor the search panel (tried ${candidates.join(", ")}). ${lastFetchError}`);
+        }
       }
 
       selectedPatterns = {};
@@ -4395,7 +4480,9 @@
       showMulti = true;
       selectionMode = true;
       showPatternSearch = true;
-      if (currentView === "pattern-detail") handleBackFromDetail();
+      // Same dataset: go back to the session view. Another dataset: stay on the saved
+      // pattern, since the search panel alone answers whether the pattern exists there.
+      if (currentView === "pattern-detail" && sameDataset) handleBackFromDetail();
       await tick();
 
       selection.count = selection.data.length;
@@ -4408,7 +4495,7 @@
       const progress = selection.range?.progress;
       const time = selection.selectedTimeRange;
       // Applied once the chart has rendered its bars (see applyPendingReuseSelection).
-      pendingReuseSelection = sameDataset && contextId === sessionId && progress ? {
+      pendingReuseSelection = contextId === sessionId && progress ? {
         xMin: progress.min,
         xMax: progress.max,
         xField: "progress",
@@ -4431,9 +4518,18 @@
         // Segment ids are `<session>_<window start>`, so they only carry over within a dataset.
         excludedSegmentIds: sameDataset ? saved.reproducibility?.excludedSegmentIds ?? [] : [],
       };
+      pendingReuseWeights = saved.reproducibility?.rankingWeights
+        ? {
+            reference: selection.data,
+            prioritySig: prioritySignature(spec.attributes),
+            weights: saved.reproducibility.rankingWeights,
+            // Replay is only meaningful where segment ids mean the same thing.
+            history: sameDataset ? saved.reproducibility.rankingHistory ?? null : null,
+          }
+        : null;
       // The chart may already be mounted (no chartLoaded event) or still rendering.
       await tick();
-      setTimeout(applyPendingReuseSelection, 150);
+      for (const delay of [150, 400, 900]) setTimeout(applyPendingReuseSelection, delay);
     } catch (error) {
       alert(`Could not reuse pattern: ${error.message}`);
     }
@@ -4669,19 +4765,19 @@
   function toggleExportMenu() {
     showExportMenu = !showExportMenu;
     if (showExportMenu) {
-      console.log("=== Export Menu Debug ===");
-      console.log("searchPatternSet:", $searchPatternSet);
-      console.log("selectedDataset:", selectedDataset);
-      console.log(
-        "all patterns:",
-        $searchPatternSet.filter((p) => p.id !== "pattern_0"),
-      );
-      console.log(
-        "filtered patterns:",
-        $searchPatternSet.filter(
-          (p) => p.dataset === selectedDataset && p.id !== "pattern_0",
-        ),
-      );
+      // console.log("=== Export Menu Debug ===");
+      // console.log("searchPatternSet:", $searchPatternSet);
+      // console.log("selectedDataset:", selectedDataset);
+      // console.log(
+        // "all patterns:",
+        // $searchPatternSet.filter((p) => p.id !== "pattern_0"),
+      // );
+      // console.log(
+        // "filtered patterns:",
+        // $searchPatternSet.filter(
+          // (p) => p.dataset === selectedDataset && p.id !== "pattern_0",
+        // ),
+      // );
     }
   }
 
@@ -4830,6 +4926,7 @@
       await specRerankRunner.run(detail.draft, state, async (finalScore) => {
         if (specRankState !== state) return;
         weights.set(weightsFromSpec(detail.draft));
+        rankHistory = null; // priorities redefine the weighting, so the old history no longer applies
         feedbackRankState = {
           patternVectors: state.patternVectors,
           currentVector: state.currentVector,
@@ -6148,16 +6245,19 @@
           >
             <svelte:fragment slot="refine">
               {#if selectedPatternForDetail.searchSpec?.mode === "spec"}
-                <div style="margin-top: 8px;">
-                  <button
-                    type="button"
-                    class="search-pattern-button"
-                    title="Load this pattern's reference and specification into the search panel"
-                    on:click={() => handleReusePattern(selectedPatternForDetail)}
-                  >
-                    Reuse in search
-                  </button>
-                </div>
+                <!-- Patterns saved before the ranking history existed can be viewed but not re-used. -->
+                {#if selectedPatternForDetail.reproducibility && "rankingHistory" in selectedPatternForDetail.reproducibility}
+                  <div style="margin-top: 8px;">
+                    <button
+                      type="button"
+                      class="search-pattern-button"
+                      title="Load this pattern's reference and specification into the search panel"
+                      on:click={() => handleReusePattern(selectedPatternForDetail)}
+                    >
+                      Reuse in search
+                    </button>
+                  </div>
+                {/if}
                 <form class="refine-form" on:submit|preventDefault={handleRefine}>
                   <label for="refine-pattern">Refine pattern</label>
                   <textarea
@@ -6431,7 +6531,8 @@
         </div>
 
         {#if showMulti}
-          {#if $clickSession}
+          <!-- A reference from another dataset is shown in the search panel only. -->
+          {#if $clickSession && !$clickSession.savedFromDataset}
             <div style="margin-top: 50px; margin-bottom: 0px;">
               {#if !loadedMap[$clickSession.sessionId]}
                 <SkeletonLoading />
