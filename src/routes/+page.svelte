@@ -39,6 +39,9 @@
     blocksOf,
     hasActiveWeights,
     weightsFromSpec,
+    initialWeights,
+    updateWeights,
+    rerankCandidates,
   } from "$lib/ranking.js";
   // import WeightPanel from "../components/weightPanel.svelte";
   import Papa from "papaparse";
@@ -76,6 +79,7 @@
 
   let specInterpretation = null;
   let specRankState = null;
+  let feedbackRankState = null;
   let lastSearchedFilterSig = null;
   const filterSignature = (interp) =>
     interp?.draft ? JSON.stringify({ c: interp.draft.constraints, p: interp.pendingIds ?? [] }) : null;
@@ -378,7 +382,13 @@
   }
 
   let removedResultIds = new Set();
-  const removepattern = (segmentId) => {
+  const removepattern = async (segmentId) => {
+    if (isRankingBusy || isLoadingMore || isSaving) return;
+    const state = feedbackRankState;
+    const orderedIds = allSearchResults.map((group) => group[0]?.segmentId);
+    const rejectedIndex = orderedIds.indexOf(segmentId);
+    const rejected = state?.patternVectors.find((vector) => vector.segmentId === segmentId);
+    const previousLoadedCount = loadedResultCount;
     removedResultIds = new Set([...removedResultIds, segmentId]);
     patternDataList.update((patternList) =>
       patternList.filter((pattern) => pattern.segmentId !== segmentId),
@@ -401,7 +411,39 @@
     linePreviewImageBySegmentId = nextLineImages;
     searchResultBarContainersBySegmentId = nextBarContainers;
     searchResultLineContainersBySegmentId = nextLineContainers;
-    showResultCount.update((count) => count - 1);
+    showResultCount.update((count) => Math.max(0, count - 1));
+    if (!state || !rejected || rejectedIndex < 0) {
+      allSearchResults = allSearchResults.filter((group) => group[0]?.segmentId !== segmentId);
+      if (rejectedIndex >= 0 && rejectedIndex < loadedResultCount) loadedResultCount--;
+      searchCount = allSearchResults.length;
+      return;
+    }
+
+    state.rejected = [...state.rejected, rejected];
+    const nextWeights = updateWeights(get(weights), state.currentVector, state.rejected);
+    const nextIds = rerankCandidates(orderedIds, segmentId, state.patternVectors,
+      state.currentVector, nextWeights, removedResultIds);
+    weights.set(nextWeights);
+    const byId = new Map(allSearchResults.map((group) => [group[0]?.segmentId, group]));
+    allSearchResults = nextIds.map((id) => byId.get(id));
+    searchCount = allSearchResults.length;
+
+    // Retain the existing prefix rows and previews. Reload only the reordered tail.
+    const prefixIds = new Set(orderedIds.slice(0, rejectedIndex));
+    patternDataList.update((rows) => rows.filter((row) => prefixIds.has(row.segmentId)));
+    loadedResultCount = nextIds.filter((id) => prefixIds.has(id)).length;
+    const seq = specRerankRunner.nextSeq();
+    isReranking = true;
+    try {
+      await loadMoreResultsInternal(
+        Math.max(0, previousLoadedCount - 1 - loadedResultCount), false, seq,
+      );
+      if (specRerankRunner.isCurrent(seq)) {
+        pendingFreezeSegmentIds = getVisibleSegmentIds(get(showResultCount));
+      }
+    } finally {
+      if (specRerankRunner.isCurrent(seq)) isReranking = false;
+    }
   };
 
   function resetSearchResultSnapshotState() {
@@ -1043,6 +1085,7 @@
   }
 
   function invalidatePendingRanking() {
+    feedbackRankState = null;
     specRerankRunner.nextSeq();
     isReranking = false;
     isLoadingMore = false;
@@ -1722,6 +1765,7 @@
     if (specEnabled && interpretation?.pending) return;
     const mode = selectSearchMode(specEnabled, Boolean(interpretation?.draft), interpretedQuery);
     specRankState = null;
+    feedbackRankState = null;
     lastSearchedFilterSig = null;
     const seq = specRerankRunner.nextSeq();
     isReranking = false;
@@ -1915,7 +1959,8 @@
         ? buildVectorFromSegment(reference, checks, rankingStats)
         : buildVectorForCurrentSegment(currentResults, checks, rankingStats);
       patternData = results;
-      const rankWeights = spec ? weightsFromSpec(spec) : get(weights);
+      const rankWeights = initialWeights(currentVector);
+      weights.set(rankWeights);
       const finalScore = await calculateRankAuto(patternVectors, currentVector, 4, 100, rankWeights, Boolean(spec));
       if (!specRerankRunner.isCurrent(seq)) return;
       const idToData = Object.fromEntries(
@@ -1936,6 +1981,7 @@
         };
       }
       const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
+      feedbackRankState = { patternVectors, currentVector, rejected: [] };
       searchCount = fullData.length;
       patternDataLoad(fullData, 30, seq);
     } catch (error) {
@@ -2025,12 +2071,15 @@
         patternVectors.push(vector);
       }
 
-      const finalScore = await calculateRankAuto(patternVectors, currentVector);
+      const rankWeights = initialWeights(currentVector);
+      weights.set(rankWeights);
+      const finalScore = await calculateRankAuto(patternVectors, currentVector, 4, 100, rankWeights);
       if (!specRerankRunner.isCurrent(seq)) return;
       const idToData = Object.fromEntries(
         patternData.map((d) => [d[0].segmentId, d]),
       );
       const fullData = finalScore.map(([segmentId]) => idToData[segmentId]);
+      feedbackRankState = { patternVectors, currentVector, rejected: [] };
       searchCount = fullData.length;
       console.log("Full data", fullData);
       patternDataLoad(fullData, 30, seq);
@@ -2290,7 +2339,8 @@
     console.time("Initial load time");
 
     // Store all results for lazy loading
-    allSearchResults = results;
+    allSearchResults = results.filter((group) => !removedResultIds.has(group[0]?.segmentId));
+    searchCount = allSearchResults.length;
     loadedResultCount = 0;
 
     // Clear existing data
@@ -4779,6 +4829,12 @@
     try {
       await specRerankRunner.run(detail.draft, state, async (finalScore) => {
         if (specRankState !== state) return;
+        weights.set(weightsFromSpec(detail.draft));
+        feedbackRankState = {
+          patternVectors: state.patternVectors,
+          currentVector: state.currentVector,
+          rejected: feedbackRankState?.rejected ?? [],
+        };
         const fullData = finalScore.map(([segmentId]) => state.idToData[segmentId]);
         specRankState = {
           ...state,
@@ -5846,6 +5902,7 @@
                             <strong>{sessionData.sessionId}</strong>
                             <button
                               class="close-button"
+                              disabled={isRankingBusy || isLoadingMore || isSaving}
                               style="position: absolute; top:0px; right:0px; background-color: initial;"
                               on:click={() =>
                                 removepattern(sessionData.segmentId)}>×</button

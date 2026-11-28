@@ -12,7 +12,7 @@
 // hard constraint in findSegments() (+page.svelte).
 //
 // Distance = sum over features of weight * (mean squared difference over the feature's
-// elements). With all weights = 1, each feature contributes a value in [0, 1].
+// elements). Active weights sum to 1, keeping the combined distance in [0, 1].
 //
 // Units of the inputs:
 //   candidate blocks (segment_results data): start/end_progress in 0-1.
@@ -20,6 +20,65 @@
 //     bar chart sends startProgress/endProgress, line chart sends start_progress/end_progress.
 
 export const RANKED_FEATURES = ["s", "p", "sem", "tr"];
+
+// Only features present in the reference participate in a manual search.
+export function initialWeights(currentVector) {
+  const active = RANKED_FEATURES.filter((key) =>
+    Array.isArray(currentVector?.[key]) && currentVector[key].length > 0,
+  );
+  return Object.fromEntries([
+    ["t", 0],
+    ...RANKED_FEATURES.map((key) => [key, active.includes(key) ? 1 / active.length : 0]),
+  ]);
+}
+
+// Appendix C.3: only explicitly kept examples and the reference are positives.
+// Inactive features remain at zero instead of receiving the epsilon floor.
+export function updateWeights(weights, reference, rejected, kept = []) {
+  if (!rejected.length) return { ...weights };
+  const next = { ...weights, t: 0 };
+  const active = RANKED_FEATURES.filter((key) =>
+    weights[key] > 0 && Array.isArray(reference[key]) && reference[key].length > 0,
+  );
+  for (const key of RANKED_FEATURES) {
+    if (!active.includes(key)) {
+      next[key] = 0;
+      continue;
+    }
+    const distances = (examples) => examples
+      .filter((example) => Array.isArray(example[key]))
+      .map((example) => featureDistance(example[key], reference[key]))
+      .sort((a, b) => a - b);
+    const negatives = distances(rejected);
+    if (!negatives.length) continue;
+    const positives = distances([reference, ...kept]);
+    const separation = Math.max(0,
+      quantileSorted(negatives, 0.5) - quantileSorted(positives, 0.5),
+    );
+    next[key] = 0.75 * weights[key] + 0.25 * (separation + 1e-6);
+  }
+  const total = active.reduce((sum, key) => sum + next[key], 0);
+  for (const key of active) next[key] /= total;
+  return next;
+}
+
+// Preserve every item preceding the rejected candidate, then rank the entire tail
+// (including candidates not loaded into the UI yet). Previously rejected IDs stay out.
+export function rerankCandidates(orderedIds, rejectedId, vectors, reference, weights, excludedIds = new Set()) {
+  const index = orderedIds.indexOf(rejectedId);
+  if (index < 0) return orderedIds.filter((id) => !excludedIds.has(id));
+  const excluded = new Set([...excludedIds, rejectedId]);
+  const prefix = orderedIds.slice(0, index).filter((id) => !excluded.has(id));
+  const byId = new Map(vectors.map((vector) => [vector.segmentId, vector]));
+  const tail = orderedIds.slice(index + 1).filter((id) => !excluded.has(id));
+  const scored = tail.map((id, order) => ({
+    id,
+    order,
+    score: byId.has(id) ? rankingDistance(byId.get(id), reference, weights) : Infinity,
+  }));
+  scored.sort((a, b) => (a.score - b.score) || (a.order - b.order));
+  return [...prefix, ...scored.map(({ id }) => id)];
+}
 
 const PRIORITY_WEIGHTS = { primary: 2, secondary: 1 };
 
