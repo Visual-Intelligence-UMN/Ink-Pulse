@@ -2809,6 +2809,7 @@
         time100,
         currentTime,
         segmentTimeOffset,
+        totalTextLength: data.text,
         chartData,
         textElements,
         paragraphColor,
@@ -3997,7 +3998,7 @@
       0,
     );
     playbackIndex = idx;
-    applyPlaybackFrame(sessionId, idx);
+    applyPlaybackFrame(sessionId, idx, e.detail);
     if (isPlaying) schedulePlayback(sessionId, idx);
   }
 
@@ -4015,17 +4016,30 @@
     return idx === -1 ? data.length - 1 : idx;
   }
 
-  function applyPlaybackFrame(sessionId, index) {
+  function applyPlaybackFrame(sessionId, index, selectedBlock = null) {
     clickSession.update((session) => {
       if (!session || session.sessionId !== sessionId) return session;
       const data = session.chartData || [];
       const point = data[index];
       if (!point) return session;
+      // Block progress uses the same final document length as frame percentage.
+      // Recover it from the frame for sessions cached before totalTextLength existed.
+      const totalTextLength = session.totalTextLength ??
+        (point.percentage > 0
+          ? (point.currentText || "").length * 100 / point.percentage
+          : 0);
+      const highlightStart = selectedBlock
+        ? Math.round(selectedBlock.start_progress * totalTextLength)
+        : 0;
+      const highlightEnd = selectedBlock
+        ? Math.round(selectedBlock.end_progress * totalTextLength)
+        : 0;
       const textElements = (point.currentText || "")
         .split("")
         .map((char, i) => ({
           text: char,
           textColor: point.currentColor?.[i] ?? "#000",
+          highlighted: i >= highlightStart && i < highlightEnd,
         }));
       const chartData = data.map((p) => ({
         ...p,
@@ -6693,6 +6707,7 @@
                         {#each $clickSession.textElements as element, _}
                           <span
                             class="text-span"
+                            class:block-highlight={element.highlighted}
                             style="color: {element.textColor}"
                           >
                             {element.text}
@@ -6826,6 +6841,10 @@
 
   .text-span {
     display: inline;
+  }
+
+  .text-span.block-highlight {
+    background-color: #fff2cc;
   }
 
   .progress-container {
